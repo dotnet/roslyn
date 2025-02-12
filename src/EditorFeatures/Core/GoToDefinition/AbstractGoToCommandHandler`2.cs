@@ -103,7 +103,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         if (service == null)
             return false;
 
-        Roslyn.Utilities.Contract.ThrowIfNull(document);
+        Contract.ThrowIfNull(document);
 
         // cancel any prior find-refs that might be in progress.
         _cancellationTokenSource.Cancel();

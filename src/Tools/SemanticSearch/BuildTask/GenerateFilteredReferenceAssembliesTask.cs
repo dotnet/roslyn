@@ -149,31 +149,14 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         var newContent = "# Generated, do not update manually\r\n" +
             string.Join("\r\n", apis);
 
-        string currentContent;
         try
         {
-            currentContent = File.ReadAllText(outputFilePath, Encoding.UTF8);
+            File.WriteAllText(outputFilePath, newContent);
+            Log.LogMessage($"Baseline updated: '{outputFilePath}'");
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            currentContent = "";
-        }
-
-        if (currentContent != newContent)
-        {
-            try
-            {
-                File.WriteAllText(outputFilePath, newContent);
-                Log.LogMessage($"Baseline updated: '{outputFilePath}'");
-            }
-            catch (Exception e)
-            {
-                Log.LogError($"Error updating baseline '{outputFilePath}': {e.Message}");
-            }
-        }
-        else
-        {
-            Log.LogMessage($"Baseline not updated '{outputFilePath}'");
+            Log.LogError($"Error updating baseline '{outputFilePath}': {e.Message}");
         }
     }
 

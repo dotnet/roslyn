@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.Extensions.Logging;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -29,8 +30,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         // admin permissions. Additionally, a restart may be required after workload
         // installation.
         private const bool ExcludeMauiTemplates = true;
-
-        protected ITestOutputHelper TestOutputHelper { get; }
 
         static NewlyCreatedProjectsFromDotNetNew()
         {
@@ -56,9 +55,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        public NewlyCreatedProjectsFromDotNetNew(ITestOutputHelper output)
+        public NewlyCreatedProjectsFromDotNetNew(ITestOutputHelper testOutput) : base(testOutput)
         {
-            TestOutputHelper = output;
         }
 
         [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             // Console App                    console              C#,F#,VB  Common/Console
             // ...
 
-            var result = RunDotNet($"new list --type project --language {language}", output: null);
+            var result = RunDotNet($"new list --type project --language {language}", loggerFactory: null);
 
             var lines = result.Output.Split(["\r", "\n"], StringSplitOptions.RemoveEmptyEntries);
 
@@ -142,13 +140,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         {
             if (ignoredDiagnostics?.Length > 0)
             {
-                TestOutputHelper.WriteLine($"Ignoring compiler diagnostics: \"{string.Join("\", \"", ignoredDiagnostics)}\"");
+                TestOutput.WriteLine($"Ignoring compiler diagnostics: \"{string.Join("\", \"", ignoredDiagnostics)}\"");
             }
 
             var projectDirectory = SolutionDirectory.Path;
             var projectFilePath = GetProjectFilePath(projectDirectory, languageName);
 
-            CreateNewProject(templateName, projectDirectory, languageName, TestOutputHelper);
+            CreateNewProject(templateName, projectDirectory, languageName);
 
             await AssertProjectLoadsCleanlyAsync(projectFilePath, ignoredDiagnostics ?? []);
 
@@ -166,7 +164,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 return Path.Combine(projectDirectory, $"{projectName}.{projectExtension}");
             }
 
-            static void CreateNewProject(string templateName, string outputDirectory, string languageName, ITestOutputHelper output)
+            void CreateNewProject(string templateName, string outputDirectory, string languageName)
             {
                 var language = languageName switch
                 {
@@ -177,7 +175,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
                 TryCopyGlobalJson(outputDirectory);
 
-                var newResult = RunDotNet($"new \"{templateName}\" -o \"{outputDirectory}\" --language \"{language}\"", output, outputDirectory);
+                var newResult = RunDotNet($"new \"{templateName}\" -o \"{outputDirectory}\" --language \"{language}\"", LoggerFactory, outputDirectory);
 
                 // Most templates invoke restore as a post-creation action. However, some, like the
                 // Maui templates, do not run restore since they require additional workloads to be
@@ -190,7 +188,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 try
                 {
                     // Attempt a restore and see if we are instructed to install additional workloads.
-                    var restoreResult = RunDotNet($"restore", output, outputDirectory);
+                    var restoreResult = RunDotNet($"restore", LoggerFactory, outputDirectory);
                 }
                 catch (InvalidOperationException ex) when (ex.Message.Contains("command: dotnet workload restore"))
                 {
@@ -210,7 +208,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 File.Copy(s_globalJsonPath, tempGlobalJsonPath);
             }
 
-            static async Task AssertProjectLoadsCleanlyAsync(string projectFilePath, string[] ignoredDiagnostics)
+            async Task AssertProjectLoadsCleanlyAsync(string projectFilePath, string[] ignoredDiagnostics)
             {
                 using var workspace = CreateMSBuildWorkspace();
                 var project = await workspace.OpenProjectAsync(projectFilePath, cancellationToken: CancellationToken.None);
@@ -240,7 +238,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        private static ProcessResult RunDotNet(string arguments, ITestOutputHelper? output, string? workingDirectory = null)
+        private static ProcessResult RunDotNet(string arguments, ILoggerFactory? loggerFactory, string? workingDirectory = null)
         {
             var dotNetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
 
@@ -264,7 +262,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     ]));
             }
 
-            output?.WriteLine(result.Output);
+            var logger = loggerFactory?.CreateLogger("dotnet.exe output");
+
+            logger?.LogTrace(result.Output);
 
             return result;
         }

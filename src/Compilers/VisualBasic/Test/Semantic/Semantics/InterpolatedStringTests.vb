@@ -1,6 +1,8 @@
 ﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
+
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
@@ -555,7 +557,7 @@ BC42322: Runtime errors might occur when converting 'String' to 'IFormattable'.
         <Fact>
         Public Sub InvariantCulture()
 
-            Dim previousCulture = Threading.Thread.CurrentThread.CurrentCulture
+            Dim previousCulture = Thread.CurrentThread.CurrentCulture
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -584,7 +586,7 @@ End Module
     </file>
 </compilation>, expectedOutput:="1,51,51,51.5")
 
-            Assert.Equal(previousCulture, Threading.Thread.CurrentThread.CurrentCulture)
+            Assert.Equal(previousCulture, Thread.CurrentThread.CurrentCulture)
         End Sub
 
         <Fact>

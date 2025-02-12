@@ -92,7 +92,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 nameof(EmitOptions.IncludePrivateMembers),
                 nameof(EmitOptions.InstrumentationKinds),
                 nameof(EmitOptions.DefaultSourceFileEncoding),
-                nameof(EmitOptions.FallbackSourceFileEncoding));
+                nameof(EmitOptions.FallbackSourceFileEncoding),
+                nameof(EmitOptions.TestOnly_DataToHexViaXxHash128));
         }
 
         [Fact]
