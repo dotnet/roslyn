@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 
@@ -17,6 +18,11 @@ internal abstract class AbstractAddAccessibilityModifiersDiagnosticAnalyzer<TCom
         new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_required), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TCompilationUnitSyntax : SyntaxNode
 {
+    protected abstract IAccessibilityFacts AccessibilityFacts { get; }
+    protected abstract IAddAccessibilityModifiers AddAccessibilityModifiers { get; }
+
+    protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, CodeStyleOption2<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);
+
     protected readonly DiagnosticDescriptor ModifierRemovedDescriptor = CreateDescriptorWithId(
         IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
         EnforceOnBuildValues.AddAccessibilityModifiers,
@@ -46,5 +52,25 @@ internal abstract class AbstractAddAccessibilityModifiersDiagnosticAnalyzer<TCom
         ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)context.Tree.GetRoot(context.CancellationToken));
     }
 
-    protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, CodeStyleOption2<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);
+    protected void CheckMemberAndReportDiagnostic(
+        SyntaxTreeAnalysisContext context,
+        CodeStyleOption2<AccessibilityModifiersRequired> option,
+        SyntaxNode member)
+    {
+        if (!this.AddAccessibilityModifiers.ShouldUpdateAccessibilityModifier(
+                this.AccessibilityFacts, member, option.Value, out var name, out var modifiersAdded))
+        {
+            return;
+        }
+
+        // Have an issue to flag, either add or remove. Report issue to user.
+        var additionalLocations = ImmutableArray.Create(member.GetLocation());
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            modifiersAdded ? Descriptor : ModifierRemovedDescriptor,
+            name.GetLocation(),
+            option.Notification,
+            context.Options,
+            additionalLocations: additionalLocations,
+            modifiersAdded ? ModifiersAddedProperties : null));
+    }
 }

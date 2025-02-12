@@ -2,17 +2,20 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer
         Inherits AbstractAddAccessibilityModifiersDiagnosticAnalyzer(Of CompilationUnitSyntax)
+
+        Protected Overrides ReadOnly Property AccessibilityFacts As IAccessibilityFacts = VisualBasicAccessibilityFacts.Instance
+        Protected Overrides ReadOnly Property AddAccessibilityModifiers As IAddAccessibilityModifiers = VisualBasicAddAccessibilityModifiers.Instance
 
         Protected Overrides Sub ProcessCompilationUnit(
                 context As SyntaxTreeAnalysisContext,
@@ -55,22 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
                 ProcessMembers(context, [option], typeBlock.Members)
             End If
 
-            Dim name As SyntaxToken = Nothing
-            Dim modifiersAdded As Boolean = False
-            If Not VisualBasicAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(
-                    VisualBasicAccessibilityFacts.Instance, member, [option].Value, name, modifiersAdded) Then
-                Return
-            End If
-
-            ' Have an issue to flag, either add or remove. Report issue to user.
-            Dim additionalLocations = ImmutableArray.Create(member.GetLocation())
-            context.ReportDiagnostic(DiagnosticHelper.Create(
-                If(modifiersAdded, Descriptor, ModifierRemovedDescriptor),
-                name.GetLocation(),
-                [option].Notification,
-                context.Options,
-                additionalLocations:=additionalLocations,
-                If(modifiersAdded, ModifiersAddedProperties, Nothing)))
+            CheckMemberAndReportDiagnostic(context, [option], member)
         End Sub
     End Class
 End Namespace
