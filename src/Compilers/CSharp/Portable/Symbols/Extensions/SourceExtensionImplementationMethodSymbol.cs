@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override void CreateTypeParameters(MethodSymbol originalMethod, ref TypeMap typeMap, out ImmutableArray<TypeParameterSymbol> typeParameters)
         {
             // PROTOTYPE: Are we creating type parameters with the right emit behavior? Attributes, etc.
+            //            Also, they should be IsImplicitlyDeclared
             typeMap = typeMap.WithAlphaRename(originalMethod.ContainingType.TypeParameters.Concat(originalMethod.TypeParameters), this, out typeParameters);
         }
 
@@ -126,6 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 base(containingMethod, sourceParameter)
             {
             }
+
+            public override bool IsImplicitlyDeclared => true;
 
             public override int Ordinal
             {
