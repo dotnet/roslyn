@@ -1315,16 +1315,18 @@ public partial class SemanticClassifierTests
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/77189")]
-    public async Task TestStringFieldUsedLater(TestHost testHost)
+    public async Task TestStringFieldUsedLater_ProperModifiers(
+        TestHost testHost,
+        [CombinatorialValues("const", "static readonly")] string modifiers)
     {
         await TestAsync(
-            """
+            $$"""
             using System.Diagnostics.CodeAnalysis;
             using System.Text.RegularExpressions;
 
             class Program
             {
-                private const string regexValue = [|@"$(\a\t\u0020)"|];
+                private {{modifiers}} string regexValue = [|@"$(\a\t\u0020)"|];
 
                 void Goo()
                 {
@@ -1347,5 +1349,33 @@ public partial class SemanticClassifierTests
             Regex.OtherEscape("u"),
             Regex.OtherEscape("0020"),
             Regex.Grouping(")"));
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77189")]
+    public async Task TestStringFieldUsedLater_ImproperModifiers(
+        TestHost testHost,
+        [CombinatorialValues("", "static",  "readonly")] string modifiers)
+    {
+        await TestAsync(
+            $$"""
+            using System.Diagnostics.CodeAnalysis;
+            using System.Text.RegularExpressions;
+
+            class Program
+            {
+                private {{modifiers}} string regexValue = [|@"$(\a\t\u0020)"|];
+
+                void Goo()
+                {
+                    Bar(regexValue);
+                }
+
+                void Bar([StringSyntax(StringSyntaxAttribute.Regex)] string p)
+                {
+                }
+            }
+            """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+            testHost);
     }
 }

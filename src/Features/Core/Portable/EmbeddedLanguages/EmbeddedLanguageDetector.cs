@@ -356,6 +356,31 @@ internal readonly struct EmbeddedLanguageDetector(
         return false;
     }
 
+    private bool IsFieldConsumedByApiWithStringSyntaxAttribute(
+        ISymbol? symbol,
+        SyntaxNode tokenParent,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out string? identifier)
+    {
+        identifier = null;
+        if (symbol is not IFieldSymbol { Name: not "" } fieldSymbol)
+            return false;
+
+        var isConst = fieldSymbol.IsConst;
+        var isStaticReadonly = fieldSymbol.IsStatic && fieldSymbol.IsReadOnly;
+        if (!isConst && !isStaticReadonly)
+            return false;
+
+        var syntaxFacts = this.Info.SyntaxFacts;
+
+        var typeDeclaration = tokenParent.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsTypeDeclaration);
+        if (typeDeclaration is null)
+            return false;
+
+        return CheckDescendants(fieldSymbol, semanticModel, typeDeclaration, cancellationToken, out identifier);
+    }
+
     private bool CheckDescendants(
         ISymbol symbol,
         SemanticModel semanticModel,
@@ -390,26 +415,6 @@ internal readonly struct EmbeddedLanguageDetector(
 
         identifier = null;
         return false;
-    }
-
-    private bool IsFieldConsumedByApiWithStringSyntaxAttribute(
-        ISymbol? symbol,
-        SyntaxNode tokenParent,
-        SemanticModel semanticModel,
-        CancellationToken cancellationToken,
-        [NotNullWhen(true)] out string? identifier)
-    {
-        identifier = null;
-        if (symbol is not IFieldSymbol { Name: not "" } fieldSymbol)
-            return false;
-
-        var syntaxFacts = this.Info.SyntaxFacts;
-
-        var typeDeclaration = tokenParent.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsTypeDeclaration);
-        if (typeDeclaration is null)
-            return false;
-
-        return CheckDescendants(fieldSymbol, semanticModel, typeDeclaration, cancellationToken, out identifier);
     }
 
     private SyntaxNode? TryFindContainer(SyntaxToken token)
