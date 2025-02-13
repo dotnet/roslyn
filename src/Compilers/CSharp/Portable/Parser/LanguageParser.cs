@@ -5048,7 +5048,7 @@ parse_member_name:;
                 }
                 else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
-                    // If we see `for (int i = 0, i < ...` then we do not want to the second 'i' as the next declarator as it
+                    // If we see `for (int i = 0, i < ...` then we do not want to consume the second 'i' as the next declarator as it
                     // is more likely that the user meant to write `for (int i = 0; i < ...` instead and accidentally
                     // used a comma instead of a semicolon.
                     //
