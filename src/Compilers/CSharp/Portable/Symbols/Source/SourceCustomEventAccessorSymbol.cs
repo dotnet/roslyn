@@ -85,7 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(PartialImplementationPart is null);
 
             // If this is a partial event, the corresponding partial definition cannot have any accessor attributes
-            // (there are no explicit accessors in source on the definition part).
+            // (there are no explicit accessors in source on the definition part - it has a field-like syntax).
+            Debug.Assert(PartialDefinitionPart is null
+                or SourceEventAccessorSymbol { AssociatedEvent.MemberSyntax: EventFieldDeclarationSyntax });
 
             return OneOrMany.Create(this.AttributeDeclarationSyntaxList);
         }

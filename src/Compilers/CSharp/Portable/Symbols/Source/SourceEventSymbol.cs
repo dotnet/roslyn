@@ -141,25 +141,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (this.containingType.AnyMemberHasAttributes)
+                if (this.containingType.AnyMemberHasAttributes && MemberSyntax is { } memberSyntax)
                 {
-                    var syntax = this.CSharpSyntaxNode;
-                    if (syntax != null)
-                    {
-                        switch (syntax.Kind())
-                        {
-                            case SyntaxKind.EventDeclaration:
-                                return ((EventDeclarationSyntax)syntax).AttributeLists;
-                            case SyntaxKind.VariableDeclarator:
-                                Debug.Assert(syntax.Parent!.Parent is object);
-                                return ((EventFieldDeclarationSyntax)syntax.Parent.Parent).AttributeLists;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
-                        }
-                    }
+                    return memberSyntax.AttributeLists;
                 }
 
                 return default;
+            }
+        }
+
+        internal MemberDeclarationSyntax? MemberSyntax
+        {
+            get
+            {
+                if (this.CSharpSyntaxNode is { } syntax)
+                {
+                    switch (syntax.Kind())
+                    {
+                        case SyntaxKind.EventDeclaration:
+                            return (EventDeclarationSyntax)syntax;
+                        case SyntaxKind.VariableDeclarator:
+                            Debug.Assert(syntax.Parent?.Parent is not null);
+                            return (EventFieldDeclarationSyntax)syntax.Parent.Parent;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
+                    }
+                }
+
+                return null;
             }
         }
 
