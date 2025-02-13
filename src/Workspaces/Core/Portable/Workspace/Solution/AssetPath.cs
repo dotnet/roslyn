@@ -62,6 +62,7 @@ internal readonly struct AssetPath
     public bool IncludeSolutionSourceGeneratorExecutionVersionMap => (_kind & AssetPathKind.SolutionSourceGeneratorExecutionVersionMap) != 0;
     public bool IncludeSolutionFrozenSourceGeneratedDocumentIdentities => (_kind & AssetPathKind.SolutionFrozenSourceGeneratedDocumentIdentities) != 0;
     public bool IncludeSolutionFrozenSourceGeneratedDocumentText => (_kind & AssetPathKind.SolutionFrozenSourceGeneratedDocumentText) != 0;
+    public bool IncludeSolutionSynchronization => (_kind & AssetPathKind.SolutionSynchronization) != 0;
 
     public bool IncludeSolutionStateChecksums => (_kind & AssetPathKind.SolutionStateChecksums) != 0;
     public bool IncludeSolutionAttributes => (_kind & AssetPathKind.SolutionAttributes) != 0;
@@ -113,6 +114,7 @@ internal enum AssetPathKind
     SolutionSourceGeneratorExecutionVersionMap = 1 << 2,
     SolutionFrozenSourceGeneratedDocumentIdentities = 1 << 3,
     SolutionFrozenSourceGeneratedDocumentText = 1 << 4,
+    SolutionSynchronization = 1 << 5,
 
     // Keep a gap so we can easily add more solution compilation state kinds
     SolutionStateChecksums = 1 << 10,
