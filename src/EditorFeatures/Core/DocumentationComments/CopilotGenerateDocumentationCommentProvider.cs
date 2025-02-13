@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
@@ -222,6 +223,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             if (documentationCommentDictionary is null)
+            {
+                return list;
+            }
+
+            if (documentationCommentDictionary.Count == 0)
             {
                 return list;
             }
