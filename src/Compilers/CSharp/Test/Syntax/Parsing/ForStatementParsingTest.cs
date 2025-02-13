@@ -213,12 +213,9 @@ public sealed class ForStatementParsingTest(ITestOutputHelper output) : ParsingT
     public void TestCommaSeparators4()
     {
         UsingStatement("for (int i = 0, i) ;",
-            // (1,18): error CS1002: ; expected
+            // (1,15): error CS1002: ; expected
             // for (int i = 0, i) ;
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 18),
-            // (1,18): error CS1525: Invalid expression term ')'
-            // for (int i = 0, i) ;
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 18),
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(1, 15),
             // (1,18): error CS1002: ; expected
             // for (int i = 0, i) ;
             Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 18));
@@ -245,16 +242,11 @@ public sealed class ForStatementParsingTest(ITestOutputHelper output) : ParsingT
                         }
                     }
                 }
-                N(SyntaxKind.CommaToken);
-                N(SyntaxKind.VariableDeclarator);
-                {
-                    N(SyntaxKind.IdentifierToken, "i");
-                }
             }
             M(SyntaxKind.SemicolonToken);
-            M(SyntaxKind.IdentifierName);
+            N(SyntaxKind.IdentifierName);
             {
-                M(SyntaxKind.IdentifierToken);
+                N(SyntaxKind.IdentifierToken, "i");
             }
             M(SyntaxKind.SemicolonToken);
             N(SyntaxKind.CloseParenToken);
