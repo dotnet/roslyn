@@ -5071,7 +5071,7 @@ parse_member_name:;
 
                         // `int i = 0, j ...` where what follows is not something that continues a variable declaration.
                         // In this case, treat that `j` as the start of the condition expression instead.
-                        if (this.PeekToken(2).Kind is not (SyntaxKind.SemicolonToken or SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.CloseParenToken))
+                        if (this.PeekToken(2).Kind is not (SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken))
                             break;
                     }
 
