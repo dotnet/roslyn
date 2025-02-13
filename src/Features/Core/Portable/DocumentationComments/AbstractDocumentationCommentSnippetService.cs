@@ -105,7 +105,7 @@ internal abstract class AbstractDocumentationCommentSnippetService<TDocumentatio
 
         var memberNode = GetContainingMember(syntaxTree, position, cancellationToken);
 
-        return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset, position, memberNode, addIndentation ? indentText : null);
+        return new DocumentationCommentSnippet(replaceSpan, comments, caretOffset, position, memberNode, indentText);
     }
 
     private List<string>? GetDocumentationCommentLines(SyntaxToken token, SourceText text, in DocumentationCommentOptions options, out string? indentText, out int caretOffset, out int spanToReplaceLength)

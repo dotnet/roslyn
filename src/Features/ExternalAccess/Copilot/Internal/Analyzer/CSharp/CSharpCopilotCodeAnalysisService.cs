@@ -83,6 +83,6 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
     protected override Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken)
         => AnalysisService.IsFileExcludedAsync(filePath, cancellationToken);
 
-    protected override Task<(string responseString, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
+    protected override Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
         => GenerateDocumentationService.GetDocumentationCommentAsync(new CopilotDocumentationCommentProposalWrapper(proposal), cancellationToken);
 }

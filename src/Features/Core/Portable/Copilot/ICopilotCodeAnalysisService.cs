@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,6 +83,6 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// Method to retrieve the documentation comment for a given <paramref name="proposal"/>
     /// </summary>
     /// <param name="proposal">The documentation comment that has been broken down into its individual pieces.</param>
-    Task<(string responseString, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
+    Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
 
 }

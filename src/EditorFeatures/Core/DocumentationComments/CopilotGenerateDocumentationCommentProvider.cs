@@ -110,13 +110,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         /// <summary>
         /// Traverses the documentation comment shell and retrieves the pieces that are needed to generate the documentation comment.
         /// </summary>
-        private static DocumentationCommentProposal? GetSnippetProposal(string? comments, SyntaxNode? memberNode, int? position, int caret)
+        private static DocumentationCommentProposal? GetSnippetProposal(string comments, SyntaxNode? memberNode, int? position, int caret)
         {
-            if (comments is null)
-            {
-                return null;
-            }
-
             if (memberNode is null)
             {
                 return null;
@@ -136,6 +131,27 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             if (summaryEndTag != -1 && summaryStartTag != -1)
             {
                 proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(caret + startIndex, 0), null, DocumentationCommentTagType.Summary));
+            }
+
+            while (true)
+            {
+                var typeParamEndTag = comments.IndexOf("</typeparam>", index, StringComparison.Ordinal);
+                var typeParamStartTag = comments.IndexOf("<typeparam name=\"", index, StringComparison.Ordinal);
+
+                if (typeParamStartTag == -1 || typeParamEndTag == -1)
+                {
+                    break;
+                }
+
+                var paramNameStart = typeParamStartTag + "<typeparam name=\"".Length;
+                var paramNameEnd = comments.IndexOf("\">", paramNameStart, StringComparison.Ordinal);
+                if (paramNameEnd != -1)
+                {
+                    var parameterName = comments.Substring(paramNameStart, paramNameEnd - paramNameStart);
+                    proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(typeParamEndTag + startIndex, 0), parameterName, DocumentationCommentTagType.TypeParam));
+                }
+
+                index = typeParamEndTag + "</typeparam>".Length;
             }
 
             while (true)
@@ -197,7 +213,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             ITextSnapshot oldSnapshot, string? indentText, CancellationToken cancellationToken)
         {
             var list = new List<ProposedEdit>();
-            var (copilotText, isQuotaExceeded) = await copilotService.GetDocumentationCommentAsync(proposal, cancellationToken).ConfigureAwait(false);
+            var (documentationCommentDictionary, isQuotaExceeded) = await copilotService.GetDocumentationCommentAsync(proposal, cancellationToken).ConfigureAwait(false);
 
             // Quietly fail if the quota has been exceeded.
             if (isQuotaExceeded)
@@ -205,24 +221,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return list;
             }
 
-            // The response from Copilot is structured like a JSON object, so make sure it is being returned appropriately.
-            if (copilotText is null || copilotText.AsSpan().Trim() is "{}" or "{ }" or "")
-            {
-                return list;
-            }
-
-            // If the response can't be properly converted, something went wrong and bail out.
-            Dictionary<string, string>? props;
-            try
-            {
-                props = JsonConvert.DeserializeObject<Dictionary<string, string>>(copilotText);
-            }
-            catch (Exception)
-            {
-                return list;
-            }
-
-            if (props is null)
+            if (documentationCommentDictionary is null)
             {
                 return list;
             }
@@ -232,19 +231,23 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 string? copilotStatement = null;
                 var textSpan = edit.SpanToReplace;
 
-                if (edit.TagType == DocumentationCommentTagType.Summary && props.TryGetValue(DocumentationCommentTagType.Summary.ToString(), out var summary) && !string.IsNullOrEmpty(summary))
+                if (edit.TagType == DocumentationCommentTagType.Summary && documentationCommentDictionary.TryGetValue(DocumentationCommentTagType.Summary.ToString(), out var summary) && !string.IsNullOrEmpty(summary))
                 {
                     copilotStatement = summary;
                 }
-                else if (edit.TagType == DocumentationCommentTagType.Param && props.TryGetValue(edit.SymbolName!, out var param) && !string.IsNullOrEmpty(param))
+                if (edit.TagType == DocumentationCommentTagType.TypeParam && documentationCommentDictionary.TryGetValue(edit.SymbolName!, out var typeParam) && !string.IsNullOrEmpty(typeParam))
+                {
+                    copilotStatement = typeParam;
+                }
+                else if (edit.TagType == DocumentationCommentTagType.Param && documentationCommentDictionary.TryGetValue(edit.SymbolName!, out var param) && !string.IsNullOrEmpty(param))
                 {
                     copilotStatement = param;
                 }
-                else if (edit.TagType == DocumentationCommentTagType.Returns && props.TryGetValue(DocumentationCommentTagType.Returns.ToString(), out var returns) && !string.IsNullOrEmpty(returns))
+                else if (edit.TagType == DocumentationCommentTagType.Returns && documentationCommentDictionary.TryGetValue(DocumentationCommentTagType.Returns.ToString(), out var returns) && !string.IsNullOrEmpty(returns))
                 {
                     copilotStatement = returns;
                 }
-                else if (edit.TagType == DocumentationCommentTagType.Exception && props.TryGetValue(edit.SymbolName!, out var exception) && !string.IsNullOrEmpty(exception))
+                else if (edit.TagType == DocumentationCommentTagType.Exception && documentationCommentDictionary.TryGetValue(edit.SymbolName!, out var exception) && !string.IsNullOrEmpty(exception))
                 {
                     copilotStatement = exception;
                 }

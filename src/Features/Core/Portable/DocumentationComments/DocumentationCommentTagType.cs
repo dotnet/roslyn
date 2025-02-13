@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
     internal enum DocumentationCommentTagType
     {
         Summary,
+        TypeParam,
         Param,
         Returns,
         Exception,
