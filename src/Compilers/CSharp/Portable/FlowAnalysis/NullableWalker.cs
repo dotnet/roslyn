@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 TypeWithAnnotations symbolType;
-                FieldSymbol? field; // TODO2: this could be gotten rid of, event fields are never const. Should improve clarity.
+                FieldSymbol? field;
                 Symbol symbol;
                 switch (member)
                 {

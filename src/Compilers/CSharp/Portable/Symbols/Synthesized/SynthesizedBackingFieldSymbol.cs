@@ -232,15 +232,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        // TODO2: dedupe
-        private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
-        {
-            public static readonly SameDiagnosticComparer Instance = new SameDiagnosticComparer();
-            public override bool Equals(Diagnostic x, Diagnostic y) => x.Equals(y);
-            public override int GetHashCode(Diagnostic obj) =>
-                Hash.Combine(Hash.CombineValues(obj.Arguments), Hash.Combine(obj.Location.GetHashCode(), obj.Code));
-        }
-
         internal override bool HasPointerType
             => _property.HasPointerType;
 
