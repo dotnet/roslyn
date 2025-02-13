@@ -1312,4 +1312,40 @@ public partial class SemanticClassifierTests
             Namespace("RegularExpressions"),
             Keyword("var"));
     }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77189")]
+    public async Task TestStringFieldUsedLater(TestHost testHost)
+    {
+        await TestAsync(
+            """
+            using System.Diagnostics.CodeAnalysis;
+            using System.Text.RegularExpressions;
+
+            class Program
+            {
+                private const string regexValue = [|@"$(\a\t\u0020)"|];
+
+                void Goo()
+                {
+                    Bar(regexValue);
+                }
+
+                void Bar([StringSyntax(StringSyntaxAttribute.Regex)] string p)
+                {
+                }
+            }
+            """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+            testHost,
+            Regex.Anchor("$"),
+            Regex.Grouping("("),
+            Regex.OtherEscape("\\"),
+            Regex.OtherEscape("a"),
+            Regex.OtherEscape("\\"),
+            Regex.OtherEscape("t"),
+            Regex.OtherEscape("\\"),
+            Regex.OtherEscape("u"),
+            Regex.OtherEscape("0020"),
+            Regex.Grouping(")"));
+    }
 }
