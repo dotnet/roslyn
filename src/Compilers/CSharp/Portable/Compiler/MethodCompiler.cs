@@ -519,7 +519,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            if ((object)method == scriptEntryPoint)
+                            if ((object)method == scriptEntryPoint ||
+                                method is SourceExtensionImplementationMethodSymbol)
                             {
                                 continue;
                             }
@@ -1341,7 +1342,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 codeCoverageSpans,
                                 entryPointOpt: null);
 
-                            _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                            _moduleBeingBuiltOpt.SetMethodBody(GetSymbolForEmittedBody(methodSymbol), emittedBody);
+
+                            if (methodSymbol.ContainingType.IsExtension)
+                            {
+                                ILBuilder builder = new ILBuilder(_moduleBeingBuiltOpt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
+
+                                // throw null;
+                                // PROTOTYPE: Should we throw NotSupportedException instead?
+                                builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Ldnull);
+                                builder.EmitThrow(isRethrow: false);
+                                builder.Realize();
+
+                                _moduleBeingBuiltOpt.TestData?.SetMethodILBuilder(methodSymbol, builder);
+
+                                _moduleBeingBuiltOpt.SetMethodBody(
+                                    methodSymbol,
+                                    new MethodBody(
+                                        builder.RealizedIL,
+                                        maxStack: 1,
+                                        methodSymbol.GetCciAdapter(),
+                                        new DebugId(ordinal: -1, _moduleBeingBuiltOpt.CurrentGenerationOrdinal),
+                                        locals: [],
+                                        SequencePointList.Empty,
+                                        debugDocumentProvider: null,
+                                        exceptionHandlers: ImmutableArray<Cci.ExceptionHandlerRegion>.Empty,
+                                        areLocalsZeroed: false,
+                                        hasStackalloc: false,
+                                        localScopes: ImmutableArray<Cci.LocalScope>.Empty,
+                                        hasDynamicLocalVariables: false,
+                                        importScopeOpt: null,
+                                        lambdaDebugInfo: ImmutableArray<EncLambdaInfo>.Empty,
+                                        orderedLambdaRuntimeRudeEdits: ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty,
+                                        closureDebugInfo: ImmutableArray<EncClosureInfo>.Empty,
+                                        stateMachineTypeNameOpt: null,
+                                        stateMachineHoistedLocalScopes: default(ImmutableArray<StateMachineHoistedLocalScope>),
+                                        stateMachineHoistedLocalSlots: default(ImmutableArray<EncHoistedLocalInfo>),
+                                        stateMachineAwaiterSlots: default(ImmutableArray<Cci.ITypeReference>),
+                                        StateMachineStatesDebugInfo.Create(variableSlotAllocator: null, ImmutableArray<StateMachineStateDebugInfo>.Empty),
+                                        stateMachineMoveNextDebugInfoOpt: null,
+                                        codeCoverageSpans: ImmutableArray<SourceSpan>.Empty,
+                                        isPrimaryConstructor: false)
+                                        );
+                            }
                         }
                     }
 
@@ -1360,6 +1403,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagsForCurrentMethod.Free();
                 compilationState.CurrentImportChain = oldImportChain;
             }
+        }
+
+        private static MethodSymbol GetSymbolForEmittedBody(MethodSymbol methodSymbol)
+        {
+            methodSymbol = TryGetCorrespondingExtensionImplementationMethod(methodSymbol) ?? methodSymbol;
+            return methodSymbol.PartialDefinitionPart ?? methodSymbol;
+        }
+
+        internal static SourceExtensionImplementationMethodSymbol TryGetCorrespondingExtensionImplementationMethod(MethodSymbol methodSymbol)
+        {
+            if (methodSymbol.ContainingType.IsExtension)
+            {
+                return methodSymbol.ContainingType.ContainingType.
+                    GetMembers((methodSymbol.IsStatic ? SourceExtensionImplementationMethodSymbol.StaticExtensionNamePrefix : SourceExtensionImplementationMethodSymbol.InstanceExtensionNamePrefix) + methodSymbol.Name).
+                    OfType<SourceExtensionImplementationMethodSymbol>().Where(m => (object)m.UnderlyingMethod == methodSymbol).SingleOrDefault();
+            }
+
+            return null;
         }
 
         // internal for testing
@@ -1431,6 +1492,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (loweredBody.HasErrors)
                 {
                     return loweredBody;
+                }
+
+                if (TryGetCorrespondingExtensionImplementationMethod(method) is { } implementationMethod)
+                {
+                    var extensionRewriter = new ExtensionMethodBodyRewriter(method, implementationMethod);
+                    loweredBody = (BoundStatement)extensionRewriter.Visit(loweredBody);
+                    method = implementationMethod;
+                    // PROTOTYPE: Since we are moving all synthetic artifacts into the enclosing top level type
+                    //            instead of placing them in extension block, we are going to run into name
+                    //            collisions because 'methodOrdinal' is likely not unique across all extension
+                    //            blocks within the same top level type (it is just an index of the extension method
+                    //            in block's GetMembers array). We probably should use 'methodOrdinal' of the
+                    //            implementation method instead. From the get go.   
                 }
 
                 lazyVariableSlotAllocator ??= compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method, diagnostics.DiagnosticBag);
@@ -1601,9 +1675,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                // We will only save the IL builders when running tests.
-                moduleBuilder.TestData?.SetMethodILBuilder(method, builder.GetSnapshot());
-
                 var stateMachineHoistedLocalSlots = default(ImmutableArray<EncHoistedLocalInfo>);
                 var stateMachineAwaiterSlots = default(ImmutableArray<Cci.ITypeReference>);
                 if (optimizations == OptimizationLevel.Debug && (object)stateMachineTypeOpt != null)
@@ -1613,10 +1684,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!diagnostics.HasAnyErrors());
                 }
 
+                MethodSymbol methodBodyParentSymbol = GetSymbolForEmittedBody(method);
+
+                // We will only save the IL builders when running tests.
+                moduleBuilder.TestData?.SetMethodILBuilder(methodBodyParentSymbol, builder.GetSnapshot());
+
                 return new MethodBody(
                     builder.RealizedIL,
                     builder.MaxStack,
-                    (method.PartialDefinitionPart ?? method).GetCciAdapter(),
+                    methodBodyParentSymbol.GetCciAdapter(),
                     variableSlotAllocatorOpt?.MethodId ?? new DebugId(methodOrdinal, moduleBuilder.CurrentGenerationOrdinal),
                     localVariables,
                     builder.RealizedSequencePoints,

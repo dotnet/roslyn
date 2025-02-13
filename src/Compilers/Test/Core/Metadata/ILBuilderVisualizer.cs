@@ -74,7 +74,7 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         private static List<HandlerSpan> GetHandlerSpans(ImmutableArray<Cci.ExceptionHandlerRegion> regions)
         {
-            if (regions.Length == 0)
+            if (regions.IsDefaultOrEmpty)
             {
                 return null;
             }

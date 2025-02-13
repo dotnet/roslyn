@@ -2481,7 +2481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (member.DeclaredAccessibility.HasProtected())
+                    if (member.DeclaredAccessibility.HasProtected() && member is not SourceExtensionImplementationMethodSymbol)
                     {
                         if (member.Kind != SymbolKind.Method || ((MethodSymbol)member).MethodKind != MethodKind.Destructor)
                         {
@@ -3590,6 +3590,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Submission:
                     AddSynthesizedTypeMembersIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
+
+                    if (TypeKind == TypeKind.Class)
+                    {
+                        AddSynthesizedExtensionImplementationsIfNecessary(builder, declaredMembersAndInitializers);
+                    }
                     break;
 
                 default:
@@ -3597,6 +3602,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             AddSynthesizedTupleMembersIfNecessary(builder, declaredMembersAndInitializers);
+        }
+
+        private void AddSynthesizedExtensionImplementationsIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers)
+        {
+            foreach (var type in GetTypeMembers(""))
+            {
+                if (type.TypeKind == TypeKind.Extension)
+                {
+                    foreach (var member in type.GetMembers())
+                    {
+                        if (member is MethodSymbol { IsImplicitlyDeclared: false } method)
+                        {
+                            builder.AddNonTypeMember(new SourceExtensionImplementationMethodSymbol(method), declaredMembersAndInitializers);
+                        }
+                    }
+                }
+            }
         }
 
         private void AddDeclaredNontypeMembers(DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)

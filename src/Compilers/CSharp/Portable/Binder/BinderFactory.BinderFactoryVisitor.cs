@@ -183,11 +183,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         method = method ?? GetMethodSymbol(methodDecl, resultBinder);
                         isIteratorBody = method.IsIterator;
+                        resultBinder = WithExtensionReceiverParameterBinderIfNecessary(resultBinder, method);
                         resultBinder = new InMethodBinder(method, resultBinder);
                     }
 
                     resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(methodDecl.Modifiers, isIteratorBody: isIteratorBody);
                     binderCache.TryAdd(key, resultBinder);
+                }
+
+                return resultBinder;
+            }
+
+            private static Binder WithExtensionReceiverParameterBinderIfNecessary(Binder resultBinder, MethodSymbol method)
+            {
+                if (method is { IsStatic: false, ContainingType: SourceNamedTypeSymbol { IsExtension: true, ExtensionParameter: { } parameter } })
+                {
+                    return new WithParametersBinder([parameter], resultBinder);
                 }
 
                 return resultBinder;
@@ -313,6 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if ((object)accessor != null)
                         {
+                            resultBinder = WithExtensionReceiverParameterBinderIfNecessary(resultBinder, accessor);
                             resultBinder = new InMethodBinder(accessor, resultBinder);
 
                             resultBinder = resultBinder.SetOrClearUnsafeRegionIfNecessary(
@@ -422,6 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // `isIteratorBody` to `SetOrClearUnsafeRegionIfNecessary` above.
                         Debug.Assert(!accessor.IsIterator);
 
+                        resultBinder = WithExtensionReceiverParameterBinderIfNecessary(resultBinder, accessor);
                         resultBinder = new InMethodBinder(accessor, resultBinder);
                     }
 
