@@ -5221,5 +5221,256 @@ public class Program
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9)
                 );
         }
+
+        [Fact]
+        public void Increment_092_ConflictWithRegular()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator ++() {}
+
+    public void op_Increment() {}
+}
+
+public class C2
+{
+    public static C2 operator ++(C2 x) => x;
+
+    public static C2 op_Increment(C2 x) => x;
+}
+
+public class C3
+{
+    public void op_Increment() {}
+
+    public void operator ++() {}
+}
+
+public class C4
+{
+    public static C4 op_Increment(C4 x) => x;
+
+    public static C4 operator ++(C4 x) => x;
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (6,17): error CS0111: Type 'C1' already defines a member called 'op_Increment' with the same parameter types
+                //     public void op_Increment() {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "op_Increment").WithArguments("op_Increment", "C1").WithLocation(6, 17),
+                // (13,22): error CS0111: Type 'C2' already defines a member called 'op_Increment' with the same parameter types
+                //     public static C2 op_Increment(C2 x) => x;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "op_Increment").WithArguments("op_Increment", "C2").WithLocation(13, 22),
+                // (20,26): error CS0111: Type 'C3' already defines a member called 'op_Increment' with the same parameter types
+                //     public void operator ++() {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "++").WithArguments("op_Increment", "C3").WithLocation(20, 26),
+                // (27,31): error CS0111: Type 'C4' already defines a member called 'op_Increment' with the same parameter types
+                //     public static C4 operator ++(C4 x) => x;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "++").WithArguments("op_Increment", "C4").WithLocation(27, 31)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_093_Consumption_OrdinaryMethod(bool fromMetadata)
+        {
+            var source1 = @"
+public class C1
+{
+    public void op_Increment() {}
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1 x = new C1();
+        ++x;
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //         ++x;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_094_Override_RegularVsOperatorMismatch(bool fromMetadata)
+        {
+            var source1 = @"
+abstract public class C1
+{
+    public abstract void op_Increment();
+}
+
+abstract public class C3
+{
+    public abstract void operator ++();
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class C2 : C1
+{
+    public override void operator ++() {}
+}
+
+public class C4 : C3
+{
+    public override void op_Increment() {}
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+
+            // PROTOTYPE: Overriding errors are expected for C2 and C4.
+            comp2.VerifyDiagnostics(
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_095_Implement_RegularVsOperatorMismatch(bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    void op_Increment();
+}
+
+public interface I2
+{
+    void operator ++();
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class C1 : I1
+{
+    public void operator ++() {}
+}
+
+public class C2 : I2
+{
+    public void op_Increment() {}
+}
+
+public class C3 : I1
+{
+    void I1.operator ++() {}
+}
+
+public class C4 : I2
+{
+    void I2.op_Increment() {}
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics(
+                // (2,19): error CS0535: 'C1' does not implement interface member 'I1.op_Increment()'
+                // public class C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.op_Increment()").WithLocation(2, 19),
+                // (7,19): error CS0535: 'C2' does not implement interface member 'I2.operator ++()'
+                // public class C2 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C2", "I2.operator ++()").WithLocation(7, 19),
+                // (12,19): error CS0535: 'C3' does not implement interface member 'I1.op_Increment()'
+                // public class C3 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.op_Increment()").WithLocation(12, 19),
+                // (14,22): error CS0539: 'C3.operator ++()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.operator ++() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "++").WithArguments("C3.operator ++()").WithLocation(14, 22),
+                // (17,19): error CS0535: 'C4' does not implement interface member 'I2.operator ++()'
+                // public class C4 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C4", "I2.operator ++()").WithLocation(17, 19),
+                // (19,13): error CS0539: 'C4.op_Increment()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I2.op_Increment() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Increment").WithArguments("C4.op_Increment()").WithLocation(19, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_096_Consumption_Implementation()
+        {
+            var source = @"
+public interface I1
+{
+    public void operator ++();
+}
+
+public class C1 : I1
+{
+    public void operator ++()
+    {
+        System.Console.Write(""[C1.operator]"");
+    } 
+}
+
+public class C2 : I1
+{
+    void I1.operator ++()
+    {
+        System.Console.Write(""[C2.operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        I1 x = new C1();
+        ++x;
+        x = new C2();
+        ++x;
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "[C1.operator][C2.operator]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_097_Consumption_Overriding()
+        {
+            var source = @"
+public abstract class C1
+{
+    public abstract void operator ++();
+}
+
+public class C2 : C1
+{
+    public override void operator ++()
+    {
+        System.Console.Write(""[C2.operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        C1 x = new C2();
+        ++x;
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "[C2.operator]").VerifyDiagnostics();
+        }
     }
 }
