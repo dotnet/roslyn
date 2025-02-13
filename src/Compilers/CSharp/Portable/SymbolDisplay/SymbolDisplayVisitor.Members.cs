@@ -811,42 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
-                if (Format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
-                {
-                    // Add 'scoped' unless the parameter is an out parameter or
-                    // 'this' since those cases are implicitly scoped.
-                    if (symbol.ScopedKind == ScopedKind.ScopedRef &&
-                        symbol.RefKind != RefKind.Out &&
-                        !symbol.IsThis)
-                    {
-                        AddKeyword(SyntaxKind.ScopedKeyword);
-                        AddSpace();
-                    }
-
-                    AddParameterRefKind(symbol.RefKind);
-                }
-
-                AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
-
-                if (Format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
-                {
-                    if (symbol.IsParams)
-                    {
-                        AddKeyword(SyntaxKind.ParamsKeyword);
-                        AddSpace();
-                    }
-
-                    if (symbol.ScopedKind == ScopedKind.ScopedValue &&
-                        symbol.RefKind == RefKind.None &&
-                        !(symbol.IsParams && symbol.Type is { IsRefLikeType: true } or ITypeParameterSymbol { AllowsRefLikeType: true }))
-                    {
-                        AddKeyword(SyntaxKind.ScopedKeyword);
-                        AddSpace();
-                    }
-                }
-
-                symbol.Type.Accept(this.NotFirstVisitor);
-                AddCustomModifiersIfNeeded(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
+                AddParameterModifiersAndType(symbol);
             }
 
             if (includeName)
@@ -875,6 +840,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddPunctuation(SyntaxKind.CloseBracketToken);
             }
+        }
+
+        private void AddParameterModifiersAndType(IParameterSymbol symbol)
+        {
+            if (Format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
+            {
+                // Add 'scoped' unless the parameter is an out parameter or
+                // 'this' since those cases are implicitly scoped.
+                if (symbol.ScopedKind == ScopedKind.ScopedRef &&
+                    symbol.RefKind != RefKind.Out &&
+                    !symbol.IsThis)
+                {
+                    AddKeyword(SyntaxKind.ScopedKeyword);
+                    AddSpace();
+                }
+
+                AddParameterRefKind(symbol.RefKind);
+            }
+
+            AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
+
+            if (Format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
+            {
+                if (symbol.IsParams)
+                {
+                    AddKeyword(SyntaxKind.ParamsKeyword);
+                    AddSpace();
+                }
+
+                if (symbol.ScopedKind == ScopedKind.ScopedValue &&
+                    symbol.RefKind == RefKind.None &&
+                    !(symbol.IsParams && symbol.Type is { IsRefLikeType: true } or ITypeParameterSymbol { AllowsRefLikeType: true }))
+                {
+                    AddKeyword(SyntaxKind.ScopedKeyword);
+                    AddSpace();
+                }
+            }
+
+            symbol.Type.Accept(this.NotFirstVisitor);
+            AddCustomModifiersIfNeeded(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
         }
 
         private static bool CanAddConstant(ITypeSymbol type, object? value)
