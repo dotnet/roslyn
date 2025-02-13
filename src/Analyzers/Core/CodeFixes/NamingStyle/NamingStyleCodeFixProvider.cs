@@ -108,7 +108,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
             cancellationToken).ConfigureAwait(false);
     }
 
-    private class FixNameCodeAction : CodeAction
+    private sealed class FixNameCodeAction : CodeAction
     {
 #if !CODE_STYLE
         private readonly Solution _startingSolution;

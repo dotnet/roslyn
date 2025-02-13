@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
 
-internal partial class AbstractSuppressionCodeFixProvider
+internal abstract partial class AbstractSuppressionCodeFixProvider
 {
     /// <summary>
     /// Suppression code action based on pragma add/remove/edit.

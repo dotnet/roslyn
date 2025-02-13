@@ -44,7 +44,7 @@ internal sealed partial class ProjectSystemProjectFactory
     public IFileChangeWatcher FileChangeWatcher { get; }
 
     public FileWatchedReferenceFactory<PortableExecutableReference> FileWatchedPortableExecutableReferenceFactory { get; }
-    public FileWatchedReferenceFactory<AnalyzerFileReference> FileWatchedAnalyzerReferenceFactory { get; }
+    public FileWatchedReferenceFactory<AnalyzerReference> FileWatchedAnalyzerReferenceFactory { get; }
 
     public SolutionServices SolutionServices => this.Workspace.Services.SolutionServices;
 
@@ -125,10 +125,13 @@ internal sealed partial class ProjectSystemProjectFactory
                 name: projectSystemName,
                 assemblyName,
                 language,
-                compilationOutputInfo: new(creationInfo.CompilationOutputAssemblyFilePath),
+                // generatedFilesOutputDirectory to be updated when initializing project from command line:
+                compilationOutputInfo: new(creationInfo.CompilationOutputAssemblyFilePath, generatedFilesOutputDirectory: null),
                 SourceHashAlgorithms.Default, // will be updated when command line is set
+                outputFilePath: creationInfo.CompilationOutputAssemblyFilePath,
                 filePath: creationInfo.FilePath,
-                telemetryId: creationInfo.TelemetryId),
+                telemetryId: creationInfo.TelemetryId,
+                hasSdkCodeStyleAnalyzers: project.HasSdkCodeStyleAnalyzers),
             compilationOptions: creationInfo.CompilationOptions,
             parseOptions: creationInfo.ParseOptions);
 
@@ -260,7 +263,7 @@ internal sealed partial class ProjectSystemProjectFactory
     /// <summary>
     /// Applies a solution transformation to the workspace and triggers workspace changed event for specified <paramref name="projectId"/>.
     /// The transformation shall only update the project of the solution with the specified <paramref name="projectId"/>.
-    /// 
+    ///
     /// The <paramref name="solutionTransformation"/> function must be safe to be attempted multiple times (and not update local state).
     /// </summary>
     public void ApplyChangeToWorkspace(ProjectId projectId, Func<CodeAnalysis.Solution, CodeAnalysis.Solution> solutionTransformation)
@@ -503,7 +506,7 @@ internal sealed partial class ProjectSystemProjectFactory
         var distinctProjectsForOutputPath = projectsForOutputPath.Distinct().ToList();
 
         // If we have exactly one, then we're definitely good to convert
-        if (projectsForOutputPath.Count() == 1)
+        if (projectsForOutputPath.Length == 1)
         {
             projectUpdateState = ConvertMetadataReferencesToProjectReferences_NoLock(solutionChanges, projectId, outputPath, projectUpdateState);
         }
@@ -553,22 +556,23 @@ internal sealed partial class ProjectSystemProjectFactory
                 // PERF: call GetRequiredProjectState instead of GetRequiredProject, otherwise creating a new project
                 // might force all Project instances to get created.
                 var projectState = solutionChanges.Solution.GetRequiredProjectState(projectIdToRetarget);
-                foreach (var reference in projectState.MetadataReferences.OfType<PortableExecutableReference>())
+                foreach (var reference in projectState.MetadataReferences)
                 {
-                    if (string.Equals(reference.FilePath, outputPath, StringComparison.OrdinalIgnoreCase))
+                    if (reference is PortableExecutableReference peReference
+                        && string.Equals(peReference.FilePath, outputPath, StringComparison.OrdinalIgnoreCase))
                     {
-                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(reference);
+                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(peReference);
 
-                        var projectReference = new ProjectReference(projectIdToReference, reference.Properties.Aliases, reference.Properties.EmbedInteropTypes);
+                        var projectReference = new ProjectReference(projectIdToReference, peReference.Properties.Aliases, peReference.Properties.EmbedInteropTypes);
                         var newSolution = solutionChanges.Solution
-                            .RemoveMetadataReference(projectIdToRetarget, reference)
+                            .RemoveMetadataReference(projectIdToRetarget, peReference)
                             .AddProjectReference(projectIdToRetarget, projectReference);
 
                         solutionChanges.UpdateSolutionForProjectAction(projectIdToRetarget, newSolution);
 
                         projectUpdateState = GetReferenceInformation(projectIdToRetarget, projectUpdateState, out var projectInfo);
                         projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectIdToRetarget,
-                            projectInfo.WithConvertedProjectReference(reference.FilePath!, projectReference));
+                            projectInfo.WithConvertedProjectReference(peReference.FilePath!, projectReference));
 
                         // We have converted one, but you could have more than one reference with different aliases that
                         // we need to convert, so we'll keep going
@@ -599,11 +603,12 @@ internal sealed partial class ProjectSystemProjectFactory
         Contract.ThrowIfNull(projectWithMetadataReference);
         Contract.ThrowIfNull(referencedProject);
 
-        // We don't want to convert a metadata reference to a project reference if the project being referenced isn't something
-        // we can create a Compilation for. For example, if we have a C# project, and it's referencing a F# project via a metadata reference
-        // everything would be fine if we left it a metadata reference. Converting it to a project reference means we couldn't create a Compilation
-        // anymore in the IDE, since the C# compilation would need to reference an F# compilation. F# projects referencing other F# projects though
-        // do expect this to work, and so we'll always allow references through of the same language.
+        // We don't want to convert a metadata reference to a project reference if the project being referenced isn't
+        // something we can create a Compilation for. For example, if we have a C# project, and it's referencing a F#
+        // project via a metadata reference everything would be fine if we left it a metadata reference. Converting it
+        // to a project reference means we couldn't create a Compilation anymore in the IDE, since the C# compilation
+        // would need to reference an F# compilation. F# projects referencing other F# projects though do expect this to
+        // work, and so we'll always allow references through of the same language.
         if (projectWithMetadataReference.Language != referencedProject.Language)
         {
             if (projectWithMetadataReference.LanguageServices.GetService<ICompilationFactoryService>() != null &&
@@ -613,6 +618,12 @@ internal sealed partial class ProjectSystemProjectFactory
                 return false;
             }
         }
+
+        // Getting a metadata reference from a 'module' is not supported from the compilation layer.  Nor is emitting a
+        // 'metadata-only' stream for it (a 'skeleton' reference).  So converting a NetModule reference to a project
+        // reference won't actually help us out.  Best to keep this as a plain metadata reference.
+        if (referencedProject.CompilationOptions?.OutputKind == OutputKind.NetModule)
+            return false;
 
         // If this is going to cause a circular reference, also disallow it
         if (solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(referencedProjectId).Contains(projectIdWithMetadataReference))
@@ -643,7 +654,7 @@ internal sealed partial class ProjectSystemProjectFactory
             projectUpdateState = GetReferenceInformation(projectIdToRetarget, projectUpdateState, out var referenceInfo);
 
             // Update ConvertedProjectReferences in place to avoid duplicate list allocations
-            for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Count(); i++)
+            for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Length; i++)
             {
                 var convertedReference = referenceInfo.ConvertedProjectReferences[i];
 
@@ -693,7 +704,7 @@ internal sealed partial class ProjectSystemProjectFactory
         Solution currentSolution,
         out ProjectReference? projectReference)
     {
-        if (projectUpdateState.ProjectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Count() == 1)
+        if (projectUpdateState.ProjectsByOutputPath.TryGetValue(path, out var ids) && ids.Distinct().Length == 1)
         {
             var projectIdToReference = ids.First();
 
@@ -835,27 +846,18 @@ internal sealed partial class ProjectSystemProjectFactory
         => StartRefreshingReferencesForFileAsync(
             fullFilePath,
             getReferences: static project => project.AnalyzerReferences.Select(r => r.FullPath!),
-            getFilePath: static fullPath => fullPath,
-            createNewReference: static (_, fullPath) => fullPath,
-            update: static (solution, projectId, projectUpdateState, oldReferenceFullPath, newReferenceFullPath) =>
+            getFilePath: static filePath => filePath,
+            createNewReference: static (_, filePath) => filePath,
+            update: static (solution, projectId, projectUpdateState, oldAnalyzerFilePath, newAnalyzerFilePath) =>
             {
-                // it's expected that the old and new paths are the same here.  The idea is that we changed a file on
-                // disk, so of course the path will be the same.
-                Contract.ThrowIfTrue(oldReferenceFullPath != newReferenceFullPath);
+                // Note: we're passing in the same path for the analyzers to remove/add.  That's exactly the intent
+                // here.  We're updating an existing analyzer in place. The call to UpdateProjectAnalyzerReferences will
+                // preserve all the other analyzers (with a different path), remove the one with this path, make a new
+                // analyzer for this path, and then created an isolated ALC to load them all in.
+                Contract.ThrowIfTrue(oldAnalyzerFilePath != newAnalyzerFilePath);
 
-                var assemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-
-                var project = solution.GetRequiredProject(projectId);
-                var oldAnalyzerReference = project.AnalyzerReferences.First(r => r.FullPath == oldReferenceFullPath);
-                var newAnalyzerReference = new AnalyzerFileReference(oldReferenceFullPath, assemblyLoaderProvider.SharedShadowCopyLoader);
-
-                var newSolution = solution
-                    .RemoveAnalyzerReference(projectId, oldAnalyzerReference)
-                    .AddAnalyzerReference(projectId, newAnalyzerReference);
-                var newProjectUpdateState = projectUpdateState
-                    .WithIncrementalAnalyzerReferenceRemoved(oldReferenceFullPath)
-                    .WithIncrementalAnalyzerReferenceAdded(newReferenceFullPath);
-
+                var (newSolution, newProjectUpdateState) = ProjectSystemProject.UpdateProjectAnalyzerReferences(
+                    solution, projectId, projectUpdateState, [oldAnalyzerFilePath], [newAnalyzerFilePath]);
                 return (newSolution, newProjectUpdateState);
             },
             cancellationToken);
@@ -890,10 +892,9 @@ internal sealed partial class ProjectSystemProjectFactory
 
                     if (fullFilePath.Equals(getFilePath(oldReference), StringComparison.OrdinalIgnoreCase))
                     {
-                        var newReference = createNewReference(solutionServices, oldReference);
-
                         var newSolution = solutionChanges.Solution;
-                        (newSolution, projectUpdateState) = update(newSolution, project.Id, projectUpdateState, oldReference, newReference);
+                        (newSolution, projectUpdateState) = update(
+                            newSolution, project.Id, projectUpdateState, oldReference, createNewReference(solutionServices, oldReference));
 
                         solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
                     }

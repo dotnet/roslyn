@@ -73,7 +73,7 @@ internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LS
     public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)
         => Task.FromResult((TextChange?)new TextChange(item.Span, item.DisplayText));
 
-    private class Comparer : IEqualityComparer<CompletionItem>
+    private sealed class Comparer : IEqualityComparer<CompletionItem>
     {
         public bool Equals(CompletionItem? x, CompletionItem? y)
             => x?.DisplayText == y?.DisplayText;

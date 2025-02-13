@@ -28,10 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
             Select Case simplifyDiagnosticId
                 Case IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                      IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId
-                    Return String.Format(VBFeaturesResources.Simplify_name_0, nodeText)
+                    Return String.Format(FeaturesResources.Simplify_name_0, nodeText)
 
                 Case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
-                    Return String.Format(VBFeaturesResources.Simplify_member_access_0, nodeText)
+                    Return String.Format(FeaturesResources.Simplify_member_access_0, nodeText)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(simplifyDiagnosticId)

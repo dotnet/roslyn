@@ -2415,9 +2415,8 @@ foundParent:;
                 return null;
             }
 
-            public override BoundStatement BindStatement(StatementSyntax node, BindingDiagnosticBag diagnostics)
+            private BoundStatement TryGetBoundStatementFromMap(StatementSyntax node)
             {
-                // Check the bound node cache to see if the statement was already bound.
                 if (node.SyntaxTree == _semanticModel.SyntaxTree)
                 {
                     BoundStatement synthesizedStatement = _semanticModel.GuardedGetSynthesizedStatementFromMap(node);
@@ -2427,15 +2426,23 @@ foundParent:;
                         return synthesizedStatement;
                     }
 
-                    BoundNode boundNode = TryGetBoundNodeFromMap(node);
-
-                    if (boundNode != null)
-                    {
-                        return (BoundStatement)boundNode;
-                    }
+                    return (BoundStatement)TryGetBoundNodeFromMap(node);
                 }
 
-                BoundStatement statement = base.BindStatement(node, diagnostics);
+                return null;
+            }
+
+            public override BoundStatement BindStatement(StatementSyntax node, BindingDiagnosticBag diagnostics)
+            {
+                // Check the bound node cache to see if the statement was already bound.
+                BoundStatement statement = TryGetBoundStatementFromMap(node);
+
+                if (statement != null)
+                {
+                    return statement;
+                }
+
+                statement = base.BindStatement(node, diagnostics);
 
                 // Synthesized statements are not added to the _guardedNodeMap, we cache them explicitly here in  
                 // _lazyGuardedSynthesizedStatementsMap
@@ -2514,6 +2521,20 @@ foundParent:;
                 block = base.BindExpressionBodyAsBlock(node, diagnostics);
 
                 return block;
+            }
+
+            protected override bool TryGetBoundElseIfStatement(IfStatementSyntax node, out BoundStatement alternative)
+            {
+                alternative = TryGetBoundStatementFromMap(node);
+
+                if (alternative is not null)
+                {
+                    Debug.Assert(alternative is BoundIfStatement);
+                    alternative = WrapWithVariablesIfAny(node, alternative);
+                    return true;
+                }
+
+                return base.TryGetBoundElseIfStatement(node, out alternative);
             }
         }
 

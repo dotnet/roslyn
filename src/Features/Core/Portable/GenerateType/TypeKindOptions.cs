@@ -38,7 +38,7 @@ internal enum TypeKindOptions
     GenericInCompatibleTypes = Enum | Module
 }
 
-internal class TypeKindOptionsHelper
+internal sealed class TypeKindOptionsHelper
 {
     public static bool IsClass(TypeKindOptions option)
         => (option & TypeKindOptions.Class) != 0 ? true : false;

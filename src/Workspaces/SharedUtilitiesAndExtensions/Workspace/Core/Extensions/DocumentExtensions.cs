@@ -225,9 +225,12 @@ internal static partial class DocumentExtensions
     }
 
 #if CODE_STYLE
-    public static async ValueTask<IOptionsReader> GetAnalyzerConfigOptionsAsync(this Document document, CancellationToken cancellationToken)
+    public static async ValueTask<IOptionsReader> GetHostAnalyzerConfigOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+        // Code style layer (which is always NuGet-installed) does not use host options, but we keep the method name to
+        // reduce the number of instances where code needs to be conditionally included.
         return document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader();
     }
 #endif

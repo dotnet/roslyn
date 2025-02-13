@@ -15,13 +15,15 @@ namespace Microsoft.CodeAnalysis.ExtractInterface;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
     Name = PredefinedCodeRefactoringProviderNames.ExtractInterface), Shared]
-internal class ExtractInterfaceCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed class ExtractInterfaceCodeRefactoringProvider : CodeRefactoringProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ExtractInterfaceCodeRefactoringProvider()
     {
     }
+
+    internal override CodeRefactoringKind Kind => CodeRefactoringKind.Extract;
 
     public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {

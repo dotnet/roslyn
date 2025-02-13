@@ -62,7 +62,7 @@ internal class ConvertToFileScopedNamespaceDiagnosticAnalyzer : AbstractBuiltInC
             diagnosticLocation,
             option.Notification,
             context.Options,
-            ImmutableArray.Create(declaration.GetLocation()),
+            [declaration.GetLocation()],
             ImmutableDictionary<string, string?>.Empty);
     }
 }

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public sealed class InvokeUtil
     {
-        internal void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadContext compilerContext, AssemblyLoadTestFixture fixture, AnalyzerTestKind kind, string typeName, string methodName, IAnalyzerAssemblyResolver[] externalResolvers)
+        internal void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadContext compilerContext, AssemblyLoadTestFixture fixture, AnalyzerTestKind kind, string typeName, string methodName, IAnalyzerAssemblyResolver[] externalResolvers, object? state = null)
         {
             // Ensure that the test did not load any of the test fixture assemblies into 
             // the default load context. That should never happen. Assemblies should either 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             try
             {
-                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName);
+                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName, state);
             }
             finally
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public sealed class InvokeUtil : MarshalByRefObject
     {
-        internal void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture fixture, AnalyzerTestKind kind, string typeName, string methodName, IAnalyzerAssemblyResolver[] externalResolvers)
+        internal void Exec(ITestOutputHelper testOutputHelper, AssemblyLoadTestFixture fixture, AnalyzerTestKind kind, string typeName, string methodName, IAnalyzerAssemblyResolver[] externalResolvers, object? state)
         {
             using var tempRoot = new TempRoot();
             AnalyzerAssemblyLoader loader = kind switch
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             try
             {
-                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName);
+                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName, state);
             }
             catch (TargetInvocationException ex) when (ex.InnerException is XunitException)
             {

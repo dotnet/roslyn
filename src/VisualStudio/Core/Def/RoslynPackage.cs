@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -276,7 +277,8 @@ internal sealed class RoslynPackage : AbstractPackage
         // Obtain services and QueryInterface from the main thread
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+        var menuCommandService = (OleMenuCommandService?)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+        Assumes.Present(menuCommandService);
         StackTraceExplorerCommandHandler.Initialize(menuCommandService, this);
     }
 

@@ -114,9 +114,19 @@ internal abstract partial class PatternMatcher : IDisposable
         for (var i = 0; i < pattern.Length; i++)
         {
             if (char.IsUpper(pattern[i]))
-            {
                 return true;
-            }
+        }
+
+        return false;
+    }
+
+    private static bool ContainsLowerCaseLetter(string pattern)
+    {
+        // Expansion of "foreach(char ch in pattern)" to avoid a CharEnumerator allocation
+        for (var i = 0; i < pattern.Length; i++)
+        {
+            if (char.IsLower(pattern[i]))
+                return true;
         }
 
         return false;
@@ -153,6 +163,8 @@ internal abstract partial class PatternMatcher : IDisposable
         in TextChunk patternChunk,
         bool punctuationStripped)
     {
+        using var candidateHumps = TemporaryArray<TextSpan>.Empty;
+
         var candidateLength = candidate.Length;
 
         var caseInsensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.IgnoreCase);
@@ -170,14 +182,30 @@ internal abstract partial class PatternMatcher : IDisposable
             }
             else
             {
+                var isCaseSensitive = _compareInfo.IsPrefix(candidate, patternChunk.Text);
+
+                if (!isCaseSensitive && patternChunk.IsUppercase)
+                {
+                    // The user wrote something all upper case, but happened to match the prefix of the word.  For
+                    // example, matching `CR` against both `Create` (a case insensitive prefix match) and `CreateRange`
+                    // (a camel hump match).  We want to prefer the latter in this case as the all upper case string
+                    // is a strong signal they wanted camel hump matching here.
+                    PopulateCandidateHumps();
+
+                    // Note: ensure that we match here case sensitively as well.  We only want to take this if their
+                    // camel humps actually matched real word starts.
+                    var match = TryCamelCaseMatch(candidate, patternChunk, punctuationStripped, isLowercase: false, candidateHumps);
+                    if (match is { IsCaseSensitive: true })
+                        return match;
+
+                    // Deliberately fall through.
+                }
+
                 // Lengths were the same, this is either a case insensitive or sensitive prefix match.
                 return new PatternMatch(
-                    PatternMatchKind.Prefix, punctuationStripped, isCaseSensitive: _compareInfo.IsPrefix(candidate, patternChunk.Text),
-                    matchedSpan: GetMatchedSpan(0, patternChunk.Text.Length));
+                    PatternMatchKind.Prefix, punctuationStripped, isCaseSensitive, matchedSpan: GetMatchedSpan(0, patternChunk.Text.Length));
             }
         }
-
-        using var candidateHumps = TemporaryArray<TextSpan>.Empty;
 
         var patternIsLowercase = patternChunk.IsLowercase;
         if (caseInsensitiveIndex > 0)
@@ -192,21 +220,15 @@ internal abstract partial class PatternMatcher : IDisposable
                 // user that they expect the same letters to be uppercase in the result.  As 
                 // such, only return this if we can find this pattern exactly in the candidate.
 
-                var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.None);
+                var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, startIndex: caseInsensitiveIndex, CompareOptions.None);
                 if (caseSensitiveIndex > 0)
                 {
-                    if (char.IsUpper(candidate[caseInsensitiveIndex]))
-                    {
-                        return new PatternMatch(
-                            PatternMatchKind.StartOfWordSubstring, punctuationStripped, isCaseSensitive: true,
-                            matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
-                    }
-                    else
-                    {
-                        return new PatternMatch(
-                            PatternMatchKind.NonLowercaseSubstring, punctuationStripped, isCaseSensitive: true,
-                            matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
-                    }
+                    var resultType = char.IsUpper(candidate[caseSensitiveIndex]) ? PatternMatchKind.StartOfWordSubstring : PatternMatchKind.NonLowercaseSubstring;
+                    return new PatternMatch(
+                        resultType,
+                        punctuationStripped,
+                        isCaseSensitive: true,
+                        matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
                 }
             }
             else
@@ -227,7 +249,8 @@ internal abstract partial class PatternMatcher : IDisposable
                 // Now do the more expensive check to see if we're at the start of a word.  This is to catch
                 // word matches like CombineBinary.  We want to find the hit against '[|Bin|]ary' not
                 // 'Com[|bin|]e'
-                StringBreaker.AddWordParts(candidate, ref candidateHumps.AsRef());
+                PopulateCandidateHumps();
+
                 for (int i = 0, n = candidateHumps.Count; i < n; i++)
                 {
                     var hump = TextSpan.FromBounds(candidateHumps[i].Start, candidateLength);
@@ -241,16 +264,17 @@ internal abstract partial class PatternMatcher : IDisposable
             }
         }
 
-        // Didn't have an exact/prefix match, or a high enough quality substring match.
-        // See if we can find a camel case match.
-        if (candidateHumps.Count == 0)
-            StringBreaker.AddWordParts(candidate, ref candidateHumps.AsRef());
+        {
+            // Didn't have an exact/prefix match, or a high enough quality substring match.
+            // See if we can find a camel case match.
+            PopulateCandidateHumps();
 
-        // Didn't have an exact/prefix match, or a high enough quality substring match.
-        // See if we can find a camel case match.  
-        var match = TryCamelCaseMatch(candidate, patternChunk, punctuationStripped, patternIsLowercase, candidateHumps);
-        if (match != null)
-            return match;
+            // Didn't have an exact/prefix match, or a high enough quality substring match.
+            // See if we can find a camel case match.  
+            var match = TryCamelCaseMatch(candidate, patternChunk, punctuationStripped, patternIsLowercase, candidateHumps);
+            if (match != null)
+                return match;
+        }
 
         // If pattern was all lowercase, we allow it to match an all lowercase section of the candidate.  But
         // only after we've tried all other forms first.  This is the weakest of all matches.  For example, if
@@ -261,7 +285,7 @@ internal abstract partial class PatternMatcher : IDisposable
         // user has only barely started writing a word.
         if (patternIsLowercase && caseInsensitiveIndex > 0 && patternChunk.Text.Length >= 3)
         {
-            var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.None);
+            var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, startIndex: caseInsensitiveIndex, CompareOptions.None);
             if (caseSensitiveIndex > 0)
             {
                 return new PatternMatch(
@@ -271,6 +295,12 @@ internal abstract partial class PatternMatcher : IDisposable
         }
 
         return null;
+
+        void PopulateCandidateHumps()
+        {
+            if (candidateHumps.Count == 0)
+                StringBreaker.AddWordParts(candidate, ref candidateHumps.AsRef());
+        }
     }
 
     private TextSpan? GetMatchedSpan(int start, int length)

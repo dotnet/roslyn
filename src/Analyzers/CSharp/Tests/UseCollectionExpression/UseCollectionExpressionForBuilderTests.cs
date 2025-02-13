@@ -1589,4 +1589,41 @@ public partial class UseCollectionExpressionForBuilderTests
                 """
         }.RunAsync();
     }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74208")]
+    public async Task TestComment(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<int> M()
+                    {
+                        // Comment to keep
+                        {{pattern}}
+                        [|builder.Add(|]0);
+                        return builder.ToImmutable();
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    ImmutableArray<int> M()
+                    {
+                        // Comment to keep
+                        return [0];
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }

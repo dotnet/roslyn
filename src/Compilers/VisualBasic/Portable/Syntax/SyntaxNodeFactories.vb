@@ -292,17 +292,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Using scanner As New InternalSyntax.Scanner(MakeSourceText(text, 0), VisualBasicParseOptions.Default) ' NOTE: Default options should be enough
                 scanner.ForceScanningXmlDocMode()
 
-                Dim parser = New InternalSyntax.Parser(scanner)
-                parser.GetNextToken(InternalSyntax.ScannerState.Element)
+                Using parser = New InternalSyntax.Parser(scanner)
+                    parser.GetNextToken(InternalSyntax.ScannerState.Element)
 
-                Dim xmlName = InternalSyntax.SyntaxFactory.XmlName(
+                    Dim xmlName = InternalSyntax.SyntaxFactory.XmlName(
                     Nothing, InternalSyntax.SyntaxFactory.XmlNameToken(parentElementName, SyntaxKind.XmlNameToken, Nothing, Nothing))
 
-                Return DirectCast(
+                    Return DirectCast(
                     parser.ParseXmlAttribute(
                         requireLeadingWhitespace:=False,
                         AllowNameAsExpression:=False,
                         xmlElementName:=xmlName).CreateRed(Nothing, 0), BaseXmlAttributeSyntax)
+                End Using
             End Using
         End Function
 

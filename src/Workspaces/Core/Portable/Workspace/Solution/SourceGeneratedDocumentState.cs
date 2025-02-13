@@ -220,7 +220,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             return null;
         }
 
-        private class SourceGeneratedDocumentOperationService : IDocumentOperationService
+        private sealed class SourceGeneratedDocumentOperationService : IDocumentOperationService
         {
             public static readonly SourceGeneratedDocumentOperationService Instance = new();
 

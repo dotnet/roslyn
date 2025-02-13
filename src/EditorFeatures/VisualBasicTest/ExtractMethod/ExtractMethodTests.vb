@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Assert.NotNull(document)
 
             Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
-            Dim validator = New VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan())
+            Dim validator = New VisualBasicExtractMethodService.VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan())
 
             Dim tuple = Await validator.GetValidSelectionAsync(CancellationToken.None)
             Dim selectedCode = tuple.Item1
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 Await document.GetCodeGenerationOptionsAsync(CancellationToken.None),
                 Await document.GetCodeCleanupOptionsAsync(CancellationToken.None))
 
-            Dim extractor = New VisualBasicMethodExtractor(selectedCode, extractGenerationOptions)
+            Dim extractor = New VisualBasicExtractMethodService.VisualBasicMethodExtractor(selectedCode, extractGenerationOptions)
             Dim result = extractor.ExtractMethod(status, CancellationToken.None)
             Assert.NotNull(result)
 
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 Assert.NotNull(document)
 
                 Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
-                Dim validator = New VisualBasicSelectionValidator(sdocument, namedSpans("b").Single())
+                Dim validator = New VisualBasicExtractMethodService.VisualBasicSelectionValidator(sdocument, namedSpans("b").Single())
                 Dim tuple = Await validator.GetValidSelectionAsync(CancellationToken.None)
                 Dim result = tuple.Item1
                 Dim status = tuple.Item2
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                     Assert.True(status.Succeeded, "Selection wasn't expected to fail")
                 End If
 
-                If status.Succeeded AndAlso result.SelectionChanged Then
+                If status.Succeeded AndAlso namedSpans.ContainsKey("r") Then
                     Assert.Equal(namedSpans("r").Single(), result.FinalSpan)
                 End If
             End Using
@@ -172,7 +172,7 @@ End Class</text>
 
                 For Each node In iterator
                     Try
-                        Dim validator = New VisualBasicSelectionValidator(sdocument, node.Span)
+                        Dim validator = New VisualBasicExtractMethodService.VisualBasicSelectionValidator(sdocument, node.Span)
                         Dim tuple = Await validator.GetValidSelectionAsync(CancellationToken.None)
                         Dim result = tuple.Item1
                         Dim status = tuple.Item2

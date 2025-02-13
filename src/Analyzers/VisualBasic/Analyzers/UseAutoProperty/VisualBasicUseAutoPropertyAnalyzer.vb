@@ -2,15 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Concurrent
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UseAutoProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicUseAutoPropertyAnalyzer
+    Friend NotInheritable Class VisualBasicUseAutoPropertyAnalyzer
         Inherits AbstractUseAutoPropertyAnalyzer(Of
             SyntaxKind,
             PropertyBlockSyntax,
@@ -20,9 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             ExpressionSyntax,
             IdentifierNameSyntax)
 
-        Protected Overrides ReadOnly Property PropertyDeclarationKind As SyntaxKind = SyntaxKind.PropertyBlock
+        Public Sub New()
+            MyBase.New(VisualBasicSemanticFacts.Instance)
+        End Sub
 
-        Protected Overrides ReadOnly Property SemanticFacts As ISemanticFacts = VisualBasicSemanticFacts.Instance
+        Protected Overrides ReadOnly Property PropertyDeclarationKind As SyntaxKind = SyntaxKind.PropertyBlock
 
         Protected Overrides Function SupportsReadOnlyProperties(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic14
@@ -32,11 +34,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic10
         End Function
 
-        Protected Overrides Function CanExplicitInterfaceImplementationsBeFixed() As Boolean
-            Return True
-        End Function
+        Protected Overrides ReadOnly Property CanExplicitInterfaceImplementationsBeFixed As Boolean = True
+        Protected Overrides ReadOnly Property SupportsFieldAttributesOnProperties As Boolean = False
 
-        Protected Overrides Sub RegisterIneligibleFieldsAction(fieldNames As HashSet(Of String), ineligibleFields As ConcurrentSet(Of IFieldSymbol), semanticModel As SemanticModel, codeBlock As SyntaxNode, cancellationToken As CancellationToken)
+        Protected Overrides Sub RecordIneligibleFieldLocations(
+                fieldNames As HashSet(Of String),
+                ineligibleFieldUsageIfOutsideProperty As ConcurrentDictionary(Of IFieldSymbol, ConcurrentSet(Of SyntaxNode)),
+                semanticModel As SemanticModel,
+                codeBlock As SyntaxNode,
+                cancellationToken As CancellationToken)
             ' There are no syntactic constructs that make a field ineligible to be replaced with 
             ' a property.  In C# you can't use a property in a ref/out position.  But that restriction
             ' doesn't apply to VB.
@@ -100,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Nothing
         End Function
 
-        Protected Overrides Function GetSetterExpression(setMethod As IMethodSymbol, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax
+        Protected Overrides Function GetSetterExpression(semanticModel As SemanticModel, setMethod As IMethodSymbol, cancellationToken As CancellationToken) As ExpressionSyntax
             ' Setter has to be of the form:
             '
             '     Set(value)
@@ -132,5 +138,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
         Protected Overrides Function GetFieldNode(fieldDeclaration As FieldDeclarationSyntax, identifier As ModifiedIdentifierSyntax) As SyntaxNode
             Return GetNodeToRemove(identifier)
         End Function
+
+        Protected Overrides Sub AddAccessedFields(semanticModel As SemanticModel, accessor As IMethodSymbol, fieldNames As HashSet(Of String), result As HashSet(Of IFieldSymbol), cancellationToken As CancellationToken)
+            Throw ExceptionUtilities.Unreachable()
+        End Sub
     End Class
 End Namespace

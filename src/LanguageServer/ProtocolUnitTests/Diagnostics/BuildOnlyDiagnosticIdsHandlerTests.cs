@@ -50,14 +50,8 @@ End Class", mutatingLspWorkspace);
         private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
         {
             var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
-            builder.Add(LanguageNames.CSharp, ImmutableArray.Create(
-                DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
-                new BuildOnlyAnalyzer(),
-                new LiveAnalyzer()));
-            builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(
-                DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic),
-                new BuildOnlyAnalyzer(),
-                new LiveAnalyzer()));
+            builder.Add(LanguageNames.CSharp, [DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new BuildOnlyAnalyzer(), new LiveAnalyzer()]);
+            builder.Add(LanguageNames.VisualBasic, [DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic), new BuildOnlyAnalyzer(), new LiveAnalyzer()]);
             return new(builder.ToImmutableDictionary());
         }
 
@@ -90,7 +84,7 @@ End Class", mutatingLspWorkspace);
         {
             public const string Id = "BuildOnly0001";
             private static readonly DiagnosticDescriptor s_descriptor = new(Id, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true, customTags: [WellKnownDiagnosticTags.CompilationEnd]);
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_descriptor];
 
             public override void Initialize(AnalysisContext context)
             {
@@ -102,7 +96,7 @@ End Class", mutatingLspWorkspace);
         {
             public const string Id = "Live0001";
             private static readonly DiagnosticDescriptor s_descriptor = new(Id, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_descriptor);
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_descriptor];
 
             public override void Initialize(AnalysisContext context)
             {

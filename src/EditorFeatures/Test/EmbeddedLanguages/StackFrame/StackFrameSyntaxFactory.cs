@@ -21,17 +21,17 @@ internal static class StackFrameSyntaxFactory
     public static StackFrameToken CreateToken(StackFrameKind kind, string s, ImmutableArray<StackFrameTrivia> leadingTrivia = default, ImmutableArray<StackFrameTrivia> trailingTrivia = default)
         => new(
             kind,
-            leadingTrivia.IsDefaultOrEmpty ? ImmutableArray<StackFrameTrivia>.Empty : leadingTrivia,
+            leadingTrivia.IsDefaultOrEmpty ? [] : leadingTrivia,
             CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, s),
-            trailingTrivia.IsDefaultOrEmpty ? ImmutableArray<StackFrameTrivia>.Empty : trailingTrivia,
-            ImmutableArray<EmbeddedDiagnostic>.Empty,
+            trailingTrivia.IsDefaultOrEmpty ? [] : trailingTrivia,
+            [],
             value: null!);
 
     public static StackFrameTrivia CreateTrivia(StackFrameKind kind, string text)
-        => new(kind, CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, text), ImmutableArray<EmbeddedDiagnostic>.Empty);
+        => new(kind, CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, text), []);
 
     public static ImmutableArray<StackFrameTrivia> CreateTriviaArray(params string[] strings)
-        => strings.Select(s => CreateTrivia(StackFrameKind.SkippedTextTrivia, s)).ToImmutableArray();
+        => [.. strings.Select(s => CreateTrivia(StackFrameKind.SkippedTextTrivia, s))];
 
     public static readonly StackFrameToken DotToken = CreateToken(StackFrameKind.DotToken, ".");
     public static readonly StackFrameToken CommaToken = CreateToken(StackFrameKind.CommaToken, ",");
@@ -113,11 +113,11 @@ internal static class StackFrameSyntaxFactory
 
             if (current is null)
             {
-                current = Identifier(IdentifierToken(identifier, leadingTrivia: leadingTrivia, trailingTrivia: ImmutableArray<StackFrameTrivia>.Empty));
+                current = Identifier(IdentifierToken(identifier, leadingTrivia: leadingTrivia, trailingTrivia: []));
             }
             else if (i == identifiers.Length - 1)
             {
-                var rhs = Identifier(IdentifierToken(identifier, leadingTrivia: ImmutableArray<StackFrameTrivia>.Empty, trailingTrivia: trailingTrivia));
+                var rhs = Identifier(IdentifierToken(identifier, leadingTrivia: [], trailingTrivia: trailingTrivia));
                 current = QualifiedName(current, rhs);
             }
             else
@@ -155,13 +155,13 @@ internal static class StackFrameSyntaxFactory
         => Identifier(IdentifierToken(name, leadingTrivia, trailingTrivia));
 
     public static StackFrameArrayRankSpecifier ArrayRankSpecifier(int commaCount = 0, StackFrameTrivia? leadingTrivia = null, StackFrameTrivia? trailingTrivia = null)
-        => new(OpenBracketToken.With(leadingTrivia: leadingTrivia.ToImmutableArray()), CloseBracketToken.With(trailingTrivia: trailingTrivia.ToImmutableArray()), Enumerable.Repeat(CommaToken, commaCount).ToImmutableArray());
+        => new(OpenBracketToken.With(leadingTrivia: leadingTrivia.ToImmutableArray()), CloseBracketToken.With(trailingTrivia: trailingTrivia.ToImmutableArray()), [.. Enumerable.Repeat(CommaToken, commaCount)]);
 
     public static StackFrameArrayRankSpecifier ArrayRankSpecifier(StackFrameToken openToken, StackFrameToken closeToken, params StackFrameToken[] commaTokens)
-        => new(openToken, closeToken, commaTokens.ToImmutableArray());
+        => new(openToken, closeToken, [.. commaTokens]);
 
     public static StackFrameArrayTypeNode ArrayType(StackFrameNameNode identifier, params StackFrameArrayRankSpecifier[] arrayTokens)
-        => new(identifier, arrayTokens.ToImmutableArray());
+        => new(identifier, [.. arrayTokens]);
 
     public static StackFrameGenericNameNode GenericType(string identifierName, int arity)
         => new(CreateToken(StackFrameKind.IdentifierToken, identifierName), GraveAccentToken, CreateToken(StackFrameKind.NumberToken, arity.ToString()));
@@ -208,7 +208,7 @@ internal static class StackFrameSyntaxFactory
         => CreateToken(StackFrameKind.PathToken, path);
 
     public static StackFrameToken Line(int lineNumber)
-        => CreateToken(StackFrameKind.NumberToken, lineNumber.ToString(), leadingTrivia: ImmutableArray.Create(LineTrivia));
+        => CreateToken(StackFrameKind.NumberToken, lineNumber.ToString(), leadingTrivia: [LineTrivia]);
 
     public static StackFrameLocalMethodNameNode LocalMethod(StackFrameGeneratedMethodNameNode encapsulatingMethod, string identifier, string suffix)
         => new(

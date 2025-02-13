@@ -26,22 +26,6 @@
         "group": "build"
     },
     {
-        "label": "build with analyzers",
-        "command": "./build.sh",
-        "type": "shell",
-        "args": [
-          "--runAnalyzers"
-        ],
-        "windows": {
-          "command": "${workspaceFolder}/build.cmd",
-          "args": [
-            "-runAnalyzers"
-          ],
-        },
-        "problemMatcher": "$msCompile",
-        "group": "build"
-    },
-    {
         "label": "build csc",
         "command": "dotnet",
         "type": "shell",
@@ -76,6 +60,20 @@
         "args": [
           "build",
           "-p:RunAnalyzersDuringBuild=false",
+          "-p:GenerateFullPaths=true",
+          "-tl:off",
+          "Roslyn.sln"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build Roslyn.sln with analyzers",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=true",
           "-p:GenerateFullPaths=true",
           "-tl:off",
           "Roslyn.sln"

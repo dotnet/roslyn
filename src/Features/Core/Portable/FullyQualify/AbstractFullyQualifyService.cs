@@ -172,12 +172,11 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
                 isAttributeName = syntaxFacts.IsNameOfAttribute(rightSide);
             }
 
-            return symbols
+            return [.. symbols
                 .OfType<INamespaceSymbol>()
                 .Where(n => !n.IsGlobalNamespace && HasAccessibleTypes(n, semanticModel, cancellationToken))
                 .Select(n => new SymbolResult(n,
-                    BindsWithoutErrors(n, rightName, isAttributeName) ? NamespaceWithNoErrorsWeight : NamespaceWithErrorsWeight))
-                .ToImmutableArray();
+                    BindsWithoutErrors(n, rightName, isAttributeName) ? NamespaceWithNoErrorsWeight : NamespaceWithErrorsWeight))];
         }
     }
 
@@ -213,7 +212,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
 
             var title = $"{containerName}.{memberName}";
             var textChanges = await ProcessNodeAsync(document, simpleName, containerName, symbolResult.OriginalSymbol, cancellationToken).ConfigureAwait(false);
-            fixes.Add(new FullyQualifyIndividualFixData(title, textChanges.ToImmutableArray()));
+            fixes.Add(new FullyQualifyIndividualFixData(title, [.. textChanges]));
         }
     }
 

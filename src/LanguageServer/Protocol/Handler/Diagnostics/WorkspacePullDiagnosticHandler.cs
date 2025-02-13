@@ -24,6 +24,10 @@ internal sealed partial class WorkspacePullDiagnosticHandler(
     : AbstractWorkspacePullDiagnosticsHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[], VSInternalWorkspaceDiagnosticReport[]>(
         workspaceManager, registrationService, analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
 {
+    // All workspace diagnostics are potential duplicates given that they can be overridden by the diagnostics
+    // produced by document diagnostics.
+    protected override bool PotentialDuplicate => true;
+
     protected override string? GetRequestDiagnosticCategory(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
         => diagnosticsParams.QueryingDiagnosticKind?.Value;
 
@@ -53,13 +57,6 @@ internal sealed partial class WorkspacePullDiagnosticHandler(
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
         => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
-
-    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
-    {
-        // All workspace diagnostics are potential duplicates given that they can be overridden by the diagnostics
-        // produced by document diagnostics.
-        return ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: true);
-    }
 
     protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport[]> progress)
     {

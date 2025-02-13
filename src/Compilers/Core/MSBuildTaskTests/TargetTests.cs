@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [InlineData(".NETCoreApp", "7.0", "11.0")]
         [InlineData(".NETCoreApp", "8.0", "12.0")]
         [InlineData(".NETCoreApp", "9.0", "13.0")]
-        [InlineData(".NETCoreApp", "10.0", "")]
+        [InlineData(".NETCoreApp", "10.0", "13.0")] // update when 14.0 is released
 
         [InlineData(".NETStandard", "1.0", "7.3")]
         [InlineData(".NETStandard", "1.5", "7.3")]

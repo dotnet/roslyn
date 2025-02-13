@@ -126,7 +126,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim node As InternalSyntax.CompilationUnitSyntax
             Using scanner
-                node = New Parser(scanner).ParseCompilationUnit()
+                Using parser = New Parser(scanner)
+                    node = parser.ParseCompilationUnit()
+                End Using
             End Using
 
             Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)

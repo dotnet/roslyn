@@ -55,6 +55,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider(IOptionsReader options)
     public CodeStyleOption2<bool> PreferPatternMatchingOverIsWithCastCheck => GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
     public CodeStyleOption2<bool> PreferNotPattern => GetOption(CSharpCodeStyleOptions.PreferNotPattern);
     public CodeStyleOption2<bool> PreferExtendedPropertyPattern => GetOption(CSharpCodeStyleOptions.PreferExtendedPropertyPattern);
+    public CodeStyleOption2<bool> PreferImplicitlyTypedLambdaExpression => GetOption(CSharpCodeStyleOptions.PreferImplicitlyTypedLambdaExpression);
     public CodeStyleOption2<bool> PreferInlinedVariableDeclaration => GetOption(CSharpCodeStyleOptions.PreferInlinedVariableDeclaration);
     public CodeStyleOption2<bool> PreferDeconstructedVariableDeclaration => GetOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration);
     public CodeStyleOption2<bool> PreferIndexOperator => GetOption(CSharpCodeStyleOptions.PreferIndexOperator);
@@ -69,6 +70,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider(IOptionsReader options)
     public CodeStyleOption2<bool> PreferMethodGroupConversion => GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion);
     public CodeStyleOption2<bool> PreferPrimaryConstructors => GetOption(CSharpCodeStyleOptions.PreferPrimaryConstructors);
     public CodeStyleOption2<bool> PreferSystemThreadingLock => GetOption(CSharpCodeStyleOptions.PreferSystemThreadingLock);
+    public CodeStyleOption2<bool> PreferUnboundGenericTypeInNameOf => GetOption(CSharpCodeStyleOptions.PreferUnboundGenericTypeInNameOf);
 
     // CodeGenerationOptions
 

@@ -49,6 +49,7 @@ internal sealed class TextDocumentStates<TState>
 #endif
 
     private readonly ImmutableList<DocumentId> _ids;
+    private ImmutableArray<TState> _statesInCompilationOrder;
     private FilePathToDocumentIds? _filePathToDocumentIds;
 
     private TextDocumentStates(
@@ -64,14 +65,14 @@ internal sealed class TextDocumentStates<TState>
     }
 
     public TextDocumentStates(IEnumerable<TState> states)
-        : this(states.Select(s => s.Id).ToImmutableList(),
+        : this([.. states.Select(s => s.Id)],
                states.ToImmutableSortedDictionary(state => state.Id, state => state, DocumentIdComparer.Instance),
                filePathToDocumentIds: null)
     {
     }
 
     public TextDocumentStates(IEnumerable<DocumentInfo> infos, Func<DocumentInfo, TState> stateConstructor)
-        : this(infos.Select(info => info.Id).ToImmutableList(),
+        : this([.. infos.Select(info => info.Id)],
                infos.ToImmutableSortedDictionary(info => info.Id, stateConstructor, DocumentIdComparer.Instance),
                filePathToDocumentIds: null)
     {
@@ -116,11 +117,12 @@ internal sealed class TextDocumentStates<TState>
     /// <summary>
     /// Get states ordered in compilation order.
     /// </summary>
-    /// <returns></returns>
-    public IEnumerable<TState> GetStatesInCompilationOrder()
+    public ImmutableArray<TState> GetStatesInCompilationOrder()
     {
-        var map = States;
-        return Ids.Select(id => map[id]);
+        if (_statesInCompilationOrder.IsDefault)
+            _statesInCompilationOrder = Ids.SelectAsArray(static (id, map) => map[id], States);
+
+        return _statesInCompilationOrder;
     }
 
     public ImmutableArray<TValue> SelectAsArray<TValue>(Func<TState, TValue> selector)
@@ -138,9 +140,18 @@ internal sealed class TextDocumentStates<TState>
     }
 
     public TextDocumentStates<TState> AddRange(ImmutableArray<TState> states)
-        => new(_ids.AddRange(states.Select(state => state.Id)),
-               States.AddRange(states.Select(state => KeyValuePairUtil.Create(state.Id, state))),
-               filePathToDocumentIds: null);
+    {
+        using var pooledIds = SharedPools.Default<List<DocumentId>>().GetPooledObject();
+        var ids = pooledIds.Object;
+
+        foreach (var state in states)
+            ids.Add(state.Id);
+
+        return new(
+            _ids.AddRange(ids),
+            States.AddRange(states.Select(state => KeyValuePairUtil.Create(state.Id, state))),
+            filePathToDocumentIds: null);
+    }
 
     public TextDocumentStates<TState> RemoveRange(ImmutableArray<DocumentId> ids)
     {

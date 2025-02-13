@@ -9,15 +9,13 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    <ExportCompletionProvider(NameOf(ObjectInitializerCompletionProvider), LanguageNames.VisualBasic)>
+    <ExportCompletionProvider(NameOf(ObjectInitializerCompletionProvider), LanguageNames.VisualBasic), [Shared]>
     <ExtensionOrder(After:=NameOf(PreprocessorCompletionProvider))>
-    <[Shared]>
-    Friend Class ObjectInitializerCompletionProvider
+    Friend NotInheritable Class ObjectInitializerCompletionProvider
         Inherits AbstractObjectInitializerCompletionProvider
 
         <ImportingConstructor>
@@ -52,10 +50,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return New HashSet(Of String)(initializer.Initializers.OfType(Of NamedFieldInitializerSyntax)().Select(Function(i) i.Name.Identifier.ValueText))
         End Function
 
-        Protected Overrides Function GetInitializedType(document As Document,
-                                                        semanticModel As SemanticModel,
-                                                        position As Integer,
-                                                        cancellationToken As CancellationToken) As Tuple(Of ITypeSymbol, Location)
+        Protected Overrides Function GetInitializedType(
+                document As Document,
+                semanticModel As SemanticModel,
+                position As Integer,
+                cancellationToken As CancellationToken) As Tuple(Of ITypeSymbol, Location)
             Dim tree = semanticModel.SyntaxTree
             If tree.IsInNonUserCode(position, cancellationToken) Then
                 Return Nothing
@@ -107,12 +106,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return SpecializedTasks.True
         End Function
 
-        Protected Overrides Function IsInitializable(member As ISymbol, containingType As INamedTypeSymbol) As Boolean
+        Protected Overrides Function IsInitializableFieldOrProperty(fieldOrProperty As ISymbol, containingType As INamedTypeSymbol) As Boolean
             ' Unlike CSharp, we don't want to suggest readonly members, even if they are Collections
-            Return member.IsWriteableFieldOrProperty() AndAlso
-                IsValidProperty(member) AndAlso
-                Not member.IsStatic AndAlso
-                member.IsAccessibleWithin(containingType)
+            Return MyBase.IsInitializableFieldOrProperty(fieldOrProperty, containingType) AndAlso
+                fieldOrProperty.IsWriteableFieldOrProperty() AndAlso
+                IsValidProperty(fieldOrProperty)
         End Function
 
         Protected Overrides Function EscapeIdentifier(symbol As ISymbol) As String
@@ -127,6 +125,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return True
         End Function
-
     End Class
 End Namespace

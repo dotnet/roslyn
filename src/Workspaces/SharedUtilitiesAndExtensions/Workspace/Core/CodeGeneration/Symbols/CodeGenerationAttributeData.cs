@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationAttributeData(
+internal sealed class CodeGenerationAttributeData(
     INamedTypeSymbol attributeClass,
     ImmutableArray<TypedConstant> constructorArguments,
     ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments) : AttributeData

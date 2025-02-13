@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.RpcContracts.DiagnosticManagement;
 using Microsoft.VisualStudio.RpcContracts.Utilities;
@@ -363,7 +364,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 if (project == null)
                 {
                     // projectId no longer exist
-                    return ImmutableHashSet<string>.Empty;
+                    return [];
                 }
 
                 // set ids set

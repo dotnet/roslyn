@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                     Return CanReplaceWithReducedName(name, replacementNode, semanticModel, cancellationToken)
                 End If
 
-                If Not TypeOf symbol Is INamespaceOrTypeSymbol Then
+                If TypeOf symbol IsNot INamespaceOrTypeSymbol Then
                     Return False
                 End If
             Else
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
         Private Shared Function IsNonNameSyntaxInImportsDirective(expression As ExpressionSyntax, simplifiedNode As ExpressionSyntax) As Boolean
             Return TypeOf expression.Parent Is ImportsClauseSyntax AndAlso
-                Not TypeOf simplifiedNode Is NameSyntax
+                TypeOf simplifiedNode IsNot NameSyntax
         End Function
 
         Private Shared Function IsNullableTypeSyntaxLeftOfDotInMemberAccess(expression As ExpressionSyntax, simplifiedNode As ExpressionSyntax) As Boolean

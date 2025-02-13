@@ -27,6 +27,5 @@ internal interface ICopilotOptionsService : ILanguageService
     /// <summary>
     /// Returns true if Copilot on-the-fly docs feature is enabled.
     /// </summary>
-    /// <returns></returns>
     Task<bool> IsOnTheFlyDocsOptionEnabledAsync();
 }

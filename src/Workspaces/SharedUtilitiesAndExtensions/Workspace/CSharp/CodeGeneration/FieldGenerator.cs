@@ -95,7 +95,7 @@ internal static class FieldGenerator
 
         var initializer = CodeGenerationFieldInfo.GetInitializer(field) is ExpressionSyntax initializerNode
             ? EqualsValueClause(initializerNode)
-            : GenerateEqualsValue(info.Generator, field);
+            : GenerateEqualsValue(field);
 
         var fieldDeclaration = FieldDeclaration(
             AttributeGenerator.GenerateAttributeLists(field.GetAttributes(), info),
@@ -108,12 +108,12 @@ internal static class FieldGenerator
             ConditionallyAddDocumentationCommentTo(fieldDeclaration, field, info, cancellationToken));
     }
 
-    private static EqualsValueClauseSyntax? GenerateEqualsValue(SyntaxGenerator generator, IFieldSymbol field)
+    private static EqualsValueClauseSyntax? GenerateEqualsValue(IFieldSymbol field)
     {
         if (field.HasConstantValue)
         {
             var canUseFieldReference = field.Type != null && !field.Type.Equals(field.ContainingType);
-            return EqualsValueClause(ExpressionGenerator.GenerateExpression(generator, field.Type, field.ConstantValue, canUseFieldReference));
+            return EqualsValueClause(ExpressionGenerator.GenerateExpression(field.Type, field.ConstantValue, canUseFieldReference));
         }
 
         return null;

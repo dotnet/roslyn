@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -44,9 +45,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Protected Overrides ReadOnly Property EncMissingStateMessage As String
+            Protected Overrides ReadOnly Property EncMissingStateErrorCode As HotReloadExceptionCode
                 Get
-                    Return CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod
+                    Return HotReloadExceptionCode.CannotResumeSuspendedIteratorMethod
                 End Get
             End Property
 
@@ -110,10 +111,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.NotStartedOrRunningState)),
                         F.Label(breakLabel),
                         F.ExpressionStatement(F.Call(F.Me, moveNextMethod)),
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.FinishedState)),
                         F.Return()
                         ))
                 Else
-                    F.CloseMethod(F.Return())
+                    F.CloseMethod(F.Block(
+                        F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(StateMachineState.FinishedState)),
+                        F.Return()
+                        ))
                 End If
             End Sub
 

@@ -45,16 +45,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var whenAll = SpecializedTasks.WhenAll([new ValueTask<int>(0), new ValueTask<int>(1)]);
             Debug.Assert(whenAll.IsCompleted);
             Assert.True(whenAll.IsCompletedSuccessfully);
-            Assert.Equal([0, 1], whenAll.Result);
+            Assert.Equal((int[])[0, 1], whenAll.Result);
         }
 
         [Fact]
-        public void WhenAll_CompletedButCanceled()
+        public async Task WhenAll_CompletedButCanceled()
         {
             var whenAll = SpecializedTasks.WhenAll([new ValueTask<int>(Task.FromCanceled<int>(new CancellationToken(true)))]);
             Assert.True(whenAll.IsCompleted);
             Assert.False(whenAll.IsCompletedSuccessfully);
-            Assert.ThrowsAsync<OperationCanceledException>(async () => await whenAll);
+            await Assert.ThrowsAsync<TaskCanceledException>(async () => await whenAll);
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             completionSource.SetResult(0);
             Assert.True(whenAll.IsCompleted);
             Debug.Assert(whenAll.IsCompleted);
-            Assert.Equal([0], whenAll.Result);
+            Assert.Equal((int[])[0], whenAll.Result);
         }
 
         [Fact]

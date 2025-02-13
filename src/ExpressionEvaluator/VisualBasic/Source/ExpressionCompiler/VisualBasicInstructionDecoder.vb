@@ -8,7 +8,6 @@ Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.VisualStudio.Debugger
 Imports Microsoft.VisualStudio.Debugger.Clr
 Imports System.Text
 
@@ -28,6 +27,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Sub New()
         End Sub
+
+        Friend Overrides Function GetCompactName(method As MethodSymbol) As String
+            Dim symbol = If(method.AssociatedSymbol, method)
+            Return symbol.ToDisplayString(CompactNameFormat)
+        End Function
 
         Friend Overrides Sub AppendFullName(builder As StringBuilder, method As MethodSymbol)
             Dim parts = method.ToDisplayParts(DisplayFormat)
@@ -86,19 +90,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function GetCompilation(moduleInstance As DkmClrModuleInstance) As VisualBasicCompilation
             Dim appDomain = moduleInstance.AppDomain
-            Dim moduleVersionId = moduleInstance.Mvid
+            Dim moduleId = moduleInstance.GetModuleId()
             Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
             Dim metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks)
 
             Dim kind = GetMakeAssemblyReferencesKind()
-            Dim contextId = MetadataContextId.GetContextId(moduleVersionId, kind)
+            Dim contextId = MetadataContextId.GetContextId(moduleId, kind)
             Dim assemblyContexts = If(previous.Matches(metadataBlocks), previous.AssemblyContexts, ImmutableDictionary(Of MetadataContextId, VisualBasicMetadataContext).Empty)
             Dim previousContext As VisualBasicMetadataContext = Nothing
             assemblyContexts.TryGetValue(contextId, previousContext)
 
             Dim compilation = previousContext.Compilation
             If compilation Is Nothing Then
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind)
+                compilation = metadataBlocks.ToCompilation(moduleId, kind)
                 appDomain.SetMetadataContext(
                     New MetadataContext(Of VisualBasicMetadataContext)(
                         metadataBlocks,
@@ -111,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides Function GetMethod(compilation As VisualBasicCompilation, instructionAddress As DkmClrInstructionAddress) As MethodSymbol
             Dim methodHandle = CType(MetadataTokens.Handle(instructionAddress.MethodId.Token), MethodDefinitionHandle)
-            Return compilation.GetSourceMethod(instructionAddress.ModuleInstance.Mvid, methodHandle)
+            Return compilation.GetSourceMethod(instructionAddress.ModuleInstance.GetModuleId(), methodHandle)
         End Function
 
         Friend Overrides Function GetTypeNameDecoder(compilation As VisualBasicCompilation, method As MethodSymbol) As TypeNameDecoder(Of PEModuleSymbol, TypeSymbol)

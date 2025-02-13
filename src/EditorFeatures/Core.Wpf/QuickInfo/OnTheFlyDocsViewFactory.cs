@@ -5,13 +5,14 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Windows;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 
 [Export(typeof(IViewElementFactory))]
 [Name("OnTheFlyDocsElement converter")]
-[TypeConversion(from: typeof(EditorFeaturesOnTheFlyDocsElement), to: typeof(UIElement))]
+[TypeConversion(from: typeof(QuickInfoOnTheFlyDocsElement), to: typeof(UIElement))]
 [Order(Before = "Default")]
 internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
 {
@@ -28,15 +29,18 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
     private readonly IAsynchronousOperationListenerProvider _listenerProvider;
     private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
     private readonly IThreadingContext _threadingContext;
+    private readonly IServiceProvider _serviceProvider;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IAsynchronousOperationListenerProvider listenerProvider, IAsyncQuickInfoBroker asyncQuickInfoBroker, IThreadingContext threadingContext)
+    public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IAsynchronousOperationListenerProvider listenerProvider,
+        IAsyncQuickInfoBroker asyncQuickInfoBroker, IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
     {
         _factoryService = factoryService;
         _listenerProvider = listenerProvider;
         _asyncQuickInfoBroker = asyncQuickInfoBroker;
         _threadingContext = threadingContext;
+        _serviceProvider = serviceProvider;
     }
 
     public TView? CreateViewElement<TView>(ITextView textView, object model) where TView : class
@@ -46,12 +50,9 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
             throw new InvalidOperationException("TView must be UIElement");
         }
 
-        var editorFeaturesOnTheFlyDocsElement = (EditorFeaturesOnTheFlyDocsElement)model;
+        var onTheFlyDocsElement = (QuickInfoOnTheFlyDocsElement)model;
 
-        Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Showed_Link, KeyValueLogMessage.Create(m =>
-        {
-            m["SymbolHeaderText"] = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.SymbolSignature;
-        }, LogLevel.Information));
+        Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Showed_Link, logLevel: LogLevel.Information);
 
         var quickInfoSession = _asyncQuickInfoBroker.GetSession(textView);
 
@@ -62,11 +63,11 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
 
         OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLink();
 
-        if (editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.HasComments)
+        if (onTheFlyDocsElement.Info.HasComments)
         {
             OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLinkWithDocComments();
         }
 
-        return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, quickInfoSession, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;
+        return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, quickInfoSession, _threadingContext, onTheFlyDocsElement, _serviceProvider) as TView;
     }
 }

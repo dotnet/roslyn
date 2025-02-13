@@ -112,10 +112,10 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
 
         public override NamingStylePreferences GetNamingStylePreferences()
         {
-            var preferences = _fileDirectoryConfigData.ConfigOptions.GetNamingStylePreferences();
+            var preferences = _fileDirectoryConfigData.ConfigOptionsWithoutFallback.GetNamingStylePreferences();
             if (preferences.IsEmpty && _projectDirectoryConfigData.HasValue)
             {
-                preferences = _projectDirectoryConfigData.Value.ConfigOptions.GetNamingStylePreferences();
+                preferences = _projectDirectoryConfigData.Value.ConfigOptionsWithoutFallback.GetNamingStylePreferences();
             }
 
             return preferences;
@@ -123,7 +123,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
 
         public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
         {
-            if (_fileDirectoryConfigData.ConfigOptions.TryGetValue(key, out value))
+            if (_fileDirectoryConfigData.ConfigOptionsWithoutFallback.TryGetValue(key, out value))
             {
                 return true;
             }
@@ -134,7 +134,7 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
                 return false;
             }
 
-            if (_projectDirectoryConfigData.Value.ConfigOptions.TryGetValue(key, out value))
+            if (_projectDirectoryConfigData.Value.ConfigOptionsWithoutFallback.TryGetValue(key, out value))
             {
                 return true;
             }
@@ -156,23 +156,23 @@ internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TV
         {
             get
             {
-                foreach (var key in _fileDirectoryConfigData.ConfigOptions.Keys)
+                foreach (var key in _fileDirectoryConfigData.ConfigOptionsWithoutFallback.Keys)
                     yield return key;
 
                 if (!_projectDirectoryConfigData.HasValue)
                     yield break;
 
-                foreach (var key in _projectDirectoryConfigData.Value.ConfigOptions.Keys)
+                foreach (var key in _projectDirectoryConfigData.Value.ConfigOptionsWithoutFallback.Keys)
                 {
-                    if (!_fileDirectoryConfigData.ConfigOptions.TryGetValue(key, out _))
+                    if (!_fileDirectoryConfigData.ConfigOptionsWithoutFallback.TryGetValue(key, out _))
                         yield return key;
                 }
 
                 foreach (var (key, severity) in _projectDirectoryConfigData.Value.TreeOptions)
                 {
                     var diagnosticKey = "dotnet_diagnostic." + key + ".severity";
-                    if (!_fileDirectoryConfigData.ConfigOptions.TryGetValue(diagnosticKey, out _) &&
-                        !_projectDirectoryConfigData.Value.ConfigOptions.TryGetValue(diagnosticKey, out _))
+                    if (!_fileDirectoryConfigData.ConfigOptionsWithoutFallback.TryGetValue(diagnosticKey, out _) &&
+                        !_projectDirectoryConfigData.Value.ConfigOptionsWithoutFallback.TryGetValue(diagnosticKey, out _))
                     {
                         yield return diagnosticKey;
                     }

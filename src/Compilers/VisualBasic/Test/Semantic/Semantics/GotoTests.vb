@@ -207,7 +207,7 @@ End Module
 
             Assert.Equal("lab1", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Label, semanticSummary.Symbol.Kind)
-            Assert.Equal(Of ISymbol)(declaredSymbol, semanticSummary.Symbol)
+            AssertEx.Equal(Of ISymbol)(declaredSymbol, semanticSummary.Symbol)
 
         End Sub
 
@@ -238,7 +238,7 @@ End Module
             Assert.Equal(ConversionKind.Identity, semanticSummary0.ImplicitConversion.Kind)
             Assert.Equal("lab1", semanticSummary0.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Label, semanticSummary0.Symbol.Kind)
-            Assert.Equal(Of ISymbol)(declaredSymbol0, semanticSummary0.Symbol)
+            AssertEx.Equal(Of ISymbol)(declaredSymbol0, semanticSummary0.Symbol)
 
             Dim declaredSymbol1 = model.GetDeclaredSymbol(labelStatementSyntaxArray(1))
             Dim semanticSummary1 = CompilationUtils.GetSemanticInfoSummary(Compilation, gotoSyntaxArray(1).Label)
@@ -247,7 +247,7 @@ End Module
             Assert.Equal(ConversionKind.Identity, semanticSummary1.ImplicitConversion.Kind)
             Assert.Equal("lab1", semanticSummary1.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Label, semanticSummary1.Symbol.Kind)
-            Assert.Equal(Of ISymbol)(declaredSymbol0, semanticSummary1.Symbol)
+            AssertEx.Equal(Of ISymbol)(declaredSymbol0, semanticSummary1.Symbol)
 
             Assert.NotEqual(declaredSymbol0, declaredSymbol1)
             Assert.Equal(semanticSummary0.Symbol, semanticSummary1.Symbol)
@@ -281,7 +281,7 @@ End Module
 
             Assert.Equal("0", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Label, semanticSummary.Symbol.Kind)
-            Assert.Equal(Of ISymbol)(declaredSymbol, semanticSummary.Symbol)
+            AssertEx.Equal(Of ISymbol)(declaredSymbol, semanticSummary.Symbol)
         End Sub
 
         <Fact()>
@@ -315,8 +315,8 @@ End Module
 
             Assert.Equal("0", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Label, semanticSummary.Symbol.Kind)
-            Assert.NotEqual(Of ISymbol)(declaredSymbolOuter, semanticSummary.Symbol)
-            Assert.Equal(Of ISymbol)(declaredSymbolInner, semanticSummary.Symbol)
+            AssertEx.NotEqual(Of ISymbol)(declaredSymbolOuter, semanticSummary.Symbol)
+            AssertEx.Equal(Of ISymbol)(declaredSymbolInner, semanticSummary.Symbol)
         End Sub
 
         <Fact()>
@@ -354,7 +354,7 @@ End Module
 
             Assert.Equal("1", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Label, semanticSummary.Symbol.Kind)
-            Assert.Equal(Of ISymbol)(declaredSymbol, semanticSummary.Symbol)
+            AssertEx.Equal(Of ISymbol)(declaredSymbol, semanticSummary.Symbol)
         End Sub
 
         <Fact()>
@@ -390,7 +390,7 @@ End Module
 
             Assert.Equal("1", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Label, semanticSummary.Symbol.Kind)
-            Assert.Equal(Of ISymbol)(declaredSymbol, semanticSummary.Symbol)
+            AssertEx.Equal(Of ISymbol)(declaredSymbol, semanticSummary.Symbol)
         End Sub
 
         <Fact()>
@@ -424,7 +424,7 @@ End Module
 
             Assert.Equal("lab1", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Label, semanticSummary.Symbol.Kind)
-            Assert.Equal(Of ISymbol)(declaredSymbol, semanticSummary.Symbol)
+            AssertEx.Equal(Of ISymbol)(declaredSymbol, semanticSummary.Symbol)
         End Sub
 
         <Fact()>

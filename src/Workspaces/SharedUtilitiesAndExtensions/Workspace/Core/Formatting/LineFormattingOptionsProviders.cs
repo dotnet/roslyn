@@ -16,7 +16,7 @@ internal static class LineFormattingOptionsProviders
 
     public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return configOptions.GetLineFormattingOptions(document.Project.Language);
     }
 }

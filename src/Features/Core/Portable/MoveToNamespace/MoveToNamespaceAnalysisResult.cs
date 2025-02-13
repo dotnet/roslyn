@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace;
 
-internal partial class MoveToNamespaceAnalysisResult
+internal sealed partial class MoveToNamespaceAnalysisResult
 {
     public static readonly MoveToNamespaceAnalysisResult Invalid = new();
 

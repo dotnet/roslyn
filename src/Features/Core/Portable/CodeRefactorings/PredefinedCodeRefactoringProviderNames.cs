@@ -44,7 +44,6 @@ internal static class PredefinedCodeRefactoringProviderNames
     public const string ExtractMethod = "Extract Method Code Action Provider";
     public const string GenerateComparisonOperators = nameof(GenerateComparisonOperators);
     public const string GenerateConstructorFromMembers = "Generate Constructor From Members Code Action Provider";
-    public const string GenerateDefaultConstructors = "Generate Default Constructors Code Action Provider";
     public const string GenerateEqualsAndGetHashCodeFromMembers = "Generate Equals and GetHashCode Code Action Provider";
     public const string GenerateOverrides = "Generate Overrides Code Action Provider";
     public const string ImplementInterfaceExplicitly = nameof(ImplementInterfaceExplicitly);

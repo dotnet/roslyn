@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.TypeRename;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
@@ -89,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
             return new LinkedEditingRanges
             {
-                Ranges = result.Ranges.Select(s => ProtocolConversions.TextSpanToRange(s, text)).ToArray(),
+                Ranges = [.. result.Ranges.Select(s => ProtocolConversions.TextSpanToRange(s, text))],
                 WordPattern = result.WordPattern
             };
         }

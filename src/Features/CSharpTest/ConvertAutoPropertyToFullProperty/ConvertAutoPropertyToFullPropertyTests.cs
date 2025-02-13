@@ -4,7 +4,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -13,8 +15,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFullProperty;
 
 [Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
-public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest_NoEditor
 {
+    private static readonly CSharpParseOptions CSharp14 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
+
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider();
 
@@ -23,30 +27,30 @@ public partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCode
     [WorkItem("https://github.com/dotnet/roslyn/issues/48133")]
     public async Task SimpleAutoPropertyTest(string setter)
     {
-        var text = $@"
-class TestClass
-{{
-    public int G[||]oo {{ get; {setter}; }}
-}}
-";
-        var expected = $@"
-class TestClass
-{{
-    private int goo;
+        var text = $$"""
+            class TestClass
+            {
+                public int G[||]oo { get; {{setter}}; }
+            }
+            """;
+        var expected = $$"""
+            class TestClass
+            {
+                private int goo;
 
-    public int Goo
-    {{
-        get
-        {{
-            return goo;
-        }}
-        {setter}
-        {{
-            goo = value;
-        }}
-    }}
-}}
-";
+                public int Goo
+                {
+                    get
+                    {
+                        return goo;
+                    }
+                    {{setter}}
+                    {
+                        goo = value;
+                    }
+                }
+            }
+            """;
         await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
     }
 
@@ -760,6 +764,25 @@ class TestClass
     }
 
     [Fact]
+    public async Task GetterOnlyExpressionBodies_Field()
+    {
+        var text = """
+            class TestClass
+            {
+                public int G[||]oo { get;}
+            }
+            """;
+        var expected = """
+            class TestClass
+            {
+                public int Goo => field;
+            }
+            """;
+        await TestInRegularAndScriptAsync(
+            text, expected, options: PreferExpressionBodiesOnAccessorsAndMethods, index: 1, parseOptions: CSharp14);
+    }
+
+    [Fact]
     public async Task SetterOnly()
     {
         var text = """
@@ -1349,5 +1372,106 @@ class TestClass
                 public Dictionary<string, IImmutableDictionary<string, string>> Files => files;
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75547")]
+    public async Task ConvertField1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                int [||]P
+                {
+                    get;
+                    set
+                    {
+                        M(field);
+                        field = value;
+                    }
+                }
+
+                void M(int i) { }
+            }
+            """,
+            """
+            class Class
+            {
+                private int p;
+
+                int [||]P
+                {
+                    get => p;
+                    set
+                    {
+                        M(p);
+                        p = value;
+                    }
+                }
+            
+                void M(int i) { }
+            }
+            """,
+            parseOptions: CSharp14);
+    }
+
+    [Theory]
+    [InlineData("set"), InlineData("init")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/76899")]
+    public async Task ProduceFieldBackedProperty(string setter)
+    {
+        var text = $$"""
+            class TestClass
+            {
+                public int G[||]oo { get; {{setter}}; }
+            }
+            """;
+        var expected = $$"""
+            class TestClass
+            {
+                public int Goo
+                {
+                    get
+                    {
+                        return field;
+                    }
+                    {{setter}}
+                    {
+                        field = value;
+                    }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14);
+    }
+
+    [Theory]
+    [InlineData("set"), InlineData("init")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/76992")]
+    public async Task ProduceFieldBackedProperty2(string setter)
+    {
+        var text = $$"""
+            class TestClass
+            {
+                public int G[||]oo { get; {{setter}}; } = 0;
+            }
+            """;
+        var expected = $$"""
+            class TestClass
+            {
+                public int Goo
+                {
+                    get
+                    {
+                        return field;
+                    }
+                    {{setter}}
+                    {
+                        field = value;
+                    }
+                } = 0;
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14);
     }
 }

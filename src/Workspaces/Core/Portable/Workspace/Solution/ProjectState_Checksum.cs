@@ -13,20 +13,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class ProjectState
+internal sealed partial class ProjectState
 {
     public bool TryGetStateChecksums([NotNullWhen(true)] out ProjectStateChecksums? stateChecksums)
-        => _lazyChecksums.TryGetValue(out stateChecksums);
+        => LazyChecksums.TryGetValue(out stateChecksums);
 
     public Task<ProjectStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
-        => _lazyChecksums.GetValueAsync(cancellationToken);
+        => LazyChecksums.GetValueAsync(cancellationToken);
 
     public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
     {
         return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
             static (lazyChecksums, cancellationToken) => new ValueTask<ProjectStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
             static (projectStateChecksums, _) => projectStateChecksums.Checksum,
-            _lazyChecksums,
+            LazyChecksums,
             cancellationToken).AsTask();
     }
 

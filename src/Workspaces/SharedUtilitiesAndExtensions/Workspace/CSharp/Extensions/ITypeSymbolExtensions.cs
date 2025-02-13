@@ -72,9 +72,9 @@ internal static partial class ITypeSymbolExtensions
     }
 
     public static TypeSyntax GenerateRefTypeSyntax(
-        this INamespaceOrTypeSymbol symbol)
+        this INamespaceOrTypeSymbol symbol, bool allowVar = true)
     {
-        var underlyingType = GenerateTypeSyntax(symbol)
+        var underlyingType = GenerateTypeSyntax(symbol, allowVar)
             .WithPrependedLeadingTrivia(ElasticMarker)
             .WithAdditionalAnnotations(Simplifier.Annotation);
         var refKeyword = RefKeyword;
@@ -82,9 +82,9 @@ internal static partial class ITypeSymbolExtensions
     }
 
     public static TypeSyntax GenerateRefReadOnlyTypeSyntax(
-        this INamespaceOrTypeSymbol symbol)
+        this INamespaceOrTypeSymbol symbol, bool allowVar = true)
     {
-        var underlyingType = GenerateTypeSyntax(symbol)
+        var underlyingType = GenerateTypeSyntax(symbol, allowVar)
             .WithPrependedLeadingTrivia(ElasticMarker)
             .WithAdditionalAnnotations(Simplifier.Annotation);
         var refKeyword = RefKeyword;

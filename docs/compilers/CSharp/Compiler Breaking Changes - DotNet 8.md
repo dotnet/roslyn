@@ -1,4 +1,6 @@
-# This document lists known breaking changes in Roslyn after .NET 7 all the way to .NET 8.
+# Breaking changes in Roslyn after .NET 7.0.100 through .NET 8.0.100
+
+This document lists known breaking changes in Roslyn after .NET 7 general release (.NET SDK version 7.0.100) through .NET 8 general release (.NET SDK version 8.0.100).
 
 ## Ref modifiers of dynamic arguments should be compatible with ref modifiers of corresponding parameters
 

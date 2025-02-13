@@ -59,7 +59,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.DotToken);
             }
 
-            if (symbol.ContainingType.TypeKind == TypeKind.Enum)
+            if (!Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)
+                && symbol is Symbols.PublicModel.FieldSymbol
+                && symbol.AssociatedSymbol is IPropertySymbol associatedProperty)
+            {
+                AddPropertyNameAndParameters(associatedProperty);
+                AddPunctuation(SyntaxKind.DotToken);
+                AddKeyword(SyntaxKind.FieldKeyword);
+            }
+            else if (symbol.ContainingType.TypeKind == TypeKind.Enum)
             {
                 Builder.Add(CreatePart(SymbolDisplayPartKind.EnumMemberName, symbol, symbol.Name));
             }
@@ -321,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // If we're using the metadata format, then include the return type.
                             // Otherwise we eschew it since it is redundant in a conversion
                             // signature.
-                            if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames))
+                            if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
                             {
                                 goto default;
                             }
@@ -332,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // If we're using the metadata format, then include the return type.
                             // Otherwise we eschew it since it is redundant in a conversion
                             // signature.
-                            if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) ||
+                            if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) ||
                                 tryGetUserDefinedOperatorTokenKind(symbol.MetadataName) == SyntaxKind.None)
                             {
                                 goto default;
@@ -462,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Note: we are using the metadata name also in the case that
                         // symbol.containingType is null (which should never be the case here) or is an
                         //       anonymous type (which 'does not have a name').
-                        var name = Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) || symbol.ContainingType == null || symbol.ContainingType.IsAnonymousType
+                        var name = Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) || symbol.ContainingType == null || symbol.ContainingType.IsAnonymousType
                             ? symbol.Name
                             : symbol.ContainingType.Name;
 
@@ -476,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var partKind = GetPartKindForConstructorOrDestructor(symbol);
 
                         // Note: we are using the metadata name also in the case that symbol.containingType is null, which should never be the case here.
-                        if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) || symbol.ContainingType == null)
+                        if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) || symbol.ContainingType == null)
                         {
                             Builder.Add(CreatePart(partKind, symbol, symbol.Name));
                         }
@@ -491,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         AddExplicitInterfaceIfNeeded(symbol.ExplicitInterfaceImplementations);
 
-                        if (!Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) &&
+                        if (!Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) &&
                             symbol.GetSymbol()?.OriginalDefinition is SourceUserDefinedOperatorSymbolBase sourceUserDefinedOperatorSymbolBase)
                         {
                             var operatorName = symbol.MetadataName;
@@ -520,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodKind.UserDefinedOperator:
                 case MethodKind.BuiltinOperator:
                     {
-                        if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames))
+                        if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
                         {
                             Builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.MetadataName));
                         }
@@ -541,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case MethodKind.Conversion:
                     {
-                        if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames))
+                        if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
                         {
                             Builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.MetadataName));
                         }

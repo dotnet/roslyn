@@ -232,7 +232,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
             {
                 var doc = project.GetRequiredDocument(docId);
                 var updatedRoot = await FixReferencesSingleDocumentAsync(
-                    referencesForDoc.ToImmutableArray(),
+                    [.. referencesForDoc],
                     doc,
                     newType,
                     typeArgIndices,

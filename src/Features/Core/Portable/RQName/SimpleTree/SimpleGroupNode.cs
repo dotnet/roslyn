@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-internal class SimpleGroupNode(string text, IList<SimpleTreeNode> children) : SimpleTreeNode(text)
+internal sealed class SimpleGroupNode(string text, IList<SimpleTreeNode> children) : SimpleTreeNode(text)
 {
     public SimpleGroupNode(string text, string singleLeafChildText) : this(text, new SimpleLeafNode(singleLeafChildText)) { }
 

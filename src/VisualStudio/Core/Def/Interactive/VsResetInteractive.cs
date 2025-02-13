@@ -67,10 +67,10 @@ internal sealed class VsResetInteractive : ResetInteractive
     {
         var hierarchyPointer = default(IntPtr);
         var selectionContainerPointer = default(IntPtr);
-        references = ImmutableArray<string>.Empty;
-        referenceSearchPaths = ImmutableArray<string>.Empty;
-        sourceSearchPaths = ImmutableArray<string>.Empty;
-        projectNamespaces = ImmutableArray<string>.Empty;
+        references = [];
+        referenceSearchPaths = [];
+        sourceSearchPaths = [];
+        projectNamespaces = [];
         projectDirectory = null;
         platform = null;
 

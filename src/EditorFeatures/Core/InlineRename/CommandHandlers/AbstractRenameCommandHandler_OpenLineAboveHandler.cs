@@ -17,7 +17,8 @@ internal abstract partial class AbstractRenameCommandHandler : IChainedCommandHa
     {
         HandlePossibleTypingCommand(args, nextHandler, context.OperationContext, (activeSession, operationContext, span) =>
         {
-            Commit(operationContext);
+            // Caret would be moved to the new line when editor command is handled, so we don't need to move it.
+            CommitIfSynchronousOrCancelIfAsynchronous(args, operationContext, placeCaretAtTheEndOfIdentifier: false);
             nextHandler();
         });
     }

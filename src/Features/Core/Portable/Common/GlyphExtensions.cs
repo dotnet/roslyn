@@ -29,11 +29,14 @@ internal static class GlyphExtensions
 
     public static Glyph GetFirstGlyph(this ImmutableArray<string> tags)
     {
-        var glyphs = GetGlyphs(tags);
+        foreach (var tag in tags)
+        {
+            var glyph = GetGlyph(tag, tags);
+            if (glyph != Glyph.None)
+                return glyph;
+        }
 
-        return !glyphs.IsEmpty
-            ? glyphs[0]
-            : Glyph.None;
+        return Glyph.None;
     }
 
     private static Glyph GetGlyph(string tag, ImmutableArray<string> allTags)

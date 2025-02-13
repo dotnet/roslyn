@@ -58,7 +58,7 @@ public abstract class VisualStudioWorkspace : Workspace
     /// </summary>
     public abstract EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId);
 
-    internal abstract object? GetBrowseObject(SymbolListItem symbolListItem);
+    internal abstract Task<object?> GetBrowseObjectAsync(SymbolListItem symbolListItem, CancellationToken cancellationToken);
 
     [Obsolete("Use TryGoToDefinitionAsync instead", error: false)]
     public abstract bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken);

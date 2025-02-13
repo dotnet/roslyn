@@ -16,15 +16,11 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-public partial class UseConditionalExpressionForReturnTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
     private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
-
-    public UseConditionalExpressionForReturnTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
 
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpUseConditionalExpressionForReturnDiagnosticAnalyzer(),
@@ -785,7 +781,7 @@ public partial class UseConditionalExpressionForReturnTests : AbstractCSharpDiag
             {
                 object M()
                 {
-                    return true ? "a" : (object)"b";
+                    return true ? "a" : "b";
                 }
             }
             """, parseOptions: CSharp8);
@@ -816,7 +812,7 @@ public partial class UseConditionalExpressionForReturnTests : AbstractCSharpDiag
             {
                 object M()
                 {
-                    return true ? "a" : (object)"b";
+                    return true ? "a" : "b";
                 }
             }
             """, parseOptions: CSharp9);
@@ -2280,5 +2276,126 @@ public partial class UseConditionalExpressionForReturnTests : AbstractCSharpDiag
                 }
             }
             """, title: AnalyzersResources.Simplify_check);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38879")]
+    public async Task TesSuppressionOperator()
+    {
+        await TestInRegularAndScript1Async("""
+            #nullable enable
+
+            class Program
+            {
+                public static string Method(bool empty)
+                {
+                    [||]if (empty)
+                    {
+                        return string.Empty;
+                    }
+
+                    return null!;
+                }
+            }
+            """, """
+            #nullable enable
+            
+            class Program
+            {
+                public static string Method(bool empty)
+                {
+                    return empty ? string.Empty : null!;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithCollectionExpressions()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int[] M()
+                {
+                    [||]if (true)
+                    {
+                        return [0];
+                    }
+                    else
+                    {
+                        return [1];
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int[] M()
+                {
+                    return true ? [0] : [1];
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
+    public async Task UnnecessaryWithinConditionalBranch2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            public class IssueClass
+            {
+                double ID;
+
+                public object ConvertFieldValueForStorage(object value)
+                {
+                    [|if|] (value is IssueClass issue)
+                    {
+                        return (decimal)issue.ID;
+                    }
+                    else
+                    {
+                        return -1m;
+                    }
+                }
+            }
+            """,
+            """
+            public class IssueClass
+            {
+                double ID;
+            
+                public object ConvertFieldValueForStorage(object value)
+                {
+                    return value is IssueClass issue ? (decimal)issue.ID : -1m;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72464")]
+    public async Task TestMissingWithVariableCollisions()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            public class IssueClass
+            {
+                public object Convert(Type type, string body)
+                {
+                    [||]if (type == typeof(bool))
+                    {
+                        return bool.TryParse(body, out bool value) ? 0 : 1;
+                    }
+                    else
+                    {
+                        return int.TryParse(body, out int value) ? 2 : 3;
+                    }
+                }
+            }
+            """);
     }
 }

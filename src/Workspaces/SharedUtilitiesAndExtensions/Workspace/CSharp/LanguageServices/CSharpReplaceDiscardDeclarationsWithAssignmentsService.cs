@@ -49,6 +49,12 @@ internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : I
                 case LocalDeclarationStatementSyntax localDeclarationStatement:
                     if (localDeclarationStatement.Declaration.Variables.Any(IsDiscardDeclaration))
                     {
+                        // Skip replacing discard declarations in "using var"
+                        if (localDeclarationStatement.UsingKeyword != default)
+                        {
+                            continue;
+                        }
+
                         RemoveDiscardHelper.ProcessDeclarationStatement(localDeclarationStatement, editor);
                     }
 

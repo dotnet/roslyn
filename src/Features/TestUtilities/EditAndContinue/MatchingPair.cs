@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => Pairs = [];
 
         public MatchingPairs(IEnumerable<MatchingPair> pairs)
-            => Pairs = pairs.ToList();
+            => Pairs = [.. pairs];
 
         public void Add(string old, string @new)
             => Pairs.Add(new MatchingPair { Old = old, New = @new });

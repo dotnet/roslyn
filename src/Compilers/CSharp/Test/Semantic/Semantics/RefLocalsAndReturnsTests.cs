@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    [CompilerTrait(CompilerFeature.RefLocalsReturns)]
+    [CompilerTrait(CompilerFeature.RefLocalsReturns, CompilerFeature.RefLifetime)]
     public class RefLocalsAndReturnsTests : CompilingTestBase
     {
         [Fact]
@@ -1026,6 +1026,42 @@ class C
                 // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         P = ref x;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "P").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75023")]
+        public void RefReassignToRefTernary()
+        {
+            var source = """
+                class C
+                {
+                    void M(bool b, ref int x, ref int y, ref int z)
+                    {
+                        (b ? ref x : ref y) = ref z;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,10): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         (b ? ref x : ref y) = ref z;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "b ? ref x : ref y").WithLocation(5, 10));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75023")]
+        public void RefReassignToRefAssignment()
+        {
+            var source = """
+                class C
+                {
+                    void M(ref int x, ref int y, ref int z)
+                    {
+                        (x = ref y) = ref z;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,10): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                //         (x = ref y) = ref z;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "x = ref y").WithLocation(5, 10));
         }
 
         [Fact, WorkItem(44153, "https://github.com/dotnet/roslyn/issues/44153")]

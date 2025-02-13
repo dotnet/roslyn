@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString), [Shared]>
-    Partial Friend Class VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider
+    Partial Friend NotInheritable Class VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider
         Inherits AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider(Of
             ExpressionSyntax,
             LiteralExpressionSyntax,

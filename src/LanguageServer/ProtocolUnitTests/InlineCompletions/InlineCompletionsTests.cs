@@ -248,8 +248,6 @@ class A
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var locationTyped = testLspServer.GetLocations("tab").Single();
 
-        var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
-
         // Verify we haven't parsed snippets until asked.
         var snippetParser = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<XmlSnippetParser>();
         Assert.Equal(0, snippetParser.GetTestAccessor().GetCachedSnippetsCount());
@@ -273,7 +271,7 @@ class A
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var locationTyped = testLspServer.GetLocations("tab").Single();
 
-        var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
+        var document = testLspServer.GetDocumentAsync(locationTyped.Uri);
 
         var result = await GetInlineCompletionsAsync(testLspServer, locationTyped, options ?? new LSP.FormattingOptions { InsertSpaces = true, TabSize = 4 });
 

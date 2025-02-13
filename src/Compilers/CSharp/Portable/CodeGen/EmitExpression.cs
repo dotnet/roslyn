@@ -733,7 +733,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     if (unexpectedTemp != null)
                     {
                         // interestingly enough "ref dynamic" sometimes is passed via a clone
-                        Debug.Assert(argument.Type.IsDynamic(), "passing args byref should not clone them into temps");
+                        // receiver of a ref field can be cloned too
+                        Debug.Assert(argument.Type.IsDynamic() || argument is BoundFieldAccess { FieldSymbol.RefKind: not RefKind.None }, "passing args byref should not clone them into temps");
                         AddExpressionTemp(unexpectedTemp);
                     }
 
@@ -3480,11 +3481,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     EmitInitObj(type, used, syntaxNode);
                 }
-                else
+                else if (!TryEmitStringLiteralAsUtf8Encoded(constantValue, syntaxNode))
                 {
                     _builder.EmitConstantValue(constantValue);
                 }
             }
+        }
+
+        private bool TryEmitStringLiteralAsUtf8Encoded(ConstantValue constantValue, SyntaxNode syntaxNode)
+        {
+            // Emit long strings into data section so they don't overflow the UserString heap.
+            if (constantValue.IsString &&
+                constantValue.StringValue.Length > _module.Compilation.DataSectionStringLiteralThreshold)
+            {
+                if (Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__get_UTF8, _diagnostics, syntax: syntaxNode) == null |
+                    Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__GetString, _diagnostics, syntax: syntaxNode) == null)
+                {
+                    return false;
+                }
+
+                Cci.IFieldReference field = _module.TryGetOrCreateFieldForStringValue(constantValue.StringValue, syntaxNode, _diagnostics.DiagnosticBag);
+                if (field == null)
+                {
+                    return false;
+                }
+
+                _builder.EmitOpCode(ILOpCode.Ldsfld);
+                _builder.EmitToken(field, syntaxNode, _diagnostics.DiagnosticBag);
+                return true;
+            }
+
+            return false;
         }
 
         private void EmitInitObj(TypeSymbol type, bool used, SyntaxNode syntaxNode)

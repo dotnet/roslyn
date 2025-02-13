@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,11 +70,11 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// <paramref name="language"/> is the language of the originating <see cref="ISymbol"/>.
     /// </para>
     /// </summary>
-    Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
+    Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Determines if there are any exclusions in the workspace.
+    /// Determines if the given <paramref name="filePath"/> is excluded in the workspace.
     /// </summary>
-    Task<bool> IsAnyExclusionAsync(CancellationToken cancellationToken);
+    Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
 
 }

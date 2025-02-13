@@ -182,7 +182,7 @@ class B : A
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M", isComplexTextEdit: true);
-            var (textEdit, _, _) = await AbstractLspCompletionResultCreationService.GenerateComplexTextEditAsync(
+            var (textEdit, _, _) = await CompletionResultFactory.GenerateComplexTextEditAsync(
                 document, new TestCaretOutOfScopeCompletionService(testLspServer.TestWorkspace.Services.SolutionServices), selectedItem, snippetsSupported: true, insertNewPositionPlaceholder: true, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(@"public override void M()

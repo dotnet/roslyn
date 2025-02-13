@@ -7,7 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeActions;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
@@ -18,7 +18,7 @@ internal interface IFixMultipleOccurrencesService : IWorkspaceService
     /// Get the fix multiple occurrences code fix for the given diagnostics with source locations.
     /// NOTE: This method does not apply the fix to the workspace.
     /// </summary>
-    Solution GetFix(
+    Task<Solution> GetFixAsync(
         ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
         Workspace workspace,
         CodeFixProvider fixProvider,
@@ -33,7 +33,7 @@ internal interface IFixMultipleOccurrencesService : IWorkspaceService
     /// Get the fix multiple occurrences code fix for the given diagnostics with source locations.
     /// NOTE: This method does not apply the fix to the workspace.
     /// </summary>
-    Solution GetFix(
+    Task<Solution> GetFixAsync(
         ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsToFix,
         Workspace workspace,
         CodeFixProvider fixProvider,

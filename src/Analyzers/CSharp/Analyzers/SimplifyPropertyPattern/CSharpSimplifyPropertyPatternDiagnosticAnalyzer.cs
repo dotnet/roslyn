@@ -67,7 +67,7 @@ internal class CSharpSimplifyPropertyPatternDiagnosticAnalyzer : AbstractBuiltIn
             expressionColon.GetLocation(),
             styleOption.Notification,
             syntaxContext.Options,
-            ImmutableArray.Create(subpattern.GetLocation()),
+            [subpattern.GetLocation()],
             properties: null));
     }
 }

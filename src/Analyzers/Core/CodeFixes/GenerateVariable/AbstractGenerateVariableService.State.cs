@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 
 internal abstract partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
 {
-    private partial class State
+    private sealed partial class State
     {
         private readonly TService _service;
         private readonly SemanticDocument _document;
@@ -70,19 +70,14 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             _document = document;
         }
 
-        public static async Task<State> GenerateAsync(
+        public static State Generate(
             TService service,
             SemanticDocument document,
             SyntaxNode interfaceNode,
             CancellationToken cancellationToken)
         {
             var state = new State(service, document);
-            if (!await state.TryInitializeAsync(interfaceNode, cancellationToken).ConfigureAwait(false))
-            {
-                return null;
-            }
-
-            return state;
+            return state.TryInitialize(interfaceNode, cancellationToken) ? state : null;
         }
 
         public Accessibility DetermineMaximalAccessibility()
@@ -108,9 +103,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             return accessibility;
         }
 
-        private async Task<bool> TryInitializeAsync(
-            SyntaxNode node,
-            CancellationToken cancellationToken)
+        private bool TryInitialize(
+            SyntaxNode node, CancellationToken cancellationToken)
         {
             if (_service.IsIdentifierNameGeneration(node))
             {
@@ -155,8 +149,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 return false;
             }
 
-            TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(
-                TypeToGenerateIn, _document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+            TypeToGenerateIn = SymbolFinderInternal.FindSourceDefinition(
+                TypeToGenerateIn, _document.Project.Solution, cancellationToken) as INamedTypeSymbol;
 
             if (!ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
             {
@@ -170,8 +164,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
         internal bool CanGeneratePropertyOrField()
         {
-            return ContainingType is { IsImplicitClass: false }
-                && ContainingType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).IsEmpty;
+            return this.TypeToGenerateIn is { IsImplicitClass: false }
+                && TypeToGenerateIn.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).IsEmpty;
         }
 
         internal bool CanGenerateLocal()

@@ -10387,5 +10387,327 @@ public class C
 
             Assert.Equal("System.Int32 LocalFunc(System.String s)", methodSymbol.ToTestDisplayString());
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
+        public void IdentifierInNameofInAttributeOnLocalFunctionInAccessor()
+        {
+            var src = """
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(string s) { }
+}
+
+class C
+{
+    event EventHandler E
+    {
+        add
+        {
+            [param: A(nameof(p))] void F(int p) { }
+        }
+        remove
+        {
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (15,14): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //             [param: A(nameof(p))] void F(int p) { }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, return").WithLocation(15, 14),
+                // (15,40): warning CS8321: The local function 'F' is declared but never used
+                //             [param: A(nameof(p))] void F(int p) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(15, 40));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nameof = GetSyntax<InvocationExpressionSyntax>(tree, "nameof(p)");
+            var p = nameof.ArgumentList.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(p).Type.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
+        public void IdentifierInNameofInAttributeOnLocalFunctionInMethod()
+        {
+            var src = """
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(string s) { }
+}
+
+class C
+{
+    void M()
+    {
+        [param: A(nameof(p))] void F(int p) { }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (13,10): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //         [param: A(nameof(p))] void F(int p) { }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, return").WithLocation(13, 10),
+                // (13,36): warning CS8321: The local function 'F' is declared but never used
+                //         [param: A(nameof(p))] void F(int p) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 36));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
+        public void IdentifierInNameofInAttributeOnLocalFunctionInMethodWithParameter()
+        {
+            var src = """
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(string s) { }
+}
+
+class C
+{
+    void M(int p)
+    {
+        [param: A(nameof(p))] void F(int p2) { }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (13,10): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //         [param: A(nameof(p))] void F(int p2) { }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, return").WithLocation(13, 10),
+                // (13,36): warning CS8321: The local function 'F' is declared but never used
+                //         [param: A(nameof(p))] void F(int p2) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 36));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
+        public void IdentifierInNameofInParamAttributeOnLocalFunctionInPrimaryConstructorType()
+        {
+            var src = """
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(string s) { }
+}
+
+class C(int p)
+{
+    void M()
+    {
+        [param: A(nameof(p))] void F(int p2) { }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (9,13): warning CS9113: Parameter 'p' is unread.
+                // class C(int p)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(9, 13),
+                // (13,10): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //         [param: A(nameof(p))] void F(int p2) { }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, return").WithLocation(13, 10),
+                // (13,36): warning CS8321: The local function 'F' is declared but never used
+                //         [param: A(nameof(p))] void F(int p2) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 36));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
+        public void IdentifierInNameofInAttributeOnLocalFunctionInPrimaryConstructorType()
+        {
+            var src = """
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(string s) { }
+}
+
+class C(int p)
+{
+    void M()
+    {
+        [A(nameof(p))] void F() { }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (9,13): warning CS9113: Parameter 'p' is unread.
+                // class C(int p)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(9, 13),
+                // (13,29): warning CS8321: The local function 'F' is declared but never used
+                //         [A(nameof(p))] void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 29));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
+        public void IdentifierInAttributeOnLocalFunctionInPrimaryConstructorType()
+        {
+            var src = """
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(string s) { }
+}
+
+class C(string p)
+{
+    void M()
+    {
+        [A(p)] void F() { }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (9,16): warning CS9113: Parameter 'p' is unread.
+                // class C(string p)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(9, 16),
+                // (13,12): error CS9105: Cannot use primary constructor parameter 'string p' in this context.
+                //         [A(p)] void F() { }
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p").WithArguments("string p").WithLocation(13, 12),
+                // (13,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //         [A(p)] void F() { }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "p").WithLocation(13, 12),
+                // (13,21): warning CS8321: The local function 'F' is declared but never used
+                //         [A(p)] void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 21));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [InlineData("")]
+        [InlineData("static ")]
+        public void Repro76528(string modifiers)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C
+                {
+                    public static string? _field;
+
+                    public Action Prop1 { get; } = () =>
+                    {
+                        init();
+                        Console.WriteLine(_field.Length);
+
+                        [MemberNotNull(nameof(_field))]
+                        {{modifiers}}void init() => _field ??= "";
+                    };
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [InlineData("")]
+        [InlineData("static ")]
+        public void Repro76528_FieldInitializer(string modifiers)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C
+                {
+                    public static string? _field;
+
+                    public Action _field2 = () =>
+                    {
+                        init();
+                        Console.WriteLine(_field.Length);
+
+                        [MemberNotNull(nameof(_field))]
+                        {{modifiers}}void init() => _field ??= "";
+                    };
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [InlineData("")]
+        [InlineData("static ")]
+        public void Repro76528_StaticLambda(string modifiers)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C
+                {
+                    public static string? _field;
+
+                    public Action Prop1 { get; } = static () =>
+                    {
+                        init();
+                        Console.WriteLine(_field.Length);
+
+                        [MemberNotNull(nameof(_field))]
+                        {{modifiers}}void init() => _field ??= "";
+                    };
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [CombinatorialData]
+        public void Repro76528_FieldInitializer_PrimaryConstructor(bool isStatic)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C(string p)
+                {
+                    public static string? _field;
+
+                    public Action _field2 = () =>
+                    {
+                        init();
+                        Console.WriteLine(_field.Length);
+
+                        [MemberNotNull(nameof(_field))]
+                        {{(isStatic ? "static " : "")}}void init() => _field ??= p;
+                    };
+
+                    string M() => p;
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(isStatic ? [
+                // (16,42): error CS8421: A static local function cannot contain a reference to 'p'.
+                //         static void init() => _field ??= p;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "p").WithArguments("p").WithLocation(16, 42)
+                ] : []);
+        }
     }
 }

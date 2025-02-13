@@ -9,9 +9,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal partial class ExtensionOrderer
+internal static partial class ExtensionOrderer
 {
-    private class Graph<TExtension, TMetadata>
+    private sealed class Graph<TExtension, TMetadata>
         where TMetadata : OrderableMetadata
     {
         public readonly Dictionary<Lazy<TExtension, TMetadata>, Node<TExtension, TMetadata>> Nodes = [];

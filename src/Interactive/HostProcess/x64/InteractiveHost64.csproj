@@ -8,7 +8,7 @@
     <TargetFrameworks>net472;$(NetVS)-windows</TargetFrameworks>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <UseWindowsForms>true</UseWindowsForms>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
 
     <!-- Publishing (only precompile binaries when building Release) -->
@@ -26,8 +26,11 @@
     <Content Include="..\App.config" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
     <Compile Include="..\InteractiveHostEntryPoint.cs" />
   </ItemGroup>
-  
-  <Target Name="PublishedProjectOutputGroup" DependsOnTargets="PublishItemsOutputGroup" Returns="@(_VsixItem)">
+  <!--
+    BuildOnlySettings forces BuildingProject=true.
+    Workaround for https://github.com/dotnet/msbuild/issues/10901
+  -->  
+  <Target Name="PublishedProjectOutputGroup" DependsOnTargets="BuildOnlySettings;PublishItemsOutputGroup" Returns="@(_VsixItem)">
     <!-- Workaround for https://github.com/dotnet/sdk/issues/42255 -->
     <PropertyGroup>
       <!-- IntermediateDepsFilePath is the location where the deps.json file is originally created -->

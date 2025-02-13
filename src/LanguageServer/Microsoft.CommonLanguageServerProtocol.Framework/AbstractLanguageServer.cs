@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -26,6 +27,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     /// </summary>
     private readonly Lazy<IRequestExecutionQueue<TRequestContext>> _queue;
     private readonly Lazy<ILspServices> _lspServices;
+    private readonly Lazy<AbstractHandlerProvider> _handlerProvider;
 
     public bool IsInitialized { get; private set; }
 
@@ -66,6 +68,13 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
         _lspServices = new Lazy<ILspServices>(() => ConstructLspServices());
         _queue = new Lazy<IRequestExecutionQueue<TRequestContext>>(() => ConstructRequestExecutionQueue());
+        _handlerProvider = new Lazy<AbstractHandlerProvider>(() =>
+        {
+            var lspServices = _lspServices.Value;
+            var handlerProvider = new HandlerProvider(lspServices, TypeRefResolver);
+            SetupRequestDispatcher(handlerProvider);
+            return handlerProvider;
+        });
     }
 
     /// <summary>
@@ -88,10 +97,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     {
         get
         {
-            var lspServices = _lspServices.Value;
-            var handlerProvider = new HandlerProvider(lspServices, TypeRefResolver);
-            SetupRequestDispatcher(handlerProvider);
-            return handlerProvider;
+            return _handlerProvider.Value;
         }
     }
 
@@ -172,10 +178,11 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         return _queue.Value;
     }
 
-    public virtual string GetLanguageForRequest(string methodName, object? serializedRequest)
+    public virtual bool TryGetLanguageForRequest(string methodName, object? serializedRequest, [NotNullWhen(true)] out string? language)
     {
         Logger.LogInformation($"Using default language handler for {methodName}");
-        return LanguageServerConstants.DefaultLanguageName;
+        language = LanguageServerConstants.DefaultLanguageName;
+        return true;
     }
 
     protected abstract DelegatingEntryPoint CreateDelegatingEntryPoint(string method);

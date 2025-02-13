@@ -61,7 +61,7 @@ namespace ConsoleApplication1
 }");
         var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 245, cancellationToken: default);
         Assert.NotNull(terms);
-        AssertEx.Equal(["yy", "xx"], terms);
+        AssertEx.Equal((string[])["yy", "xx"], terms);
     }
 
     private static async Task TestProximityExpressionGetterAsync(

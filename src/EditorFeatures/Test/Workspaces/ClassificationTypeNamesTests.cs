@@ -23,7 +23,7 @@ public class ClassificationTypeNamesTests
             .Select(f => new[] { f.Name, f.GetRawConstantValue() });
 
     public static IEnumerable<object[]> AllClassificationTypeNames => typeof(ClassificationTypeNames).GetAllFields().Where(
-        field => field.GetValue(null) is string value).Select(field => new[] { field.GetValue(null) });
+        f => f.GetValue(null) is string value).Select(f => new[] { f.GetValue(null) });
 
     [Theory]
     [MemberData(nameof(AllPublicClassificationTypeNames))]

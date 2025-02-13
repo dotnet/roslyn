@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.GraphModel;
 using Roslyn.Utilities;
 
@@ -26,7 +27,7 @@ internal class GraphQueryManager
     /// This gate locks manipulation of <see cref="_trackedQueries"/>.
     /// </summary>
     private readonly object _gate = new();
-    private ImmutableArray<(WeakReference<IGraphContext> context, ImmutableArray<IGraphQuery> queries)> _trackedQueries = ImmutableArray<(WeakReference<IGraphContext>, ImmutableArray<IGraphQuery>)>.Empty;
+    private ImmutableArray<(WeakReference<IGraphContext> context, ImmutableArray<IGraphQuery> queries)> _trackedQueries = [];
 
     private readonly AsyncBatchingWorkQueue _updateQueue;
 
