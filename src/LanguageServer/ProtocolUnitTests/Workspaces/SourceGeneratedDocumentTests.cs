@@ -281,7 +281,7 @@ public class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHelper) :
         Assert.Null(secondRequest.Text);
     }
 
-    private static async Task WaitForSourceGeneratorsAsync(EditorTestWorkspace workspace)
+    private static async Task WaitForSourceGeneratorsAsync(LspTestWorkspace workspace)
     {
         var operations = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
         await operations.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.SourceGenerators]);
