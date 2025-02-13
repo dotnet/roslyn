@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedBackingFieldSymbol : SynthesizedBackingFieldSymbolBase
     {
         private readonly SourcePropertySymbolBase _property;
+        private int _inferredNullableAnnotation = (int)NullableAnnotation.Ignored;
         internal override bool HasInitializer { get; }
 
         public SynthesizedBackingFieldSymbol(
@@ -165,15 +167,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // TODO2: thread safe
-        // TODO2: need to look for a *difference* in nullable diagnostics when annotated versus not.
-        // e.g. non-annotated version contains a *nullable* diagnostic which is missing in the annotated version.
-        // Also, do not double bind.
-        // Therefore this probably should be occurring when we are compiling methods within a single type.
-        // e.g. if we are compiling+nullable analyzing a constructor, we should have a way to say:
-        // hold on, first, let's do the getters which need null resilience analysis.
-        private NullableAnnotation? _inferredNullableAnnotation;
-        internal NullableAnnotation GetInferredNullableAnnotation() => _inferredNullableAnnotation ??= ComputeInferredNullableAnnotation();
+        internal NullableAnnotation GetInferredNullableAnnotation()
+        {
+            if (_inferredNullableAnnotation == (int)NullableAnnotation.Ignored)
+            {
+                Interlocked.CompareExchange(ref _inferredNullableAnnotation, (int)ComputeInferredNullableAnnotation(), (int)NullableAnnotation.Ignored);
+            }
+            Debug.Assert((NullableAnnotation)_inferredNullableAnnotation is NullableAnnotation.NotAnnotated or NullableAnnotation.Annotated);
+            return (NullableAnnotation)_inferredNullableAnnotation;
+        }
 
         private NullableAnnotation ComputeInferredNullableAnnotation()
         {
