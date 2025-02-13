@@ -49,14 +49,10 @@ internal partial class DiagnosticAnalyzerService
         internal IGlobalOptionService GlobalOptions { get; }
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
-        public async Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersForTestingPurposesOnlyAsync(Project project, CancellationToken cancellationToken)
-        {
-            var analyzers = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
+        public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersForTestingPurposesOnlyAsync(Project project, CancellationToken cancellationToken)
+            => _stateManager.GetOrCreateAnalyzersAsync(project, cancellationToken);
 
-            return analyzers.SelectAsArray(s => s.Analyzer);
-        }
-
-        private static string GetProjectLogMessage(Project project, ImmutableArray<StateSet> stateSets)
-            => $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";
+        private static string GetProjectLogMessage(Project project, ImmutableArray<DiagnosticAnalyzer> analyzers)
+            => $"project: ({project.Id}), ({string.Join(Environment.NewLine, analyzers.Select(a => a.ToString()))})";
     }
 }

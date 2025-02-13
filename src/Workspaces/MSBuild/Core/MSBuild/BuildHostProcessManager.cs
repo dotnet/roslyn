@@ -389,7 +389,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                 throw new Exception("Ownership of BuildHost pipe is incorrect.");
             }
 
-            _rpcClient = new RpcClient(sendingStream: pipeClient, receivingStream: pipeClient);
+            _rpcClient = new RpcClient(pipeClient);
             _rpcClient.Start();
             _rpcClient.Disconnected += Process_Exited;
             BuildHost = new RemoteBuildHost(_rpcClient);

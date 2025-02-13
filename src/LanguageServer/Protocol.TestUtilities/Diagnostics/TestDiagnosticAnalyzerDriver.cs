@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
                 var text = await document.GetTextAsync().ConfigureAwait(false);
                 var dxs = await _diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-                    project.Solution, project.Id, document.Id, diagnosticIds: null, shouldIncludeAnalyzer: null,
+                    project, document.Id, diagnosticIds: null, shouldIncludeAnalyzer: null,
                     includeLocalDocumentDiagnostics: true, _includeNonLocalDocumentDiagnostics, CancellationToken.None);
                 dxs = dxs.WhereAsArray(d => _includeSuppressedDiagnostics || !d.IsSuppressed);
                 documentDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             if (getProjectDiagnostics)
             {
                 var dxs = await _diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-                    project.Solution, project.Id, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
+                    project, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
                     includeLocalDocumentDiagnostics: true, _includeNonLocalDocumentDiagnostics, CancellationToken.None);
                 dxs = dxs.WhereAsArray(d => _includeSuppressedDiagnostics || !d.IsSuppressed);
                 projectDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.DocumentId is null), project, CancellationToken.None);

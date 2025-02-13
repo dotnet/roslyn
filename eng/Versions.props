@@ -106,4 +106,12 @@
     <!-- Prohibit the usage of .NET Standard 1.x dependencies. -->
     <FlagNetStandard1XDependencies Condition="'$(DotNetBuildSourceOnly)' == 'true'">true</FlagNetStandard1XDependencies>
   </PropertyGroup>
+  <PropertyGroup>
+    <!--
+      Test SDK should match the version of TestPlatform packages required by this repo and defined
+      in Directory.Packages.props - Microsoft.TestPlatform.TranslationLayer and Microsoft.TestPlatform.ObjectModel.
+      This version needs to match the Test SDK version consumed by Arcade.
+    -->
+    <MicrosoftNETTestSdkVersion>17.5.0</MicrosoftNETTestSdkVersion>
+  </PropertyGroup>
 </Project>

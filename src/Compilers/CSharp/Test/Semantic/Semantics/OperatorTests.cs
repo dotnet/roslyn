@@ -8789,7 +8789,7 @@ struct TestStr
                         Assert.Null(info1.Symbol);
                         break;
                     default:
-                        throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(i);
+                        throw ExceptionUtilities.UnexpectedValue(i);
                 }
             }
         }
