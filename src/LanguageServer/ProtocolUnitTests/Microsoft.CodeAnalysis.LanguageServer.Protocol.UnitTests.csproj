@@ -40,9 +40,6 @@
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
-  <ItemGroup>
     <InternalsVisibleTo Include="IdeBenchmarks" />
   </ItemGroup>
 </Project>
