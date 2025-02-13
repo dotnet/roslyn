@@ -24,7 +24,7 @@ internal partial class DiagnosticAnalyzerService
     /// value if the set of analyzers changes.  In that case, a new instance will be created and will be cached for the
     /// next caller.
     /// </summary>
-    private static readonly ConditionalWeakTable<ProjectState, StrongBox<(ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersPair? compilationWithAnalyzersPair)>> s_projectToCompilationWithAnalyzers = new();
+    private static readonly ConditionalWeakTable<ProjectState, StrongBox<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersPair? compilationWithAnalyzersPair)>> s_projectToCompilationWithAnalyzers = new();
 
     private static async Task<CompilationWithAnalyzersPair?> GetOrCreateCompilationWithAnalyzersAsync(
         Project project,
@@ -37,15 +37,17 @@ internal partial class DiagnosticAnalyzerService
             return null;
 
         var projectState = project.State;
+        var checksum = await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
 
         // Make sure the cached pair was computed with at least the same state sets we're asking about.  if not,
         // recompute and cache with the new state sets.
         if (!s_projectToCompilationWithAnalyzers.TryGetValue(projectState, out var tupleBox) ||
+            tupleBox.Value.checksum != checksum ||
             !analyzers.IsSubsetOf(tupleBox.Value.analyzers))
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var compilationWithAnalyzersPair = CreateCompilationWithAnalyzers(projectState, compilation);
-            tupleBox = new((analyzers, compilationWithAnalyzersPair));
+            tupleBox = new((checksum, analyzers, compilationWithAnalyzersPair));
 
 #if NET
             s_projectToCompilationWithAnalyzers.AddOrUpdate(projectState, tupleBox);
