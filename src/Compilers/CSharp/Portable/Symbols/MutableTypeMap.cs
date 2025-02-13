@@ -4,6 +4,11 @@
 
 #nullable disable
 
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -19,11 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void Add(TypeParameterSymbol key, TypeWithAnnotations value)
         {
             this.Mapping.Add(key, value);
-        }
-
-        internal bool Contains(TypeParameterSymbol key)
-        {
-            return this.Mapping.ContainsKey(key);
         }
     }
 }

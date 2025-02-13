@@ -4119,7 +4119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = null;
                 isExpanded = false;
 
-                var boundAccess = BindMemberAccessWithBoundLeftCore(
+                var boundAccess = BindInstanceMemberAccess(
                        syntaxNode,
                        syntaxNode,
                        receiver,

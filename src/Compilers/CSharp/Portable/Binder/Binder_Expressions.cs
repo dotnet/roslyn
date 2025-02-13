@@ -5833,7 +5833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // SPEC VIOLATION:  Native compiler also allows initialization of field-like events in object initializers, so we allow it as well.
 
-                    boundMember = BindMemberAccessWithBoundLeftCore(
+                    boundMember = BindInstanceMemberAccess(
                         node: memberName,
                         right: memberName,
                         boundLeft: implicitReceiver,
@@ -7744,7 +7744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // CheckValue call will occur in ReplaceTypeOrValueReceiver.
                             // NOTE: This means that we won't get CheckValue diagnostics in error scenarios,
                             // but they would be cascading anyway.
-                            return BindMemberAccessWithBoundLeftCore(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
+                            return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                         }
                     default:
                         {
@@ -7765,7 +7765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // These checks occur later.
                                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
                                 boundLeft = BindToNaturalType(boundLeft, diagnostics);
-                                return BindMemberAccessWithBoundLeftCore(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
+                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                             }
                             break;
                         }
@@ -7888,7 +7888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (this.EnclosingNameofArgument == node)
                 {
                     // Support selecting an extension method from a type name in nameof(.)
-                    return BindMemberAccessWithBoundLeftCore(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
+                    return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                 }
                 else
                 {
@@ -7986,13 +7986,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
             BindingDiagnosticBag diagnostics)
         {
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             // Note: we're resolving without arguments, which means we're not treating the member access as invoked
             var resolution = this.ResolveExtension(
                 syntax, name, analyzedArguments: null, receiver, typeArgumentsOpt, options: OverloadResolution.Options.None,
-                returnRefKind: default, returnType: null, withDependencies: useSiteInfo.AccumulatesDependencies);
-
-            diagnostics.Add(syntax, useSiteInfo); // PROTOTYPE test use-site info
+                returnRefKind: default, returnType: null, withDependencies: diagnostics.AccumulatesDependencies);
 
             if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
             {
@@ -8008,7 +8005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        private BoundExpression BindMemberAccessWithBoundLeftCore(
+        private BoundExpression BindInstanceMemberAccess(
             SyntaxNode node,
             SyntaxNode right,
             BoundExpression boundLeft,
@@ -8477,14 +8474,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var scope in new ExtensionScopes(this))
             {
                 // PROTOTYPE we are temporarily prioritizing new extension members over classic extension methods, instead of mixing them
-                // PROTOTYPE we'll want to allow resolution of extension members on values of type parameters (but not on type parameter types)
-                if (!left.Type.IsTypeParameter()
-                    && tryResolveExtensionMember(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
-                        options, returnRefKind, in callingConvention, returnType, withDependencies, scope,
-                        out MethodGroupResolution extensionResult))
+                if (tryResolveExtensionMember(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
+                    options, returnRefKind, in callingConvention, returnType, withDependencies, scope,
+                    out MethodGroupResolution extensionResult))
                 {
                     if (extensionResult.IsNonMethodExtensionMember(out _))
                     {
+                        firstResult.Free();
                         return extensionResult;
                     }
 
@@ -8519,6 +8515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (extensionMethodResult.HasAnyApplicableMethod)
                     {
                         firstResult.Free();
+                        actualArguments?.Free();
                         return extensionMethodResult;
                     }
                     else if (firstResult.IsEmpty)
@@ -8554,7 +8551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
 
-                scope.Binder.LookupImplicitExtensionMembersInSingleBinder(
+                scope.Binder.LookupExtensionMembersInSingleBinder(
                     lookupResult, left.Type!, memberName, arity,
                     basesBeingResolved: null, lookupOptions, originalBinder: binder, ref useSiteInfo);
 

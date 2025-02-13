@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics)
         {
+            Debug.Assert((methodGroup != null) || ((object)otherSymbol != null) || analyzedArguments == null); // analyzedArguments is only set if we have some result
             Debug.Assert((methodGroup == null) || (methodGroup.Methods.Count > 0));
             Debug.Assert((methodGroup == null) || ((object)otherSymbol == null));
             // Methods should be represented in the method group.

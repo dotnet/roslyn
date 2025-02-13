@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(names.IsDefault || names.Length == args.Length);
 
             receiver = BindToNaturalType(receiver, diagnostics);
-            var boundExpression = BindMemberAccessWithBoundLeftCore(node, node, receiver, methodName, typeArgs.NullToEmpty().Length, typeArgsSyntax, typeArgs, invoked: true, indexed: false, diagnostics, searchExtensionsIfNecessary);
+            var boundExpression = BindInstanceMemberAccess(node, node, receiver, methodName, typeArgs.NullToEmpty().Length, typeArgsSyntax, typeArgs, invoked: true, indexed: false, diagnostics, searchExtensionsIfNecessary);
 
             // The other consumers of this helper (await and collection initializers) require the target member to be a method.
             if (!allowFieldsAndProperties && (boundExpression.Kind == BoundKind.FieldAccess || boundExpression.Kind == BoundKind.PropertyAccess))
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(extensionMemberAccess.Kind != BoundKind.MethodGroup);
 
                 extensionMemberAccess = CheckValue(extensionMemberAccess, BindValueKind.RValue, diagnostics);
-                BoundExpression extensionMemberInvocation = BindInvocationExpression(syntax, expression, methodName, extensionMemberAccess, analyzedArguments, diagnostics);
+                BoundExpression extensionMemberInvocation = BindInvocationExpression(syntax, expression, methodName: null, extensionMemberAccess, analyzedArguments, diagnostics);
                 anyApplicableCandidates = !extensionMemberInvocation.HasAnyErrors;
                 return extensionMemberInvocation;
             }

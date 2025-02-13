@@ -261,7 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType,
                     callingConventionInfo: callingConventionInfo);
                 analyzedArguments.Free();
-                return resolution;
             }
             else
             {

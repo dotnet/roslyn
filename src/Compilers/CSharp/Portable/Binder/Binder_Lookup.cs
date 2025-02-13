@@ -177,16 +177,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        protected void LookupImplicitExtensionMembersInSingleBinder(LookupResult result, TypeSymbol type,
+        protected void LookupExtensionMembersInSingleBinder(LookupResult result, TypeSymbol receiverType,
             string name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
             Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            Debug.Assert(!type.IsTypeParameter());
             Debug.Assert(name is not null);
 
             var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
-            GetCompatibleExtensions(this, type, compatibleExtensions, originalBinder, basesBeingResolved, ref useSiteInfo);
+            GetCompatibleExtensions(binder: this, receiverType, compatibleExtensions, originalBinder, ref useSiteInfo);
 
             var tempResult = LookupResult.GetInstance();
             foreach (NamedTypeSymbol extension in compatibleExtensions)
@@ -205,12 +204,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             compatibleExtensions.Free();
         }
 
-        // Note: we return the compatible extensions in order:
-        // for any given pair, if one is more specific it will precede the other in the list
-        private static void GetCompatibleExtensions(Binder binder, TypeSymbol type, ArrayBuilder<NamedTypeSymbol> compatibleExtensions,
-            Binder originalBinder, ConsList<TypeSymbol>? basesBeingResolved, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static void GetCompatibleExtensions(Binder binder, TypeSymbol receiverType, ArrayBuilder<NamedTypeSymbol> compatibleExtensions,
+            Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (type.IsErrorType())
+            Debug.Assert(!receiverType.IsDynamic());
+            if (receiverType.IsErrorType())
             {
                 return;
             }
@@ -218,61 +216,89 @@ namespace Microsoft.CodeAnalysis.CSharp
             var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             binder.GetExtensionContainers(extensions, originalBinder);
 
-#if !DEBUG
-            // In DEBUG mode, we prefer to exercise the code below even in the absence of extensions
-            if (extensions.Count == 0)
+            foreach (var extension in extensions)
             {
-                return;
-            }
-#endif
-
-            PooledHashSet<NamedTypeSymbol>? visited = null;
-            var baseType = type;
-            do
-            {
-                addCompatibleExtensions(binder, extensions, baseType, compatibleExtensions, basesBeingResolved);
-                baseType = baseType.GetNextBaseTypeNoUseSiteDiagnostics(basesBeingResolved, originalBinder.Compilation, ref visited);
-            }
-            while (baseType is not null);
-
-            if (type is NamedTypeSymbol namedType)
-            {
-                foreach (var implementedInterface in GetBaseInterfaces(namedType, basesBeingResolved, ref useSiteInfo))
-                {
-                    addCompatibleExtensions(binder, extensions, implementedInterface, compatibleExtensions, basesBeingResolved);
-                }
+                addCompatibleExtension(binder, extension, receiverType, compatibleExtensions, ref useSiteInfo);
             }
 
-            visited?.Free();
-            extensions.Free();
             return;
 
-            static void addCompatibleExtensions(Binder binder, ArrayBuilder<NamedTypeSymbol> extensions, TypeSymbol type,
-                ArrayBuilder<NamedTypeSymbol> compatibleExtensions, ConsList<TypeSymbol>? basesBeingResolved)
+            static void addCompatibleExtension(Binder binder, NamedTypeSymbol extension, TypeSymbol receiverType, ArrayBuilder<NamedTypeSymbol> compatibleExtensions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                Debug.Assert(!type.IsExtension);
-                foreach (var extension in extensions)
+                if (extension.ExtensionParameter is not { } extensionParameter)
                 {
-                    Debug.Assert(extension.IsDefinition);
-                    if (extension.ExtensionParameter is null)
+                    return;
+                }
+
+                var compilation = binder.Compilation;
+                var constructedExtension = inferExtensionTypeArguments(extension, receiverType, compilation, ref useSiteInfo);
+                if (constructedExtension is null)
+                {
+                    return;
+                }
+
+                Debug.Assert(constructedExtension.ExtensionParameter is not null);
+                var conversion = compilation.Conversions.ConvertExtensionMethodThisArg(parameterType: constructedExtension.ExtensionParameter.Type, receiverType, ref useSiteInfo, isMethodGroupConversion: false);
+                if (!conversion.Exists)
+                {
+                    return;
+                }
+
+                compatibleExtensions.Add(constructedExtension);
+            }
+
+            static NamedTypeSymbol? inferExtensionTypeArguments(NamedTypeSymbol extension, TypeSymbol receiverType, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                if (extension.Arity == 0)
+                {
+                    return extension;
+                }
+
+                var containingAssembly = extension.ContainingAssembly;
+                var conversions = containingAssembly.CorLibrary.TypeConversions;
+
+                // Note: we create a value for purpose of inferring type arguments even when the receiver type is static
+                var syntax = (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
+                var receiverValue = new BoundLiteral(syntax, ConstantValue.Bad, receiverType) { WasCompilerGenerated = true };
+
+                var typeArguments = MethodTypeInferrer.InferTypeArgumentsFromReceiverType(extension, receiverValue, compilation, conversions, ref useSiteInfo);
+                if (typeArguments.IsDefault || typeArguments.Any(t => !t.HasType))
+                {
+                    return null;
+                }
+
+                bool success = checkConstraints(extension, extension.TypeParameters, typeArguments, compilation, conversions, ref useSiteInfo);
+                if (!success)
+                {
+                    return null;
+                }
+
+                return extension.Construct(typeArguments);
+            }
+
+            static bool checkConstraints(Symbol symbol, ImmutableArray<TypeParameterSymbol> typeParams, ImmutableArray<TypeWithAnnotations> typeArgs,
+                CSharpCompilation compilation, TypeConversions conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+                var substitution = new TypeMap(typeParams, typeArgs);
+                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
+
+                bool success = symbol.CheckConstraints(
+                    new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo)),
+                    substitution, typeParams, typeArgs, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
+                    ref useSiteDiagnosticsBuilder, ignoreTypeConstraintsDependentOnTypeParametersOpt: null);
+
+                diagnosticsBuilder.Free();
+
+                if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
+                {
+                    foreach (TypeParameterDiagnosticInfo diagnostic in useSiteDiagnosticsBuilder)
                     {
-                        continue;
-                    }
-
-                    if (TypeUnification.CanImplicitlyExtend(extension, type, out AbstractTypeParameterMap? map))
-                    {
-                        var substitutedExtension = map is not null ? (NamedTypeSymbol)map.SubstituteType(extension).Type : extension;
-
-                        // PROTOTYPE we should warn for nullability issues
-                        var constraintsOk = substitutedExtension.CheckConstraints(
-                              new ConstraintsHelper.CheckConstraintsArgs(binder.Compilation, binder.Conversions, includeNullability: false, Location.None, BindingDiagnosticBag.Discarded));
-
-                        if (constraintsOk)
-                        {
-                            compatibleExtensions.Add(substitutedExtension);
-                        }
+                        useSiteInfo.Add(diagnostic.UseSiteInfo);
                     }
                 }
+
+                return success;
             }
         }
 #nullable disable

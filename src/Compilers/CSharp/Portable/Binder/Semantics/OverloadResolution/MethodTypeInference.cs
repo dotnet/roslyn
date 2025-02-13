@@ -3153,6 +3153,43 @@ OuterBreak:
         // Helper methods
         //
 
+        /// <summary>
+        /// We apply type inference to an extension type, using the receiver as argument against the
+        /// extension parameter.
+        /// This lets us infer the type arguments of the extension type given this receiver.
+        /// </summary>
+        public static ImmutableArray<TypeWithAnnotations> InferTypeArgumentsFromReceiverType(
+            NamedTypeSymbol extension,
+            BoundExpression receiver,
+            CSharpCompilation compilation,
+            ConversionsBase conversions,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(extension is not null);
+            Debug.Assert(extension.Arity > 0);
+            Debug.Assert(extension.ExtensionParameter is not null);
+            Debug.Assert(!extension.ExtensionParameter.Type.IsDynamic());
+            Debug.Assert(extension.IsDefinition);
+            Debug.Assert(receiver is not null);
+
+            var inferrer = new MethodTypeInferrer(
+                compilation,
+                conversions,
+                extension.TypeParameters,
+                extension.ContainingType,
+                [extension.ExtensionParameter.TypeWithAnnotations],
+                [extension.ExtensionParameter.RefKind],
+                [receiver],
+                extensions: null);
+
+            if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteInfo))
+            {
+                return default;
+            }
+
+            return inferrer.GetInferredTypeArguments(out _);
+        }
+
         ////////////////////////////////////////////////////////////////////////////////
         //
         // In error recovery and reporting scenarios we sometimes end up in a situation
