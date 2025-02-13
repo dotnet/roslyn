@@ -450,7 +450,7 @@ public sealed class ForStatementParsingTest(ITestOutputHelper output) : ParsingT
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77160")]
-    public void TestMultipleDeclaratorsWithInitializers()
+    public void TestMultipleDeclaratorsWithInitializers1()
     {
         UsingStatement("""
             for (int offset = 0, c1, c2; offset < length;)
@@ -503,6 +503,510 @@ public sealed class ForStatementParsingTest(ITestOutputHelper output) : ParsingT
                 {
                     N(SyntaxKind.IdentifierToken, "length");
                 }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77160")]
+    public void TestMultipleDeclaratorsWithInitializers2()
+    {
+        UsingStatement("""
+            for (int offset = 0, c1 = 1, c2; offset < length;)
+            {
+            }
+            """);
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c1");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c2");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "length");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77160")]
+    public void TestMultipleDeclaratorsWithInitializers3()
+    {
+        UsingStatement("""
+            for (int offset = 0, c1, c2 = 1; offset < length;)
+            {
+            }
+            """);
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c1");
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c2");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "length");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77160")]
+    public void TestMultipleDeclaratorsWithInitializers4()
+    {
+        UsingStatement("""
+            for (int offset = 0, c1,; offset < length;)
+            {
+            }
+            """,
+            // (1,25): error CS1001: Identifier expected
+            // for (int offset = 0, c1,; offset < length;)
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 25));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c1");
+                }
+                N(SyntaxKind.CommaToken);
+                M(SyntaxKind.VariableDeclarator);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "length");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77160")]
+    public void TestMultipleDeclaratorsWithInitializers5()
+    {
+        UsingStatement("""
+            for (int offset = 0, c1, c2,; offset < length;)
+            {
+            }
+            """,
+            // (1,29): error CS1001: Identifier expected
+            // for (int offset = 0, c1, c2,; offset < length;)
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 29));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c1");
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c2");
+                }
+                N(SyntaxKind.CommaToken);
+                M(SyntaxKind.VariableDeclarator);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "length");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77160")]
+    public void TestMultipleDeclaratorsWithInitializers6()
+    {
+        UsingStatement("""
+            for (int offset = 0, c1 = ,; offset < length;)
+            {
+            }
+            """,
+            // (1,27): error CS1525: Invalid expression term ','
+            // for (int offset = 0, c1 = ,; offset < length;)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 27),
+            // (1,28): error CS1001: Identifier expected
+            // for (int offset = 0, c1 = ,; offset < length;)
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 28));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c1");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                M(SyntaxKind.VariableDeclarator);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "length");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77160")]
+    public void TestMultipleDeclaratorsWithInitializers7()
+    {
+        UsingStatement("""
+            for (int offset = 0, c1 = , c2; offset < length;)
+            {
+            }
+            """,
+            // (1,27): error CS1525: Invalid expression term ','
+            // for (int offset = 0, c1 = , c2; offset < length;)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 27));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c1");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c2");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "offset");
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "length");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77160")]
+    public void TestMultipleDeclaratorsWithExpression1()
+    {
+        UsingStatement("""
+            for (Console.WriteLine("Blah"); true;)
+            {
+            }
+            """);
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.InvocationExpression);
+            {
+                N(SyntaxKind.SimpleMemberAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Console");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "WriteLine");
+                    }
+                }
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.StringLiteralExpression);
+                        {
+                            N(SyntaxKind.StringLiteralToken, "\"Blah\"");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.TrueLiteralExpression);
+            {
+                N(SyntaxKind.TrueKeyword);
             }
             N(SyntaxKind.SemicolonToken);
             N(SyntaxKind.CloseParenToken);
