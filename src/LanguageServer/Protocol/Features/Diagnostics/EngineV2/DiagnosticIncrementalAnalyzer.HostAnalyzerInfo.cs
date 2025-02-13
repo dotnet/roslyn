@@ -18,13 +18,14 @@ internal partial class DiagnosticAnalyzerService
         private partial class StateManager
         {
             private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo(
-                SolutionState solution, ProjectState project, ProjectAnalyzerInfo projectAnalyzerInfo)
+                Project project, ProjectAnalyzerInfo projectAnalyzerInfo)
             {
-                var key = new HostAnalyzerInfoKey(project.Language, project.HasSdkCodeStyleAnalyzers, solution.Analyzers.HostAnalyzerReferences);
+                var analyzers = project.Solution.SolutionState.Analyzers;
+                var key = new HostAnalyzerInfoKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, analyzers.HostAnalyzerReferences);
                 // Some Host Analyzers may need to be treated as Project Analyzers so that they do not have access to the
                 // Host fallback options. These ids will be used when building up the Host and Project analyzer collections.
-                var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(solution, project);
-                var hostAnalyzerInfo = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (solution.Analyzers, referenceIdsToRedirect));
+                var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(project);
+                var hostAnalyzerInfo = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (Analyzers: analyzers, referenceIdsToRedirect));
                 return hostAnalyzerInfo.WithExcludedAnalyzers(projectAnalyzerInfo.SkippedAnalyzersInfo.SkippedAnalyzers);
 
                 static HostAnalyzerInfo CreateLanguageSpecificAnalyzerMap(HostAnalyzerInfoKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
@@ -67,14 +68,14 @@ internal partial class DiagnosticAnalyzerService
             }
 
             private static ImmutableHashSet<object> GetReferenceIdsToRedirectAsProjectAnalyzers(
-                SolutionState solution, ProjectState project)
+                Project project)
             {
-                if (project.HasSdkCodeStyleAnalyzers)
+                if (project.State.HasSdkCodeStyleAnalyzers)
                 {
                     // When a project uses CodeStyle analyzers added by the SDK, we remove them in favor of the
                     // Features analyzers. We need to then treat the Features analyzers as Project analyzers so
                     // they do not get access to the Host fallback options.
-                    return GetFeaturesAnalyzerReferenceIds(solution.Analyzers);
+                    return GetFeaturesAnalyzerReferenceIds(project.Solution.SolutionState.Analyzers);
                 }
 
                 return [];
