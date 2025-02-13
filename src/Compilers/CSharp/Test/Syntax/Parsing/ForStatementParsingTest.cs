@@ -4447,4 +4447,454 @@ public sealed class ForStatementParsingTest(ITestOutputHelper output) : ParsingT
         }
         EOF();
     }
+
+    [Fact]
+    public void TestComplexInitializer1()
+    {
+        UsingStatement("""
+            for (;;);
+            """);
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.EmptyStatement);
+            {
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestComplexInitializer2()
+    {
+        UsingStatement("""
+            for (int i;;);
+            """);
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "i");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.EmptyStatement);
+            {
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestComplexInitializer3()
+    {
+        UsingStatement("""
+            for (int i, j, k;;);
+            """);
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "i");
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "j");
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "k");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.EmptyStatement);
+            {
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestComplexInitializer4()
+    {
+        UsingStatement("""
+            for (int i = 0;;);
+            """);
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "i");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.EmptyStatement);
+            {
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestComplexInitializer5()
+    {
+        UsingStatement("""
+            for (A b;;);
+            """);
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.EmptyStatement);
+            {
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestComplexInitializer6()
+    {
+        UsingStatement("""
+            for (A b, c, d;;);
+            """);
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.EmptyStatement);
+            {
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestComplexInitializer7()
+    {
+        UsingStatement("""
+            for (A b = null, c, d = null;;);
+            """);
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NullLiteralExpression);
+                        {
+                            N(SyntaxKind.NullKeyword);
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NullLiteralExpression);
+                        {
+                            N(SyntaxKind.NullKeyword);
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.EmptyStatement);
+            {
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestComplexInitializer8()
+    {
+        UsingStatement("""
+            for (A b = c switch { A => x, _ => y };;);
+            """);
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "A");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.SwitchExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.SwitchExpressionArm);
+                            {
+                                N(SyntaxKind.DiscardPattern);
+                                {
+                                    N(SyntaxKind.UnderscoreToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.EmptyStatement);
+            {
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestComplexInitializer9()
+    {
+        UsingStatement("""
+            for (int i =;;);
+            """,
+            // (1,13): error CS1525: Invalid expression term ';'
+            // for (int i =;;);
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 13));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "i");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.EmptyStatement);
+            {
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestComplexInitializer10()
+    {
+        UsingStatement("""
+            for (int i = 0, j =;;);
+            """,
+            // (1,20): error CS1525: Invalid expression term ';'
+            // for (int i = 0, j =;;);
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 20));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "i");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "j");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.EmptyStatement);
+            {
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
 }
