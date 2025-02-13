@@ -429,6 +429,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.RuntimeSupportsInlineArrayTypes;
                 case RuntimeCapability.ByRefLikeGenerics:
                     return this.RuntimeSupportsByRefLikeGenerics;
+                case RuntimeCapability.RuntimeAsyncMethods:
+                    return this.RuntimeSupportsAsyncMethods;
             }
 
             return false;
@@ -493,6 +495,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics);
             }
         }
+
+#nullable enable
+        // PROTOTYPE: Remove when we have a runtime with support
+        private bool _overrideRuntimeSupportsAsyncMethods;
+        internal void SetOverrideRuntimeSupportsAsyncMethods()
+        {
+            _overrideRuntimeSupportsAsyncMethods = true;
+        }
+
+        // Keep in sync with VB's AssemblySymbol.RuntimeSupportsAsyncMethods
+        internal bool RuntimeSupportsAsyncMethods
+            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__Async)
+               || _overrideRuntimeSupportsAsyncMethods;
+#nullable disable
 
         protected bool RuntimeSupportsFeature(SpecialMember feature)
         {

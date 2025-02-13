@@ -313,6 +313,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if this method should be processed with runtime async handling instead
+        /// of compiler async state machine generation.
+        /// </summary>
+#pragma warning disable IDE0060 // Remove unused parameter
+        internal bool IsRuntimeAsyncEnabledIn(MethodSymbol method)
+#pragma warning restore IDE0060 // Remove unused parameter
+        {
+            // PROTOTYPE: EE tests fail this assert, handle and test
+            //Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
+            if (!Assembly.RuntimeSupportsAsyncMethods)
+            {
+                return false;
+            }
+
+            // PROTOTYPE: Check for attributes that turn on/off the feature member-by-member
+            return true;
+        }
+
+        /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
         /// </summary>
         public LanguageVersion LanguageVersion

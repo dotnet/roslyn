@@ -778,6 +778,25 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
+        // PROTOTYPE: Finalize shape
+        internal const string RuntimeAsyncAwaitHelpers = """
+            namespace System.Runtime.CompilerServices
+            {
+                public static class RuntimeHelpers
+                {
+                    public static void AwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                    {}
+                    public static void UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                    {}
+
+                    public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+                    public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                }
+            }
+            """;
+
         protected static T GetSyntax<T>(SyntaxTree tree, string text)
         {
             return GetSyntaxes<T>(tree, text).Single();
