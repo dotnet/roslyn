@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         {
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestCodeActionResolveHandlerAsync(bool mutatingLspWorkspace)
         {
             var initialMarkup =
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             AssertJsonEquals(expectedResolvedAction, actualResolvedAction);
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestCodeActionResolveHandlerAsync_NestedAction(bool mutatingLspWorkspace)
         {
             var initialMarkup =
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             AssertJsonEquals(expectedResolvedAction, actualResolvedAction);
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRename(bool mutatingLspWorkspace)
         {
             var markUp = @"
@@ -198,23 +198,35 @@ class {|caret:ABC|}
             AssertJsonEquals(expectedCodeAction, actualResolvedAction);
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestLinkedDocuments(bool mutatingLspWorkspace)
         {
-            var xmlWorkspace = @"
+            var originalMarkup = """
+                class C
+                {
+                    public static readonly int {|caret:_value|} = 10;
+                }
+                """;
+            var xmlWorkspace = $"""
                 <Workspace>
                     <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
-                        <Document FilePath='C:\C.cs'>class C
-{
-    public static readonly int {|caret:_value|} = 10;
-}
-                        </Document>
+                        <Document FilePath='C:\C.cs'>{originalMarkup}</Document>
                     </Project>
                     <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
                         <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C:\C.cs'/>
                     </Project>
                 </Workspace>
-";
+                """;
+
+            var expectedText = """
+                class C
+                {
+                    private static readonly int value = 10;
+
+                    public static int Value => value;
+                }
+                """;
+
             await using var testLspServer = await CreateXmlTestLspServerAsync(xmlWorkspace, mutatingLspWorkspace);
             var titlePath = new string[] { string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value") };
             var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
@@ -230,78 +242,18 @@ class {|caret:ABC|}
                 diagnostics: null);
 
             var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
-            var edits = new SumType<TextEdit, AnnotatedTextEdit>[]
-            {
-                new TextEdit()
-                {
-                    NewText = "private",
-                    Range = new LSP.Range()
-                    {
-                        Start = new Position
-                        {
-                            Line = 2,
-                            Character = 4
-                        },
-                        End = new Position
-                        {
-                            Line = 2,
-                            Character = 10
-                        }
-                    }
-                },
-                new TextEdit
-                {
-                    NewText = string.Empty,
-                    Range = new LSP.Range
-                    {
-                        Start = new Position
-                        {
-                            Line = 2,
-                            Character = 31
-                        },
-                        End = new Position
-                        {
-                            Line = 2,
-                            Character = 32
-                        }
-                    }
-                },
-                new TextEdit
-                {
-                    NewText = @"
 
-    public static int Value => value;",
-                    Range = new LSP.Range
-                    {
-                        Start = new Position
-                        {
-                            Line = 2,
-                            Character = 43
-                        },
-                        End = new Position
-                        {
-                            Line = 2,
-                            Character = 43
-                        }
-                    }
-                }
-            };
-            var expectedCodeAction = CodeActionsTests.CreateCodeAction(
-                title: string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
-                kind: CodeActionKind.Refactor,
-                children: [],
-                data: CreateCodeActionResolveData(
-                    string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
-                    testLspServer.GetLocations("caret").Single(), titlePath),
-                priority: VSInternalPriorityLevel.Normal,
-                groupName: "Roslyn2",
-                applicableRange: new LSP.Range { Start = new Position { Line = 2, Character = 33 }, End = new Position { Line = 39, Character = 2 } },
-                diagnostics: null,
-                edit: GenerateWorkspaceEdit(testLspServer.GetLocations("caret"), edits));
-            AssertJsonEquals(expectedCodeAction, actualResolvedAction);
+            AssertEx.NotNull(actualResolvedAction.Edit);
+            var textDocumentEdit = (LSP.TextDocumentEdit[])actualResolvedAction.Edit.DocumentChanges.Value;
+            Assert.Single(textDocumentEdit);
+            var originalText = await testLspServer.GetDocumentTextAsync(textDocumentEdit[0].TextDocument.Uri);
+            var edits = textDocumentEdit[0].Edits.Select(e => (LSP.TextEdit)e.Value).ToArray();
+            var updatedText = ApplyTextEdits(edits, originalText);
+            Assert.Equal(expectedText, updatedText);
+
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestMoveTypeToDifferentFile(bool mutatingLspWorkspace)
         {
             var markUp = @"
@@ -423,7 +375,7 @@ class BCD
             AssertJsonEquals(expectedCodeAction, actualResolvedAction);
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestMoveTypeToDifferentFileInDirectory(bool mutatingLspWorkspace)
         {
             var markup =
