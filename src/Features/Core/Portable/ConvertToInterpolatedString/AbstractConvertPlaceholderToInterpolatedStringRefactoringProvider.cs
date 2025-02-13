@@ -14,7 +14,9 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString;
@@ -26,7 +28,7 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
     TInterpolatedStringExpressionSyntax,
     TArgumentSyntax,
     TArgumentListExpressionSyntax,
-    TInterpolationSyntax> : CodeRefactoringProvider
+    TInterpolationSyntax> : SyntaxEditorBasedCodeRefactoringProvider
     where TExpressionSyntax : SyntaxNode
     where TLiteralExpressionSyntax : TExpressionSyntax
     where TInvocationExpressionSyntax : TExpressionSyntax
@@ -35,7 +37,76 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
     where TArgumentListExpressionSyntax : SyntaxNode
     where TInterpolationSyntax : SyntaxNode
 {
+    private readonly record struct InvocationData(
+        TInvocationExpressionSyntax Invocation,
+        TArgumentSyntax PlaceholderArgument,
+        IMethodSymbol InvocationSymbol,
+        TInterpolatedStringExpressionSyntax InterpolatedString,
+        bool ShouldReplaceInvocation);
+
     protected abstract TExpressionSyntax ParseExpression(string text);
+
+    private InvocationData? AnalyzeInvocation(
+        Document document,
+        SemanticModel semanticModel,
+        TInvocationExpressionSyntax invocation,
+        TArgumentSyntax placeholderArgument,
+        CancellationToken cancellationToken)
+    {
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+        var placeholderExpression = syntaxFacts.GetExpressionOfArgument(placeholderArgument);
+        var stringToken = placeholderExpression.GetFirstToken();
+
+        // don't offer if the string argument has errors in it, or if converting it to an interpolated string creates errors.
+        if (stringToken.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+            return null;
+
+        // Not supported if there are any omitted arguments following the placeholder.
+        var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
+        var placeholderIndex = arguments.IndexOf(placeholderArgument);
+        Contract.ThrowIfTrue(placeholderIndex < 0);
+        for (var i = placeholderIndex + 1; i < arguments.Count; i++)
+        {
+            var argument = arguments[i];
+            if (syntaxFacts.GetExpressionOfArgument(argument) is null)
+                return null;
+
+            if (syntaxFacts.GetRefKindOfArgument(argument) != RefKind.None)
+                return null;
+        }
+
+        if (semanticModel.GetSymbolInfo(invocation, cancellationToken).GetAnySymbol() is not IMethodSymbol invocationSymbol)
+            return null;
+
+        // If the user is actually passing an array to a params argument, we can't change this to be an interpolated string.
+        if (invocationSymbol.IsParams())
+        {
+            var lastArgument = syntaxFacts.GetArgumentsOfInvocationExpression(invocation).Last();
+            var lastArgumentType = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(lastArgument), cancellationToken).Type;
+            if (lastArgumentType is IArrayTypeSymbol)
+                return null;
+        }
+
+        // if the user is explicitly passing in a CultureInfo, don't offer as it's likely they want specialized
+        // formatting for the values.
+        foreach (var argument in arguments)
+        {
+            var type = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(argument), cancellationToken).Type;
+            if (type is { Name: nameof(CultureInfo), ContainingNamespace.Name: nameof(System.Globalization), ContainingNamespace.ContainingNamespace.Name: nameof(System) })
+                return null;
+        }
+
+        if (ParseExpression("$" + stringToken.Text) is not TInterpolatedStringExpressionSyntax interpolatedString)
+            return null;
+
+        if (interpolatedString.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+            return null;
+
+        var shouldReplaceInvocation = invocationSymbol is { ContainingType.SpecialType: SpecialType.System_String, Name: nameof(string.Format) };
+
+        return new(invocation, placeholderArgument, invocationSymbol, interpolatedString, shouldReplaceInvocation);
+    }
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -52,61 +123,14 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
         if (invocation is null || placeholderArgument is null)
             return;
 
-        var placeholderExpression = syntaxFacts.GetExpressionOfArgument(placeholderArgument);
-        var stringToken = placeholderExpression.GetFirstToken();
-
-        // don't offer if the string argument has errors in it, or if converting it to an interpolated string creates errors.
-        if (stringToken.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+        var data = this.AnalyzeInvocation(document, semanticModel, invocation, placeholderArgument, cancellationToken);
+        if (data is null)
             return;
-
-        // Not supported if there are any omitted arguments following the placeholder.
-        var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
-        var placeholderIndex = arguments.IndexOf(placeholderArgument);
-        Contract.ThrowIfTrue(placeholderIndex < 0);
-        for (var i = placeholderIndex + 1; i < arguments.Count; i++)
-        {
-            var argument = arguments[i];
-            if (syntaxFacts.GetExpressionOfArgument(argument) is null)
-                return;
-
-            if (syntaxFacts.GetRefKindOfArgument(argument) != RefKind.None)
-                return;
-        }
-
-        if (semanticModel.GetSymbolInfo(invocation, cancellationToken).GetAnySymbol() is not IMethodSymbol invocationSymbol)
-            return;
-
-        // If the user is actually passing an array to a params argument, we can't change this to be an interpolated string.
-        if (invocationSymbol.IsParams())
-        {
-            var lastArgument = syntaxFacts.GetArgumentsOfInvocationExpression(invocation).Last();
-            var lastArgumentType = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(lastArgument), cancellationToken).Type;
-            if (lastArgumentType is IArrayTypeSymbol)
-                return;
-        }
-
-        // if the user is explicitly passing in a CultureInfo, don't offer as it's likely they want specialized
-        // formatting for the values.
-        foreach (var argument in arguments)
-        {
-            var type = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfArgument(argument)).Type;
-            if (type is { Name: nameof(CultureInfo), ContainingNamespace.Name: nameof(System.Globalization), ContainingNamespace.ContainingNamespace.Name: nameof(System) })
-                return;
-        }
-
-        if (ParseExpression("$" + stringToken.Text) is not TInterpolatedStringExpressionSyntax interpolatedString)
-            return;
-
-        if (interpolatedString.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
-            return;
-
-        var shouldReplaceInvocation = invocationSymbol is { ContainingType.SpecialType: SpecialType.System_String, Name: nameof(string.Format) };
 
         context.RegisterRefactoring(
             CodeAction.Create(
                 FeaturesResources.Convert_to_interpolated_string,
-                cancellationToken => CreateInterpolatedStringAsync(
-                    document, invocation, placeholderArgument, invocationSymbol, interpolatedString, shouldReplaceInvocation, cancellationToken),
+                cancellationToken => CreateInterpolatedStringAsync(document, data.Value, cancellationToken),
                 nameof(FeaturesResources.Convert_to_interpolated_string)),
             invocation.Span);
 
@@ -118,7 +142,7 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
             var invocations = await document.GetRelevantNodesAsync<TInvocationExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
             foreach (var invocation in invocations)
             {
-                var placeholderArgument = FindValidPlaceholderArgument(invocation);
+                var placeholderArgument = FindValidPlaceholderArgument(syntaxFacts, invocation, cancellationToken);
                 if (placeholderArgument != null)
                     return (invocation, placeholderArgument);
             }
@@ -127,7 +151,7 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
                 // User selected a single argument of the invocation (expression / format string) instead of the whole invocation.
                 var selectedArgument = await document.TryGetRelevantNodeAsync<TArgumentSyntax>(span, cancellationToken).ConfigureAwait(false);
                 var invocation = selectedArgument?.Parent?.Parent as TInvocationExpressionSyntax;
-                var placeholderArgument = FindValidPlaceholderArgument(invocation);
+                var placeholderArgument = FindValidPlaceholderArgument(syntaxFacts, invocation, cancellationToken);
                 if (placeholderArgument != null)
                     return (invocation, placeholderArgument);
             }
@@ -136,40 +160,43 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
                 // User selected the whole argument list: string format with placeholders plus all expressions
                 var argumentList = await document.TryGetRelevantNodeAsync<TArgumentListExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
                 var invocation = argumentList?.Parent as TInvocationExpressionSyntax;
-                var placeholderArgument = FindValidPlaceholderArgument(invocation);
+                var placeholderArgument = FindValidPlaceholderArgument(syntaxFacts, invocation, cancellationToken);
                 if (placeholderArgument != null)
                     return (invocation, placeholderArgument);
             }
 
             return default;
         }
+    }
 
-        TArgumentSyntax? FindValidPlaceholderArgument(TInvocationExpressionSyntax? invocation)
+    private static TArgumentSyntax? FindValidPlaceholderArgument(
+        ISyntaxFacts syntaxFacts, TInvocationExpressionSyntax? invocation, CancellationToken cancellationToken)
+    {
+        if (invocation != null)
         {
-            if (invocation != null)
+            // look for a string argument containing `"...{0}..."`, followed by more arguments.
+            var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
+            for (int i = 0, n = arguments.Count - 1; i < n; i++)
             {
-                // look for a string argument containing `"...{0}..."`, followed by more arguments.
-                var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
-                for (int i = 0, n = arguments.Count - 1; i < n; i++)
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var argument = arguments[i];
+                var expression = syntaxFacts.GetExpressionOfArgument(argument);
+                if (syntaxFacts.IsStringLiteralExpression(expression))
                 {
-                    var argument = arguments[i];
-                    var expression = syntaxFacts.GetExpressionOfArgument(argument);
-                    if (syntaxFacts.IsStringLiteralExpression(expression))
+                    var remainingArgCount = arguments.Count - i - 1;
+                    Debug.Assert(remainingArgCount > 0);
+                    var stringLiteralText = expression.GetFirstToken().Text;
+                    if (stringLiteralText.Contains('{') && stringLiteralText.Contains('}'))
                     {
-                        var remainingArgCount = arguments.Count - i - 1;
-                        Debug.Assert(remainingArgCount > 0);
-                        var stringLiteralText = expression.GetFirstToken().Text;
-                        if (stringLiteralText.Contains('{') && stringLiteralText.Contains('}'))
-                        {
-                            if (IsValidPlaceholderArgument(stringLiteralText, remainingArgCount))
-                                return (TArgumentSyntax)argument;
-                        }
+                        if (IsValidPlaceholderArgument(stringLiteralText, remainingArgCount))
+                            return argument;
                     }
                 }
             }
-
-            return null;
         }
+
+        return null;
 
         bool IsValidPlaceholderArgument(string stringLiteralText, int remainingArgCount)
         {
@@ -177,6 +204,8 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
             // string for each of them.  Note, those could be in any order.
             for (var i = 0; i < remainingArgCount; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var indexString = i.ToString(CultureInfo.InvariantCulture);
                 if (!ContainsIndex(stringLiteralText, indexString))
                     return false;
@@ -219,15 +248,69 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
         }
     }
 
-    private static async Task<Document> CreateInterpolatedStringAsync(
+    protected override async Task FixAllAsync(
         Document document,
-        TInvocationExpressionSyntax invocation,
-        TArgumentSyntax placeholderArgument,
-        IMethodSymbol invocationSymbol,
-        TInterpolatedStringExpressionSyntax interpolatedString,
-        bool shouldReplaceInvocation,
+        ImmutableArray<TextSpan> fixAllSpans,
+        SyntaxEditor editor,
+        string? equivalenceKey,
         CancellationToken cancellationToken)
     {
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        var normalizedSpans = new NormalizedTextSpanCollection(fixAllSpans);
+
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+        stack.Push(root);
+
+        while (stack.TryPop(out var node))
+        {
+            if (node is TInvocationExpressionSyntax invocation)
+            {
+                var placeholderArgument = FindValidPlaceholderArgument(syntaxFacts, invocation, cancellationToken);
+                if (placeholderArgument is not null)
+                {
+
+
+                    continue;
+                }
+            }
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsNode)
+                {
+                    var childNode = child.AsNode();
+                    if (normalizedSpans.IntersectsWith(childNode!.Span))
+                        stack.Push(childNode);
+                }
+            }
+        }
+    }
+
+    private static async Task<Document> CreateInterpolatedStringAsync(
+        Document document,
+        InvocationData invocationData,
+        CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+        var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
+        var editor = new SyntaxEditor(root, syntaxGenerator);
+
+        ReplaceInvocation(editor, invocationData, cancellationToken);
+
+        return document.WithSyntaxRoot(editor.GetChangedRoot());
+    }
+
+    private static async Task<Document> CreateInterpolatedStringAsync(
+        Document document,
+        InvocationData invocationData,
+        CancellationToken cancellationToken)
+    {
+        var (invocation, placeholderArgument, invocationSymbol, interpolatedString, shouldReplaceInvocation) = invocationData;
+
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -235,7 +318,6 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
         var literalExpression = (TLiteralExpressionSyntax?)syntaxFacts.GetExpressionOfArgument(placeholderArgument);
         Contract.ThrowIfNull(literalExpression);
 
-        var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
         var newInterpolatedString =
             InsertArgumentsIntoInterpolatedString(
