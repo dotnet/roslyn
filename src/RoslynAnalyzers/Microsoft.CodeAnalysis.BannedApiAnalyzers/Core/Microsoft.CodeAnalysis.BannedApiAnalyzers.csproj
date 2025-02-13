@@ -13,6 +13,9 @@
     <Compile Include="..\..\Roslyn.Diagnostics.Analyzers\Core\RoslynDiagnosticIds.cs" Link="RoslynDiagnosticIds.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Update="BannedApiAnalyzerResources.resx" GenerateSource="true" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests" />

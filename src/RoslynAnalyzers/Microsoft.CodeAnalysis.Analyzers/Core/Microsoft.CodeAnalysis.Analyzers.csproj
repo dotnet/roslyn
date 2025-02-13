@@ -13,8 +13,12 @@
   <ItemGroup>
     <Compile Include="..\..\Microsoft.CodeAnalysis.BannedApiAnalyzers\Core\DocumentationCommentIdParser.cs" Link="DocumentationCommentIdParser.cs" />
     <Compile Include="..\..\Microsoft.CodeAnalysis.BannedApiAnalyzers\Core\SymbolIsBannedAnalyzerBase.cs" Link="SymbolIsBannedAnalyzerBase.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="AnalyzerBannedSymbols.txt" />
-
+    <EmbeddedResource Update="CodeAnalysisDiagnosticsResources.resx" GenerateSource="true" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Analyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Analyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzers.UnitTests" />
