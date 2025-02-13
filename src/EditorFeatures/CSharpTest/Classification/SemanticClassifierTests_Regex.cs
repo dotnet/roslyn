@@ -1355,7 +1355,7 @@ public partial class SemanticClassifierTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/77189")]
     public async Task TestStringFieldUsedLater_ImproperModifiers(
         TestHost testHost,
-        [CombinatorialValues("", "static",  "readonly")] string modifiers)
+        [CombinatorialValues("", "static", "readonly")] string modifiers)
     {
         await TestAsync(
             $$"""
