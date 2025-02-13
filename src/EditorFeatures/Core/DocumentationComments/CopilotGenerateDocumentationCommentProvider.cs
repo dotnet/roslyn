@@ -25,16 +25,16 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal class CopilotGenerateDocumentationCommentProvider : SuggestionProviderBase
     {
-        private readonly IThreadingContext _threadingContext;
-
         private SuggestionManagerBase? _suggestionManagerBase;
         private VisualStudio.Threading.IAsyncDisposable? _intellicodeLineCompletionsDisposable;
 
         internal SuggestionSessionBase? _suggestionSession;
 
+        public readonly IThreadingContext ThreadingContext;
+
         public CopilotGenerateDocumentationCommentProvider(IThreadingContext threadingContext)
         {
-            _threadingContext = threadingContext;
+            ThreadingContext = threadingContext;
         }
 
         public async Task InitializeAsync(ITextView textView, SuggestionServiceBase suggestionServiceBase, CancellationToken cancellationToken)
@@ -288,14 +288,9 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         private async Task<bool> TryDisplaySuggestionAsync(SuggestionSessionBase session, DocumentationCommentSuggestion suggestion, CancellationToken cancellationToken)
         {
-            if (_threadingContext is null)
-            {
-                return false;
-            }
-
             try
             {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 await session.DisplayProposalAsync(suggestion.Proposal, cancellationToken).ConfigureAwait(false);
                 return true;
             }

@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateDocumentation
+namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
 {
     internal enum CopilotDocumentationCommentTagType
     {

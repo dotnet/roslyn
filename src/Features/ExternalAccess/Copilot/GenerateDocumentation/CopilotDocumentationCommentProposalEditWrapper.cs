@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateDocumentation;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
