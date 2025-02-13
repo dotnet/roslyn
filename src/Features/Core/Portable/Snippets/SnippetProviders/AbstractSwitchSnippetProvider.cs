@@ -23,6 +23,5 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
                 generator.DefaultSwitchSection([generator.ExitSwitchStatement()]));
             return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), statement.NormalizeWhitespace().ToFullString()));
         }
-
     }
 }
