@@ -1012,6 +1012,1327 @@ public sealed class ForStatementParsingTest(ITestOutputHelper output) : ParsingT
     }
 
     [Fact]
+    public void TestIncompleteInitializer1()
+    {
+        UsingStatement("""
+            for (MyType m = new() { A = 1,; true; m++)
+            """,
+            // (1,31): error CS1525: Invalid expression term ';'
+            // for (MyType m = new() { A = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 31),
+            // (1,31): error CS1003: Syntax error, ',' expected
+            // for (MyType m = new() { A = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 31),
+            // (1,37): error CS1003: Syntax error, ',' expected
+            // for (MyType m = new() { A = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 37),
+            // (1,42): error CS1513: } expected
+            // for (MyType m = new() { A = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(1, 42),
+            // (1,42): error CS1002: ; expected
+            // for (MyType m = new() { A = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 42),
+            // (1,42): error CS1525: Invalid expression term ')'
+            // for (MyType m = new() { A = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 42),
+            // (1,42): error CS1002: ; expected
+            // for (MyType m = new() { A = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 42),
+            // (1,43): error CS1733: Expected expression
+            // for (MyType m = new() { A = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 43),
+            // (1,43): error CS1002: ; expected
+            // for (MyType m = new() { A = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 43));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "MyType");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ImplicitObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ObjectInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.PostIncrementExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "m");
+                                    }
+                                    N(SyntaxKind.PlusPlusToken);
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            M(SyntaxKind.SemicolonToken);
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+            M(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestIncompleteInitializer2()
+    {
+        UsingStatement("""
+            for (MyType m = new() { A = 1, B; true; m++)
+            """,
+            // (1,33): error CS1003: Syntax error, ',' expected
+            // for (MyType m = new() { A = 1, B; true; m++)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 33),
+            // (1,39): error CS1003: Syntax error, ',' expected
+            // for (MyType m = new() { A = 1, B; true; m++)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 39),
+            // (1,44): error CS1513: } expected
+            // for (MyType m = new() { A = 1, B; true; m++)
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(1, 44),
+            // (1,44): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 44),
+            // (1,44): error CS1525: Invalid expression term ')'
+            // for (MyType m = new() { A = 1, B; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 44),
+            // (1,44): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 44),
+            // (1,45): error CS1733: Expected expression
+            // for (MyType m = new() { A = 1, B; true; m++)
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 45),
+            // (1,45): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 45));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "MyType");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ImplicitObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ObjectInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.PostIncrementExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "m");
+                                    }
+                                    N(SyntaxKind.PlusPlusToken);
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            M(SyntaxKind.SemicolonToken);
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+            M(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestIncompleteInitializer3()
+    {
+        UsingStatement("""
+            for (MyType m = new() { A = 1, B, ; true; m++)
+            """,
+            // (1,35): error CS1525: Invalid expression term ';'
+            // for (MyType m = new() { A = 1, B, ; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 35),
+            // (1,35): error CS1003: Syntax error, ',' expected
+            // for (MyType m = new() { A = 1, B, ; true; m++)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 35),
+            // (1,41): error CS1003: Syntax error, ',' expected
+            // for (MyType m = new() { A = 1, B, ; true; m++)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 41),
+            // (1,46): error CS1513: } expected
+            // for (MyType m = new() { A = 1, B, ; true; m++)
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(1, 46),
+            // (1,46): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B, ; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 46),
+            // (1,46): error CS1525: Invalid expression term ')'
+            // for (MyType m = new() { A = 1, B, ; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 46),
+            // (1,46): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B, ; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 46),
+            // (1,47): error CS1733: Expected expression
+            // for (MyType m = new() { A = 1, B, ; true; m++)
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 47),
+            // (1,47): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B, ; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 47));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "MyType");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ImplicitObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ObjectInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.PostIncrementExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "m");
+                                    }
+                                    N(SyntaxKind.PlusPlusToken);
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            M(SyntaxKind.SemicolonToken);
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+            M(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestIncompleteInitializer4()
+    {
+        UsingStatement("""
+            for (MyType m = new() { A = 1, B = ; true; m++)
+            """,
+            // (1,36): error CS1525: Invalid expression term ';'
+            // for (MyType m = new() { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 36),
+            // (1,36): error CS1003: Syntax error, ',' expected
+            // for (MyType m = new() { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 36),
+            // (1,42): error CS1003: Syntax error, ',' expected
+            // for (MyType m = new() { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 42),
+            // (1,47): error CS1513: } expected
+            // for (MyType m = new() { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(1, 47),
+            // (1,47): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 47),
+            // (1,47): error CS1525: Invalid expression term ')'
+            // for (MyType m = new() { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 47),
+            // (1,47): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 47),
+            // (1,48): error CS1733: Expected expression
+            // for (MyType m = new() { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 48),
+            // (1,48): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 48));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "MyType");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ImplicitObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ObjectInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.PostIncrementExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "m");
+                                    }
+                                    N(SyntaxKind.PlusPlusToken);
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            M(SyntaxKind.SemicolonToken);
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+            M(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestIncompleteInitializer5()
+    {
+        UsingStatement("""
+            for (MyType m = new() { A = 1, B = ,; true; m++)
+            """,
+            // (1,36): error CS1525: Invalid expression term ','
+            // for (MyType m = new() { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 36),
+            // (1,37): error CS1525: Invalid expression term ';'
+            // for (MyType m = new() { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 37),
+            // (1,37): error CS1003: Syntax error, ',' expected
+            // for (MyType m = new() { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 37),
+            // (1,43): error CS1003: Syntax error, ',' expected
+            // for (MyType m = new() { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 43),
+            // (1,48): error CS1513: } expected
+            // for (MyType m = new() { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(1, 48),
+            // (1,48): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 48),
+            // (1,48): error CS1525: Invalid expression term ')'
+            // for (MyType m = new() { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 48),
+            // (1,48): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 48),
+            // (1,49): error CS1733: Expected expression
+            // for (MyType m = new() { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 49),
+            // (1,49): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 49));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "MyType");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ImplicitObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ObjectInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.PostIncrementExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "m");
+                                    }
+                                    N(SyntaxKind.PlusPlusToken);
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            M(SyntaxKind.SemicolonToken);
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+            M(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestIncompleteInitializer6()
+    {
+        UsingStatement("""
+            for (MyType m = new() { A = 1, B = 1,; true; m++)
+            """,
+            // (1,38): error CS1525: Invalid expression term ';'
+            // for (MyType m = new() { A = 1, B = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 38),
+            // (1,38): error CS1003: Syntax error, ',' expected
+            // for (MyType m = new() { A = 1, B = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 38),
+            // (1,44): error CS1003: Syntax error, ',' expected
+            // for (MyType m = new() { A = 1, B = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 44),
+            // (1,49): error CS1513: } expected
+            // for (MyType m = new() { A = 1, B = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(1, 49),
+            // (1,49): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 49),
+            // (1,49): error CS1525: Invalid expression term ')'
+            // for (MyType m = new() { A = 1, B = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 49),
+            // (1,49): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 49),
+            // (1,50): error CS1733: Expected expression
+            // for (MyType m = new() { A = 1, B = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 50),
+            // (1,50): error CS1002: ; expected
+            // for (MyType m = new() { A = 1, B = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 50));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "MyType");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ImplicitObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ObjectInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                                N(SyntaxKind.PostIncrementExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "m");
+                                    }
+                                    N(SyntaxKind.PlusPlusToken);
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            M(SyntaxKind.SemicolonToken);
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+            M(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+    [Fact]
+    public void TestIncompleteWith1()
+    {
+        UsingStatement("""
+            for (MyType m = x with { A = 1,; true; m++)
+            """,
+            // (1,32): error CS1513: } expected
+            // for (MyType m = x with { A = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 32),
+            // (1,44): error CS1733: Expected expression
+            // for (MyType m = x with { A = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 44),
+            // (1,44): error CS1002: ; expected
+            // for (MyType m = x with { A = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 44));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "MyType");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.WithExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.WithKeyword);
+                            N(SyntaxKind.WithInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.TrueLiteralExpression);
+            {
+                N(SyntaxKind.TrueKeyword);
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.PostIncrementExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                }
+                N(SyntaxKind.PlusPlusToken);
+            }
+            N(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestIncompleteWith2()
+    {
+        UsingStatement("""
+            for (MyType m = x with { A = 1, B; true; m++)
+            """,
+            // (1,34): error CS1513: } expected
+            // for (MyType m = x with { A = 1, B; true; m++)
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 34),
+            // (1,46): error CS1733: Expected expression
+            // for (MyType m = x with { A = 1, B; true; m++)
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 46),
+            // (1,46): error CS1002: ; expected
+            // for (MyType m = x with { A = 1, B; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 46));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "MyType");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.WithExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.WithKeyword);
+                            N(SyntaxKind.WithInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.TrueLiteralExpression);
+            {
+                N(SyntaxKind.TrueKeyword);
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.PostIncrementExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                }
+                N(SyntaxKind.PlusPlusToken);
+            }
+            N(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestIncompleteWith3()
+    {
+        UsingStatement("""
+            for (MyType m = x with { A = 1, B, ; true; m++)
+            """,
+            // (1,36): error CS1513: } expected
+            // for (MyType m = x with { A = 1, B, ; true; m++)
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 36),
+            // (1,48): error CS1733: Expected expression
+            // for (MyType m = x with { A = 1, B, ; true; m++)
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 48),
+            // (1,48): error CS1002: ; expected
+            // for (MyType m = x with { A = 1, B, ; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 48));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "MyType");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.WithExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.WithKeyword);
+                            N(SyntaxKind.WithInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "B");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.TrueLiteralExpression);
+            {
+                N(SyntaxKind.TrueKeyword);
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.PostIncrementExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                }
+                N(SyntaxKind.PlusPlusToken);
+            }
+            N(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestIncompleteWith4()
+    {
+        UsingStatement("""
+            for (MyType m = x with { A = 1, B = ; true; m++)
+            """,
+            // (1,37): error CS1525: Invalid expression term ';'
+            // for (MyType m = x with { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 37),
+            // (1,37): error CS1513: } expected
+            // for (MyType m = x with { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 37),
+            // (1,49): error CS1733: Expected expression
+            // for (MyType m = x with { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 49),
+            // (1,49): error CS1002: ; expected
+            // for (MyType m = x with { A = 1, B = ; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 49));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "MyType");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.WithExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.WithKeyword);
+                            N(SyntaxKind.WithInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.TrueLiteralExpression);
+            {
+                N(SyntaxKind.TrueKeyword);
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.PostIncrementExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                }
+                N(SyntaxKind.PlusPlusToken);
+            }
+            N(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestIncompleteWith5()
+    {
+        UsingStatement("""
+            for (MyType m = x with { A = 1, B = ,; true; m++)
+            """,
+            // (1,37): error CS1525: Invalid expression term ','
+            // for (MyType m = x with { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(1, 37),
+            // (1,38): error CS1513: } expected
+            // for (MyType m = x with { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 38),
+            // (1,50): error CS1733: Expected expression
+            // for (MyType m = x with { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 50),
+            // (1,50): error CS1002: ; expected
+            // for (MyType m = x with { A = 1, B = ,; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 50));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "MyType");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.WithExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.WithKeyword);
+                            N(SyntaxKind.WithInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.TrueLiteralExpression);
+            {
+                N(SyntaxKind.TrueKeyword);
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.PostIncrementExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                }
+                N(SyntaxKind.PlusPlusToken);
+            }
+            N(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void TestIncompleteWith6()
+    {
+        UsingStatement("""
+            for (MyType m = x with { A = 1, B = 1,; true; m++)
+            """,
+            // (1,39): error CS1513: } expected
+            // for (MyType m = x with { A = 1, B = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 39),
+            // (1,51): error CS1733: Expected expression
+            // for (MyType m = x with { A = 1, B = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 51),
+            // (1,51): error CS1002: ; expected
+            // for (MyType m = x with { A = 1, B = 1,; true; m++)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 51));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "MyType");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.WithExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.WithKeyword);
+                            N(SyntaxKind.WithInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "B");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.TrueLiteralExpression);
+            {
+                N(SyntaxKind.TrueKeyword);
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.PostIncrementExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "m");
+                }
+                N(SyntaxKind.PlusPlusToken);
+            }
+            N(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
     public void TestVariousExpressions_AnonymousFunction()
     {
         UsingStatement("""
