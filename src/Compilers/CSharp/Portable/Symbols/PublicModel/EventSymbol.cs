@@ -88,6 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IEventSymbol.IsWindowsRuntimeEvent => _underlying.IsWindowsRuntimeEvent;
 
+        IEventSymbol? IEventSymbol.PartialDefinitionPart => (_underlying as SourceEventSymbol)?.PartialDefinitionPart.GetPublicSymbol();
+
+        IEventSymbol? IEventSymbol.PartialImplementationPart => (_underlying as SourceEventSymbol)?.PartialImplementationPart.GetPublicSymbol();
+
+        bool IEventSymbol.IsPartialDefinition => (_underlying as SourceEventSymbol)?.IsPartialDefinition ?? false;
+
         #region ISymbol Members
 
         protected override void Accept(SymbolVisitor visitor)
