@@ -263,7 +263,7 @@
       "vsBranch": "dev/monicaro/versioning",
       "vsMajorVersion": 18,
       "insertionTitlePrefix": "[d18.0 P1]",
-      "insertionCreateDraftPR": false
+      "insertionCreateDraftPR": true
     },
     "main": {
       "nugetKind": [
