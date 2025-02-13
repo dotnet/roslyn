@@ -37,6 +37,8 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
     {
+        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
+
         // TODO: remove, workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1985204
         var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
         if (globalOptions.GetOption(SemanticSearchFeatureFlag.Enabled))
@@ -44,8 +46,6 @@ internal abstract class AbstractPackage : AsyncPackage
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             UIContext.FromUIContextGuid(new Guid(SemanticSearchFeatureFlag.UIContextId)).IsActive = true;
         }
-
-        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
     }
 
     protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
