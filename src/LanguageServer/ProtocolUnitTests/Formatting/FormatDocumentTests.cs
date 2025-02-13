@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 
         private static async Task AssertFormatDocumentAsync(
             TestLspServer testLspServer,
-            Uri uri,
+            DocumentUri uri,
             [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedText,
             bool insertSpaces = true,
             int tabSize = 4
