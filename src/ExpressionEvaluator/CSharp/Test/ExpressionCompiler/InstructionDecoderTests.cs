@@ -594,7 +594,7 @@ class C
             var runtime = CreateRuntimeInstance(compilation);
             var moduleInstances = runtime.Modules;
             var blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
-            return blocks.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies);
+            return blocks.ToCompilation(new ModuleId(id: default, compilation.AssemblyName), MakeAssemblyReferencesKind.AllAssemblies);
         }
 
         private MethodSymbol GetConstructedMethod(CSharpCompilation compilation, PEMethodSymbol frame, string[] serializedTypeArgumentNames, CSharpInstructionDecoder instructionDecoder)
@@ -603,8 +603,9 @@ class C
             // using the same helper as the product code.  This helper will also map
             // async/iterator "MoveNext" methods to the original source method.
             MethodSymbol method = compilation.GetSourceMethod(
-                ((PEModuleSymbol)frame.ContainingModule).Module.GetModuleVersionIdOrThrow(),
+                new ModuleId(((PEModuleSymbol)frame.ContainingModule).Module.GetModuleVersionIdOrThrow(), compilation.AssemblyName),
                 frame.Handle);
+
             if (serializedTypeArgumentNames != null)
             {
                 Assert.NotEmpty(serializedTypeArgumentNames);

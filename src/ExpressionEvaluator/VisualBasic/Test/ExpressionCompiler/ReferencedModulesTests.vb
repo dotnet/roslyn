@@ -191,7 +191,7 @@ End Class"
                     allBlocks,
                     MakeDummyLazyAssemblyReaders(),
                     stateA1.SymReader,
-                    stateA1.ModuleVersionId,
+                    stateA1.ModuleId,
                     stateA1.MethodToken,
                     methodVersion:=1,
                     stateA1.ILOffset,
@@ -213,7 +213,7 @@ End Class"
                     allBlocks,
                     MakeDummyLazyAssemblyReaders(),
                     stateA1.SymReader,
-                    stateA1.ModuleVersionId,
+                    stateA1.ModuleId,
                     stateA1.MethodToken,
                     methodVersion:=1,
                     UInteger.MaxValue,
@@ -275,9 +275,9 @@ End Class"
                 Dim stateB1 = GetContextState(runtime, "B1.M")
                 Dim stateB2 = GetContextState(runtime, "B2.M")
 
-                Dim mvidA1 = stateA1.ModuleVersionId
-                Dim mvidA2 = stateA2.ModuleVersionId
-                Dim mvidB1 = stateB1.ModuleVersionId
+                Dim mvidA1 = stateA1.ModuleId
+                Dim mvidA2 = stateA2.ModuleId
+                Dim mvidB1 = stateB1.ModuleId
 
                 Dim context As EvaluationContext
                 Dim previous As MetadataContext(Of VisualBasicMetadataContext)
@@ -357,8 +357,8 @@ End Class"
             End Using
         End Sub
 
-        Private Shared Sub VerifyAppDomainMetadataContext(appDomain As AppDomain, ParamArray moduleVersionIds As Guid())
-            ExpressionCompilerTestHelpers.VerifyAppDomainMetadataContext(appDomain.GetMetadataContext(), moduleVersionIds)
+        Private Shared Sub VerifyAppDomainMetadataContext(appDomain As AppDomain, ParamArray moduleIds As ModuleId())
+            ExpressionCompilerTestHelpers.VerifyAppDomainMetadataContext(appDomain.GetMetadataContext(), moduleIds)
         End Sub
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")>
@@ -424,20 +424,20 @@ End Class"
                 Sub(runtime)
                     Dim typeBlocks As ImmutableArray(Of MetadataBlock) = Nothing
                     Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
-                    Dim moduleVersionId As Guid = Nothing
+                    Dim moduleId As ModuleId = Nothing
                     Dim symReader As ISymUnmanagedReader = Nothing
                     Dim typeToken = 0
                     Dim methodToken = 0
                     Dim localSignatureToken = 0
-                    GetContextState(runtime, "C", typeBlocks, moduleVersionId, symReader, typeToken, localSignatureToken)
-                    GetContextState(runtime, "C.M", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                    GetContextState(runtime, "C", typeBlocks, moduleId, symReader, typeToken, localSignatureToken)
+                    GetContextState(runtime, "C.M", methodBlocks, moduleId, symReader, methodToken, localSignatureToken)
 
                     ' Compile expression with type context.
                     Dim appDomain = New AppDomain()
                     Dim context = CreateTypeContext(
                         appDomain,
                         typeBlocks,
-                        moduleVersionId,
+                        moduleId,
                         typeToken,
                         MakeAssemblyReferencesKind.AllAssemblies)
 
@@ -464,7 +464,7 @@ End Class"
                         methodBlocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
-                        moduleVersionId,
+                        moduleId,
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
@@ -561,13 +561,13 @@ End Class"
             })
 
             Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim moduleVersionId As Guid = Nothing
+            Dim moduleId As ModuleId = Nothing
             Dim symReader As ISymUnmanagedReader = Nothing
             Dim typeToken = 0
             Dim methodToken = 0
             Dim localSignatureToken = 0
-            GetContextState(runtime, "B", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
-            Dim contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken)
+            GetContextState(runtime, "B", blocks, moduleId, symReader, typeToken, localSignatureToken)
+            Dim contextFactory = CreateTypeContextFactory(moduleId, typeToken)
 
             ' Duplicate type in namespace, at type scope.
             Dim testData As CompilationTestData = Nothing
@@ -575,8 +575,8 @@ End Class"
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
             Assert.Equal($"error BC30560: { String.Format(VBResources.ERR_AmbiguousInNamespace2, "C1", "N") }", errorMessage)
 
-            GetContextState(runtime, "B.Main", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-            contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+            GetContextState(runtime, "B.Main", blocks, moduleId, symReader, methodToken, localSignatureToken)
+            contextFactory = CreateMethodContextFactory(moduleId, symReader, methodToken, localSignatureToken)
 
             ' Duplicate type in namespace, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
@@ -591,8 +591,8 @@ End Class"
             Assert.True(errorMessage.StartsWith($"error BC30521: { String.Format(VBResources.ERR_NoMostSpecificOverload2, "F", "") }"))
 
             ' Same tests as above but in library that does not directly reference duplicates.
-            GetContextState(runtime, "A", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
-            contextFactory = CreateTypeContextFactory(moduleVersionId, typeToken)
+            GetContextState(runtime, "A", blocks, moduleId, symReader, typeToken, localSignatureToken)
+            contextFactory = CreateTypeContextFactory(moduleId, typeToken)
 
             ' Duplicate type in namespace, at type scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
@@ -607,8 +607,8 @@ IL_0005:  ret
 }")
             Assert.Equal(methodData.Method.ReturnType.ContainingAssembly.ToDisplayString(), identityA.GetDisplayName())
 
-            GetContextState(runtime, "A.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-            contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+            GetContextState(runtime, "A.M", blocks, moduleId, symReader, methodToken, localSignatureToken)
+            contextFactory = CreateMethodContextFactory(moduleId, symReader, methodToken, localSignatureToken)
 
             ' Duplicate type in global namespace, at method scope.
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
@@ -681,19 +681,19 @@ End Class"
                 Sub(runtime)
 
                     Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-                    Dim moduleVersionId As Guid = Nothing
+                    Dim moduleId As ModuleId = Nothing
                     Dim symReader As ISymUnmanagedReader = Nothing
                     Dim typeToken = 0
                     Dim methodToken = 0
                     Dim localSignatureToken = 0
-                    GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                    GetContextState(runtime, "C.M", blocks, moduleId, symReader, methodToken, localSignatureToken)
 
                     Dim context = CreateMethodContext(
                         New AppDomain(),
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
-                        moduleVersionId,
+                        moduleId,
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
@@ -704,7 +704,7 @@ End Class"
                     Assert.Equal(errorMessage, "error BC30562: 'F' is ambiguous between declarations in Modules 'N.M, N.M'.")
 
                     Dim testData As New CompilationTestData()
-                    Dim contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
+                    Dim contextFactory = CreateMethodContextFactory(moduleId, symReader, methodToken, localSignatureToken)
                     ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "F()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
                     Assert.Null(errorMessage)
                     testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -852,7 +852,7 @@ End Namespace"
                 Dim metadata = reader.GetMetadata()
                 Dim [module] = metadata.ToModuleMetadata(ignoreAssemblyRefs:=True)
                 Dim metadataReader = metadata.ToMetadataReader()
-                Dim moduleInstance = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.ModuleInstance.Create(metadata, metadataReader.GetModuleVersionIdOrThrow())
+                Dim moduleInstance = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.ModuleInstance.Create(metadata, New ModuleId(metadataReader.GetModuleVersionIdOrThrow(), [module].Name))
 
                 ' Verify the module declares System.Object.
                 Assert.True(metadataReader.DeclaresTheObjectClass())
@@ -909,31 +909,31 @@ End Class"
         End Sub
 
         Private Shared Function CreateTypeContextFactory(
-            moduleVersionId As Guid,
+            moduleId As ModuleId,
             typeToken As Integer) As ExpressionCompiler.CreateContextDelegate
 
             Return Function(blocks, useReferencedModulesOnly)
-                       Dim compilation = If(useReferencedModulesOnly, blocks.ToCompilationReferencedModulesOnly(moduleVersionId), blocks.ToCompilation())
+                       Dim compilation = If(useReferencedModulesOnly, blocks.ToCompilationReferencedModulesOnly(moduleId), blocks.ToCompilation())
                        Return EvaluationContext.CreateTypeContext(
                            compilation,
-                           moduleVersionId,
+                           moduleId,
                            typeToken)
                    End Function
         End Function
 
         Private Shared Function CreateMethodContextFactory(
-            moduleVersionId As Guid,
+            moduleId As ModuleId,
             symReader As ISymUnmanagedReader,
             methodToken As Integer,
             localSignatureToken As Integer) As ExpressionCompiler.CreateContextDelegate
 
             Return Function(blocks, useReferencedModulesOnly)
-                       Dim compilation = If(useReferencedModulesOnly, blocks.ToCompilationReferencedModulesOnly(moduleVersionId), blocks.ToCompilation())
+                       Dim compilation = If(useReferencedModulesOnly, blocks.ToCompilationReferencedModulesOnly(moduleId), blocks.ToCompilation())
                        Return EvaluationContext.CreateMethodContext(
                             compilation,
                             MakeDummyLazyAssemblyReaders(),
                             symReader,
-                            moduleVersionId,
+                            moduleId,
                             methodToken,
                             methodVersion:=1,
                             ilOffset:=0,

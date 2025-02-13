@@ -5128,11 +5128,11 @@ class C
         private static void GetLocals(RuntimeInstance runtime, string methodName, MethodDebugInfoBytes debugInfo, ArrayBuilder<LocalAndMethod> locals, int count)
         {
             ImmutableArray<MetadataBlock> blocks;
-            Guid moduleVersionId;
+            ModuleId moduleId;
             ISymUnmanagedReader unused;
             int methodToken;
             int localSignatureToken;
-            GetContextState(runtime, methodName, out blocks, out moduleVersionId, out unused, out methodToken, out localSignatureToken);
+            GetContextState(runtime, methodName, out blocks, out moduleId, out unused, out methodToken, out localSignatureToken);
 
             var symReader = new MockSymUnmanagedReader(
                 new Dictionary<int, MethodDebugInfoBytes>()
@@ -5143,7 +5143,7 @@ class C
                 new AppDomain(),
                 blocks,
                 symReader,
-                moduleVersionId,
+                moduleId,
                 methodToken,
                 methodVersion: 1,
                 ilOffset: 0,
