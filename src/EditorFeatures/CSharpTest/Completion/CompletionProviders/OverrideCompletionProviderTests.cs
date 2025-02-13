@@ -1443,7 +1443,7 @@ public class d : c
     {
         get
         {
-            return base.goo;$$
+            [|return base.goo;|]
         }
 
         set
@@ -1482,7 +1482,7 @@ public class d : c
     {
         get
         {
-            return base.goo;$$
+            [|return base.goo;|]
         }
 
         set
@@ -1520,7 +1520,7 @@ public class d : c
     {
         get
         {
-            return base.goo;$$
+            [|return base.goo;|]
         }
 
         set
@@ -1558,7 +1558,7 @@ public class d : c
     {
         set
         {
-            base.goo = value;$$
+            [|base.goo = value;|]
         }
     }
 }";
@@ -1590,7 +1590,7 @@ public class d : c
     {
         get
         {
-            return base.goo;$$
+            [|return base.goo;|]
         }
     }
 }";
@@ -1647,7 +1647,7 @@ namespace ClassLibrary1
         {
             get
             {
-                return base[i];$$
+                [|return base[i];|]
             }
 
             set
@@ -1915,7 +1915,7 @@ class d : MyIndexer<T>
     {
         get
         {
-            return base[i];$$
+            [|return base[i];|]
         }
 
         set
@@ -1954,7 +1954,7 @@ class d : MyIndexer<T>
     {
         get
         {
-            throw new System.NotImplementedException();$$
+            [|throw new System.NotImplementedException();|]
         }
 
         set
@@ -2123,7 +2123,7 @@ public class SomeClass : Base
     {
         get
         {
-            return base.@class;$$
+            [|return base.@class;|]
         }
 
         set
@@ -2406,7 +2406,7 @@ public class B : A
         {
             get
             {
-                return base.Goo;$$
+                [|return base.Goo;|]
             }
         }
     }
@@ -2822,7 +2822,7 @@ int bar;
                 {
                     get
                     {
-                        return base.Prop;$$
+                        [|return base.Prop;|]
                     }
                 }
             }
@@ -2861,7 +2861,7 @@ class Derived : Base
                 {
                     get
                     {
-                        return base.Prop;$$
+                        [|return base.Prop;|]
                     }
                 }
             }
@@ -2900,7 +2900,7 @@ class Derived : Base
                 {
                     get
                     {
-                        return base.Prop;$$
+                        [|return base.Prop;|]
                     }
                 }
             }
@@ -2967,7 +2967,7 @@ class Derived : Base
                 {
                     get
                     {
-                        return base[i];$$
+                        [|return base[i];|]
                     }
 
                     set
@@ -3098,7 +3098,7 @@ class Program : C
     {
         get
         {
-            throw new System.NotImplementedException();$$
+            [|throw new System.NotImplementedException();|]
         }
 
         set
