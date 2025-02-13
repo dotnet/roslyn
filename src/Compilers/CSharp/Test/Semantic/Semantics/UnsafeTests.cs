@@ -2673,18 +2673,18 @@ unsafe class C<T>
             Assert.True(fieldTypes[0].Type.IsPointerOrFunctionPointer());
             Assert.True(fieldTypes[1].Type.IsPointerOrFunctionPointer());
             Assert.False(fieldTypes[2].Type.IsPointerOrFunctionPointer());
-            Assert.True(fieldTypes[2].Type.ContainsPointer());
+            Assert.True(fieldTypes[2].Type.ContainsPointerOrFunctionPointer());
             Assert.False(fieldTypes[3].Type.IsPointerOrFunctionPointer());
-            Assert.True(fieldTypes[3].Type.ContainsPointer());
+            Assert.True(fieldTypes[3].Type.ContainsPointerOrFunctionPointer());
 
             Assert.False(fieldTypes[4].Type.IsPointerOrFunctionPointer());
-            Assert.True(fieldTypes[4].Type.ContainsPointer());
+            Assert.True(fieldTypes[4].Type.ContainsPointerOrFunctionPointer());
             Assert.False(fieldTypes[5].Type.IsPointerOrFunctionPointer());
-            Assert.True(fieldTypes[5].Type.ContainsPointer());
+            Assert.True(fieldTypes[5].Type.ContainsPointerOrFunctionPointer());
             Assert.False(fieldTypes[6].Type.IsPointerOrFunctionPointer());
-            Assert.True(fieldTypes[6].Type.ContainsPointer());
+            Assert.True(fieldTypes[6].Type.ContainsPointerOrFunctionPointer());
             Assert.False(fieldTypes[7].Type.IsPointerOrFunctionPointer());
-            Assert.True(fieldTypes[7].Type.ContainsPointer());
+            Assert.True(fieldTypes[7].Type.ContainsPointerOrFunctionPointer());
         }
 
         [Fact]

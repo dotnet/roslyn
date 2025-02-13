@@ -11,343 +11,234 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
-        /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
+        /// Return all diagnostics that belong to given project for the given <see cref="DiagnosticAnalyzer"/> either
+        /// from cache or by calculating them.
         /// </summary>
-        private async Task<ProjectAnalysisData> GetProjectAnalysisDataAsync(
-            CompilationWithAnalyzersPair? compilationWithAnalyzers, Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
+        private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticAnalysisResultsAsync(
+            CompilationWithAnalyzersPair? compilationWithAnalyzers,
+            Project project,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, analyzers, cancellationToken))
             {
                 try
                 {
-                    // PERF: We need to flip this to false when we do actual diffing.
-                    var avoidLoadingData = true;
-                    var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
-
-                    if (existingData.Version == version)
-                        return existingData;
-
-                    var result = await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
+                    var result = await ComputeDiagnosticsForIDEAnalyzersAsync(analyzers).ConfigureAwait(false);
 
                     // If project is not loaded successfully, get rid of any semantic errors from compiler analyzer.
                     // Note: In the past when project was not loaded successfully we did not run any analyzers on the project.
                     // Now we run analyzers but filter out some information. So on such projects, there will be some perf degradation.
-                    result = await RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(result, project, cancellationToken).ConfigureAwait(false);
+                    result = await RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(result).ConfigureAwait(false);
 
-                    return new ProjectAnalysisData(project.Id, version, existingData.Result, result);
+                    return result;
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable();
                 }
             }
-        }
 
-        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result, Project project, CancellationToken cancellationToken)
-        {
-            // see whether solution is loaded successfully
-            var projectLoadedSuccessfully = await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-            if (projectLoadedSuccessfully)
+            async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(
+                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
             {
-                return result;
-            }
-
-            var compilerAnalyzer = project.Solution.SolutionState.Analyzers.GetCompilerDiagnosticAnalyzer(project.Language);
-            if (compilerAnalyzer == null)
-            {
-                // this language doesn't support compiler analyzer
-                return result;
-            }
-
-            if (!result.TryGetValue(compilerAnalyzer, out var analysisResult))
-            {
-                // no result from compiler analyzer
-                return result;
-            }
-
-            Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"Failed to Load Successfully ({p.FilePath ?? p.Name})", project);
-
-            // get rid of any result except syntax from compiler analyzer result
-            var newCompilerAnalysisResult = analysisResult.DropExceptSyntax();
-
-            // return new result
-            return result.SetItem(compilerAnalyzer, newCompilerAnalysisResult);
-        }
-
-        /// <summary>
-        /// Calculate all diagnostics for a given project using analyzers referenced by the project and specified IDE analyzers.
-        /// </summary>
-        private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
-            CompilationWithAnalyzersPair? compilationWithAnalyzers, Project project, ImmutableArray<DiagnosticAnalyzer> ideAnalyzers, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var result = ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
-
-                // can be null if given project doesn't support compilation.
-                if (compilationWithAnalyzers?.ProjectAnalyzers.Length > 0
-                    || compilationWithAnalyzers?.HostAnalyzers.Length > 0)
+                // see whether solution is loaded successfully
+                var projectLoadedSuccessfully = await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                if (projectLoadedSuccessfully)
                 {
-                    // calculate regular diagnostic analyzers diagnostics
-                    var resultMap = await _diagnosticAnalyzerRunner.AnalyzeProjectAsync(
-                        project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: true, cancellationToken).ConfigureAwait(false);
-
-                    result = resultMap.AnalysisResult;
-
-                    // record telemetry data
-                    UpdateAnalyzerTelemetryData(resultMap.TelemetryInfo);
+                    return result;
                 }
 
-                // check whether there is IDE specific project diagnostic analyzer
-                Debug.Assert(ideAnalyzers.All(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer));
-                return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, ideAnalyzers, compilationWithAnalyzers?.HostCompilation, result, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
-            CompilationWithAnalyzersPair? compilationWithAnalyzers, Project project, ImmutableArray<StateSet> stateSets,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, CancellationToken cancellationToken)
-        {
-            try
-            {
-                // PERF: check whether we can reduce number of analyzers we need to run.
-                //       this can happen since caller could have created the driver with different set of analyzers that are different
-                //       than what we used to create the cache.
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-
-                var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
-
-                if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, version, existing, out var projectAnalyzersToRun, out var hostAnalyzersToRun))
+                var compilerAnalyzer = project.Solution.SolutionState.Analyzers.GetCompilerDiagnosticAnalyzer(project.Language);
+                if (compilerAnalyzer == null)
                 {
-                    // it looks like we can reduce the set. create new CompilationWithAnalyzer.
-                    // if we reduced to 0, we just pass in null for analyzer drvier. it could be reduced to 0
-                    // since we might have up to date results for analyzers from compiler but not for 
-                    // workspace analyzers.
-
-                    var compilationWithReducedAnalyzers = (projectAnalyzersToRun.Length == 0 && hostAnalyzersToRun.Length == 0) ? null :
-                        await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
-                            project,
-                            projectAnalyzersToRun,
-                            hostAnalyzersToRun,
-                            compilationWithAnalyzers.ReportSuppressedDiagnostics,
-                            AnalyzerService.CrashOnAnalyzerException,
-                            cancellationToken).ConfigureAwait(false);
-
-                    var result = await ComputeDiagnosticsAsync(compilationWithReducedAnalyzers, project, ideAnalyzers, cancellationToken).ConfigureAwait(false);
-                    return MergeExistingDiagnostics(version, existing, result);
+                    // this language doesn't support compiler analyzer
+                    return result;
                 }
 
-                // we couldn't reduce the set.
-                return await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, ideAnalyzers, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        private static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> MergeExistingDiagnostics(
-            VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
-        {
-            // quick bail out.
-            if (existing.IsEmpty)
-            {
-                return result;
-            }
-
-            foreach (var (analyzer, results) in existing)
-            {
-                if (results.Version != version)
+                if (!result.TryGetValue(compilerAnalyzer, out var analysisResult))
                 {
-                    continue;
+                    // no result from compiler analyzer
+                    return result;
                 }
 
-                result = result.SetItem(analyzer, results);
+                Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"Failed to Load Successfully ({p.FilePath ?? p.Name})", project);
+
+                // get rid of any result except syntax from compiler analyzer result
+                var newCompilerAnalysisResult = analysisResult.DropExceptSyntax();
+
+                // return new result
+                return result.SetItem(compilerAnalyzer, newCompilerAnalysisResult);
             }
 
-            return result;
-        }
-
-        private static bool TryReduceAnalyzersToRun(
-            CompilationWithAnalyzersPair compilationWithAnalyzers, VersionStamp version,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
-            out ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
-            out ImmutableArray<DiagnosticAnalyzer> hostAnalyzers)
-        {
-            projectAnalyzers = compilationWithAnalyzers.ProjectAnalyzers.WhereAsArray(
-                static (analyzer, arg) =>
+            // <summary>
+            // Calculate all diagnostics for a given project using analyzers referenced by the project and specified IDE analyzers.
+            // </summary>
+            async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsForAnalyzersAsync(
+                ImmutableArray<DiagnosticAnalyzer> ideAnalyzers)
+            {
+                try
                 {
-                    if (arg.existing.TryGetValue(analyzer, out var analysisResult) &&
-                        analysisResult.Version == arg.version)
+                    var result = ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
+
+                    // can be null if given project doesn't support compilation.
+                    if (compilationWithAnalyzers?.ProjectAnalyzers.Length > 0
+                        || compilationWithAnalyzers?.HostAnalyzers.Length > 0)
                     {
-                        // we already have up to date result.
-                        return false;
+                        // calculate regular diagnostic analyzers diagnostics
+                        var resultMap = await _diagnosticAnalyzerRunner.AnalyzeProjectAsync(
+                            project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: true, cancellationToken).ConfigureAwait(false);
+
+                        result = resultMap.AnalysisResult;
+
+                        // record telemetry data
+                        UpdateAnalyzerTelemetryData(resultMap.TelemetryInfo);
                     }
 
-                    // analyzer that is out of date.
-                    // open file only analyzer is always out of date for project wide data
-                    return true;
-                },
-                (existing, version));
-
-            hostAnalyzers = compilationWithAnalyzers.HostAnalyzers.WhereAsArray(
-                static (analyzer, arg) =>
+                    // check whether there is IDE specific project diagnostic analyzer
+                    Debug.Assert(ideAnalyzers.All(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer));
+                    return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(ideAnalyzers, result).ConfigureAwait(false);
+                }
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    if (arg.existing.TryGetValue(analyzer, out var analysisResult) &&
-                        analysisResult.Version == arg.version)
-                    {
-                        // we already have up to date result.
-                        return false;
-                    }
-
-                    // analyzer that is out of date.
-                    // open file only analyzer is always out of date for project wide data
-                    return true;
-                },
-                (existing, version));
-
-            if (projectAnalyzers.Length == compilationWithAnalyzers.ProjectAnalyzers.Length
-                && hostAnalyzers.Length == compilationWithAnalyzers.HostAnalyzers.Length)
-            {
-                // all of analyzers are out of date.
-                projectAnalyzers = default;
-                hostAnalyzers = default;
-                return false;
+                    throw ExceptionUtilities.Unreachable();
+                }
             }
 
-            return true;
-        }
-
-        private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
-            Project project,
-            ImmutableArray<DiagnosticAnalyzer> ideAnalyzers,
-            Compilation? compilation,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result,
-            CancellationToken cancellationToken)
-        {
-            try
+            async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsForIDEAnalyzersAsync(
+                ImmutableArray<DiagnosticAnalyzer> analyzers)
             {
-                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-
-                (result, var failedDocuments) = await UpdateWithDocumentLoadAndGeneratorFailuresAsync(result, project, version, cancellationToken).ConfigureAwait(false);
-
-                foreach (var analyzer in ideAnalyzers)
+                try
                 {
-                    var builder = new DiagnosticAnalysisResultBuilder(project, version);
+                    var ideAnalyzers = analyzers.WhereAsArray(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer);
 
-                    switch (analyzer)
+                    return await ComputeDiagnosticsForAnalyzersAsync(ideAnalyzers).ConfigureAwait(false);
+                }
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+            }
+
+            async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
+                ImmutableArray<DiagnosticAnalyzer> ideAnalyzers,
+                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
+            {
+                try
+                {
+                    var compilation = compilationWithAnalyzers?.HostCompilation;
+
+                    (result, var failedDocuments) = await UpdateWithDocumentLoadAndGeneratorFailuresAsync(result).ConfigureAwait(false);
+
+                    foreach (var analyzer in ideAnalyzers)
                     {
-                        case DocumentDiagnosticAnalyzer documentAnalyzer:
-                            foreach (var document in project.Documents)
-                            {
-                                // don't analyze documents whose content failed to load
-                                if (failedDocuments == null || !failedDocuments.Contains(document))
+                        var builder = new DiagnosticAnalysisResultBuilder(project);
+
+                        switch (analyzer)
+                        {
+                            case DocumentDiagnosticAnalyzer documentAnalyzer:
+                                foreach (var document in project.Documents)
                                 {
-                                    var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                                    if (tree != null)
+                                    // don't analyze documents whose content failed to load
+                                    if (failedDocuments == null || !failedDocuments.Contains(document))
                                     {
-                                        builder.AddSyntaxDiagnostics(tree, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false));
-                                        builder.AddSemanticDiagnostics(tree, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false));
-                                    }
-                                    else
-                                    {
-                                        builder.AddExternalSyntaxDiagnostics(document.Id, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false));
-                                        builder.AddExternalSemanticDiagnostics(document.Id, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false));
+                                        var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                                        if (tree != null)
+                                        {
+                                            builder.AddSyntaxDiagnostics(tree, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false));
+                                            builder.AddSemanticDiagnostics(tree, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false));
+                                        }
+                                        else
+                                        {
+                                            builder.AddExternalSyntaxDiagnostics(document.Id, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false));
+                                            builder.AddExternalSemanticDiagnostics(document.Id, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false));
+                                        }
                                     }
                                 }
-                            }
 
-                            break;
+                                break;
 
-                        case ProjectDiagnosticAnalyzer projectAnalyzer:
-                            builder.AddCompilationDiagnostics(await DocumentAnalysisExecutor.ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(projectAnalyzer, project, compilation, cancellationToken).ConfigureAwait(false));
-                            break;
+                            case ProjectDiagnosticAnalyzer projectAnalyzer:
+                                builder.AddCompilationDiagnostics(await DocumentAnalysisExecutor.ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(projectAnalyzer, project, compilation, cancellationToken).ConfigureAwait(false));
+                                break;
+                        }
+
+                        // merge the result to existing one.
+                        // there can be existing one from compiler driver with empty set. overwrite it with
+                        // ide one.
+                        result = result.SetItem(analyzer, DiagnosticAnalysisResult.CreateFromBuilder(builder));
                     }
 
-                    // merge the result to existing one.
-                    // there can be existing one from compiler driver with empty set. overwrite it with
-                    // ide one.
-                    result = result.SetItem(analyzer, DiagnosticAnalysisResult.CreateFromBuilder(builder));
+                    return result;
                 }
-
-                return result;
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-        }
-
-        private async Task<(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results, ImmutableHashSet<Document>? failedDocuments)> UpdateWithDocumentLoadAndGeneratorFailuresAsync(
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results,
-            Project project,
-            VersionStamp version,
-            CancellationToken cancellationToken)
-        {
-            ImmutableHashSet<Document>.Builder? failedDocuments = null;
-            ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? lazyLoadDiagnostics = null;
-
-            foreach (var document in project.Documents)
-            {
-                var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
-                if (loadDiagnostic != null)
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    lazyLoadDiagnostics ??= ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
-                    lazyLoadDiagnostics.Add(document.Id, [DiagnosticData.Create(loadDiagnostic, document)]);
-
-                    failedDocuments ??= ImmutableHashSet.CreateBuilder<Document>();
-                    failedDocuments.Add(document);
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
-            results = results.SetItem(
-                FileContentLoadAnalyzer.Instance,
-                DiagnosticAnalysisResult.Create(
-                    project,
-                    version,
-                    syntaxLocalMap: lazyLoadDiagnostics?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                    semanticLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                    nonLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                    others: [],
-                    documentIds: null));
-
-            var generatorDiagnostics = await _diagnosticAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-            var diagnosticResultBuilder = new DiagnosticAnalysisResultBuilder(project, version);
-            foreach (var generatorDiagnostic in generatorDiagnostics)
+            async Task<(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results, ImmutableHashSet<Document>? failedDocuments)> UpdateWithDocumentLoadAndGeneratorFailuresAsync(
+                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results)
             {
-                // We'll always treat generator diagnostics that are associated with a tree as a local diagnostic, because
-                // we want that to be refreshed and deduplicated with regular document analysis.
-                diagnosticResultBuilder.AddDiagnosticTreatedAsLocalSemantic(generatorDiagnostic);
+                ImmutableHashSet<Document>.Builder? failedDocuments = null;
+                ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Builder? lazyLoadDiagnostics = null;
+
+                foreach (var document in project.Documents)
+                {
+                    var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
+                    if (loadDiagnostic != null)
+                    {
+                        lazyLoadDiagnostics ??= ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<DiagnosticData>>();
+                        lazyLoadDiagnostics.Add(document.Id, [DiagnosticData.Create(loadDiagnostic, document)]);
+
+                        failedDocuments ??= ImmutableHashSet.CreateBuilder<Document>();
+                        failedDocuments.Add(document);
+                    }
+                }
+
+                results = results.SetItem(
+                    FileContentLoadAnalyzer.Instance,
+                    DiagnosticAnalysisResult.Create(
+                        project,
+                        syntaxLocalMap: lazyLoadDiagnostics?.ToImmutable() ?? ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                        semanticLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                        nonLocalMap: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                        others: [],
+                        documentIds: null));
+
+                var generatorDiagnostics = await _diagnosticAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
+                var diagnosticResultBuilder = new DiagnosticAnalysisResultBuilder(project);
+                foreach (var generatorDiagnostic in generatorDiagnostics)
+                {
+                    // We'll always treat generator diagnostics that are associated with a tree as a local diagnostic, because
+                    // we want that to be refreshed and deduplicated with regular document analysis.
+                    diagnosticResultBuilder.AddDiagnosticTreatedAsLocalSemantic(generatorDiagnostic);
+                }
+
+                results = results.SetItem(
+                    GeneratorDiagnosticsPlaceholderAnalyzer.Instance,
+                    DiagnosticAnalysisResult.CreateFromBuilder(diagnosticResultBuilder));
+
+                return (results, failedDocuments?.ToImmutable());
             }
 
-            results = results.SetItem(
-                GeneratorDiagnosticsPlaceholderAnalyzer.Instance,
-                DiagnosticAnalysisResult.CreateFromBuilder(diagnosticResultBuilder));
-
-            return (results, failedDocuments?.ToImmutable());
-        }
-
-        private void UpdateAnalyzerTelemetryData(ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> telemetry)
-        {
-            foreach (var (analyzer, telemetryInfo) in telemetry)
+            void UpdateAnalyzerTelemetryData(ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> telemetry)
             {
-                var isTelemetryCollectionAllowed = DiagnosticAnalyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
-                _telemetry.UpdateAnalyzerActionsTelemetry(analyzer, telemetryInfo, isTelemetryCollectionAllowed);
+                foreach (var (analyzer, telemetryInfo) in telemetry)
+                {
+                    var isTelemetryCollectionAllowed = DiagnosticAnalyzerInfoCache.IsTelemetryCollectionAllowed(analyzer);
+                    _telemetry.UpdateAnalyzerActionsTelemetry(analyzer, telemetryInfo, isTelemetryCollectionAllowed);
+                }
             }
         }
     }

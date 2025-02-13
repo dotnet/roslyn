@@ -313,6 +313,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SourceLocalSymbol local = this.IterationVariable;
                         local.SetTypeWithAnnotations(declType);
 
+                        ReportFieldContextualKeywordConflictIfAny(local, node, node.Identifier, diagnostics);
+
                         CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
                         if (local.Scope == ScopedKind.ScopedValue && !declType.Type.IsErrorOrRefLikeOrAllowsRefLikeType())

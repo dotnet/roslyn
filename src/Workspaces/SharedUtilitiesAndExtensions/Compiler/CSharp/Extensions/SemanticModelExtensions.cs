@@ -169,10 +169,10 @@ internal static partial class SemanticModelExtensions
             {
                 Contract.ThrowIfNull(@using.NamespaceOrType);
                 var symbolInfo = semanticModel.GetSymbolInfo(@using.NamespaceOrType);
-                if (symbolInfo.Symbol != null && symbolInfo.Symbol.Kind == SymbolKind.Namespace)
+                if (symbolInfo.Symbol is INamespaceSymbol namespaceSymbol)
                 {
                     result ??= [];
-                    result.Add((INamespaceSymbol)symbolInfo.Symbol);
+                    result.Add(namespaceSymbol);
                 }
             }
         }

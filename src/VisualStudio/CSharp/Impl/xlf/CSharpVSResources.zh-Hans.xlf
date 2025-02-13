@@ -142,6 +142,11 @@
         <target state="translated">类型明显时首选隐式对象创建</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
+        <source>Prefer implicitly typed lambda expression</source>
+        <target state="new">Prefer implicitly typed lambda expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
         <target state="translated">首选模式匹配</target>
@@ -179,12 +184,12 @@
       </trans-unit>
       <trans-unit id="Show_name_s_uggestions">
         <source>Show name s_uggestions</source>
-        <target state="new">Show name s_uggestions</target>
+        <target state="translated">显示名称建议</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience">
         <source>Show new snippet experience</source>
-        <target state="new">Show new snippet experience</target>
+        <target state="translated">显示新的代码片段体验</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
@@ -709,7 +714,7 @@
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
         <source>Show name suggestions</source>
-        <target state="needs-review-translation">显示名称建议(_U)</target>
+        <target state="translated">显示名称建议</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

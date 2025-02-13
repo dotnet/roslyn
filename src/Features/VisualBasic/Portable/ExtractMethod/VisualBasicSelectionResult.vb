@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Throw ExceptionUtilities.Unreachable
             End Function
 
-            Public Overrides Function ContainsNonReturnExitPointsStatements(exitPoints As ImmutableArray(Of SyntaxNode)) As Boolean
+            Public Overrides Function ContainsUnsupportedExitPointsStatements(exitPoints As ImmutableArray(Of SyntaxNode)) As Boolean
                 Dim returnStatement = False
                 Dim exitStatement = False
 

@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis
         // Protected for access in CSharpCompilation.WithAdditionalFeatures
         protected readonly IReadOnlyDictionary<string, string> _features;
 
+        private readonly Lazy<int?> _lazyDataSectionStringLiteralThreshold;
+
         public ScriptCompilationInfo? ScriptCompilationInfo => CommonScriptCompilationInfo;
         internal abstract ScriptCompilationInfo? CommonScriptCompilationInfo { get; }
 
@@ -91,6 +93,7 @@ namespace Microsoft.CodeAnalysis
 
             _lazySubmissionSlotIndex = isSubmission ? SubmissionSlotIndexToBeAllocated : SubmissionSlotIndexNotApplicable;
             _features = features;
+            _lazyDataSectionStringLiteralThreshold = new Lazy<int?>(ComputeDataSectionStringLiteralThreshold);
         }
 
         protected static IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
@@ -3518,6 +3521,33 @@ namespace Microsoft.CodeAnalysis
         /// When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
         /// </summary>
         internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
+
+        internal int? DataSectionStringLiteralThreshold => _lazyDataSectionStringLiteralThreshold.Value;
+
+        private int? ComputeDataSectionStringLiteralThreshold()
+        {
+            if (Feature("experimental-data-section-string-literals") is { } s)
+            {
+                if (s == "off")
+                {
+                    // disabled
+                    return null;
+                }
+
+                if (int.TryParse(s, out var i) && i >= 0)
+                {
+                    // custom non-negative threshold
+                    // 0 can be used to enable for all strings
+                    return i;
+                }
+
+                // default value
+                return 100;
+            }
+
+            // disabled
+            return null;
+        }
 
         #endregion
 

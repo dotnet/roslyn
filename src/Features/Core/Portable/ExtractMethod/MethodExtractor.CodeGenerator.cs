@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -30,6 +31,18 @@ internal abstract partial class AbstractExtractMethodService<
         public static readonly SyntaxAnnotation MethodNameAnnotation = new();
         public static readonly SyntaxAnnotation MethodDefinitionAnnotation = new();
         public static readonly SyntaxAnnotation CallSiteAnnotation = new();
+        public static readonly SyntaxAnnotation InsertionPointAnnotation = new();
+
+        /// <summary>
+        /// Marks nodes that cause control flow to leave the extracted selection.  This is commonly constructs like <see
+        /// langword="return"/>, <see langword="break"/>, <see langword="continue"/> and the like.  We mark these with
+        /// annotations at the start of the extraction process so that we can find these nodes again later after they
+        /// have been extracted to rewrite them as needed.  Specifically, constructs like <see langword="break"/>, <see
+        /// langword="continue"/> cannot cross a method boundary.  As such, they must be translated to a <see
+        /// langword="return"/> statement that returns a value indicating the flow control construct that should be
+        /// executed at the callsite after the extracted method is called.
+        /// </summary>
+        public static readonly SyntaxAnnotation ExitPointAnnotation = new();
 
         protected abstract class CodeGenerator
         {
@@ -47,6 +60,10 @@ internal abstract partial class AbstractExtractMethodService<
             where TCodeGenerationOptions : CodeGenerationOptions
         {
             private static readonly CodeGenerationContext s_codeGenerationContext = new(addImports: false);
+
+            // TODO: Check if these namesare already in scope and if so, generate non-colliding ones.
+            protected const string FlowControlName = "flowControl";
+            protected const string ReturnValueName = "value";
 
             protected readonly SelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
@@ -90,8 +107,27 @@ internal abstract partial class AbstractExtractMethodService<
             protected abstract Task<TNodeUnderContainer> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken);
 
             protected abstract TExpressionSyntax CreateCallSignature();
-            protected abstract TStatementSyntax CreateDeclarationStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax initialValue, CancellationToken cancellationToken);
-            protected abstract TStatementSyntax CreateAssignmentExpressionStatement(ImmutableArray<VariableInfo> variables, TExpressionSyntax rvalue);
+
+            /// <summary>
+            /// Statement we create when we are assigning variables and at least one of the variables in a new
+            /// declaration that is being created.  <paramref name="variables"/> can be empty.  This can happen
+            /// if we are creating a new declaration for a flow control variable.
+            /// </summary>
+            protected abstract TStatementSyntax CreateDeclarationStatement(
+                ImmutableArray<VariableInfo> variables, TExpressionSyntax initialValue, ExtractMethodFlowControlInformation flowControlInformation, CancellationToken cancellationToken);
+
+            /// <summary>
+            /// Statement we create when we are assigning variables and all of the variables already exist and are just
+            /// being assigned to. <paramref name="variables"/> must be non-empty.
+            /// </summary>
+            protected abstract TStatementSyntax CreateAssignmentExpressionStatement(
+                ImmutableArray<VariableInfo> variables, TExpressionSyntax right);
+
+            protected abstract TExecutableStatementSyntax CreateBreakStatement();
+            protected abstract TExecutableStatementSyntax CreateContinueStatement();
+
+            protected abstract TExpressionSyntax CreateFlowControlReturnExpression(
+                ExtractMethodFlowControlInformation flowControlInformation, object flowValue);
 
             protected abstract ImmutableArray<TStatementSyntax> GetInitialStatementsForMethodDefinitions();
 
@@ -100,6 +136,7 @@ internal abstract partial class AbstractExtractMethodService<
 
             protected abstract Task<SemanticDocument> PerformFinalTriviaFixupAsync(
                 SemanticDocument newDocument, CancellationToken cancellationToken);
+
             #endregion
 
             private static SyntaxNode GetInsertionPoint(SemanticDocument document)
@@ -210,8 +247,19 @@ internal abstract partial class AbstractExtractMethodService<
             protected ImmutableArray<TStatementSyntax> AddReturnIfUnreachable(
                 ImmutableArray<TStatementSyntax> statements, CancellationToken cancellationToken)
             {
-                if (AnalyzerResult.EndOfSelectionReachable)
+                if (AnalyzerResult.FlowControlInformation.EndPointIsReachable)
                     return statements;
+
+                // All the flow control in the analyzed block is the same (for example, all breaks/continues/returns).
+                // In this case add a specific instance of that same flow control construct after the call to the new
+                // method to ensure we preserve original control flow.
+                if (AnalyzerResult.FlowControlInformation.HasUniformControlFlow())
+                {
+                    if (AnalyzerResult.FlowControlInformation.BreakStatementCount > 0)
+                        return statements.Concat(this.CreateBreakStatement());
+                    else if (AnalyzerResult.FlowControlInformation.ContinueStatementCount > 0)
+                        return statements.Concat(this.CreateContinueStatement());
+                }
 
                 var returnType = SelectionResult.GetReturnType(cancellationToken);
                 if (returnType != null && returnType.SpecialType != SpecialType.System_Void)
@@ -224,7 +272,8 @@ internal abstract partial class AbstractExtractMethodService<
                 return statements.Concat(CreateReturnStatement([]));
             }
 
-            private TExecutableStatementSyntax CreateReturnStatement(ImmutableArray<TExpressionSyntax> expressions)
+            private TExecutableStatementSyntax CreateReturnStatement(
+                ImmutableArray<TExpressionSyntax> expressions)
             {
                 var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
                 return (TExecutableStatementSyntax)generator.ReturnStatement(CreateReturnExpression(expressions));
@@ -242,31 +291,40 @@ internal abstract partial class AbstractExtractMethodService<
             protected async Task<ImmutableArray<TStatementSyntax>> AddInvocationAtCallSiteAsync(
                 ImmutableArray<TStatementSyntax> statements, CancellationToken cancellationToken)
             {
-                if (!AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
-                    return statements;
+                // If the newly extracted method isn't returning any data, and doesn't have complex flow control, then
+                // we want to handle that here.  The case where we do need to pass data out is in AddAssignmentStatementToCallSite.
+                if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty &&
+                    !AnalyzerResult.FlowControlInformation.NeedsControlFlowValue())
+                {
+                    Contract.ThrowIfTrue(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite().Any(v => v.UseAsReturnValue));
 
-                Contract.ThrowIfTrue(AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite().Any(v => v.UseAsReturnValue));
+                    // add invocation expression
+                    return statements.Concat(
+                        (TStatementSyntax)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken).ConfigureAwait(false));
+                }
 
-                // add invocation expression
-                return statements.Concat(
-                    (TStatementSyntax)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken).ConfigureAwait(false));
+                return statements;
             }
 
             protected ImmutableArray<TStatementSyntax> AddAssignmentStatementToCallSite(
                 ImmutableArray<TStatementSyntax> statements,
                 CancellationToken cancellationToken)
             {
-                if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
+                if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty &&
+                    !AnalyzerResult.FlowControlInformation.NeedsControlFlowValue())
+                {
                     return statements;
+                }
 
+                var flowControlInformation = AnalyzerResult.FlowControlInformation;
                 var variables = AnalyzerResult.VariablesToUseAsReturnValue;
-                if (variables.Any(v => v.ReturnBehavior == ReturnBehavior.Initialization))
+                if (variables.Any(v => v.ReturnBehavior == ReturnBehavior.Initialization) ||
+                    flowControlInformation.NeedsControlFlowValue())
                 {
                     var declarationStatement = CreateDeclarationStatement(
-                        variables, CreateCallSignature(), cancellationToken);
-                    declarationStatement = declarationStatement.WithAdditionalAnnotations(CallSiteAnnotation);
+                        variables, CreateCallSignature(), flowControlInformation, cancellationToken);
 
-                    return statements.Concat(declarationStatement);
+                    return statements.Concat(declarationStatement.WithAdditionalAnnotations(CallSiteAnnotation));
                 }
 
                 return statements.Concat(
@@ -276,7 +334,8 @@ internal abstract partial class AbstractExtractMethodService<
             protected ImmutableArray<TStatementSyntax> CreateDeclarationStatements(
                 ImmutableArray<VariableInfo> variables, CancellationToken cancellationToken)
             {
-                return variables.SelectAsArray(v => CreateDeclarationStatement([v], initialValue: null, cancellationToken));
+                return variables.SelectAsArray(
+                    v => CreateDeclarationStatement([v], initialValue: null, flowControlInformation: null, cancellationToken));
             }
 
             protected ImmutableArray<TStatementSyntax> AddSplitOrMoveDeclarationOutStatementsToCallSite(
@@ -290,7 +349,7 @@ internal abstract partial class AbstractExtractMethodService<
                         continue;
 
                     list.Add(CreateDeclarationStatement(
-                        [variable], initialValue: null, cancellationToken: cancellationToken));
+                        [variable], initialValue: null, flowControlInformation: null, cancellationToken));
                 }
 
                 return list.ToImmutableAndClear();
@@ -298,14 +357,31 @@ internal abstract partial class AbstractExtractMethodService<
 
             protected ImmutableArray<TStatementSyntax> AppendReturnStatementIfNeeded(ImmutableArray<TStatementSyntax> statements)
             {
-                if (AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
+                // No need to add a return statement if we already have one.
+                var syntaxFacts = this.SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+                if (statements is [.., var lastStatement] &&
+                    syntaxFacts.IsReturnStatement(lastStatement))
+                {
                     return statements;
+                }
 
                 var generator = this.SemanticDocument.GetRequiredLanguageService<SyntaxGenerator>();
-                return statements.Concat(CreateReturnStatement(
-                    AnalyzerResult.VariablesToUseAsReturnValue.SelectAsArray(
-                        static (v, generator) => (TExpressionSyntax)generator.IdentifierName(v.Name),
-                        generator)));
+
+                if (this.AnalyzerResult.FlowControlInformation.TryGetFallThroughFlowValue(out var fallthroughValue))
+                {
+                    return statements.Concat(CreateReturnStatement([CreateFlowControlReturnExpression(this.AnalyzerResult.FlowControlInformation, fallthroughValue)]));
+                }
+                else if (!this.AnalyzerResult.VariablesToUseAsReturnValue.IsEmpty)
+                {
+                    return statements.Concat(CreateReturnStatement([
+                        CreateReturnExpression(AnalyzerResult.VariablesToUseAsReturnValue.SelectAsArray(
+                            static (v, generator) => (TExpressionSyntax)generator.IdentifierName(v.Name),
+                            generator))]));
+                }
+                else
+                {
+                    return statements;
+                }
             }
 
             protected static HashSet<SyntaxAnnotation> CreateVariableDeclarationToRemoveMap(
@@ -384,7 +460,6 @@ internal abstract partial class AbstractExtractMethodService<
                 var callSignature = CreateCallSignature();
 
                 var generator = this.SemanticDocument.Document.GetRequiredLanguageService<SyntaxGenerator>();
-
                 return AnalyzerResult.CoreReturnType.SpecialType != SpecialType.System_Void
                     ? (TExecutableStatementSyntax)generator.ReturnStatement(callSignature)
                     : (TExecutableStatementSyntax)generator.ExpressionStatement(callSignature);
@@ -392,22 +467,41 @@ internal abstract partial class AbstractExtractMethodService<
 
             public ITypeSymbol GetFinalReturnType()
             {
-                return _finalReturnType ??= ComputeFinalReturnType();
+                return _finalReturnType ??= WrapWithTaskIfNecessary(AddFlowControlTypeIfNecessary(this.AnalyzerResult.CoreReturnType));
 
-                ITypeSymbol ComputeFinalReturnType()
+                ITypeSymbol AddFlowControlTypeIfNecessary(ITypeSymbol coreReturnType)
                 {
-                    var coreType = this.AnalyzerResult.CoreReturnType;
-                    if (this.SelectionResult.ContainsAwaitExpression())
-                    {
-                        // If we're awaiting, then we're going to be returning a task of some sort.  Convert `void` to
-                        // `Task` and any other T to `Task<T>`.
-                        var compilation = this.SemanticDocument.SemanticModel.Compilation;
-                        return coreType.SpecialType == SpecialType.System_Void
-                            ? compilation.TaskType()
-                            : compilation.TaskOfTType().Construct(coreType);
-                    }
+                    var controlFlowValueType = this.AnalyzerResult.FlowControlInformation.ControlFlowValueType;
 
-                    return coreType;
+                    // If don't need to report complex flow control to the caller.  Just return whatever the inner method wanted to iriginally return.
+                    if (controlFlowValueType.SpecialType == SpecialType.System_Void)
+                        return coreReturnType;
+
+                    // We need to report complex flow control to the caller.
+
+                    // If the method wasn't going to return any values to begin with, then all we have to do is
+                    // return the control value value to the caller to indicate what flow control path to take.
+                    if (coreReturnType.SpecialType == SpecialType.System_Void)
+                        return controlFlowValueType;
+
+                    // We need to report both the control flow data and the original data.
+                    var compilation = this.SemanticDocument.SemanticModel.Compilation;
+                    return compilation.CreateTupleTypeSymbol(
+                        [controlFlowValueType, coreReturnType],
+                        [FlowControlName, ReturnValueName]);
+                }
+
+                ITypeSymbol WrapWithTaskIfNecessary(ITypeSymbol type)
+                {
+                    if (!this.SelectionResult.ContainsAwaitExpression())
+                        return type;
+
+                    // If we're awaiting, then we're going to be returning a task of some sort.  Convert `void` to
+                    // `Task` and any other T to `Task<T>`.
+                    var compilation = this.SemanticDocument.SemanticModel.Compilation;
+                    return type.SpecialType == SpecialType.System_Void
+                        ? compilation.TaskType()
+                        : compilation.TaskOfTType().Construct(type);
                 }
             }
         }

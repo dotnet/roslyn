@@ -146,7 +146,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 
             // No search results found
             searchedSymbols = DocumentOutlineViewModel.SearchDocumentSymbolData(model.DocumentSymbolData, "xyz", CancellationToken.None);
-            Assert.Equal(0, searchedSymbols.Length);
+            Assert.Empty(searchedSymbols);
         }
 
         [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66012")]

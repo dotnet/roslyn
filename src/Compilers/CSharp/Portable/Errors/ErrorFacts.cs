@@ -637,7 +637,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYield
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
                 or ErrorCode.ERR_RefLocalAcrossAwait
-                    // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
+                or ErrorCode.ERR_DataSectionStringLiteralHashCollision
+                    // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
+                    // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
                     => true,
 
@@ -2477,6 +2479,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_IteratorRefLikeElementType
                 or ErrorCode.WRN_UnscopedRefAttributeOldRules
                 or ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature
+                or ErrorCode.ERR_ImplicitlyTypedParamsParameter
+                or ErrorCode.ERR_VariableDeclarationNamedField
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

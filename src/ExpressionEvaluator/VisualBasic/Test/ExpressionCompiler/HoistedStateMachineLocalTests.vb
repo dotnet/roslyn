@@ -1419,11 +1419,11 @@ End Class
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-                    Dim moduleVersionId As Guid = Nothing
+                    Dim moduleId As ModuleId = Nothing
                     Dim symReader As ISymUnmanagedReader = Nothing
                     Dim methodToken = 0
                     Dim localSignatureToken = 0
-                    GetContextState(runtime, "C.VB$StateMachine_1_M.MoveNext", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                    GetContextState(runtime, "C.VB$StateMachine_1_M.MoveNext", blocks, moduleId, symReader, methodToken, localSignatureToken)
                     Const methodVersion = 1
 
                     Dim appDomain = New AppDomain()
@@ -1433,7 +1433,7 @@ End Class
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
-                        moduleVersionId,
+                        moduleId,
                         methodToken,
                         methodVersion,
                         ilOffset,
@@ -1452,7 +1452,7 @@ End Class
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
-                        moduleVersionId,
+                        moduleId,
                         methodToken,
                         methodVersion,
                         ilOffset,

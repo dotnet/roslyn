@@ -52,6 +52,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)
                 End Sub
 
+                Protected Overrides Function CreateBreakStatement() As ExecutableStatementSyntax
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Protected Overrides Function CreateContinueStatement() As ExecutableStatementSyntax
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
+                Protected Overrides Function CreateFlowControlReturnExpression(flowControlInformation As ExtractMethodFlowControlInformation, flowValue As Object) As ExpressionSyntax
+                    Throw ExceptionUtilities.Unreachable
+                End Function
+
                 Protected Overrides Function UpdateMethodAfterGenerationAsync(originalDocument As SemanticDocument, methodSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Task(Of SemanticDocument)
                     Return Task.FromResult(originalDocument)
                 End Function
@@ -204,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End Function
 
                 Private Shared Function CheckActiveStatements(statements As ImmutableArray(Of StatementSyntax)) As OperationStatus
-                    Dim count = statements.Count()
+                    Dim count = statements.Length
                     If count = 0 Then
                         Return OperationStatus.NoActiveStatement
                     End If
@@ -392,6 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Protected Overrides Function CreateDeclarationStatement(
                         variables As ImmutableArray(Of VariableInfo),
                         initialValue As ExpressionSyntax,
+                        flowControlInformation As ExtractMethodFlowControlInformation,
                         cancellationToken As CancellationToken) As StatementSyntax
                     Contract.ThrowIfTrue(variables.Length <> 1)
 

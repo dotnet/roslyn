@@ -28,7 +28,7 @@ internal abstract partial class AbstractExtractMethodService<
             bool returnsByRef,
             bool instanceMemberIsUsed,
             bool shouldBeReadOnly,
-            bool endOfSelectionReachable,
+            ExtractMethodFlowControlInformation flowControlInformation,
             OperationStatus status)
         {
             public ImmutableArray<ITypeParameterSymbol> MethodTypeParametersInDeclaration { get; } = typeParametersInDeclaration;
@@ -46,9 +46,10 @@ internal abstract partial class AbstractExtractMethodService<
             public bool ShouldBeReadOnly { get; } = shouldBeReadOnly;
 
             /// <summary>
-            /// used to determine whether "return" statement needs to be inserted
+            /// Information about the flow control constructs found in the selection.  For for many purposes, including
+            /// determining whether a final "return" statement needs to be inserted.
             /// </summary>
-            public bool EndOfSelectionReachable { get; } = endOfSelectionReachable;
+            public ExtractMethodFlowControlInformation FlowControlInformation { get; } = flowControlInformation;
 
             /// <summary>
             /// Initial computed return type for the extract method.  This does not include any wrapping in a type like

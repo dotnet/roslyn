@@ -163,10 +163,8 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
         // Don't show on-the-fly-docs for namespace symbols.
-        if (symbol is null || symbol.IsNamespace())
-        {
+        if (symbol is null or INamespaceSymbol)
             return null;
-        }
 
         if (symbol.MetadataToken != 0)
         {

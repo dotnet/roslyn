@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Attribute">
         <source>attribute</source>
-        <target state="new">attribute</target>
+        <target state="translated">属性</target>
         <note />
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="ExceptionMessage_FileMayBeLockedBy">
         <source>{0}; file may be locked by {1}</source>
-        <target state="new">{0}; file may be locked by {1}</target>
+        <target state="translated">{0};ファイルが {1} によってロックされている可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -275,7 +275,7 @@
       </trans-unit>
       <trans-unit id="SymWriterMetadataOverLimit">
         <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
-        <target state="new">Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</target>
+        <target state="translated">メソッド '{0}' のネイティブ PDB を生成できません。デバッグ メタデータ のサイズ {1} が制限 {2} を超えています。</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
@@ -285,7 +285,7 @@
       </trans-unit>
       <trans-unit id="Type0DoesNotHaveExpectedConstructor">
         <source>'{0}' type does not have the expected constructor</source>
-        <target state="new">'{0}' type does not have the expected constructor</target>
+        <target state="translated">'{0}' 型に必要なコンストラクターがありません</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">

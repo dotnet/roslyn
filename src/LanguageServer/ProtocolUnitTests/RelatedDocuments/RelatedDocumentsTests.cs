@@ -67,7 +67,7 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
             project.Documents.First().GetURI(),
             useProgress: useProgress);
 
-        Assert.Equal(0, results.Length);
+        Assert.Empty(results);
     }
 
     [Theory, CombinatorialData]
