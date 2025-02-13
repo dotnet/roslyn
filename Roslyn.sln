@@ -569,6 +569,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExternalAccess", "ExternalA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities", "src\LanguageServer\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj", "{7465CE63-A7B7-475F-8C57-48D2F8BC665A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot", "src\LanguageServer\ExternalAccess\Copilot\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj", "{900168D7-D982-86CE-5097-C5F173BA4D8B}"
+EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Threading", "src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.shproj", "{967723E8-4FDD-447B-99F6-4F8C47CB5433}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Threading.Package", "src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.Package.csproj", "{2559DAF9-784E-4C29-E0E1-70204B1FD56E}"
@@ -1403,6 +1405,10 @@ Global
 		{7465CE63-A7B7-475F-8C57-48D2F8BC665A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7465CE63-A7B7-475F-8C57-48D2F8BC665A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7465CE63-A7B7-475F-8C57-48D2F8BC665A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{900168D7-D982-86CE-5097-C5F173BA4D8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{900168D7-D982-86CE-5097-C5F173BA4D8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{900168D7-D982-86CE-5097-C5F173BA4D8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{900168D7-D982-86CE-5097-C5F173BA4D8B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5D60CF30-28A9-9F0F-7610-D90E4A69AE73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5D60CF30-28A9-9F0F-7610-D90E4A69AE73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D60CF30-28A9-9F0F-7610-D90E4A69AE73}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1676,6 +1682,7 @@ Global
 		{1AE9182D-B03E-4B00-B32E-37AE01715F57} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 		{806F0C6F-3640-4C92-8D55-6767B1535467} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
 		{7465CE63-A7B7-475F-8C57-48D2F8BC665A} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
+		{900168D7-D982-86CE-5097-C5F173BA4D8B} = {806F0C6F-3640-4C92-8D55-6767B1535467}
 		{5D60CF30-28A9-9F0F-7610-D90E4A69AE73} = {58A2876A-618D-4AE6-A136-E44B42BBDE11}
 		{967723E8-4FDD-447B-99F6-4F8C47CB5433} = {C2D1346B-9665-4150-B644-075CF1636BAA}
 		{2559DAF9-784E-4C29-E0E1-70204B1FD56E} = {C2D1346B-9665-4150-B644-075CF1636BAA}
