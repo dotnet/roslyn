@@ -87,7 +87,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If this is a partial event, the corresponding partial definition cannot have any accessor attributes
             // (there are no explicit accessors in source on the definition part).
 
-            return OneOrMany.Create(this.GetSyntax().AttributeLists);
+            return OneOrMany.Create(this.AttributeDeclarationSyntaxList);
+        }
+
+        internal SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+        {
+            get
+            {
+                if (this.AssociatedEvent.containingType.AnyMemberHasAttributes)
+                {
+                    return this.GetSyntax().AttributeLists;
+                }
+
+                return default;
+            }
         }
 
         public override bool IsImplicitlyDeclared

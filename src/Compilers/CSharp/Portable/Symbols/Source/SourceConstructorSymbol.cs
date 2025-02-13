@@ -202,11 +202,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (SourcePartialImplementationPart is { } implementationPart)
             {
                 return OneOrMany.Create(
-                    ((ConstructorDeclarationSyntax)this.SyntaxNode).AttributeLists,
-                    ((ConstructorDeclarationSyntax)implementationPart.SyntaxNode).AttributeLists);
+                    this.AttributeDeclarationSyntaxList,
+                    implementationPart.AttributeDeclarationSyntaxList);
             }
 
-            return OneOrMany.Create(((ConstructorDeclarationSyntax)this.SyntaxNode).AttributeLists);
+            return OneOrMany.Create(this.AttributeDeclarationSyntaxList);
+        }
+
+        private SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+        {
+            get
+            {
+                if (this.ContainingType is SourceMemberContainerTypeSymbol { AnyMemberHasAttributes: true })
+                {
+                    return ((ConstructorDeclarationSyntax)this.SyntaxNode).AttributeLists;
+                }
+
+                return default;
+            }
         }
 
         protected override SourceMemberMethodSymbol? BoundAttributesSource => SourcePartialDefinitionPart;

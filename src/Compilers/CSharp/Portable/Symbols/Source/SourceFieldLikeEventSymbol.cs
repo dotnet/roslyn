@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (PartialImplementationPart)
                 {
                     case SourceCustomEventAccessorSymbol customImplementationPart:
-                        return OneOrMany.Create(customImplementationPart.GetSyntax().AttributeLists);
+                        return OneOrMany.Create(customImplementationPart.AttributeDeclarationSyntaxList);
 
                     case SynthesizedEventAccessorSymbol synthesizedImplementationPart:
                         Debug.Assert(IsExtern);
