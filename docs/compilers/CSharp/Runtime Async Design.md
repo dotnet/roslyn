@@ -267,9 +267,6 @@ System.Runtime.CompilerServices.RuntimeHelpers.Await(local);
 
 #### Await local of concrete type `Task<T>`
 
-This strategy will also be used for `Task`-like types that are not `Task`, `ValueTask`, `Task<T>`, or `ValueTask<T>`, both in value form, and in direct method call form. We will use either `AwaitAwaiterFromRuntimeAsync` or
-`UnsafeAwaitAwaiterFromRuntimeAsync`, depending on the interface implemented by the custom awaitable.
-
 ```cs
 var local = M();
 var i = await local;
