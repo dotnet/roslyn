@@ -5058,7 +5058,8 @@ parse_member_name:;
                     //      for (int i = 0, j = ...         // identifier equals
                     //      for (int i = 0, j; ...          // identifier semicolon
                     //
-                    // Anything else we'll treat as as more likely to be the following conditional.
+                    // We also accept: `for (int i = 0, ;` as that's likely an intermediary state prior to writing the
+                    // next variable. Anything else we'll treat as as more likely to be the following conditional.
 
                     if (flags.HasFlag(VariableFlags.ForStatement) && this.PeekToken(1).Kind != SyntaxKind.SemicolonToken)
                     {
