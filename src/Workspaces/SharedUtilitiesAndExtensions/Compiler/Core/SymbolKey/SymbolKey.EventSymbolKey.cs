@@ -14,6 +14,7 @@ internal partial struct SymbolKey
         {
             visitor.WriteString(symbol.MetadataName);
             visitor.WriteSymbolKey(symbol.ContainingType);
+            visitor.WriteBoolean(symbol.PartialDefinitionPart is not null);
         }
 
         protected sealed override SymbolKeyResolution Resolve(
@@ -28,8 +29,16 @@ internal partial struct SymbolKey
                 return default;
             }
 
-            using var result = GetMembersOfNamedType<IEventSymbol>(containingTypeResolution, metadataName);
-            return CreateResolution(result, $"({nameof(EventSymbolKey)} '{metadataName}' not found)", out failureReason);
+            var isPartialImplementationPart = reader.ReadBoolean();
+
+            using var events = GetMembersOfNamedType<IEventSymbol>(containingTypeResolution, metadataName);
+
+            if (events.Count == 1 && isPartialImplementationPart)
+            {
+                events.Builder[0] = events[0].PartialImplementationPart ?? events[0];
+            }
+
+            return CreateResolution(events, $"({nameof(EventSymbolKey)} '{metadataName}' not found)", out failureReason);
         }
     }
 }

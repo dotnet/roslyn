@@ -609,6 +609,8 @@ internal sealed partial class SymbolEquivalenceComparer
         {
             return
                 x.Name == y.Name &&
+                IsPartialMethodDefinitionPart(x) == IsPartialMethodDefinitionPart(y) &&
+                IsPartialMethodImplementationPart(x) == IsPartialMethodImplementationPart(y) &&
                 AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
         }
 

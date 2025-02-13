@@ -253,7 +253,9 @@ internal sealed partial class SymbolEquivalenceComparer
         {
             return
                 Hash.Combine(x.Name,
-                GetHashCode(x.ContainingSymbol, currentHash));
+                Hash.Combine(IsPartialMethodImplementationPart(x),
+                Hash.Combine(IsPartialMethodDefinitionPart(x),
+                GetHashCode(x.ContainingSymbol, currentHash))));
         }
 
         public int CombineHashCodes(ITypeParameterSymbol x, int currentHash)
