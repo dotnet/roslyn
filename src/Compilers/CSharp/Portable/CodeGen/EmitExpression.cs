@@ -1660,7 +1660,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             Debug.Assert(method.IsStatic);
 
+            var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
             EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
+
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
+                MightEscapeTemporaryRefs(call, used: useKind != UseKind.Unused, receiverAddressKind: null));
+
             int stackBehavior = GetCallStackBehavior(method, arguments);
 
             if (method.IsAbstract || method.IsVirtual)
@@ -1689,6 +1695,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             AddressKind? addressKind;
             bool box;
             LocalDefinition tempOpt;
+
+            var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
 
             if (receiverIsInstanceCall(call, out BoundCall nested))
             {
@@ -1755,6 +1763,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
 
                     emitArgumentsAndCallEpilogue(call, callKind, receiverUseKind);
+
+                    _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore, MightEscapeTemporaryRefs(
+                        call,
+                        used: true,
+                        receiverAddressKind: receiverUseKind != UseKind.UsedAsAddress ? null : addressKind));
+
+                    countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
                     FreeOptTemp(tempOpt);
                     tempOpt = null;
 
@@ -1815,6 +1831,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             emitArgumentsAndCallEpilogue(call, callKind, useKind);
+
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore, MightEscapeTemporaryRefs(
+                call,
+                used: useKind != UseKind.Unused,
+                receiverAddressKind: useKind != UseKind.UsedAsAddress ? null : addressKind));
+
             FreeOptTemp(tempOpt);
 
             return;
@@ -2446,7 +2468,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 // none of the above cases, so just create an instance
+
+                var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
                 EmitArguments(expression.Arguments, constructor.Parameters, expression.ArgumentRefKindsOpt);
+
+                _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
+                    MightEscapeTemporaryRefs(expression, used));
 
                 var stackAdjustment = GetObjCreationStackBehavior(expression);
                 _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment);
@@ -2704,7 +2732,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
 
             var constructor = objCreation.Constructor;
+
+            var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
             EmitArguments(objCreation.Arguments, constructor.Parameters, objCreation.ArgumentRefKindsOpt);
+
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
+                MightEscapeTemporaryRefs(objCreation, used));
+
             // -2 to adjust for consumed target address and not produced value.
             var stackAdjustment = GetObjCreationStackBehavior(objCreation) - 2;
             _builder.EmitOpCode(ILOpCode.Call, stackAdjustment);
@@ -4053,7 +4088,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             FunctionPointerMethodSymbol method = ptrInvocation.FunctionPointer.Signature;
+
+            var countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
+
             EmitArguments(ptrInvocation.Arguments, method.Parameters, ptrInvocation.ArgumentRefKindsOpt);
+
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
+                MightEscapeTemporaryRefs(ptrInvocation, used: useKind != UseKind.Unused));
+
             var stackBehavior = GetCallStackBehavior(ptrInvocation.FunctionPointer.Signature, ptrInvocation.Arguments);
 
             if (temp is object)
