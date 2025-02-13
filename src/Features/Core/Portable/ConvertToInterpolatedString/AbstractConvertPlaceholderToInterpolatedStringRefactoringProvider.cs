@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -45,6 +46,8 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
         bool ShouldReplaceInvocation);
 
     protected abstract TExpressionSyntax ParseExpression(string text);
+
+    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes { get; } = AllFixAllScopes;
 
     private InvocationData? AnalyzeInvocation(
         Document document,
@@ -256,7 +259,9 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
         CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var normalizedSpans = new NormalizedTextSpanCollection(fixAllSpans);
 
@@ -268,10 +273,10 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
             if (node is TInvocationExpressionSyntax invocation)
             {
                 var placeholderArgument = FindValidPlaceholderArgument(syntaxFacts, invocation, cancellationToken);
-                if (placeholderArgument is not null)
+                if (placeholderArgument is not null &&
+                    AnalyzeInvocation(document, semanticModel, invocation, placeholderArgument, cancellationToken) is { } invocationData)
                 {
-
-
+                    ReplaceInvocation(editor, semanticModel, syntaxFacts, invocationData, cancellationToken);
                     continue;
                 }
             }
@@ -296,28 +301,29 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
         var editor = new SyntaxEditor(root, syntaxGenerator);
 
-        ReplaceInvocation(editor, invocationData, cancellationToken);
+        ReplaceInvocation(editor, semanticModel, syntaxFacts, invocationData, cancellationToken);
 
         return document.WithSyntaxRoot(editor.GetChangedRoot());
     }
 
-    private static async Task<Document> CreateInterpolatedStringAsync(
-        Document document,
+    private static void ReplaceInvocation(
+        SyntaxEditor editor,
+        SemanticModel semanticModel,
+        ISyntaxFacts syntaxFacts,
         InvocationData invocationData,
         CancellationToken cancellationToken)
     {
         var (invocation, placeholderArgument, invocationSymbol, interpolatedString, shouldReplaceInvocation) = invocationData;
 
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
         var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfInvocationExpression(invocation);
         var literalExpression = (TLiteralExpressionSyntax?)syntaxFacts.GetExpressionOfArgument(placeholderArgument);
         Contract.ThrowIfNull(literalExpression);
 
+        var syntaxGenerator = editor.Generator;
 
         var newInterpolatedString =
             InsertArgumentsIntoInterpolatedString(
@@ -330,9 +336,8 @@ internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactorin
                 syntaxFacts.GetExpressionOfInvocationExpression(invocation),
                 newInterpolatedString);
 
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var newRoot = root.ReplaceNode(invocation, replacementNode.WithTriviaFrom(invocation));
-        return document.WithSyntaxRoot(newRoot);
+        editor.ReplaceNode(invocation, replacementNode.WithTriviaFrom(invocation));
+        return;
 
         ImmutableArray<TArgumentSyntax> GetReorderedArgumentsAfterPlaceholderArgument()
         {
