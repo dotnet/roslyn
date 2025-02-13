@@ -2181,7 +2181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (stmt is BoundLocalFunctionStatement localFunctionStatement)
                     {
                         // Mark attribute arguments as used.
-                        VisitAttributes(localFunctionStatement.Symbol.BindMethodAttributes());
+                        VisitAttributes(((LocalFunctionSymbol)localFunctionStatement.Symbol).BindMethodAttributes());
 
                         VisitAlways(stmt);
                     }
@@ -2329,7 +2329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportUnusedVariables(ImmutableArray<LocalFunctionSymbol> locals)
+        private void ReportUnusedVariables(ImmutableArray<MethodSymbol> locals)
         {
             foreach (var symbol in locals)
             {
@@ -2337,7 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportIfUnused(LocalFunctionSymbol symbol)
+        private void ReportIfUnused(MethodSymbol symbol)
         {
             if (!_usedLocalFunctions.Contains(symbol))
             {
@@ -2425,7 +2425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentSymbol = node.Symbol;
 
             // Mark attribute arguments as used.
-            VisitAttributes(node.Symbol.BindMethodAttributes());
+            VisitAttributes(((LambdaSymbol)node.Symbol).BindMethodAttributes());
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 

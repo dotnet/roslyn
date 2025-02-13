@@ -3161,7 +3161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // In the first pass of the nullable walker, existence of usages here means that a call site has been visited.
                         // In subsequent nullable walker passes, the starting state is preserved from previous passes.
                         // In any case, existence of usages means that we have a good starting state.
-                        if (localFuncs[i] is { } localFunc && HasLocalFuncUsagesCreated(localFunc.Symbol))
+                        if (localFuncs[i] is { } localFunc && HasLocalFuncUsagesCreated((LocalFunctionSymbol)localFunc.Symbol))
                         {
                             localFuncs[i] = null;
                             unvisitedLocalFuncs--;
@@ -3209,7 +3209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            var localFunc = node.Symbol;
+            var localFunc = (LocalFunctionSymbol)node.Symbol;
 
             // Usages state is created when we visit the function's call site or its body.
             // In the first pass of the nullable walker, existence of usages here means that a call site has been visited.
@@ -8734,7 +8734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportNullabilityMismatchWithTargetDelegate(Location location, NamedTypeSymbol delegateType, BoundLambda lambda)
         {
             MethodSymbol? targetInvokeMethod = delegateType.DelegateInvokeMethod;
-            LambdaSymbol sourceMethod = lambda.Symbol;
+            LambdaSymbol sourceMethod = (LambdaSymbol)lambda.Symbol;
             UnboundLambda unboundLambda = lambda.UnboundLambda;
 
             if (targetInvokeMethod is null ||
@@ -9779,7 +9779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!lambda.IsSuppressed)
                 {
-                    ReportNullabilityMismatchWithTargetDelegate(lambda.Symbol.DiagnosticLocation, delegateType, lambda);
+                    ReportNullabilityMismatchWithTargetDelegate(((LambdaSymbol)lambda.Symbol).DiagnosticLocation, delegateType, lambda);
                 }
 
                 return null;
