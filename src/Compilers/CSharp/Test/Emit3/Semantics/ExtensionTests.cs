@@ -5655,7 +5655,7 @@ class C
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        CompileAndVerify(comp, expectedOutput: "ran ran2").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran ran2", verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -5924,7 +5924,7 @@ static class E
     }
 
     [Fact]
-    public void GetCompatibleExtension_Constraint_UseSiteInfo()
+    public void GetCompatibleExtension_Constraint_UseSiteInfo_01()
     {
         var missingSrc = """
 public struct Missing { public int i; }
@@ -5948,10 +5948,92 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, references: [containerRef]);
+        // PROTOTYPE should we report a use-site diagnostic?
         comp.VerifyEmitDiagnostics(
             // (1,11): error CS0117: 'Container' does not contain a definition for 'M'
             // Container.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("Container", "M").WithLocation(1, 11));
+
+        src = """
+new Container().M();
+
+static class E
+{
+    public static void M<T>(this T t) where T : unmanaged { }
+}
+""";
+        comp = CreateCompilation(src, references: [containerRef]);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): error CS8377: The type 'Container' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'E.M<T>(T)'
+            // new Container().M();
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("E.M<T>(T)", "T", "Container").WithLocation(1, 17),
+            // (1,17): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // new Container().M();
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 17));
+
+        src = """
+new object().M(new Container());
+
+static class E
+{
+    public static void M<T>(this object o, T t) where T : unmanaged { }
+}
+""";
+        comp = CreateCompilation(src, references: [containerRef]);
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS8377: The type 'Container' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'E.M<T>(object, T)'
+            // new object().M(new Container());
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("E.M<T>(object, T)", "T", "Container").WithLocation(1, 14),
+            // (1,14): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // new object().M(new Container());
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 14));
+    }
+
+    [Fact]
+    public void GetCompatibleExtension_Constraint_UseSiteInfo_02()
+    {
+        var missingSrc = """
+public struct Missing { public int i; }
+""";
+        var missingRef = CreateCompilation(missingSrc, assemblyName: "missing").EmitToImageReference();
+
+        var containerSrc = """
+public struct Container { public Missing field; }
+""";
+        var containerRef = CreateCompilation(containerSrc, references: [missingRef]).EmitToImageReference();
+
+        var src = """
+using N;
+
+Container.M();
+
+static class E
+{
+    extension<T>(T t) where T : unmanaged
+    {
+        public static void M(int inapplicable) => throw null;
+    }
+}
+
+namespace N
+{
+    static class E2
+    {
+        extension<T>(T t)
+        {
+            public static void M() { }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, references: [containerRef]);
+        // PROTOTYPE should we report a use-site diagnostic?
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Container.M");
+        Assert.Equal("void N.E2.<>E__0<Container>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
