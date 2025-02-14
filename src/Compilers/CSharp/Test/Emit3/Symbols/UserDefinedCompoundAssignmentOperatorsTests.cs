@@ -1265,7 +1265,7 @@ class C3 : C2
 }
 ";
             var comp = CreateCompilation(source);
-            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: validate1, sourceSymbolValidator: validate1).VerifyDiagnostics();
 
             var source2 = @"
 abstract class C1
@@ -1281,14 +1281,9 @@ class C2 : C1
 ";
             var comp2 = CreateCompilation(source2);
 
-            // PROTOTYPE: The error below is not expected. One should be able to override just one version of the operator.
-            comp2.VerifyDiagnostics(
-                // (10,42): error CS9025: The operator 'C2.operator checked ++()' requires a matching non-checked version of the operator to also be defined
-                //     public override void operator checked++() {} 
-                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C2.operator checked " + op + @"()").WithLocation(10, 42)
-                );
+            CompileAndVerify(comp2, symbolValidator: validate2, sourceSymbolValidator: validate2).VerifyDiagnostics();
 
-            void validate(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 validateOp(
                     m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName)),
@@ -1303,6 +1298,13 @@ class C2 : C1
                 validateOp(
                     m.GlobalNamespace.GetMember<MethodSymbol>("C3." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)),
                     m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
+            }
+
+            void validate2(ModuleSymbol m)
+            {
+                validateOp(
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C2." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)),
+                    m.GlobalNamespace.GetMember<MethodSymbol>("C1." + (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName)));
             }
 
             static void validateOp(MethodSymbol m, MethodSymbol overridden)
@@ -2578,13 +2580,7 @@ class C4 : C2
                 Diagnostic(ErrorCode.ERR_OverrideNotNew, op).WithArguments("C3.operator " + op + @"()").WithLocation(15, 38),
                 // (20,47): error CS0113: A member 'C4.operator checked ++()' marked as override cannot be marked as new or virtual
                 //     public new override void operator checked ++() {}
-                Diagnostic(ErrorCode.ERR_OverrideNotNew, op).WithArguments("C4.operator checked " + op + @"()").WithLocation(20, 47),
-
-                // PROTOTYPE: The error below is not expected. One should be able to override just one version of the operator.
-
-                // (20,47): error CS9025: The operator 'C4.operator checked ++()' requires a matching non-checked version of the operator to also be defined
-                //     public new override void operator checked ++() {}
-                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C4.operator checked " + op + @"()").WithLocation(20, 47)
+                Diagnostic(ErrorCode.ERR_OverrideNotNew, op).WithArguments("C4.operator checked " + op + @"()").WithLocation(20, 47)
                 );
         }
 
@@ -2797,6 +2793,2684 @@ interface I4 : I2
                 //     static void I2.operator checked ++() {}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I4.operator checked " + op + @"()").WithLocation(20, 37)
                 );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_069_Consumption_OnNonVariable([CombinatorialValues("++", "--")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public class C1
+{
+    public int _F;
+
+    public void operator" + op + @"() => throw null; 
+    public void operator checked" + op + @"() => throw null; 
+
+    public static C1 operator" + op + @"(C1 x)
+    {
+        System.Console.Write(""[operator]"");
+        return new C1() { _F = x._F + 1 };
+    } 
+    public static C1 operator checked" + op + @"(C1 x)
+    {
+        System.Console.Write(""[operator checked]"");
+        checked
+        {
+            return new C1() { _F = x._F + 1 };
+        }
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static C1 P {get; set;} = new C1();
+
+    static void Main()
+    {
+        C1 x;
+
+        " + op + @"P;
+        System.Console.WriteLine(P._F);
+        P" + op + @";
+        System.Console.WriteLine(P._F);
+        x = " + op + @"P;
+        System.Console.WriteLine(P._F);
+        x = P" + op + @";
+        System.Console.WriteLine(P._F);
+
+        checked
+        {
+            " + op + @"P;
+            System.Console.WriteLine(P._F);
+            P" + op + @";
+            System.Console.WriteLine(P._F);
+            x = " + op + @"P;
+            System.Console.WriteLine(P._F);
+            x = P" + op + @";
+            System.Console.WriteLine(P._F);
+        }
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp2, expectedOutput: @"
+[operator]1
+[operator]2
+[operator]3
+[operator]4
+[operator checked]5
+[operator checked]6
+[operator checked]7
+[operator checked]8
+").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_070_Consumption_Prefix_NotUsed_Class([CombinatorialValues("++", "--")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"();
+    public void operator checked" + op + @"();
+}
+
+public class C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"()
+    {
+        System.Console.Write(""[operator]"");
+        _F++;
+    } 
+    public void operator checked" + op + @"()
+    {
+        System.Console.Write(""[operator checked]"");
+        _F++;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test1(x);
+        System.Console.WriteLine(x[0]._F);
+        Test2(x);
+        System.Console.WriteLine(x[0]._F);
+        Test3(x);
+        System.Console.WriteLine(x[0]._F);
+        Test4(x);
+        System.Console.WriteLine(x[0]._F);
+        Test5(x);
+        System.Console.WriteLine(x[0]._F);
+        Test6(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test1(C1[] x)
+    {
+        " + op + @"GetA(x)[Get0()];
+    } 
+
+    static void Test2(C1[] x)
+    {
+        checked
+        {
+            " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static void Test3<T>(T[] x) where T : class, I1
+    {
+        " + op + @"GetA(x)[Get0()];
+    } 
+
+    static void Test4<T>(T[] x) where T : class, I1
+    {
+        checked
+        {
+            " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static void Test5<T>(T[] x) where T : I1
+    {
+        " + op + @"GetA(x)[Get0()];
+    } 
+
+    static void Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            const string expectedOutput = @"
+[GetA][Get0][operator]1
+[GetA][Get0][operator checked]2
+[GetA][Get0][operator]3
+[GetA][Get0][operator checked]4
+[GetA][Get0][operator]5
+[GetA][Get0][operator checked]6
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  ldelem.ref
+  IL_000d:  callvirt   ""void C1." + methodName + @"()""
+  IL_0012:  nop
+  IL_0013:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  ldelem     ""T""
+  IL_0011:  box        ""T""
+  IL_0016:  callvirt   ""void I1." + methodName + @"()""
+  IL_001b:  nop
+  IL_001c:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5<T>(T[])",
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  readonly.
+  IL_000e:  ldelema    ""T""
+  IL_0013:  constrained. ""T""
+  IL_0019:  callvirt   ""void I1." + methodName + @"()""
+  IL_001e:  nop
+  IL_001f:  ret
+}
+");
+
+            var tree = comp2.SyntaxTrees.Single();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("void C1." + methodName + "()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            var iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+IIncrementOrDecrementOperation (Prefix) (OperatorMethod: void C1." + methodName + @"()) (OperationKind." + (op == "++" ? "Increment" : "Decrement") + @", Type: System.Void) (Syntax: '" + op + @"GetA(x)[Get0()]')
+  Target:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: C1) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (C1[] Program.GetA<C1>(C1[] x)) (OperationKind.Invocation, Type: C1[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C1[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+");
+
+            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0008:  call       ""int Program.Get0()""
+  IL_000d:  ldelem.ref
+  IL_000e:  callvirt   ""void C1." + methodName + @"()""
+  IL_0013:  nop
+  IL_0014:  nop
+  IL_0015:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0008:  call       ""int Program.Get0()""
+  IL_000d:  ldelem     ""T""
+  IL_0012:  box        ""T""
+  IL_0017:  callvirt   ""void I1." + methodName + @"()""
+  IL_001c:  nop
+  IL_001d:  nop
+  IL_001e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test6<T>(T[])",
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0008:  call       ""int Program.Get0()""
+  IL_000d:  readonly.
+  IL_000f:  ldelema    ""T""
+  IL_0014:  constrained. ""T""
+  IL_001a:  callvirt   ""void I1." + methodName + @"()""
+  IL_001f:  nop
+  IL_0020:  nop
+  IL_0021:  ret
+}
+");
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("void I1." + methodName + "()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+IIncrementOrDecrementOperation (Prefix, Checked) (OperatorMethod: void I1." + methodName + @"()) (OperationKind." + (op == "++" ? "Increment" : "Decrement") + @", Type: System.Void) (Syntax: '" + op + @"GetA(x)[Get0()]')
+  Target:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: T) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (T[] Program.GetA<T>(T[] x)) (OperationKind.Invocation, Type: T[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+
+            var expectedErrors = new[] {
+                // (23,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //         ++GetA(x)[Get0()];
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, op +"GetA(x)[Get0()]").WithArguments(op, "C1").WithLocation(23, 9),
+                // (30,13): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //             ++GetA(x)[Get0()];
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, op +"GetA(x)[Get0()]").WithArguments(op, "C1").WithLocation(30, 13),
+                // (36,9): error CS0023: Operator '++' cannot be applied to operand of type 'T'
+                //         ++GetA(x)[Get0()];
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, op +"GetA(x)[Get0()]").WithArguments(op, "T").WithLocation(36, 9),
+                // (43,13): error CS0023: Operator '++' cannot be applied to operand of type 'T'
+                //             ++GetA(x)[Get0()];
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, op +"GetA(x)[Get0()]").WithArguments(op, "T").WithLocation(43, 13),
+                // (49,9): error CS0023: Operator '++' cannot be applied to operand of type 'T'
+                //         ++GetA(x)[Get0()];
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, op +"GetA(x)[Get0()]").WithArguments(op, "T").WithLocation(49, 9),
+                // (56,13): error CS0023: Operator '++' cannot be applied to operand of type 'T'
+                //             ++GetA(x)[Get0()];
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, op +"GetA(x)[Get0()]").WithArguments(op, "T").WithLocation(56, 13)
+                };
+            comp2.VerifyDiagnostics(expectedErrors);
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(expectedErrors);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_071_Consumption_Prefix_NotUsed_Struct([CombinatorialValues("++", "--")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"();
+    public void operator checked" + op + @"();
+}
+
+public struct C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"()
+    {
+        System.Console.Write(""[operator]"");
+        _F++;
+    } 
+    public void operator checked" + op + @"()
+    {
+        System.Console.Write(""[operator checked]"");
+        _F++;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test1(x);
+        System.Console.WriteLine(x[0]._F);
+        Test2(x);
+        System.Console.WriteLine(x[0]._F);
+        Test3(x);
+        System.Console.WriteLine(x[0]._F);
+        Test4(x);
+        System.Console.WriteLine(x[0]._F);
+        Test5(x);
+        System.Console.WriteLine(x[0]._F);
+        Test6(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test1(C1[] x)
+    {
+        " + op + @"GetA(x)[Get0()];
+    } 
+
+    static void Test2(C1[] x)
+    {
+        checked
+        {
+            " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static void Test3<T>(T[] x) where T : struct, I1
+    {
+        " + op + @"GetA(x)[Get0()];
+    } 
+
+    static void Test4<T>(T[] x) where T : struct, I1
+    {
+        checked
+        {
+            " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static void Test5<T>(T[] x) where T : I1
+    {
+        " + op + @"GetA(x)[Get0()];
+    } 
+
+    static void Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp2, expectedOutput: @"
+[GetA][Get0][operator]1
+[GetA][Get0][operator checked]2
+[GetA][Get0][operator]3
+[GetA][Get0][operator checked]4
+[GetA][Get0][operator]5
+[GetA][Get0][operator checked]6
+").VerifyDiagnostics();
+
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  ldelema    ""C1""
+  IL_0011:  call       ""void C1." + methodName + @"()""
+  IL_0016:  nop
+  IL_0017:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  readonly.
+  IL_000e:  ldelema    ""T""
+  IL_0013:  constrained. ""T""
+  IL_0019:  callvirt   ""void I1." + methodName + @"()""
+  IL_001e:  nop
+  IL_001f:  ret
+}
+");
+
+            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0008:  call       ""int Program.Get0()""
+  IL_000d:  ldelema    ""C1""
+  IL_0012:  call       ""void C1." + methodName + @"()""
+  IL_0017:  nop
+  IL_0018:  nop
+  IL_0019:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0008:  call       ""int Program.Get0()""
+  IL_000d:  readonly.
+  IL_000f:  ldelema    ""T""
+  IL_0014:  constrained. ""T""
+  IL_001a:  callvirt   ""void I1." + methodName + @"()""
+  IL_001f:  nop
+  IL_0020:  nop
+  IL_0021:  ret
+}
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: @"
+[GetA][Get0][operator]1
+[GetA][Get0][operator checked]2
+[GetA][Get0][operator]3
+[GetA][Get0][operator checked]4
+[GetA][Get0][operator]5
+[GetA][Get0][operator checked]6
+").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_072_Consumption_Prefix_Used_Class([CombinatorialValues("++", "--")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"();
+    public void operator checked" + op + @"();
+}
+
+public class C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"()
+    {
+        System.Console.Write(""[operator]"");
+        _F++;
+    } 
+    public void operator checked" + op + @"()
+    {
+        System.Console.Write(""[operator checked]"");
+        _F++;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        C1 y = Test1(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)x[0] == y);
+        y = Test2(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)x[0] == y);
+        y = Test3(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)x[0] == y);
+        y = Test4(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)x[0] == y);
+        y = Test5(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)x[0] == y);
+        y = Test6(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine((object)x[0] == y);
+    } 
+
+    static C1 Test1(C1[] x)
+    {
+        return " + op + @"GetA(x)[Get0()];
+    } 
+
+    static C1 Test2(C1[] x)
+    {
+        checked
+        {
+            return " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static T Test3<T>(T[] x) where T : class, I1
+    {
+        return " + op + @"GetA(x)[Get0()];
+    } 
+
+    static T Test4<T>(T[] x) where T : class, I1
+    {
+        checked
+        {
+            return " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static T Test5<T>(T[] x) where T : I1
+    {
+        return " + op + @"GetA(x)[Get0()];
+    } 
+
+    static T Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            return " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp2, expectedOutput: @"
+[GetA][Get0][operator]1True
+[GetA][Get0][operator checked]2True
+[GetA][Get0][operator]3True
+[GetA][Get0][operator checked]4True
+[GetA][Get0][operator]5True
+[GetA][Get0][operator checked]6True
+").VerifyDiagnostics();
+
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  dup
+  IL_000d:  callvirt   ""void C1." + methodName + @"()""
+  IL_0012:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  dup
+  IL_0011:  box        ""T""
+  IL_0016:  callvirt   ""void I1." + methodName + @"()""
+  IL_001b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5<T>(T[])",
+@"
+{
+  // Code size       75 (0x4b)
+  .maxstack  3
+  .locals init (T[] V_0,
+            int V_1,
+            T V_2,
+            T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldelem     ""T""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_3
+  IL_0017:  initobj    ""T""
+  IL_001d:  ldloc.3
+  IL_001e:  box        ""T""
+  IL_0023:  brtrue.s   IL_0034
+  IL_0025:  ldloca.s   V_2
+  IL_0027:  constrained. ""T""
+  IL_002d:  callvirt   ""void I1." + methodName + @"()""
+  IL_0032:  br.s       IL_0049
+  IL_0034:  ldloca.s   V_2
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""void I1." + methodName + @"()""
+  IL_0041:  ldloc.0
+  IL_0042:  ldloc.1
+  IL_0043:  ldloc.2
+  IL_0044:  stelem     ""T""
+  IL_0049:  ldloc.2
+  IL_004a:  ret
+}
+");
+
+            var tree = comp2.SyntaxTrees.Single();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("void C1." + methodName + "()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("C1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            var iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+IIncrementOrDecrementOperation (Prefix) (OperatorMethod: void C1." + methodName + @"()) (OperationKind." + (op == "++" ? "Increment" : "Decrement") + @", Type: C1) (Syntax: '" + op + @"GetA(x)[Get0()]')
+  Target:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: C1) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (C1[] Program.GetA<C1>(C1[] x)) (OperationKind.Invocation, Type: C1[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C1[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+");
+
+            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  dup
+  IL_000d:  callvirt   ""void C1." + methodName + @"()""
+  IL_0012:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  dup
+  IL_0011:  box        ""T""
+  IL_0016:  callvirt   ""void I1." + methodName + @"()""
+  IL_001b:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test6<T>(T[])",
+@"
+{
+  // Code size       75 (0x4b)
+  .maxstack  3
+  .locals init (T[] V_0,
+            int V_1,
+            T V_2,
+            T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get0()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldelem     ""T""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_3
+  IL_0017:  initobj    ""T""
+  IL_001d:  ldloc.3
+  IL_001e:  box        ""T""
+  IL_0023:  brtrue.s   IL_0034
+  IL_0025:  ldloca.s   V_2
+  IL_0027:  constrained. ""T""
+  IL_002d:  callvirt   ""void I1." + methodName + @"()""
+  IL_0032:  br.s       IL_0049
+  IL_0034:  ldloca.s   V_2
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""void I1." + methodName + @"()""
+  IL_0041:  ldloc.0
+  IL_0042:  ldloc.1
+  IL_0043:  ldloc.2
+  IL_0044:  stelem     ""T""
+  IL_0049:  ldloc.2
+  IL_004a:  ret
+}
+");
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("void I1." + methodName + "()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("T", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+IIncrementOrDecrementOperation (Prefix, Checked) (OperatorMethod: void I1." + methodName + @"()) (OperationKind." + (op == "++" ? "Increment" : "Decrement") + @", Type: T) (Syntax: '" + op + @"GetA(x)[Get0()]')
+  Target:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: T) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (T[] Program.GetA<T>(T[] x)) (OperationKind.Invocation, Type: T[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: @"
+[GetA][Get0][operator]1True
+[GetA][Get0][operator checked]2True
+[GetA][Get0][operator]3True
+[GetA][Get0][operator checked]4True
+[GetA][Get0][operator]5True
+[GetA][Get0][operator checked]6True
+").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_073_Consumption_Prefix_Used_Struct([CombinatorialValues("++", "--")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"();
+    public void operator checked" + op + @"();
+}
+
+public struct C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"()
+    {
+        System.Console.Write(""[operator]"");
+        _F++;
+    } 
+    public void operator checked" + op + @"()
+    {
+        System.Console.Write(""[operator checked]"");
+        _F++;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        C1 y = Test1(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test2(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test3(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test4(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test5(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+        y = Test6(x);
+        System.Console.Write(y._F);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static C1 Test1(C1[] x)
+    {
+        return " + op + @"GetA(x)[Get0()];
+    } 
+
+    static C1 Test2(C1[] x)
+    {
+        checked
+        {
+            return " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static T Test3<T>(T[] x) where T : struct, I1
+    {
+        return " + op + @"GetA(x)[Get0()];
+    } 
+
+    static T Test4<T>(T[] x) where T : struct, I1
+    {
+        checked
+        {
+            return " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static T Test5<T>(T[] x) where T : I1
+    {
+        return " + op + @"GetA(x)[Get0()];
+    } 
+
+    static T Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            return " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp2, expectedOutput: @"
+[GetA][Get0][operator]11
+[GetA][Get0][operator checked]22
+[GetA][Get0][operator]33
+[GetA][Get0][operator checked]44
+[GetA][Get0][operator]55
+[GetA][Get0][operator checked]66
+").VerifyDiagnostics();
+
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (C1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""C1""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""void C1." + methodName + @"()""
+  IL_001e:  ldloc.0
+  IL_001f:  stobj      ""C1""
+  IL_0024:  ldloc.0
+  IL_0025:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (int V_0,
+            T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldloc.0
+  IL_000e:  ldelem     ""T""
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  constrained. ""T""
+  IL_001c:  callvirt   ""void I1." + methodName + @"()""
+  IL_0021:  ldloc.0
+  IL_0022:  ldloc.1
+  IL_0023:  stelem     ""T""
+  IL_0028:  ldloc.1
+  IL_0029:  ret
+}
+");
+
+            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (C1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""C1""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""void C1." + methodName + @"()""
+  IL_001e:  ldloc.0
+  IL_001f:  stobj      ""C1""
+  IL_0024:  ldloc.0
+  IL_0025:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (int V_0,
+            T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  ldloc.0
+  IL_000e:  ldelem     ""T""
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  constrained. ""T""
+  IL_001c:  callvirt   ""void I1." + methodName + @"()""
+  IL_0021:  ldloc.0
+  IL_0022:  ldloc.1
+  IL_0023:  stelem     ""T""
+  IL_0028:  ldloc.1
+  IL_0029:  ret
+}
+");
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: @"
+[GetA][Get0][operator]11
+[GetA][Get0][operator checked]22
+[GetA][Get0][operator]33
+[GetA][Get0][operator checked]44
+[GetA][Get0][operator]55
+[GetA][Get0][operator checked]66
+").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_074_Consumption_Postfix_NotUsed_Class([CombinatorialValues("++", "--")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"();
+    public void operator checked" + op + @"();
+}
+
+public class C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"()
+    {
+        System.Console.Write(""[operator]"");
+        _F++;
+    } 
+    public void operator checked" + op + @"()
+    {
+        System.Console.Write(""[operator checked]"");
+        _F++;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test1(x);
+        System.Console.WriteLine(x[0]._F);
+        Test2(x);
+        System.Console.WriteLine(x[0]._F);
+        Test3(x);
+        System.Console.WriteLine(x[0]._F);
+        Test4(x);
+        System.Console.WriteLine(x[0]._F);
+        Test5(x);
+        System.Console.WriteLine(x[0]._F);
+        Test6(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test1(C1[] x)
+    {
+        GetA(x)[Get0()]" + op + @";
+    } 
+
+    static void Test2(C1[] x)
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @";
+        }
+    } 
+
+    static void Test3<T>(T[] x) where T : class, I1
+    {
+        GetA(x)[Get0()]" + op + @";
+    } 
+
+    static void Test4<T>(T[] x) where T : class, I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @";
+        }
+    } 
+
+    static void Test5<T>(T[] x) where T : I1
+    {
+        GetA(x)[Get0()]" + op + @";
+    } 
+
+    static void Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @";
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            const string expectedOutput = @"
+[GetA][Get0][operator]1
+[GetA][Get0][operator checked]2
+[GetA][Get0][operator]3
+[GetA][Get0][operator checked]4
+[GetA][Get0][operator]5
+[GetA][Get0][operator checked]6
+";
+            var verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  callvirt   ""void C1." + methodName + @"()""
+  IL_0011:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  box        ""T""
+  IL_0015:  callvirt   ""void I1." + methodName + @"()""
+  IL_001a:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test5<T>(T[])",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  constrained. ""T""
+  IL_0018:  callvirt   ""void I1." + methodName + @"()""
+  IL_001d:  ret
+}
+");
+
+            var tree = comp2.SyntaxTrees.Single();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PostfixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("void C1." + methodName + "()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            var iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+IIncrementOrDecrementOperation (Postfix) (OperatorMethod: void C1." + methodName + @"()) (OperationKind." + (op == "++" ? "Increment" : "Decrement") + @", Type: System.Void) (Syntax: 'GetA(x)[Get0()]" + op + @"')
+  Target:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: C1) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (C1[] Program.GetA<C1>(C1[] x)) (OperationKind.Invocation, Type: C1[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C1[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+");
+
+            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem.ref
+  IL_000c:  callvirt   ""void C1." + methodName + @"()""
+  IL_0011:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelem     ""T""
+  IL_0010:  box        ""T""
+  IL_0015:  callvirt   ""void I1." + methodName + @"()""
+  IL_001a:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test6<T>(T[])",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  constrained. ""T""
+  IL_0018:  callvirt   ""void I1." + methodName + @"()""
+  IL_001d:  ret
+}
+");
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PostfixUnaryExpressionSyntax>().Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("void I1." + methodName + "()", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            iOp = model.GetOperation(opNode);
+            VerifyOperationTree(comp2, iOp, @"
+IIncrementOrDecrementOperation (Postfix, Checked) (OperatorMethod: void I1." + methodName + @"()) (OperationKind." + (op == "++" ? "Increment" : "Decrement") + @", Type: System.Void) (Syntax: 'GetA(x)[Get0()]" + op + @"')
+  Target:
+    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: T) (Syntax: 'GetA(x)[Get0()]')
+      Array reference:
+        IInvocationOperation (T[] Program.GetA<T>(T[] x)) (OperationKind.Invocation, Type: T[]) (Syntax: 'GetA(x)')
+          Instance Receiver:
+            null
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T[]) (Syntax: 'x')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Indices(1):
+          IInvocationOperation (System.Int32 Program.Get0()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Get0()')
+            Instance Receiver:
+              null
+            Arguments(0)
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            var expectedErrors = new[] {
+                // (23,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //         GetA(x)[Get0()]++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "GetA(x)[Get0()]" + op).WithArguments(op, "C1").WithLocation(23, 9),
+                // (30,13): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //             GetA(x)[Get0()]++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "GetA(x)[Get0()]" + op).WithArguments(op, "C1").WithLocation(30, 13),
+                // (36,9): error CS0023: Operator '++' cannot be applied to operand of type 'T'
+                //         GetA(x)[Get0()]++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "GetA(x)[Get0()]" + op).WithArguments(op, "T").WithLocation(36, 9),
+                // (43,13): error CS0023: Operator '++' cannot be applied to operand of type 'T'
+                //             GetA(x)[Get0()]++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "GetA(x)[Get0()]" + op).WithArguments(op, "T").WithLocation(43, 13),
+                // (49,9): error CS0023: Operator '++' cannot be applied to operand of type 'T'
+                //         GetA(x)[Get0()]++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "GetA(x)[Get0()]" + op).WithArguments(op, "T").WithLocation(49, 9),
+                // (56,13): error CS0023: Operator '++' cannot be applied to operand of type 'T'
+                //             GetA(x)[Get0()]++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "GetA(x)[Get0()]" + op).WithArguments(op, "T").WithLocation(56, 13)
+                };
+            comp2.VerifyDiagnostics(expectedErrors);
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(expectedErrors);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_075_Consumption_Postfix_NotUsed_Struct([CombinatorialValues("++", "--")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator" + op + @"();
+    public void operator checked" + op + @"();
+}
+
+public struct C1 : I1
+{
+    public int _F;
+    public void operator" + op + @"()
+    {
+        System.Console.Write(""[operator]"");
+        _F++;
+    } 
+    public void operator checked" + op + @"()
+    {
+        System.Console.Write(""[operator checked]"");
+        _F++;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test1(x);
+        System.Console.WriteLine(x[0]._F);
+        Test2(x);
+        System.Console.WriteLine(x[0]._F);
+        Test3(x);
+        System.Console.WriteLine(x[0]._F);
+        Test4(x);
+        System.Console.WriteLine(x[0]._F);
+        Test5(x);
+        System.Console.WriteLine(x[0]._F);
+        Test6(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test1(C1[] x)
+    {
+        GetA(x)[Get0()]" + op + @";
+    } 
+
+    static void Test2(C1[] x)
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @";
+        }
+    } 
+
+    static void Test3<T>(T[] x) where T : struct, I1
+    {
+        GetA(x)[Get0()]" + op + @";
+    } 
+
+    static void Test4<T>(T[] x) where T : struct, I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @";
+        }
+    } 
+
+    static void Test5<T>(T[] x) where T : I1
+    {
+        GetA(x)[Get0()]" + op + @";
+    } 
+
+    static void Test6<T>(T[] x) where T : I1
+    {
+        checked
+        {
+            GetA(x)[Get0()]" + op + @";
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp2, expectedOutput: @"
+[GetA][Get0][operator]1
+[GetA][Get0][operator checked]2
+[GetA][Get0][operator]3
+[GetA][Get0][operator checked]4
+[GetA][Get0][operator]5
+[GetA][Get0][operator checked]6
+").VerifyDiagnostics();
+
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  call       ""void C1." + methodName + @"()""
+  IL_0015:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test3<T>(T[])",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  constrained. ""T""
+  IL_0018:  callvirt   ""void I1." + methodName + @"()""
+  IL_001d:  ret
+}
+");
+
+            methodName = (op == "++" ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.CheckedDecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  ldelema    ""C1""
+  IL_0010:  call       ""void C1." + methodName + @"()""
+  IL_0015:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test4<T>(T[])",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""T[] Program.GetA<T>(T[])""
+  IL_0006:  call       ""int Program.Get0()""
+  IL_000b:  readonly.
+  IL_000d:  ldelema    ""T""
+  IL_0012:  constrained. ""T""
+  IL_0018:  callvirt   ""void I1." + methodName + @"()""
+  IL_001d:  ret
+}
+");
+
+            comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp2, expectedOutput: @"
+[GetA][Get0][operator]1
+[GetA][Get0][operator checked]2
+[GetA][Get0][operator]3
+[GetA][Get0][operator checked]4
+[GetA][Get0][operator]5
+[GetA][Get0][operator checked]6
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_076_Consumption_Postfix_For()
+        {
+            var source = @"
+public class C1
+{
+    public int _F;
+    public void operator ++()
+    {
+        _F++;
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        C1 x = new C1();
+        for (x++; x._F < 4; x++)
+        {
+            System.Console.Write(x._F);
+        }
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_077_Consumption_Postfix_Used([CombinatorialValues("++", "--")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator" + op + @"() {}
+    public void operator checked" + op + @"() {}
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1 x = new C1();
+        C1 y = x" + op + @";
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            comp2.VerifyDiagnostics(
+                // (7,16): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //         C1 y = x++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "x" + op).WithArguments(op, "C1").WithLocation(7, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_078_Consumption_Postfix_Used([CombinatorialValues("++", "--")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public class C1
+{
+    public int _F;
+
+    public void operator" + op + @"() => throw null;
+    public void operator checked" + op + @"() => throw null;
+
+    public static C1 operator" + op + @"(C1 x)
+    {
+        System.Console.Write(""[operator]"");
+        return new C1() { _F = x._F + 1 };
+    } 
+
+    public static C1 operator checked" + op + @"(C1 x)
+    {
+        System.Console.Write(""[operator checked]"");
+        return new C1() { _F = x._F + 1 };
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1 x = new C1();
+        C1 y = x" + op + @";
+        System.Console.Write(y._F);
+        System.Console.Write(x._F);
+        
+        checked
+        {
+            y = x" + op + @";
+        }
+
+        System.Console.Write(y._F);
+        System.Console.Write(x._F);
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "[operator]01[operator checked]12").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_079_Consumption_RegularVersionInCheckedContext([CombinatorialValues("++", "--")] string op, bool fromMetadata)
+        {
+            var source1 = @"
+public class C1
+{
+    public int _F;
+    public void operator" + op + @"()
+    {
+        System.Console.Write(""[operator]"");
+        _F++;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test2(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test2(C1[] x)
+    {
+        checked
+        {
+            " + op + @"GetA(x)[Get0()];
+        }
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp2, expectedOutput: @"[GetA][Get0][operator]1").VerifyDiagnostics();
+
+            var methodName = (op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarg.0
+  IL_0003:  call       ""C1[] Program.GetA<C1>(C1[])""
+  IL_0008:  call       ""int Program.Get0()""
+  IL_000d:  ldelem.ref
+  IL_000e:  callvirt   ""void C1." + methodName + @"()""
+  IL_0013:  nop
+  IL_0014:  nop
+  IL_0015:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_080_Consumption_CheckedVersionInRegularContext([CombinatorialValues("++", "--")] string op)
+        {
+            var source1 = @"
+public class C1
+{
+    public int _F;
+    public void operator checked " + op + @"()
+    {
+        System.Console.Write(""[operator]"");
+        _F++;
+    } 
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1[] x = [new C1()];
+        Test1(x);
+        System.Console.WriteLine(x[0]._F);
+    } 
+
+    static void Test1(C1[] x)
+    {
+        " + op + @"GetA(x)[Get0()];
+    } 
+
+    static T[] GetA<T>(T[] x)
+    {
+        System.Console.Write(""[GetA]"");
+        return x;
+    } 
+
+    static int Get0()
+    {
+        System.Console.Write(""[Get0]"");
+        return 0;
+    }
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (13,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //         ++GetA(x)[Get0()];
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, op + "GetA(x)[Get0()]").WithArguments(op, "C1").WithLocation(13, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_081_Consumption_Shadowing([CombinatorialValues("++", "--")] string op)
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator" + op + @"() => throw null;
+    public void operator checked" + op + @"() => throw null;
+}
+
+public class C2 : C1
+{
+    public new void operator" + op + @"()
+    {
+        System.Console.Write(""[operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        var x = new C2();
+        " + op + @"x;
+        checked
+        {
+            " + op + @"x;
+        }
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "[operator][operator]").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_082_Consumption_Shadowing([CombinatorialValues("++", "--")] string op)
+        {
+            var source1_1 = @"
+public class C1
+{
+    public void operator" + op + @"() => throw null;
+    public void operator checked" + op + @"() => throw null;
+}
+
+public class C2 : C1
+{
+    public new void operator checked " + op + @"() => throw null;
+}
+";
+
+            var comp1_1 = CreateCompilation(source1_1, assemblyName: "C");
+
+            var source2 = @"
+public class Test
+{
+    public static void Main()
+    {
+        var x = new C2();
+        " + op + @"x;
+        checked
+        {
+            " + op + @"x;
+        }
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [comp1_1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics();
+
+            var source1_2 = @"
+public class C1
+{
+    public void operator" + op + @"()
+    {
+        System.Console.Write(""[operator]"");
+    } 
+
+    public void operator checked" + op + @"() => throw null;
+}
+
+public class C2 : C1
+{
+    public new void operator checked " + op + @"()
+    {
+        System.Console.Write(""[checked operator]"");
+    } 
+
+    public new void operator " + op + @"() => throw null;
+}
+";
+
+            var source3 = @"
+public class Program
+{
+    static void Main()
+    {
+        Test.Main();
+    } 
+}
+";
+            var comp1_2 = CreateCompilation(source1_2, assemblyName: "C");
+
+            var comp3 = CreateCompilation(source3, references: [comp1_2.EmitToImageReference(), comp2.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp3, expectedOutput: "[operator][checked operator]").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_083_Consumption_Shadowing([CombinatorialValues("++", "--")] string op)
+        {
+            var source1 = @"
+public abstract class C1
+{
+    public abstract void operator" + op + @"();
+    public void operator checked" + op + @"() => throw null;
+}
+
+public class C2 : C1
+{
+    public new void operator checked " + op + @"()
+    {
+        System.Console.Write(""[checked operator]"");
+    } 
+
+    public override void operator " + op + @"()
+    {
+        System.Console.Write(""[operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        var x = new C2();
+        " + op + @"x;
+        checked
+        {
+            " + op + @"x;
+        }
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "[operator][checked operator]").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_084_Consumption_Overriding([CombinatorialValues("++", "--")] string op)
+        {
+            var source1 = @"
+public abstract class C1
+{
+    public abstract void operator" + op + @"();
+    public abstract void operator checked" + op + @"();
+}
+
+public abstract class C2 : C1
+{
+    public override void operator checked " + op + @"()
+    {
+        System.Console.Write(""[checked operator]"");
+    } 
+}
+
+public class C3 : C2
+{
+    public override void operator " + op + @"()
+    {
+        System.Console.Write(""[operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        var x = new C3();
+        " + op + @"x;
+        checked
+        {
+            " + op + @"x;
+        }
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "[operator][checked operator]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_085_Consumption_Ambiguity()
+        {
+            var source1 = @"
+public interface I1
+{
+    public void operator ++();
+}
+
+public interface I2<T> where T : I2<T>
+{
+    public void operator ++();
+    public abstract static T operator ++(T x);
+    public abstract static T operator --(T x);
+}
+
+public class Program
+{
+    static void Test5<T>(T x) where T : I1, I2<T>
+    {
+        ++x;
+        --x;
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90);
+            comp1.VerifyDiagnostics(
+                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'I1.operator ++()' and 'I2<T>.operator ++()'
+                //         ++x;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("I1.operator ++()", "I2<T>.operator ++()").WithLocation(18, 9)
+                );
+
+            var tree = comp1.SyntaxTrees.Single();
+            var model = comp1.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            Assert.Equal("void I1.op_Increment()", symbolInfo.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("void I2<T>.op_Increment()", symbolInfo.CandidateSymbols[1].ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().Last();
+            symbolInfo = model.GetSymbolInfo(opNode);
+            Assert.Equal("T I2<T>.op_Decrement(T x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+
+            group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_086_Consumption_UseStaticOperatorsInOldVersion()
+        {
+            var source1 = @"
+public class C1
+{
+    public int _F;
+
+    public void operator ++()
+    {
+        System.Console.Write(""[instance operator]"");
+        _F++;
+    } 
+
+    public void operator checked ++()
+    {
+        System.Console.Write(""[instance operator checked]"");
+        checked
+        {
+            _F++;
+        }
+    } 
+
+    public static C1 operator ++(C1 x)
+    {
+        System.Console.Write(""[static operator]"");
+        return new C1() { _F = x._F + 1 };
+    } 
+    public static C1 operator checked ++(C1 x)
+    {
+        System.Console.Write(""[static operator checked]"");
+        checked
+        {
+            return new C1() { _F = x._F + 1 };
+        }
+    } 
+}
+";
+            var comp1Ref = CreateCompilation(source1).EmitToImageReference();
+
+            var source2 = @"
+public class Program
+{
+    static C1 P = new C1();
+
+    static void Main()
+    {
+        C1 x;
+
+        ++P;
+        System.Console.WriteLine(P._F);
+        P++;
+        System.Console.WriteLine(P._F);
+        x = ++P;
+        System.Console.WriteLine(P._F);
+        x = P++;
+        System.Console.WriteLine(P._F);
+
+        checked
+        {
+            ++P;
+            System.Console.WriteLine(P._F);
+            P++;
+            System.Console.WriteLine(P._F);
+            x = ++P;
+            System.Console.WriteLine(P._F);
+            x = P++;
+            System.Console.WriteLine(P._F);
+        }
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: @"
+[instance operator]1
+[instance operator]2
+[instance operator]3
+[static operator]4
+[instance operator checked]5
+[instance operator checked]6
+[instance operator checked]7
+[static operator checked]8
+").VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            CompileAndVerify(comp2, expectedOutput: @"
+[static operator]1
+[static operator]2
+[static operator]3
+[static operator]4
+[static operator checked]5
+[static operator checked]6
+[static operator checked]7
+[static operator checked]8
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_087_Consumption_Obsolete()
+        {
+            var source1 = @"
+public class C1
+{
+    [System.Obsolete(""Test"")]
+    public void operator ++() {}
+}
+
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        ++x;
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1).VerifyDiagnostics(
+                // (13,9): warning CS0618: 'C1.operator ++()' is obsolete: 'Test'
+                //         ++x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "++x").WithArguments("C1.operator ++()", "Test").WithLocation(13, 9)
+                );
+        }
+
+        [Fact]
+        public void Increment_088_Consumption_UnmanagedCallersOnly()
+        {
+            var source1 = @"
+public class C1
+{
+    [System.Runtime.InteropServices.UnmanagedCallersOnly]
+    public void operator ++() {}
+}
+
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        ++x;
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            comp1.VerifyDiagnostics(
+                // (4,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                //     [System.Runtime.InteropServices.UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "System.Runtime.InteropServices.UnmanagedCallersOnly").WithLocation(4, 6),
+                // (13,9): error CS8901: 'C1.operator ++()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         ++x;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "++x").WithArguments("C1.operator ++()").WithLocation(13, 9)
+                );
+        }
+
+        [Fact]
+        public void Increment_089_Consumption_NullableAnalysis()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator ++() {}
+}
+
+#nullable enable
+
+public class Program
+{
+    static void Main()
+    {
+        C1? x = null;
+
+        try
+        {
+            ++x;
+            System.Console.Write(""unreachable"");
+            x.ToString();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write(""in catch"");
+        }
+
+        C1? y = new C1();
+        ++y;
+    } 
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "in catch").VerifyDiagnostics(
+                // (17,15): warning CS8602: Dereference of a possibly null reference.
+                //             ++x;
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(17, 15)
+                );
+        }
+
+        [Fact]
+        public void Increment_090_Consumption_BadOperator()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator ++(int x = 0) {}
+}
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        ++x;
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (4,26): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                //     public void operator ++(int x = 0) {}
+                Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, "++").WithArguments("++").WithLocation(4, 26),
+                // (4,33): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     public void operator ++(int x = 0) {}
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(4, 33)
+                );
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //         ++x;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void Increment_091_Consumption_BadOperator()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator ++(params int[] x) {}
+}
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        ++x;
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (4,26): error CS9502: Overloaded instance increment operator '++' must take no parameters
+                //     public void operator ++(params int[] x) {}
+                Diagnostic(ErrorCode.ERR_BadIncrementOpArgs, "++").WithArguments("++").WithLocation(4, 26),
+                // (4,29): error CS1670: params is not valid in this context
+                //     public void operator ++(params int[] x) {}
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(4, 29)
+                );
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //         ++x;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void Increment_092_ConflictWithRegular()
+        {
+            var source1 = @"
+public class C1
+{
+    public void operator ++() {}
+
+    public void op_Increment() {}
+}
+
+public class C2
+{
+    public static C2 operator ++(C2 x) => x;
+
+    public static C2 op_Increment(C2 x) => x;
+}
+
+public class C3
+{
+    public void op_Increment() {}
+
+    public void operator ++() {}
+}
+
+public class C4
+{
+    public static C4 op_Increment(C4 x) => x;
+
+    public static C4 operator ++(C4 x) => x;
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation(source1);
+            comp1.VerifyDiagnostics(
+                // (6,17): error CS0111: Type 'C1' already defines a member called 'op_Increment' with the same parameter types
+                //     public void op_Increment() {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "op_Increment").WithArguments("op_Increment", "C1").WithLocation(6, 17),
+                // (13,22): error CS0111: Type 'C2' already defines a member called 'op_Increment' with the same parameter types
+                //     public static C2 op_Increment(C2 x) => x;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "op_Increment").WithArguments("op_Increment", "C2").WithLocation(13, 22),
+                // (20,26): error CS0111: Type 'C3' already defines a member called 'op_Increment' with the same parameter types
+                //     public void operator ++() {}
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "++").WithArguments("op_Increment", "C3").WithLocation(20, 26),
+                // (27,31): error CS0111: Type 'C4' already defines a member called 'op_Increment' with the same parameter types
+                //     public static C4 operator ++(C4 x) => x;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "++").WithArguments("op_Increment", "C4").WithLocation(27, 31)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_093_Consumption_OrdinaryMethod(bool fromMetadata)
+        {
+            var source1 = @"
+public class C1
+{
+    public void op_Increment() {}
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        C1 x = new C1();
+        ++x;
+    } 
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //         ++x;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_094_Override_RegularVsOperatorMismatch(bool fromMetadata)
+        {
+            var source1 = @"
+abstract public class C1
+{
+    public abstract void op_Increment();
+}
+
+abstract public class C3
+{
+    public abstract void operator ++();
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class C2 : C1
+{
+    public override void operator ++() {}
+}
+
+public class C4 : C3
+{
+    public override void op_Increment() {}
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+
+            // PROTOTYPE: Overriding errors are expected for C2 and C4.
+            comp2.VerifyDiagnostics(
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_095_Implement_RegularVsOperatorMismatch(bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    void op_Increment();
+}
+
+public interface I2
+{
+    void operator ++();
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class C1 : I1
+{
+    public void operator ++() {}
+}
+
+public class C2 : I2
+{
+    public void op_Increment() {}
+}
+
+public class C3 : I1
+{
+    void I1.operator ++() {}
+}
+
+public class C4 : I2
+{
+    void I2.op_Increment() {}
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics(
+                // (2,19): error CS0535: 'C1' does not implement interface member 'I1.op_Increment()'
+                // public class C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.op_Increment()").WithLocation(2, 19),
+                // (7,19): error CS0535: 'C2' does not implement interface member 'I2.operator ++()'
+                // public class C2 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C2", "I2.operator ++()").WithLocation(7, 19),
+                // (12,19): error CS0535: 'C3' does not implement interface member 'I1.op_Increment()'
+                // public class C3 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.op_Increment()").WithLocation(12, 19),
+                // (14,22): error CS0539: 'C3.operator ++()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I1.operator ++() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "++").WithArguments("C3.operator ++()").WithLocation(14, 22),
+                // (17,19): error CS0535: 'C4' does not implement interface member 'I2.operator ++()'
+                // public class C4 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C4", "I2.operator ++()").WithLocation(17, 19),
+                // (19,13): error CS0539: 'C4.op_Increment()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I2.op_Increment() {}
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Increment").WithArguments("C4.op_Increment()").WithLocation(19, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_096_Consumption_Implementation()
+        {
+            var source = @"
+public interface I1
+{
+    public void operator ++();
+}
+
+public class C1 : I1
+{
+    public void operator ++()
+    {
+        System.Console.Write(""[C1.operator]"");
+    } 
+}
+
+public class C2 : I1
+{
+    void I1.operator ++()
+    {
+        System.Console.Write(""[C2.operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        I1 x = new C1();
+        ++x;
+        x = new C2();
+        ++x;
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "[C1.operator][C2.operator]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_097_Consumption_Overriding()
+        {
+            var source = @"
+public abstract class C1
+{
+    public abstract void operator ++();
+}
+
+public class C2 : C1
+{
+    public override void operator ++()
+    {
+        System.Console.Write(""[C2.operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        C1 x = new C2();
+        ++x;
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "[C2.operator]").VerifyDiagnostics();
         }
     }
 }
