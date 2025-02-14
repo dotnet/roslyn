@@ -4,8 +4,10 @@
 
 using System.Composition;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Services.Razor;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
@@ -14,23 +16,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 [Method("razor/initialize")]
 internal class RazorInitializeHandler : ILspServiceNotificationHandler<RazorInitializeParams>
 {
-    private readonly Lazy<RazorWorkspaceListenerInitializer> _razorWorkspaceListenerInitializer;
+    private readonly Lazy<LanguageServerWorkspaceFactory> _workspaceFactory;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorInitializeHandler(Lazy<RazorWorkspaceListenerInitializer> razorWorkspaceListenerInitializer)
+    public RazorInitializeHandler(Lazy<LanguageServerWorkspaceFactory> workspaceFactory)
     {
-        _razorWorkspaceListenerInitializer = razorWorkspaceListenerInitializer;
+        _workspaceFactory = workspaceFactory;
     }
 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => false;
 
-    Task INotificationHandler<RazorInitializeParams, RequestContext>.HandleNotificationAsync(RazorInitializeParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    async Task INotificationHandler<RazorInitializeParams, RequestContext>.HandleNotificationAsync(RazorInitializeParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        _razorWorkspaceListenerInitializer.Value.Initialize(request.PipeName);
-
-        return Task.CompletedTask;
+        var initializer = await RazorLSPServiceProvider.TryGetServiceAsync<IRazorWorkspaceService>(cancellationToken);
+        initializer?.Initialize(_workspaceFactory.Value.Workspace, request.PipeName);
     }
 }
 
