@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 allDiagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                    includeCompilerDiagnostics: true, priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
+                    priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
 
                 // NOTE(cyrusn): We do not include suppressed diagnostics here as they are effectively hidden from the
                 // user in the editor.  As far as the user is concerned, there is no squiggle for it and no lightbulb
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                    includeCompilerDiagnostics: true, priorityProvider, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
+                    priorityProvider, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
                 if (!includeSuppressionFixes)
                     diagnostics = diagnostics.WhereAsArray(d => !d.IsSuppressed);
             }

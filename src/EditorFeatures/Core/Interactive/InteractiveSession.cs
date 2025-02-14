@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Interactive;
 
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Threading;
 using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
 internal sealed class InteractiveSession : IDisposable

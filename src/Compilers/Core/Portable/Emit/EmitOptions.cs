@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private bool _testOnly_AllowLocalStateTracing;
 
+        internal Func<ImmutableArray<byte>, string>? TestOnly_DataToHexViaXxHash128 { get; init; }
+
         // 1.2 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         public EmitOptions(
             bool metadataOnly,

@@ -187,14 +187,14 @@ internal static class CSharpStructureHelpers
                 else if (trivia is not SyntaxTrivia(
                     SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia or SyntaxKind.EndOfFileToken))
                 {
-                    completeSingleLineCommentGroup(spans);
+                    CompleteSingleLineCommentGroup(spans);
                 }
             }
 
-            completeSingleLineCommentGroup(spans);
+            CompleteSingleLineCommentGroup(spans);
             return;
 
-            void completeSingleLineCommentGroup(ArrayBuilder<BlockSpan> spans)
+            void CompleteSingleLineCommentGroup(ArrayBuilder<BlockSpan> spans)
             {
                 if (startComment != null)
                 {

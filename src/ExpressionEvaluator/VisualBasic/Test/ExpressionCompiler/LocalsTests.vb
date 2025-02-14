@@ -3382,10 +3382,10 @@ End Class"
 
         Private Shared Sub GetLocals(runtime As RuntimeInstance, methodName As String, debugInfo As MethodDebugInfoBytes, locals As ArrayBuilder(Of LocalAndMethod), count As Integer)
             Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim moduleVersionId As Guid = Nothing
+            Dim moduleId As ModuleId = Nothing
             Dim methodToken = 0
             Dim localSignatureToken = 0
-            GetContextState(runtime, methodName, blocks, moduleVersionId, symReader:=Nothing, methodOrTypeToken:=methodToken, localSignatureToken:=localSignatureToken)
+            GetContextState(runtime, methodName, blocks, moduleId, symReader:=Nothing, methodOrTypeToken:=methodToken, localSignatureToken:=localSignatureToken)
 
             Dim symReader = New MockSymUnmanagedReader(
                 New Dictionary(Of Integer, MethodDebugInfoBytes)() From
@@ -3397,7 +3397,7 @@ End Class"
                 blocks,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,
-                moduleVersionId,
+                moduleId,
                 methodToken,
                 methodVersion:=1,
                 ilOffset:=0,
