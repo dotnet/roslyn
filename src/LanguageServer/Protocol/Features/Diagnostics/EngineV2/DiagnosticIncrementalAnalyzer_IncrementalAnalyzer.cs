@@ -33,15 +33,17 @@ internal partial class DiagnosticAnalyzerService
         /// Practically, solution analyzers are the core Roslyn analyzers themselves we distribute, or analyzers shipped
         /// by vsix (not nuget).  These analyzers do not get loaded after changing *until* VS restarts.
         /// </remarks>
-        private readonly ConditionalWeakTable<ProjectState, StrongBox<(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> _projectToForceAnalysisData = new();
+        private static readonly ConditionalWeakTable<ProjectState, StrongBox<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> _projectToForceAnalysisData = new();
 
         public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
             var projectState = project.State;
+            var checksum = await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
-                if (!_projectToForceAnalysisData.TryGetValue(projectState, out var box))
+                if (!_projectToForceAnalysisData.TryGetValue(projectState, out var box) ||
+                    box.Value.checksum != checksum)
                 {
                     box = new(await ComputeForceAnalyzeProjectAsync().ConfigureAwait(false));
 
@@ -57,7 +59,7 @@ internal partial class DiagnosticAnalyzerService
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
 
-                var (analyzers, projectAnalysisData) = box.Value;
+                var (_, analyzers, projectAnalysisData) = box.Value;
                 foreach (var analyzer in analyzers)
                 {
                     if (projectAnalysisData.TryGetValue(analyzer, out var analyzerResult))
@@ -71,7 +73,7 @@ internal partial class DiagnosticAnalyzerService
                 throw ExceptionUtilities.Unreachable();
             }
 
-            async Task<(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)> ComputeForceAnalyzeProjectAsync()
+            async Task<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)> ComputeForceAnalyzeProjectAsync()
             {
                 var solutionState = project.Solution.SolutionState;
                 var allAnalyzers = await _stateManager.GetOrCreateAnalyzersAsync(solutionState, projectState, cancellationToken).ConfigureAwait(false);
@@ -86,7 +88,7 @@ internal partial class DiagnosticAnalyzerService
                     project, fullSolutionAnalysisAnalyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 var projectAnalysisData = await ComputeDiagnosticAnalysisResultsAsync(compilationWithAnalyzers, project, fullSolutionAnalysisAnalyzers, cancellationToken).ConfigureAwait(false);
-                return (fullSolutionAnalysisAnalyzers, projectAnalysisData);
+                return (checksum, fullSolutionAnalysisAnalyzers, projectAnalysisData);
             }
 
             static bool IsCandidateForFullSolutionAnalysis(
