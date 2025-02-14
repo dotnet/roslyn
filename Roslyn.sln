@@ -579,7 +579,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Cont
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Contracts.Package", "src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.Package.csproj", "{A8D5CFFA-7F9E-C35B-4F19-D63F6EC1D5CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot", "src\VisualStudio\ExternalAccess\Copilot\Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.csproj", "{9EB058F3-10C9-8F3F-AD9E-72CB362A0928}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot", "src\VisualStudio\ExternalAccess\Copilot\Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.csproj", "{9EB058F3-10C9-8F3F-AD9E-72CB362A0928}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
