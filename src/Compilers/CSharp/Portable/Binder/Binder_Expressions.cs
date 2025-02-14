@@ -8534,7 +8534,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             actualArguments?.Free();
             return firstResult;
 
-#nullable enable
             static bool tryResolveExtensionMember(Binder binder, SyntaxNode expression, string memberName, AnalyzedArguments? analyzedArguments, BoundExpression left,
                 ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, OverloadResolution.Options options, RefKind returnRefKind, in CallingConventionInfo callingConvention,
                 TypeSymbol? returnType, bool withDependencies, ExtensionScope scope, out MethodGroupResolution extensionResult)
@@ -8555,7 +8554,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lookupResult, left.Type!, memberName, arity,
                     basesBeingResolved: null, lookupOptions, originalBinder: binder, ref useSiteInfo);
 
-                // PROTOTYPE test use-site diagnostics
                 diagnostics.Add(expression, useSiteInfo);
 
                 if (!lookupResult.IsMultiViable)
