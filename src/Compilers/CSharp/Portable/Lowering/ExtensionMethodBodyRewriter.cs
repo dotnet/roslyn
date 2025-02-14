@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool haveExtraParameter = sourceMethod.ParameterCount != implementationMethod.ParameterCount;
             if (haveExtraParameter)
             {
+                Debug.Assert(implementationMethod.ParameterCount - 1 == sourceMethod.ParameterCount);
                 var receiverParameter = (WrappedParameterSymbol)implementationMethod.Parameters[0];
                 _symbolMap = _symbolMap.Add(receiverParameter.UnderlyingParameter, receiverParameter);
             }

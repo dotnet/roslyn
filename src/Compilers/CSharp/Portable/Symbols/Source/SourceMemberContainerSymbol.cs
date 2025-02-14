@@ -3614,7 +3614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (member is MethodSymbol { IsImplicitlyDeclared: false } method)
                         {
-                            builder.AddNonTypeMember(new SourceExtensionImplementationMethodSymbol(method), declaredMembersAndInitializers);
+                            builder.AddNonTypeMember(this, new SourceExtensionImplementationMethodSymbol(method), declaredMembersAndInitializers);
                         }
                     }
                 }
