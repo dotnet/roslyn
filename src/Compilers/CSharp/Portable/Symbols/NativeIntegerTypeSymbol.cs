@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsRecordStruct => false;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
 
-        internal sealed override ParameterSymbol ExtensionParameter => throw ExceptionUtilities.Unreachable();
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
 
         internal override bool Equals(TypeSymbol? other, TypeCompareKind comparison)
         {

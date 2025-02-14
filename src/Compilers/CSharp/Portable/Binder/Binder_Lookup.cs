@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                bool success = checkConstraints(extension, extension.TypeParameters, typeArguments, compilation, conversions, ref useSiteInfo);
+                bool success = checkConstraints(extension, typeArguments, compilation, conversions, ref useSiteInfo);
                 if (!success)
                 {
                     return null;
@@ -276,9 +276,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return extension.Construct(typeArguments);
             }
 
-            static bool checkConstraints(Symbol symbol, ImmutableArray<TypeParameterSymbol> typeParams, ImmutableArray<TypeWithAnnotations> typeArgs,
-                CSharpCompilation compilation, TypeConversions conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            static bool checkConstraints(NamedTypeSymbol symbol, ImmutableArray<TypeWithAnnotations> typeArgs, CSharpCompilation compilation,
+                TypeConversions conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
+                var typeParams = symbol.TypeParameters;
                 var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
                 var substitution = new TypeMap(typeParams, typeArgs);
                 ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
