@@ -147,6 +147,10 @@ public static class Program
 
                         result.AppendLine();
                         result.AppendLine($"# {rule.Id}: {rule.Title}");
+                        if (rule.HelpLinkUri is not null)
+                        {
+                            result.AppendLine($"# {rule.HelpLinkUri}");
+                        }
                         result.AppendLine($"dotnet_diagnostic.{rule.Id}.severity = {severityString}");
                         return true;
                     }
