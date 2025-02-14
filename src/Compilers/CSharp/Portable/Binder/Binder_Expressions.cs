@@ -8470,21 +8470,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var firstResult = new MethodGroupResolution();
             AnalyzedArguments? actualArguments = null;
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
 
             foreach (var scope in new ExtensionScopes(this))
             {
                 // PROTOTYPE we are temporarily prioritizing new extension members over classic extension methods, instead of mixing them
                 if (tryResolveExtensionMember(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
-                    options, returnRefKind, in callingConvention, returnType, withDependencies, scope,
+                    options, returnRefKind, in callingConvention, returnType, diagnostics, scope,
                     out MethodGroupResolution extensionResult))
                 {
                     if (extensionResult.IsNonMethodExtensionMember(out _))
                     {
                         firstResult.Free();
+                        diagnostics.Free();
                         return extensionResult;
                     }
-
-                    // PROTOTYPE(instance) we'll want to revisit to merge extension methods and methods from extension types within the same scope
 
                     // If the search in the current scope resulted in any applicable method from an extension type
                     // (regardless of whether a best applicable method could be determined) then our search is complete.
@@ -8492,6 +8492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (extensionResult.HasAnyApplicableMethod)
                     {
                         firstResult.Free();
+                        diagnostics.Free();
                         return extensionResult;
                     }
                     else if (firstResult.IsEmpty)
@@ -8506,7 +8507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (tryResolveExtensionMethod(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
-                    options, returnRefKind, returnType, in callingConvention, withDependencies, scope,
+                    options, returnRefKind, returnType, in callingConvention, diagnostics, scope,
                     ref actualArguments, out MethodGroupResolution extensionMethodResult))
                 {
                     // If the search in the current scope resulted in any applicable method (regardless of whether a best
@@ -8516,6 +8517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         firstResult.Free();
                         actualArguments?.Free();
+                        diagnostics.Free();
                         return extensionMethodResult;
                     }
                     else if (firstResult.IsEmpty)
@@ -8532,14 +8534,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((actualArguments == null) || !firstResult.IsEmpty);
             actualArguments?.Free();
+            diagnostics.Free();
+
             return firstResult;
 
             static bool tryResolveExtensionMember(Binder binder, SyntaxNode expression, string memberName, AnalyzedArguments? analyzedArguments, BoundExpression left,
                 ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, OverloadResolution.Options options, RefKind returnRefKind, in CallingConventionInfo callingConvention,
-                TypeSymbol? returnType, bool withDependencies, ExtensionScope scope, out MethodGroupResolution extensionResult)
+                TypeSymbol? returnType, BindingDiagnosticBag diagnostics, ExtensionScope scope, out MethodGroupResolution extensionResult)
             {
                 var lookupResult = LookupResult.GetInstance();
-                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
 
                 int arity = typeArgumentsWithAnnotations.IsDefault ? 0 : typeArgumentsWithAnnotations.Length;
                 var lookupOptions = (arity == 0) ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
@@ -8559,7 +8562,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!lookupResult.IsMultiViable)
                 {
                     lookupResult.Free();
-                    diagnostics.Free();
                     extensionResult = default;
                     return false;
                 }
@@ -8571,14 +8573,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     lookupResult.Free();
                     members.Free();
-                    extensionResult = new MethodGroupResolution(symbol, LookupResultKind.Viable, diagnostics.ToReadOnlyAndFree());
+                    extensionResult = new MethodGroupResolution(symbol, LookupResultKind.Viable, diagnostics.ToReadOnly());
                     return true;
                 }
 
                 if (members[0].Kind is not SymbolKind.Method)
                 {
                     lookupResult.Free();
-                    diagnostics.Free();
                     members.Free();
                     extensionResult = default;
                     return false;
@@ -8591,7 +8592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (analyzedArguments is null)
                 {
                     lookupResult.Free();
-                    extensionResult = new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
+                    extensionResult = new MethodGroupResolution(methodGroup, diagnostics.ToReadOnly());
                     return true;
                 }
 
@@ -8610,13 +8611,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RefKind returnRefKind,
                 TypeSymbol? returnType,
                 in CallingConventionInfo callingConvention,
-                bool withDependencies,
+                BindingDiagnosticBag diagnostics,
                 ExtensionScope scope,
                 ref AnalyzedArguments? actualArguments,
                 out MethodGroupResolution result)
             {
                 var methodGroup = MethodGroup.GetInstance();
-                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
 
                 binder.PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, expression, left, methodName, typeArgumentsWithAnnotations, diagnostics);
 
@@ -8632,7 +8632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (methodGroup.Methods.Count != 0)
                     {
-                        result = new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
+                        result = new MethodGroupResolution(methodGroup, diagnostics.ToReadOnly());
                         return true;
                     }
                 }
@@ -8640,7 +8640,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (methodGroup.Methods.Count == 0)
                 {
                     methodGroup.Free();
-                    diagnostics.Free();
                     result = default;
                     return false;
                 }
@@ -8680,11 +8679,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     in callingConvention);
 
                 diagnostics.Add(expression, useSiteInfo); // PROTOTYPE test use-site info
-                var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
 
                 // Note: the MethodGroupResolution instance is responsible for freeing the method group,
                 //   the overload resolution result and its copy of arguments
-                return new MethodGroupResolution(methodGroup, null, overloadResolutionResult, AnalyzedArguments.GetInstance(actualArguments), methodGroup.ResultKind, sealedDiagnostics);
+                return new MethodGroupResolution(methodGroup, null, overloadResolutionResult, AnalyzedArguments.GetInstance(actualArguments), methodGroup.ResultKind, diagnostics.ToReadOnly());
             }
         }
 
