@@ -921,7 +921,91 @@ class Derived<X> : CGoo
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
-    public async Task CommitBeforeAttribute()
+    public async Task CommitBeforeAttribute1()
+    {
+        var markupBeforeCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    override Eq$$
+            
+                    [That]
+                    public int Disregard = 34;
+                }
+            }
+            """;
+
+        var expectedCodeAfterCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    public override bool Equals(object obj)
+                    {
+                        return base.Equals(obj);$$
+                    }
+            
+                    [That]
+                    public int Disregard = 34;
+                }
+            }
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
+    public async Task CommitBeforeAttribute2()
+    {
+        var markupBeforeCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    override Eq$$
+            
+                    // This is a comment
+                    [That]
+                    public int Disregard = 34;
+                }
+            }
+            """;
+
+        var expectedCodeAfterCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    public override bool Equals(object obj)
+                    {
+                        return base.Equals(obj);$$
+                    }
+            
+                    // This is a comment
+                    [That]
+                    public int Disregard = 34;
+                }
+            }
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
+    public async Task CommitBeforeAttribute3()
     {
         var markupBeforeCommit = """
             namespace InteliSenseIssue
@@ -960,7 +1044,7 @@ class Derived<X> : CGoo
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
-    public async Task CommitBeforeAttributeWithComment()
+    public async Task CommitBeforeAttribute4()
     {
         var markupBeforeCommit = """
             namespace InteliSenseIssue
@@ -972,8 +1056,9 @@ class Derived<X> : CGoo
                 {
                     override Eq$$
             
-                    // This is a comment
-                    [That] public int Disregard = 34;
+                    [That]
+                    // Comment after attribute
+                    public int Disregard = 34;
                 }
             }
             """;
@@ -991,8 +1076,134 @@ class Derived<X> : CGoo
                         return base.Equals(obj);$$
                     }
             
-                    // This is a comment
-                    [That] public int Disregard = 34;
+                    [That]
+                    // Comment after attribute
+                    public int Disregard = 34;
+                }
+            }
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
+    public async Task CommitBeforeAttribute5()
+    {
+        var markupBeforeCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    override Eq$$
+            
+                    [That, System.Obsolete("")]
+                    public int Disregard = 34;
+                }
+            }
+            """;
+
+        var expectedCodeAfterCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    public override bool Equals(object obj)
+                    {
+                        return base.Equals(obj);$$
+                    }
+            
+                    [That, System.Obsolete("")]
+                    public int Disregard = 34;
+                }
+            }
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
+    public async Task CommitBeforeAttribute6()
+    {
+        var markupBeforeCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    // Comment before the override.
+                    override Eq$$
+                    // Comment after the override.
+
+                    [That]
+                    public int Disregard = 34;
+                }
+            }
+            """;
+
+        var expectedCodeAfterCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    // Comment before the override.
+                    public override bool Equals(object obj)
+                    {
+                        return base.Equals(obj);$$
+                    }
+                    // Comment after the override.
+
+                    [That]
+                    public int Disregard = 34;
+                }
+            }
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
+    public async Task CommitBeforeAttribute7()
+    {
+        var markupBeforeCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    override Eq$$
+            
+                    [That] /* inline comment */ public int Disregard = 34;
+                }
+            }
+            """;
+
+        var expectedCodeAfterCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    public override bool Equals(object obj)
+                    {
+                        return base.Equals(obj);$$
+                    }
+            
+                    [That] /* inline comment */ public int Disregard = 34;
                 }
             }
             """;
@@ -2629,8 +2840,8 @@ class Derived : Base
     {
         base.goo();$$
     }
-#if true
-#endif
+    #if true
+    #endif
 }";
         await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
     }
@@ -2668,7 +2879,7 @@ class Derived : Base
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
-    public async Task CommitBeforeComment()
+    public async Task CommitBeforeComment1()
     {
         var markupBeforeCommit = @"class Base
 {
@@ -2698,7 +2909,63 @@ class Derived : Base
     }
 
     [WpfFact]
-    public async Task CommitAfterComment()
+    public async Task CommitBeforeComment2()
+    {
+        var markupBeforeCommit = @"class Base
+{
+    public virtual void goo() { }
+}
+
+class Derived : Base
+{
+override $$/* comment */
+}";
+
+        var expectedCodeAfterCommit = @"class Base
+{
+    public virtual void goo() { }
+}
+
+class Derived : Base
+{
+    public override void goo()
+    {
+        base.goo();$$
+    } /* comment */
+}";
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
+    }
+
+    [WpfFact]
+    public async Task CommitBeforeComment3()
+    {
+        var markupBeforeCommit = @"class Base
+{
+    public virtual void goo() { }
+}
+
+class Derived : Base
+{
+override go$$/* comment */
+}";
+
+        var expectedCodeAfterCommit = @"class Base
+{
+    public virtual void goo() { }
+}
+
+class Derived : Base
+{
+    public override void goo()
+    {
+        base.goo();$$
+    } /* comment */
+}";
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
+    }
+
+    [WpfFact]
+    public async Task CommitAfterComment1()
     {
         var markupBeforeCommit = @"class Base
 {
@@ -2723,6 +2990,128 @@ class Derived : Base
     {
         base.goo();$$
     }
+}";
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
+    }
+
+    [WpfFact]
+    public async Task CommitAfterComment2()
+    {
+        var markupBeforeCommit = @"class Base
+{
+    public virtual void goo() { }
+}
+
+class Derived : Base
+{
+    /* comment */
+    // another comment
+override $$
+}";
+
+        var expectedCodeAfterCommit = @"class Base
+{
+    public virtual void goo() { }
+}
+
+class Derived : Base
+{
+    /* comment */
+    // another comment
+    public override void goo()
+    {
+        base.goo();$$
+    }
+}";
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
+    }
+
+    [WpfFact]
+    public async Task CommitAfterComment3()
+    {
+        var markupBeforeCommit = @"class Base
+{
+    public virtual void goo() { }
+}
+
+class Derived : Base
+{
+    /* comment */ override $$
+}";
+
+        var expectedCodeAfterCommit = @"class Base
+{
+    public virtual void goo() { }
+}
+
+class Derived : Base
+{
+    /* comment */
+    public override void goo()
+    {
+        base.goo();$$
+    }
+}";
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
+    }
+
+    [WpfFact]
+    public async Task CommitAfterComment4()
+    {
+        var markupBeforeCommit = @"class Base
+{
+    public virtual void goo() { }
+}
+
+class Derived : Base
+{
+    /* comment */ override go$$
+}";
+
+        var expectedCodeAfterCommit = @"class Base
+{
+    public virtual void goo() { }
+}
+
+class Derived : Base
+{
+    /* comment */
+    public override void goo()
+    {
+        base.goo();$$
+    }
+}";
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
+    }
+
+    [WpfFact]
+    public async Task CommitBeforeAndAfterComment()
+    {
+        var markupBeforeCommit = @"class Base
+{
+    public virtual void goo() { }
+}
+
+class Derived : Base
+{
+    // Comment
+override $$
+    /* comment */
+}";
+
+        var expectedCodeAfterCommit = @"class Base
+{
+    public virtual void goo() { }
+}
+
+class Derived : Base
+{
+    // Comment
+    public override void goo()
+    {
+        base.goo();$$
+    }
+    /* comment */
 }";
         await VerifyCustomCommitProviderAsync(markupBeforeCommit, "goo()", expectedCodeAfterCommit);
     }
