@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class CachingSemanticModelProvider : SemanticModelProvider
     {
+        // Provide access to CachingSemanticModelProvider through a singleton. The inner CWT is static
+        // to avoid leak potential -- see https://github.com/dotnet/runtime/issues/12255.
+        // CachingSemanticModelProvider.s_providerCache -> PerCompilationProvider -> Compilation -> CachingSemanticModelProvider
         public static CachingSemanticModelProvider Instance { get; } = new CachingSemanticModelProvider();
 
         private static readonly ConditionalWeakTable<Compilation, PerCompilationProvider>.CreateValueCallback s_createProviderCallback
