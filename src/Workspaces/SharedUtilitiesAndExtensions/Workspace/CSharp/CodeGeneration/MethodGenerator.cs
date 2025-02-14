@@ -350,7 +350,7 @@ internal static class MethodGenerator
             else if (destination is not CodeGenerationDestination.CompilationUnit and
                 not CodeGenerationDestination.Namespace)
             {
-                AddAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                AddOrRemoveAccessibilityModifiers(method.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (method.IsStatic)
                     tokens.Add(StaticKeyword);

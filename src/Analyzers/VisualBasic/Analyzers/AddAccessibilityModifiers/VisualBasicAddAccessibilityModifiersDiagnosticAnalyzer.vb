@@ -3,16 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
+Imports Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
+Namespace Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer
-        Inherits AbstractAddAccessibilityModifiersDiagnosticAnalyzer(Of CompilationUnitSyntax)
+    Friend Class VisualBasicAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer
+        Inherits AbstractAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer(Of CompilationUnitSyntax)
 
         Protected Overrides Sub ProcessCompilationUnit(
                 context As SyntaxTreeAnalysisContext,
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
 
             Dim name As SyntaxToken = Nothing
             Dim modifiersAdded As Boolean = False
-            If Not VisualBasicAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(VisualBasicAccessibilityFacts.Instance, member, [option].Value, name, modifiersAdded) Then
+            If Not VisualBasicAddOrRemoveAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(VisualBasicAccessibilityFacts.Instance, member, [option].Value, name, modifiersAdded) Then
                 Return
             End If
 

@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim tokens As ArrayBuilder(Of SyntaxToken) = Nothing
             Using x = ArrayBuilder(Of SyntaxToken).GetInstance(tokens)
 
-                AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, destination, options, Accessibility.Private)
+                AddOrRemoveAccessibilityModifiers(field.DeclaredAccessibility, tokens, destination, options, Accessibility.Private)
 
                 If field.IsConst Then
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.ConstKeyword))

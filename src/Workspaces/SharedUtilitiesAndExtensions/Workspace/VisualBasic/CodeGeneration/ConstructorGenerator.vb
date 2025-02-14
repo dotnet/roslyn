@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 If constructor.IsStatic Then
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
                 Else
-                    AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
+                    AddOrRemoveAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
                 End If
 
                 Return SyntaxFactory.TokenList(tokens)
