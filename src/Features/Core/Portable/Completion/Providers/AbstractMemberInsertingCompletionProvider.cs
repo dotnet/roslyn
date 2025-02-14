@@ -212,6 +212,8 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         }
         else
         {
+            // replace the text?  annotations get removed
+            // is there an empty token kind that I can use instead of default?
             var tokens = destinationNode.DescendantTokens(destinationSpan);
             newRoot = root.ReplaceTokens(tokens, static (_, _) => default);
         }

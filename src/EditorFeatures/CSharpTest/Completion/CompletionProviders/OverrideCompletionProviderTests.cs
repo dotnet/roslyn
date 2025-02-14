@@ -919,6 +919,86 @@ class Derived<X> : CGoo
 }";
         await VerifyItemExistsAsync(markup, "Something<X>(X arg)");
     }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
+    public async Task CommitBeforeAttribute()
+    {
+        var markupBeforeCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    override Eq$$
+            
+                    [That] public int Disregard = 34;
+                }
+            }
+            """;
+
+        var expectedCodeAfterCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    public override bool Equals(object obj)
+                    {
+                        return base.Equals(obj);$$
+                    }
+            
+                    [That] public int Disregard = 34;
+                }
+            }
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
+    public async Task CommitBeforeAttributeWithComment()
+    {
+        var markupBeforeCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    override Eq$$
+            
+                    // This is a comment
+                    [That] public int Disregard = 34;
+                }
+            }
+            """;
+
+        var expectedCodeAfterCommit = """
+            namespace InteliSenseIssue
+            {
+                [AttributeUsage(AttributeTargets.All)]
+                public class ThatAttribute : Attribute {}
+            
+                internal class Program
+                {
+                    public override bool Equals(object obj)
+                    {
+                        return base.Equals(obj);$$
+                    }
+            
+                    // This is a comment
+                    [That] public int Disregard = 34;
+                }
+            }
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
+    }
     #endregion
 
     #region "Commit tests"
