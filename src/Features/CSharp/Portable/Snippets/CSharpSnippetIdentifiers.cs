@@ -15,15 +15,16 @@ internal static class CSharpSnippetIdentifiers
     public const string Else = "else";
     public const string Enum = "enum";
     public const string For = "for";
-    public const string ReversedFor = "forr";
     public const string ForEach = "foreach";
-    public const string InitOnlyProperty = "propi";
-    public const string RequiredProperty = "propr";
+    public const string ReversedFor = "forr";
     public const string If = "if";
     public const string Interface = "interface";
     public const string Lock = "lock";
+    public const string InitOnlyProperty = "propi";
+    public const string RequiredProperty = "propr";
     public const string StaticIntMain = "sim";
     public const string Struct = "struct";
     public const string StaticVoidMain = "svm";
+    public const string Switch = "switch";
     public const string While = "while";
 }

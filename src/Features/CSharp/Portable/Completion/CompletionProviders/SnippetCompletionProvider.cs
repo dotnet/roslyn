@@ -51,7 +51,8 @@ internal sealed class SnippetCompletionProvider : LSPCompletionProvider
         CSharpSnippetIdentifiers.StaticIntMain,
         CSharpSnippetIdentifiers.Struct,
         CSharpSnippetIdentifiers.StaticVoidMain,
-        CSharpSnippetIdentifiers.While
+        CSharpSnippetIdentifiers.While,
+        CSharpSnippetIdentifiers.Switch,
     ];
 
     internal override bool IsSnippetProvider => true;
