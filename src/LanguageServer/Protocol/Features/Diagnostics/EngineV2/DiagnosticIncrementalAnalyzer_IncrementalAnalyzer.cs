@@ -32,7 +32,7 @@ internal partial class DiagnosticAnalyzerService
         /// Practically, solution analyzers are the core Roslyn analyzers themselves we distribute, or analyzers shipped
         /// by vsix (not nuget).  These analyzers do not get loaded after changing *until* VS restarts.
         /// </remarks>
-        private static readonly ConditionalWeakTable<ProjectState, StrongBox<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> _projectToForceAnalysisData = new();
+        private static readonly ConditionalWeakTable<ProjectState, StrongBox<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> s_projectToForceAnalysisData = new();
 
         public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
@@ -41,7 +41,7 @@ internal partial class DiagnosticAnalyzerService
 
             try
             {
-                if (!_projectToForceAnalysisData.TryGetValue(projectState, out var box) ||
+                if (!s_projectToForceAnalysisData.TryGetValue(projectState, out var box) ||
                     box.Value.checksum != checksum)
                 {
                     box = new(await ComputeForceAnalyzeProjectAsync().ConfigureAwait(false));
@@ -49,10 +49,10 @@ internal partial class DiagnosticAnalyzerService
                     // Try to add the new computed data to the CWT.  But use any existing value that another thread
                     // might have beaten us to storing in it.
 #if NET
-                    if (!_projectToForceAnalysisData.TryAdd(projectState, box))
-                        Contract.ThrowIfFalse(_projectToForceAnalysisData.TryGetValue(projectState, out box));
+                    if (!s_projectToForceAnalysisData.TryAdd(projectState, box))
+                        Contract.ThrowIfFalse(s_projectToForceAnalysisData.TryGetValue(projectState, out box));
 #else
-                    box = _projectToForceAnalysisData.GetValue(projectState, _ => box);
+                    box = s_projectToForceAnalysisData.GetValue(projectState, _ => box);
 #endif
                 }
 

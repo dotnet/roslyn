@@ -118,12 +118,12 @@ internal partial class DiagnosticAnalyzerService
                 // (since it runs all analyzers), we still run a paranoia check that the analyzers we care about are
                 // a subset of that call so that we don't accidentally reuse results that would not correspond to
                 // what we are computing ourselves.
-                var checksum = await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
-                if (_projectToForceAnalysisData.TryGetValue(project.State, out var box) &&
-                    box.Value.checksum == checksum &&
+                if (s_projectToForceAnalysisData.TryGetValue(project.State, out var box) &&
                     analyzers.IsSubsetOf(box.Value.analyzers))
                 {
-                    return box.Value.diagnosticAnalysisResults;
+                    var checksum = await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
+                    if (box.Value.checksum == checksum)
+                        return box.Value.diagnosticAnalysisResults;
                 }
 
                 // Otherwise, just compute for the analyzers we care about.
