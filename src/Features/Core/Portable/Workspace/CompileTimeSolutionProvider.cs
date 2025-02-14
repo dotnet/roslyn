@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -26,30 +27,29 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class CompileTimeSolutionProvider : ICompileTimeSolutionProvider
     {
         [ExportWorkspaceServiceFactory(typeof(ICompileTimeSolutionProvider), [WorkspaceKind.Host]), Shared]
-        private sealed class Factory : IWorkspaceServiceFactory
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        private sealed class Factory(IGlobalOptionService globalOptions) : IWorkspaceServiceFactory
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
-            {
-            }
-
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
-                => new CompileTimeSolutionProvider(workspaceServices.Workspace);
+                => new CompileTimeSolutionProvider(workspaceServices.Workspace, globalOptions);
         }
 
         private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
         private const string RazorSourceGeneratorTypeName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
+
         private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
         [
             "Microsoft.NET.Sdk.Razor.SourceGenerators",
             "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
             "Microsoft.CodeAnalysis.Razor.Compiler",
         ];
+
         private static readonly ImmutableArray<string> s_razorSourceGeneratorFileNamePrefixes = s_razorSourceGeneratorAssemblyNames
             .SelectAsArray(static assemblyName => Path.Combine(assemblyName, RazorSourceGeneratorTypeName));
 
+        private readonly bool _forceRuntimeCodeGeneration;
         private readonly object _gate = new();
 
         /// <summary>
@@ -63,8 +63,10 @@ namespace Microsoft.CodeAnalysis.Host
 
         private Solution? _lastCompileTimeSolution;
 
-        public CompileTimeSolutionProvider(Workspace workspace)
+        private CompileTimeSolutionProvider(Workspace workspace, IGlobalOptionService globalOptions)
         {
+            _forceRuntimeCodeGeneration = globalOptions.GetOption(LegacyRazorOptions.ForceRuntimeCodeGeneration);
+
             workspace.WorkspaceChanged += (s, e) =>
             {
                 if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
@@ -87,6 +89,11 @@ namespace Microsoft.CodeAnalysis.Host
 
         public Solution GetCompileTimeSolution(Solution designTimeSolution)
         {
+            if (_forceRuntimeCodeGeneration)
+            {
+                return designTimeSolution;
+            }
+
             lock (_gate)
             {
                 _designTimeToCompileTimeSolution.TryGetValue(designTimeSolution, out var cachedCompileTimeSolution);

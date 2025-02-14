@@ -429,5 +429,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_reload_changed_analyzer_references", new RoamingProfileStorage("TextEditor.Roslyn.Specific.ReloadChangedAnalyzerReferences")},
         {"dotnet_reload_changed_analyzer_references_feature_flag", new FeatureFlagStorage(@"Roslyn.ReloadChangedAnalyzerReferences")},
         {"xaml_enable_lsp_intellisense", new FeatureFlagStorage(@"Xaml.EnableLspIntelliSense")},
+        {"razor_force_runtime_code_generation", new FeatureFlagStorage("Razor.LSP.ForceRuntimeCodeGeneration")},
     };
 }

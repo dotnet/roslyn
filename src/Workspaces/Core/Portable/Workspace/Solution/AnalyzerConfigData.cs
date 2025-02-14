@@ -23,9 +23,16 @@ internal readonly struct AnalyzerConfigData
     /// </summary>
     public readonly ImmutableDictionary<string, ReportDiagnostic> TreeOptions;
 
-    public AnalyzerConfigData(AnalyzerConfigOptionsResult result, StructuredAnalyzerConfigOptions fallbackOptions)
+    public AnalyzerConfigData(AnalyzerConfigOptionsResult result, StructuredAnalyzerConfigOptions fallbackOptions, bool legacyOverrideSuppressRazorSourceGenerator)
     {
-        _dictionaryConfigOptions = new DictionaryAnalyzerConfigOptions(result.AnalyzerOptions);
+        var entries = result.AnalyzerOptions;
+
+        if (legacyOverrideSuppressRazorSourceGenerator)
+        {
+            entries = entries.SetItem("build_property.SuppressRazorSourceGenerator", "false");
+        }
+
+        _dictionaryConfigOptions = new DictionaryAnalyzerConfigOptions(entries);
         ConfigOptionsWithoutFallback = StructuredAnalyzerConfigOptions.Create(_dictionaryConfigOptions, StructuredAnalyzerConfigOptions.Empty);
         ConfigOptionsWithFallback = StructuredAnalyzerConfigOptions.Create(_dictionaryConfigOptions, fallbackOptions);
         TreeOptions = result.TreeOptions;

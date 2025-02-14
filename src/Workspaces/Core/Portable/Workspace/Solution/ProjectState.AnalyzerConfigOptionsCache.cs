@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -19,13 +21,16 @@ internal sealed partial class ProjectState
     /// This cache is stored on <see cref="ProjectState"/> and needs to be invalidated whenever <see cref="SolutionState.FallbackAnalyzerOptions"/> for the language of the project change,
     /// editorconfig file is updated, etc.
     /// </summary>
-    private readonly struct AnalyzerConfigOptionsCache(TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates, StructuredAnalyzerConfigOptions fallbackOptions)
+    private readonly struct AnalyzerConfigOptionsCache(
+        TextDocumentStates<AnalyzerConfigDocumentState> analyzerConfigDocumentStates,
+        StructuredAnalyzerConfigOptions fallbackOptions,
+        bool legacyRazorForceRuntimeCodeGeneration)
     {
-        public readonly struct Value(AnalyzerConfigSet configSet, StructuredAnalyzerConfigOptions fallbackOptions)
+        public readonly struct Value(AnalyzerConfigSet configSet, StructuredAnalyzerConfigOptions fallbackOptions, bool legacyRazorForceRuntimeCodeGeneration)
         {
             private readonly ConcurrentDictionary<string, AnalyzerConfigData> _sourcePathToResult = [];
-            private readonly Func<string, AnalyzerConfigData> _computeFunction = path => new AnalyzerConfigData(configSet.GetOptionsForSourcePath(path), fallbackOptions);
-            private readonly Lazy<AnalyzerConfigData> _global = new(() => new AnalyzerConfigData(configSet.GlobalConfigOptions, StructuredAnalyzerConfigOptions.Empty));
+            private readonly Func<string, AnalyzerConfigData> _computeFunction = path => new AnalyzerConfigData(configSet.GetOptionsForSourcePath(path), fallbackOptions, legacyOverrideSuppressRazorSourceGenerator: false);
+            private readonly Lazy<AnalyzerConfigData> _global = new(() => new AnalyzerConfigData(configSet.GlobalConfigOptions, StructuredAnalyzerConfigOptions.Empty, legacyOverrideSuppressRazorSourceGenerator: legacyRazorForceRuntimeCodeGeneration));
 
             public AnalyzerConfigData GlobalConfigOptions
                 => _global.Value;
@@ -37,21 +42,21 @@ internal sealed partial class ProjectState
         public readonly AsyncLazy<Value> Lazy = AsyncLazy.Create(
             asynchronousComputeFunction: static async (args, cancellationToken) =>
             {
-                var (analyzerConfigDocumentStates, fallbackOptions) = args;
+                var (analyzerConfigDocumentStates, fallbackOptions, legacyRazorForceRuntimeCodeGeneration) = args;
                 var tasks = analyzerConfigDocumentStates.States.Values.Select(a => a.GetAnalyzerConfigAsync(cancellationToken));
                 var analyzerConfigs = await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                return new Value(AnalyzerConfigSet.Create(analyzerConfigs), fallbackOptions);
+                return new Value(AnalyzerConfigSet.Create(analyzerConfigs), fallbackOptions, legacyRazorForceRuntimeCodeGeneration);
             },
             synchronousComputeFunction: static (args, cancellationToken) =>
             {
-                var (analyzerConfigDocumentStates, fallbackOptions) = args;
+                var (analyzerConfigDocumentStates, fallbackOptions, legacyRazorForceRuntimeCodeGeneration) = args;
                 var analyzerConfigs = analyzerConfigDocumentStates.SelectAsArray(a => a.GetAnalyzerConfig(cancellationToken));
-                return new Value(AnalyzerConfigSet.Create(analyzerConfigs), fallbackOptions);
+                return new Value(AnalyzerConfigSet.Create(analyzerConfigs), fallbackOptions, legacyRazorForceRuntimeCodeGeneration);
             },
-            arg: (analyzerConfigDocumentStates, fallbackOptions));
+            arg: (analyzerConfigDocumentStates, fallbackOptions, legacyRazorForceRuntimeCodeGeneration));
 
         public StructuredAnalyzerConfigOptions FallbackOptions
             => fallbackOptions;

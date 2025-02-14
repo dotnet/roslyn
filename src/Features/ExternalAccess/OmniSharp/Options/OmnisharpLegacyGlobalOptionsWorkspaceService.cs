@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options
         public int RazorTabSize
             => LineFormattingOptions.Default.TabSize;
 
+        public bool RazorForceRuntimeCodeGeneration
+            => false;
+
         public bool GenerateOverrides
         {
             get => true;
