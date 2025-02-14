@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return localFunctions.SelectAsArray(static (l, map) => (MethodSymbol)map[l], _symbolMap);
         }
 
-        [return: NotNullIfNotNull("symbol")]
+        [return: NotNullIfNotNull(nameof(symbol))]
         protected override MethodSymbol? VisitMethodSymbol(MethodSymbol? symbol)
         {
             switch (symbol?.MethodKind)
@@ -149,7 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.Unreachable();
 
                 case MethodKind.LocalFunction:
-                    return (MethodSymbol)_symbolMap[symbol];
+                    if (symbol.IsDefinition)
+                    {
+                        return (MethodSymbol)_symbolMap[symbol];
+                    }
+
+                    return ((MethodSymbol)_symbolMap[symbol.OriginalDefinition]).ConstructIfGeneric(TypeMap.SubstituteTypes(symbol.TypeArgumentsWithAnnotations));
 
                 default:
                     return base.VisitMethodSymbol(symbol);

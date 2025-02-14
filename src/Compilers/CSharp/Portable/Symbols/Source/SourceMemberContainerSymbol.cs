@@ -3591,7 +3591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedTypeMembersIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
 
-                    if (TypeKind == TypeKind.Class)
+                    if (TypeKind == TypeKind.Class) // PROTOTYPE: Consider tightening this check to only top-level non-generic static classes, however optimizing for error scenarios is usually not a goal.
                     {
                         AddSynthesizedExtensionImplementationsIfNecessary(builder, declaredMembersAndInitializers);
                     }

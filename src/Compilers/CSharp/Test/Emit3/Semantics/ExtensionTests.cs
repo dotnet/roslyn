@@ -2772,7 +2772,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -2841,7 +2841,7 @@ public static class Extensions
         Assert.True(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -2905,7 +2905,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -3006,7 +3006,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -3111,7 +3111,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", ("""
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -3407,7 +3407,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -3634,7 +3634,7 @@ public class C<T>
         Assert.True(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -3694,13 +3694,13 @@ public static class Extensions
     {
         string M<U>(T t1, U u1)
         {
-            U local(T t2, U u2)
+            U local<X, Y, Z>(T t2, U u2, X x2, Y y2, Z z2)
             {
-                _ = o.GetString() + u1.ToString() + t1.ToString() + u2.ToString() + t2.ToString();
+                _ = o.GetString() + u1.ToString() + t1.ToString() + u2.ToString() + t2.ToString() + x2.ToString() + y2.ToString() + z2.ToString();
                 return u2;
             };
 
-            return local(t1, u1).ToString();
+            return local(t1, u1, 0, t1, u1).ToString();
         }
     }
 }
@@ -3711,7 +3711,7 @@ public class C<T>
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -3728,7 +3728,7 @@ public class C<T>
                 !!U u1
             ) cil managed 
         {
-            // Method begins at RVA 0x212b
+            // Method begins at RVA 0x216a
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
@@ -3755,8 +3755,8 @@ public class C<T>
         ) cil managed 
     {
         // Method begins at RVA 0x2068
-        // Code size 58 (0x3a)
-        .maxstack 3
+        // Code size 71 (0x47)
+        .maxstack 6
         .locals init (
             [0] valuetype Extensions/'<>c__DisplayClass0_0`2'<!!T, !!U>,
             [1] !!U
@@ -3774,65 +3774,91 @@ public class C<T>
         IL_0019: ldfld !0 valuetype Extensions/'<>c__DisplayClass0_0`2'<!!T, !!U>::t1
         IL_001e: ldloc.0
         IL_001f: ldfld !1 valuetype Extensions/'<>c__DisplayClass0_0`2'<!!T, !!U>::u1
-        IL_0024: ldloca.s 0
-        IL_0026: call !!1 Extensions::'<<Extension>M>b__0_0'<!!T, !!U>(!!0, !!1, valuetype Extensions/'<>c__DisplayClass0_0`2'<!!0, !!1>&)
-        IL_002b: stloc.1
-        IL_002c: ldloca.s 1
-        IL_002e: constrained. !!U
-        IL_0034: callvirt instance string [mscorlib]System.Object::ToString()
-        IL_0039: ret
+        IL_0024: ldc.i4.0
+        IL_0025: ldloc.0
+        IL_0026: ldfld !0 valuetype Extensions/'<>c__DisplayClass0_0`2'<!!T, !!U>::t1
+        IL_002b: ldloc.0
+        IL_002c: ldfld !1 valuetype Extensions/'<>c__DisplayClass0_0`2'<!!T, !!U>::u1
+        IL_0031: ldloca.s 0
+        IL_0033: call !!1 Extensions::'<<Extension>M>b__0_0'<!!T, !!U, int32, !!T, !!U>(!!0, !!1, !!2, !!3, !!4, valuetype Extensions/'<>c__DisplayClass0_0`2'<!!0, !!1>&)
+        IL_0038: stloc.1
+        IL_0039: ldloca.s 1
+        IL_003b: constrained. !!U
+        IL_0041: callvirt instance string [mscorlib]System.Object::ToString()
+        IL_0046: ret
     } // end of method Extensions::'<Extension>M'
     .method assembly hidebysig static 
-        !!U '<<Extension>M>b__0_0'<T, U> (
+        !!U '<<Extension>M>b__0_0'<T, U, X, Y, Z> (
             !!T t2,
             !!U u2,
+            !!X x2,
+            !!Y y2,
+            !!Z z2,
             valuetype Extensions/'<>c__DisplayClass0_0`2'<!!T, !!U>& ''
         ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x20b0
-        // Code size 100 (0x64)
+        // Method begins at RVA 0x20bc
+        // Code size 151 (0x97)
         .maxstack 4
-        IL_0000: ldc.i4.5
+        IL_0000: ldc.i4.8
         IL_0001: newarr [mscorlib]System.String
         IL_0006: dup
         IL_0007: ldc.i4.0
-        IL_0008: ldarg.2
-        IL_0009: ldfld class C`1<!0> valuetype Extensions/'<>c__DisplayClass0_0`2'<!!T, !!U>::o
-        IL_000e: callvirt instance string class C`1<!!T>::GetString()
-        IL_0013: stelem.ref
-        IL_0014: dup
-        IL_0015: ldc.i4.1
-        IL_0016: ldarg.2
-        IL_0017: ldflda !1 valuetype Extensions/'<>c__DisplayClass0_0`2'<!!T, !!U>::u1
-        IL_001c: constrained. !!U
-        IL_0022: callvirt instance string [mscorlib]System.Object::ToString()
-        IL_0027: stelem.ref
-        IL_0028: dup
-        IL_0029: ldc.i4.2
-        IL_002a: ldarg.2
-        IL_002b: ldflda !0 valuetype Extensions/'<>c__DisplayClass0_0`2'<!!T, !!U>::t1
-        IL_0030: constrained. !!T
-        IL_0036: callvirt instance string [mscorlib]System.Object::ToString()
-        IL_003b: stelem.ref
-        IL_003c: dup
-        IL_003d: ldc.i4.3
-        IL_003e: ldarga.s u2
-        IL_0040: constrained. !!U
-        IL_0046: callvirt instance string [mscorlib]System.Object::ToString()
-        IL_004b: stelem.ref
-        IL_004c: dup
-        IL_004d: ldc.i4.4
-        IL_004e: ldarga.s t2
-        IL_0050: constrained. !!T
-        IL_0056: callvirt instance string [mscorlib]System.Object::ToString()
-        IL_005b: stelem.ref
-        IL_005c: call string [mscorlib]System.String::Concat(string[])
-        IL_0061: pop
-        IL_0062: ldarg.1
-        IL_0063: ret
+        IL_0008: ldarg.s 5
+        IL_000a: ldfld class C`1<!0> valuetype Extensions/'<>c__DisplayClass0_0`2'<!!T, !!U>::o
+        IL_000f: callvirt instance string class C`1<!!T>::GetString()
+        IL_0014: stelem.ref
+        IL_0015: dup
+        IL_0016: ldc.i4.1
+        IL_0017: ldarg.s 5
+        IL_0019: ldflda !1 valuetype Extensions/'<>c__DisplayClass0_0`2'<!!T, !!U>::u1
+        IL_001e: constrained. !!U
+        IL_0024: callvirt instance string [mscorlib]System.Object::ToString()
+        IL_0029: stelem.ref
+        IL_002a: dup
+        IL_002b: ldc.i4.2
+        IL_002c: ldarg.s 5
+        IL_002e: ldflda !0 valuetype Extensions/'<>c__DisplayClass0_0`2'<!!T, !!U>::t1
+        IL_0033: constrained. !!T
+        IL_0039: callvirt instance string [mscorlib]System.Object::ToString()
+        IL_003e: stelem.ref
+        IL_003f: dup
+        IL_0040: ldc.i4.3
+        IL_0041: ldarga.s u2
+        IL_0043: constrained. !!U
+        IL_0049: callvirt instance string [mscorlib]System.Object::ToString()
+        IL_004e: stelem.ref
+        IL_004f: dup
+        IL_0050: ldc.i4.4
+        IL_0051: ldarga.s t2
+        IL_0053: constrained. !!T
+        IL_0059: callvirt instance string [mscorlib]System.Object::ToString()
+        IL_005e: stelem.ref
+        IL_005f: dup
+        IL_0060: ldc.i4.5
+        IL_0061: ldarga.s x2
+        IL_0063: constrained. !!X
+        IL_0069: callvirt instance string [mscorlib]System.Object::ToString()
+        IL_006e: stelem.ref
+        IL_006f: dup
+        IL_0070: ldc.i4.6
+        IL_0071: ldarga.s y2
+        IL_0073: constrained. !!Y
+        IL_0079: callvirt instance string [mscorlib]System.Object::ToString()
+        IL_007e: stelem.ref
+        IL_007f: dup
+        IL_0080: ldc.i4.7
+        IL_0081: ldarga.s z2
+        IL_0083: constrained. !!Z
+        IL_0089: callvirt instance string [mscorlib]System.Object::ToString()
+        IL_008e: stelem.ref
+        IL_008f: call string [mscorlib]System.String::Concat(string[])
+        IL_0094: pop
+        IL_0095: ldarg.1
+        IL_0096: ret
     } // end of method Extensions::'<<Extension>M>b__0_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
@@ -3865,7 +3891,7 @@ public class C<T>
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -4024,7 +4050,7 @@ public class C<T>
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", ("""
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -4336,7 +4362,7 @@ public class C<T>
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -4565,7 +4591,7 @@ public static class Extensions
         Assert.True(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -4630,7 +4656,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -4732,7 +4758,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -4838,7 +4864,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", ("""
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -5135,7 +5161,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -5355,7 +5381,7 @@ public static class Extensions
         Assert.True(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -5411,7 +5437,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions

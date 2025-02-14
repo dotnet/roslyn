@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
         {
-            // PROTOTYPE(roles): Test this code path
+            // PROTOTYPE: Test this code path
             return _originalMethod.HasAsyncMethodBuilderAttribute(out builderArgument);
         }
 

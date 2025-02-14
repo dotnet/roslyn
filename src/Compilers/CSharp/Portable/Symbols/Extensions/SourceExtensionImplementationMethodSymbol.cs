@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                // PROTOTYPE: Would it be better to not create an implementation method in the first place when the ExtensionParameter is faulty?
+                //            I personally don't see much advantage in that.
                 return _originalMethod.ParameterCount +
                     (_originalMethod.IsStatic || _originalMethod.ContainingType is not SourceNamedTypeSymbol { ExtensionParameter: { } } ? 0 : 1);
             }

@@ -1348,7 +1348,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 ILBuilder builder = new ILBuilder(_moduleBeingBuiltOpt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
 
-                                // throw null;
+                                // Emit methods in extensions as skeletons:
+                                // => throw null;
                                 // PROTOTYPE: Should we throw NotSupportedException instead?
                                 builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Ldnull);
                                 builder.EmitThrow(isRethrow: false);
