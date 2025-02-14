@@ -296,7 +296,7 @@ internal sealed class HostDiagnosticAnalyzers
         return current;
     }
 
-    public SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(Project project, DiagnosticAnalyzerInfoCache infoCache)
+    public SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(ProjectState project, DiagnosticAnalyzerInfoCache infoCache)
     {
         var box = _skippedHostAnalyzers.GetOrCreateValue(project.AnalyzerReferences);
 

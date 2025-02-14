@@ -17,13 +17,15 @@ internal partial class DiagnosticAnalyzerService
     {
         private partial class StateManager
         {
-            private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo(Project project, ProjectAnalyzerInfo projectAnalyzerInfo)
+            private HostAnalyzerInfo GetOrCreateHostAnalyzerInfo(
+                Project project, ProjectAnalyzerInfo projectAnalyzerInfo)
             {
-                var key = new HostAnalyzerInfoKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);
+                var analyzers = project.Solution.SolutionState.Analyzers;
+                var key = new HostAnalyzerInfoKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, analyzers.HostAnalyzerReferences);
                 // Some Host Analyzers may need to be treated as Project Analyzers so that they do not have access to the
                 // Host fallback options. These ids will be used when building up the Host and Project analyzer collections.
                 var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(project);
-                var hostAnalyzerInfo = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (project.Solution.SolutionState.Analyzers, referenceIdsToRedirect));
+                var hostAnalyzerInfo = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (Analyzers: analyzers, referenceIdsToRedirect));
                 return hostAnalyzerInfo.WithExcludedAnalyzers(projectAnalyzerInfo.SkippedAnalyzersInfo.SkippedAnalyzers);
 
                 static HostAnalyzerInfo CreateLanguageSpecificAnalyzerMap(HostAnalyzerInfoKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
@@ -65,7 +67,8 @@ internal partial class DiagnosticAnalyzerService
                 }
             }
 
-            private static ImmutableHashSet<object> GetReferenceIdsToRedirectAsProjectAnalyzers(Project project)
+            private static ImmutableHashSet<object> GetReferenceIdsToRedirectAsProjectAnalyzers(
+                Project project)
             {
                 if (project.State.HasSdkCodeStyleAnalyzers)
                 {

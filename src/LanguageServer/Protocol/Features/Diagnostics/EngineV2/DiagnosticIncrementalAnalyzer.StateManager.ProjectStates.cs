@@ -78,14 +78,15 @@ internal partial class DiagnosticAnalyzerService
                 // workspace placeholder analyzers.  So we should never get host analyzers back here.
                 Contract.ThrowIfTrue(newHostAnalyzers.Count > 0);
 
-                var skippedAnalyzersInfo = project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
+                var skippedAnalyzersInfo = hostAnalyzers.GetSkippedAnalyzersInfo(project.State, _analyzerInfoCache);
                 return new ProjectAnalyzerInfo(project.AnalyzerReferences, newAllAnalyzers, skippedAnalyzersInfo);
             }
 
             /// <summary>
             /// Updates the map to the given project snapshot.
             /// </summary>
-            private async Task<ProjectAnalyzerInfo> UpdateProjectAnalyzerInfoAsync(Project project, CancellationToken cancellationToken)
+            private async Task<ProjectAnalyzerInfo> UpdateProjectAnalyzerInfoAsync(
+                Project project, CancellationToken cancellationToken)
             {
                 // This code is called concurrently for a project, so the guard prevents duplicated effort calculating StateSets.
                 using (await _projectAnalyzerStateMapGuard.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
