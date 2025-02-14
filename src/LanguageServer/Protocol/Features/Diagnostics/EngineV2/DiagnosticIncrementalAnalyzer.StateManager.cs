@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -48,18 +44,18 @@ internal partial class DiagnosticAnalyzerService
             /// Return <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>. 
             /// </summary>
             public async Task<ImmutableArray<DiagnosticAnalyzer>> GetOrCreateAnalyzersAsync(
-                Project project, CancellationToken cancellationToken)
+                SolutionState solution, ProjectState project, CancellationToken cancellationToken)
             {
-                var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
-                var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(solution, project, cancellationToken).ConfigureAwait(false);
+                var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(solution, project, cancellationToken).ConfigureAwait(false);
                 return hostAnalyzerInfo.OrderedAllAnalyzers.AddRange(projectAnalyzerInfo.Analyzers);
             }
 
             public async Task<HostAnalyzerInfo> GetOrCreateHostAnalyzerInfoAsync(
-                Project project, CancellationToken cancellationToken)
+                SolutionState solution, ProjectState project, CancellationToken cancellationToken)
             {
-                var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
-                return GetOrCreateHostAnalyzerInfo(project, projectAnalyzerInfo);
+                var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(solution, project, cancellationToken).ConfigureAwait(false);
+                return GetOrCreateHostAnalyzerInfo(solution, project, projectAnalyzerInfo);
             }
 
             private static (ImmutableHashSet<DiagnosticAnalyzer> hostAnalyzers, ImmutableHashSet<DiagnosticAnalyzer> allAnalyzers) PartitionAnalyzers(

@@ -19,36 +19,46 @@ internal partial class DiagnosticAnalyzerService
     private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
-        /// Cached data from a real <see cref="Project"/> instance to the cached diagnostic data produced by
+        /// Cached data from a real <see cref="ProjectState"/> instance to the cached diagnostic data produced by
         /// <em>all</em> the analyzers for the project.  This data can then be used by <see
         /// cref="GetDiagnosticsForIdsAsync"/> to speed up subsequent calls through the normal <see
         /// cref="IDiagnosticAnalyzerService"/> entry points as long as the project hasn't changed at all.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, StrongBox<(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> _projectToForceAnalysisData = new();
+        /// <remarks>
+        /// This table is keyed off of <see cref="ProjectState"/> but stores data from <see cref="SolutionState"/> on
+        /// it.  Specifically <see cref="SolutionState.Analyzers"/>.  Normally keying off a ProjectState would not be ok
+        /// as the ProjectState might stay the same while the SolutionState changed.  However, that can't happen as
+        /// SolutionState has the data for Analyzers computed prior to Projects being added, and then never changes.
+        /// Practically, solution analyzers are the core Roslyn analyzers themselves we distribute, or analyzers shipped
+        /// by vsix (not nuget).  These analyzers do not get loaded after changing *until* VS restarts.
+        /// </remarks>
+        private static readonly ConditionalWeakTable<ProjectState, StrongBox<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> s_projectToForceAnalysisData = new();
 
         public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
             var projectState = project.State;
+            var checksum = await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
-                if (!_projectToForceAnalysisData.TryGetValue(project, out var box))
+                if (!s_projectToForceAnalysisData.TryGetValue(projectState, out var box) ||
+                    box.Value.checksum != checksum)
                 {
                     box = new(await ComputeForceAnalyzeProjectAsync().ConfigureAwait(false));
 
                     // Try to add the new computed data to the CWT.  But use any existing value that another thread
                     // might have beaten us to storing in it.
 #if NET
-                    if (!_projectToForceAnalysisData.TryAdd(project, box))
-                        Contract.ThrowIfFalse(_projectToForceAnalysisData.TryGetValue(project, out box));
+                    if (!s_projectToForceAnalysisData.TryAdd(projectState, box))
+                        Contract.ThrowIfFalse(s_projectToForceAnalysisData.TryGetValue(projectState, out box));
 #else
-                    box = _projectToForceAnalysisData.GetValue(project, _ => box);
+                    box = s_projectToForceAnalysisData.GetValue(projectState, _ => box);
 #endif
                 }
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
 
-                var (analyzers, projectAnalysisData) = box.Value;
+                var (_, analyzers, projectAnalysisData) = box.Value;
                 foreach (var analyzer in analyzers)
                 {
                     if (projectAnalysisData.TryGetValue(analyzer, out var analyzerResult))
@@ -62,10 +72,11 @@ internal partial class DiagnosticAnalyzerService
                 throw ExceptionUtilities.Unreachable();
             }
 
-            async Task<(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)> ComputeForceAnalyzeProjectAsync()
+            async Task<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)> ComputeForceAnalyzeProjectAsync()
             {
-                var allAnalyzers = await _stateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
-                var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+                var solutionState = project.Solution.SolutionState;
+                var allAnalyzers = await _stateManager.GetOrCreateAnalyzersAsync(solutionState, projectState, cancellationToken).ConfigureAwait(false);
+                var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, projectState, cancellationToken).ConfigureAwait(false);
 
                 var fullSolutionAnalysisAnalyzers = allAnalyzers.WhereAsArray(
                     static (analyzer, arg) => IsCandidateForFullSolutionAnalysis(
@@ -76,7 +87,7 @@ internal partial class DiagnosticAnalyzerService
                     project, fullSolutionAnalysisAnalyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 var projectAnalysisData = await ComputeDiagnosticAnalysisResultsAsync(compilationWithAnalyzers, project, fullSolutionAnalysisAnalyzers, cancellationToken).ConfigureAwait(false);
-                return (fullSolutionAnalysisAnalyzers, projectAnalysisData);
+                return (checksum, fullSolutionAnalysisAnalyzers, projectAnalysisData);
             }
 
             static bool IsCandidateForFullSolutionAnalysis(
