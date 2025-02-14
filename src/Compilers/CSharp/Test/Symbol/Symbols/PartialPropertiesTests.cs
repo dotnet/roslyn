@@ -5090,5 +5090,43 @@ public partial class C
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76842")]
+        public void IndexerWithName_01()
+        {
+            var source = """
+                using System.Runtime.CompilerServices;
+
+                partial struct S1
+                {
+                    public partial int this[int x] {get=>x;}
+
+                    [IndexerName("MyName")]
+                    public partial int this[int x] {get;}
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76842")]
+        public void IndexerWithName_02()
+        {
+            var source = """
+                using System.Runtime.CompilerServices;
+
+                partial struct S1
+                {
+                    [IndexerName("MyName")]
+                    public partial int this[int x] {get=>x;}
+
+                    public partial int this[int x] {get;}
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }

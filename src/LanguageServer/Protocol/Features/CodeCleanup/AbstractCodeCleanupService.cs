@@ -202,7 +202,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             // Compute diagnostics for everything that is not an IDE analyzer
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(document, range,
                 shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId)),
-                includeCompilerDiagnostics: true,
                 priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
                 DiagnosticKind.All, isExplicit: false,
                 cancellationToken).ConfigureAwait(false);
