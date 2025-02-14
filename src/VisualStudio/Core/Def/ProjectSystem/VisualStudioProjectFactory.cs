@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
@@ -34,6 +35,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
     private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
     private readonly IVsService<SVsSolution, IVsSolution2> _solution2;
+    private readonly IGlobalOptionService _globalOptions;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -42,13 +44,15 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
         IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
-        IVsService<SVsSolution, IVsSolution2> solution2)
+        IVsService<SVsSolution, IVsSolution2> solution2,
+        IGlobalOptionService globalOptions)
     {
         _threadingContext = threadingContext;
         _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
         _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
         _vsixAnalyzerProviderFactory = vsixAnalyzerProviderFactory;
         _solution2 = solution2;
+        _globalOptions = globalOptions;
     }
 
     public Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
@@ -93,7 +97,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
 
-        var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, vsixAnalyzerProvider);
+        var hostInfo = new ProjectSystemHostInfo(LegacyRazorOptions.FilterDynamicFileInfoProviders(_globalOptions, _dynamicFileInfoProviders), vsixAnalyzerProvider);
         var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo);
 
         _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);

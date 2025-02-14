@@ -92,7 +92,7 @@ internal sealed partial class ProjectState
     /// TODO: Remove once Razor ForceRuntimeCodeGeneration feature flag is removed.
     /// </summary>
     private static bool LegacyRazorForceRuntimeCodeGeneration(SolutionServices services)
-        => services.GetService<ILegacyGlobalOptionsWorkspaceService>()?.RazorForceRuntimeCodeGeneration == true;
+        => services.GetService<IWorkspaceConfigurationService>()?.Options.LegacyRazorForceRuntimeCodeGeneration == true;
 
     public ProjectState(LanguageServices languageServices, ProjectInfo projectInfo, StructuredAnalyzerConfigOptions fallbackAnalyzerOptions)
     {

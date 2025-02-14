@@ -12,15 +12,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Host;
 
 [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Host), Shared]
-internal sealed class RemoteWorkspaceConfigurationService : IWorkspaceConfigurationService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class RemoteWorkspaceConfigurationService() : IWorkspaceConfigurationService
 {
     private WorkspaceConfigurationOptions? _options;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RemoteWorkspaceConfigurationService()
-    {
-    }
 
     /// <summary>
     /// Returns default values until the options are initialized.

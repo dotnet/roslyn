@@ -15,7 +15,8 @@ internal static class WorkspaceConfigurationOptionsStorage
                 (globalOptions.GetOption(SourceGeneratorExecutionBalancedFeatureFlag) ? SourceGeneratorExecutionPreference.Balanced : SourceGeneratorExecutionPreference.Automatic),
             ReloadChangedAnalyzerReferences:
                 globalOptions.GetOption(ReloadChangedAnalyzerReferences) ?? globalOptions.GetOption(ReloadChangedAnalyzerReferencesFeatureFlag),
-            ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
+            ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates),
+            LegacyRazorForceRuntimeCodeGeneration: globalOptions.GetOption(LegacyRazorOptions.ForceRuntimeCodeGeneration));
 
     public static readonly Option2<bool> ValidateCompilationTrackerStates = new(
         "dotnet_validate_compilation_tracker_states", WorkspaceConfigurationOptions.Default.ValidateCompilationTrackerStates);

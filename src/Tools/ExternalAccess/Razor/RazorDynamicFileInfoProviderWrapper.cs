@@ -8,27 +8,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     [Shared]
     [ExportMetadata("Extensions", new string[] { "cshtml", "razor", })]
     [Export(typeof(IDynamicFileInfoProvider))]
-    internal sealed class RazorDynamicFileInfoProviderWrapper : IDynamicFileInfoProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class RazorDynamicFileInfoProviderWrapper(
+        Lazy<IRazorDynamicFileInfoProvider> innerDynamicFileInfoProvider) : IDynamicFileInfoProvider
     {
-        private readonly Lazy<IRazorDynamicFileInfoProvider> _innerDynamicFileInfoProvider;
+        private readonly Lazy<IRazorDynamicFileInfoProvider> _innerDynamicFileInfoProvider = innerDynamicFileInfoProvider ?? throw new ArgumentNullException(nameof(innerDynamicFileInfoProvider));
         private readonly object _attachLock = new object();
         private bool _attached;
 
         public event EventHandler<string>? Updated;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RazorDynamicFileInfoProviderWrapper(
-            Lazy<IRazorDynamicFileInfoProvider> innerDynamicFileInfoProvider)
-        {
-            _innerDynamicFileInfoProvider = innerDynamicFileInfoProvider ?? throw new ArgumentNullException(nameof(innerDynamicFileInfoProvider));
-        }
 
         public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
         {

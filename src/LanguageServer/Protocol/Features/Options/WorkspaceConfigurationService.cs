@@ -10,20 +10,14 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.Host;
 
 [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Host), Shared]
-internal sealed class WorkspaceConfigurationService : IWorkspaceConfigurationService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class WorkspaceConfigurationService(IGlobalOptionService globalOptions) : IWorkspaceConfigurationService
 {
-    private readonly IGlobalOptionService _globalOptions;
     private WorkspaceConfigurationOptions? _lazyOptions;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public WorkspaceConfigurationService(IGlobalOptionService globalOptions)
-    {
-        _globalOptions = globalOptions;
-    }
-
     public WorkspaceConfigurationOptions Options
-        => _lazyOptions ??= _globalOptions.GetWorkspaceConfigurationOptions();
+        => _lazyOptions ??= globalOptions.GetWorkspaceConfigurationOptions();
 
     internal void Clear()
         => _lazyOptions = null;

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -29,7 +30,8 @@ internal sealed class LanguageServerWorkspaceFactory
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
         ProjectTargetFrameworkManager projectTargetFrameworkManager,
         ServerConfigurationFactory serverConfigurationFactory,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        IGlobalOptionService globalOptions)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerWorkspaceFactory));
 
@@ -41,8 +43,9 @@ internal sealed class LanguageServerWorkspaceFactory
         workspace.ProjectSystemProjectFactory = ProjectSystemProjectFactory;
 
         var razorSourceGenerator = serverConfigurationFactory?.ServerConfiguration?.RazorSourceGenerator;
+
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
-            DynamicFileInfoProviders: [.. dynamicFileInfoProviders],
+            DynamicFileInfoProviders: LegacyRazorOptions.FilterDynamicFileInfoProviders(globalOptions, dynamicFileInfoProviders),
             new HostDiagnosticAnalyzerProvider(razorSourceGenerator));
 
         TargetFrameworkManager = projectTargetFrameworkManager;

@@ -37,11 +37,11 @@ internal sealed record class WorkspaceConfigurationOptions(
     [property: DataMember(Order = 1)] bool ReloadChangedAnalyzerReferences = true,
     [property: DataMember(Order = 2)] bool ValidateCompilationTrackerStates =
 #if DEBUG // We will default this on in DEBUG builds
-        true
+        true,
 #else
-        false
+        false,
 #endif
-    )
+    [property: DataMember(Order = 3)] bool LegacyRazorForceRuntimeCodeGeneration = false)
 {
     public static readonly WorkspaceConfigurationOptions Default = new();
 
