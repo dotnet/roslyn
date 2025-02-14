@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
         }
 
-        private void WriteOutputInBackground(bool isError, string firstLine, string? secondLine = null)
+        private async Task WriteOutputInBackgroundAsync(bool isError, string firstLine, string? secondLine = null)
         {
             var writer = isError ? _errorOutput : _output;
             var guard = isError ? _errorOutputGuard : _outputGuard;
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             // without deadlocks with other operations.
             // This could happen, for example, for writers provided by the Interactive Window,
             // and in the case where the window is being disposed.
-            Task.Run(() =>
+            await Task.Run(() =>
             {
                 lock (guard)
                 {
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         writer.WriteLine(secondLine);
                     }
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         private LazyRemoteService CreateRemoteService(InteractiveHostOptions options, bool skipInitialization)
@@ -190,13 +190,13 @@ namespace Microsoft.CodeAnalysis.Interactive
             return new LazyRemoteService(this, options, Interlocked.Increment(ref _remoteServiceInstanceId), skipInitialization);
         }
 
-        private Task OnProcessExitedAsync(Process process)
+        private async Task OnProcessExitedAsync(Process process)
         {
-            ReportProcessExited(process);
-            return TryGetOrCreateRemoteServiceAsync();
+            await ReportProcessExitedAsync(process).ConfigureAwait(false);
+            await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
         }
 
-        private void ReportProcessExited(Process process)
+        private async Task ReportProcessExitedAsync(Process process)
         {
             int? exitCode;
             try
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             if (exitCode.HasValue)
             {
-                WriteOutputInBackground(isError: true, string.Format(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, exitCode.Value));
+                await WriteOutputInBackgroundAsync(isError: true, string.Format(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, exitCode.Value)).ConfigureAwait(false);
             }
         }
 
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
                 }
 
-                WriteOutputInBackground(isError: true, InteractiveHostResources.Unable_to_create_hosting_process);
+                await WriteOutputInBackgroundAsync(isError: true, InteractiveHostResources.Unable_to_create_hosting_process).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
