@@ -52,13 +52,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Debugging\Resources\*.*" />
+    <Compile Remove="Diagnostics\NamingStyles\**" />
     <EmbeddedResource Include="Debugging\Resources\*.*" LogicalName="Debugging/%(FileName)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\VisualStudio\Core\Def\CodeCleanup\AbstractCodeCleanUpFixer_Helper.cs" Link="Formatting\AbstractCodeCleanUpFixer_Helper.cs" />
+    <EmbeddedResource Remove="Diagnostics\NamingStyles\**" />
+    <Page Remove="Diagnostics\NamingStyles\**" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Diagnostics\NamingStyles\" />
+    <Compile Include="..\..\VisualStudio\Core\Def\CodeCleanup\AbstractCodeCleanUpFixer_Helper.cs" Link="Formatting\AbstractCodeCleanUpFixer_Helper.cs" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>
