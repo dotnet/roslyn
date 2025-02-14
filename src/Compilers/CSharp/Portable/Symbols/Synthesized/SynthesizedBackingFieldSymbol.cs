@@ -197,7 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // No nullable warnings occur in the getter when we treat the field as nullable.
                 // Infer that the field is nullable-annotated. This can prevent nuisance warnings in constructors.
-                // TODO2: maybe play with some scenarios which read the field in the setter. Didn't we say field should always be nullable at the start of that anyways?
                 annotatedDiagnostics.Free();
                 return NullableAnnotation.Annotated;
             }

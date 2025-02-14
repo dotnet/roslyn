@@ -10796,8 +10796,39 @@ class C<T>
             Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
-        // TODO2: test where different yet "morally equivalent" set of nullable warnings occurs with/without annotation of the field.
-        // for example, something involving type argument reinference.
+        [Fact]
+        public void Nullable_Getter_DifferentWarningsOccurWithEitherNullability()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public string Prop
+                    {
+                        get
+                        {
+                            var list = M(field);
+                            List<string> li1 = list;
+                            List<string?> li2 = list;
+                            return field;
+                        }
+                    }
+
+                    static List<T> M<T>(T elem) => [elem];
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                //     public string Prop
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(6, 19),
+                // (12,33): warning CS8619: Nullability of reference types in value of type 'List<string>' doesn't match target type 'List<string?>'.
+                //             List<string?> li2 = list;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "list").WithArguments("System.Collections.Generic.List<string>", "System.Collections.Generic.List<string?>").WithLocation(12, 33));
+        }
 
         [Fact]
         public void NullResilience_GetterDoesNotUseField()
@@ -10974,6 +11005,330 @@ class C<T>
 
                     [AllowNull]
                     public string Prop { get => field ??= "a"; set; }
+                }
+                """;
+
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Resilient_UseInSetter_01()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field ??= "a";
+                        set => field = field.ToString();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (8,24): warning CS8602: Dereference of a possibly null reference.
+                //         set => field = field.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(8, 24));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Resilient_UseInSetter_02()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field ??= "a";
+                        set => field = null;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Resilient_NotNullProperty_01()
+        {
+            var source = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    [NotNull]
+                    public string? Prop
+                    {
+                        get => field ??= "a";
+                        set => field = null;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.False(prop.BackingField.InfersNullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Resilient_NotNullProperty_02()
+        {
+            var source = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                class C<T>
+                {
+                    [NotNull]
+                    public T Prop
+                    {
+                        get => field ??= default!;
+                        set => field = default;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Resilient_NotNullProperty_03()
+        {
+            var source = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                class C<T>(T fallback)
+                {
+                    [NotNull]
+                    public T Prop
+                    {
+                        get => field ??= fallback;
+                        set => field = default;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (9,16): warning CS8607: A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]
+                //         get => field ??= fallback;
+                Diagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, "field ??= fallback").WithLocation(9, 16));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Resilient_Generic_01()
+        {
+            var source = """
+                #nullable enable
+
+                class C<T>(T fallback)
+                {
+                    public T Prop
+                    {
+                        get => field ??= fallback;
+                        set => field = default;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_NotResilient_Generic_01()
+        {
+            var source = """
+                #nullable enable
+
+                class C<T>
+                {
+                    public T Prop
+                    {
+                        get => field;
+                        set => field = value;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,14): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                //     public T Prop
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 14));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_NotResilient_UseInSetter_01()
+        {
+            // Setter analysis is not yet implemented.
+            // https://github.com/dotnet/roslyn/issues/77215
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field;
+                        set => field = field.ToString();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                //     public string Prop
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_NotResilient_UseInSetter_02()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field;
+                        set => field = null;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                //     public string Prop
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19),
+                // (8,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         set => field = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 24));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Theory]
+        [InlineData("#nullable disable")]
+        [InlineData("#nullable disable warnings")]
+        public void Nullable_NotResilient_AccessorWarningsAreDisabled_01(string directive)
+        {
+            var source = $$"""
+                #nullable enable
+
+                class C
+                {
+                    public string Prop
+                    {
+                {{directive}}
+                        get => field;
+                        set => field = null;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_NotResilient_AccessorWarningsAreDisabled_02()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string Prop
+                    {
+                #pragma warning disable 8603 // Possible null reference return.
+                        get => field;
+                        set => field = null;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                //     public string Prop
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19),
+                // (9,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         set => field = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 24));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Resilient_NullForgivingOperator()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field!;
+                        set => field = null;
+                    }
                 }
                 """;
 
