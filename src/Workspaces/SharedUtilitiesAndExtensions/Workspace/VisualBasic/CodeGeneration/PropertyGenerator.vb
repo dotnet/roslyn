@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim modifiers As ArrayBuilder(Of SyntaxToken) = Nothing
             Using x = ArrayBuilder(Of SyntaxToken).GetInstance(modifiers)
 
-                AddOrRemoveAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, destination, options, Accessibility.Public)
+                AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, destination, options, Accessibility.Public)
                 Return SyntaxFactory.TokenList(modifiers)
             End Using
         End Function
@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 End If
 
                 If destination <> CodeGenerationDestination.InterfaceType Then
-                    AddOrRemoveAccessibilityModifiers([property].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
+                    AddAccessibilityModifiers([property].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
 
                     If [property].IsStatic AndAlso destination <> CodeGenerationDestination.ModuleType Then
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))

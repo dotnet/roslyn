@@ -33,7 +33,7 @@ internal static class CSharpCodeGenerationHelpers
             : result;
     }
 
-    internal static void AddOrRemoveAccessibilityModifiers(
+    internal static void AddAccessibilityModifiers(
         Accessibility accessibility,
         ArrayBuilder<SyntaxToken> tokens,
         CSharpCodeGenerationContextInfo info,

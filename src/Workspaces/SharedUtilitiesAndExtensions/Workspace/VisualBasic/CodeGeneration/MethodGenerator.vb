@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim result As ArrayBuilder(Of SyntaxToken) = Nothing
             Using x = ArrayBuilder(Of SyntaxToken).GetInstance(result)
                 If destination <> CodeGenerationDestination.InterfaceType Then
-                    AddOrRemoveAccessibilityModifiers(method.DeclaredAccessibility, result, destination, options, Accessibility.Public)
+                    AddAccessibilityModifiers(method.DeclaredAccessibility, result, destination, options, Accessibility.Public)
 
                     If method.IsAbstract Then
                         result.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))

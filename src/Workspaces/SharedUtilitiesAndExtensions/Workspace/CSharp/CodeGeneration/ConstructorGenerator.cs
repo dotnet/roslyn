@@ -124,7 +124,7 @@ internal static class ConstructorGenerator
         }
         else
         {
-            AddOrRemoveAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, info, Accessibility.Private);
+            AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, info, Accessibility.Private);
         }
 
         if (CodeGenerationConstructorInfo.GetIsUnsafe(constructor))

@@ -347,7 +347,7 @@ internal static class PropertyGenerator
         if (accessor.DeclaredAccessibility != Accessibility.NotApplicable &&
             accessor.DeclaredAccessibility != property.DeclaredAccessibility)
         {
-            AddOrRemoveAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, info, property.DeclaredAccessibility);
+            AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, info, property.DeclaredAccessibility);
         }
 
         var hasNonReadOnlyAccessor = property.GetMethod?.IsReadOnly == false || property.SetMethod?.IsReadOnly == false;
@@ -383,7 +383,7 @@ internal static class PropertyGenerator
             }
             else if (destination is not CodeGenerationDestination.CompilationUnit)
             {
-                AddOrRemoveAccessibilityModifiers(property.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                AddAccessibilityModifiers(property.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (property.IsStatic)
                     tokens.Add(StaticKeyword);

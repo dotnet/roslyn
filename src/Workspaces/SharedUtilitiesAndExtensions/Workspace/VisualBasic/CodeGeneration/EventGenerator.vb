@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Using x = ArrayBuilder(Of SyntaxToken).GetInstance(tokens)
 
                 If destination <> CodeGenerationDestination.InterfaceType Then
-                    AddOrRemoveAccessibilityModifiers([event].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
+                    AddAccessibilityModifiers([event].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
 
                     If [event].IsStatic Then
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))

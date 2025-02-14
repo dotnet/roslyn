@@ -235,7 +235,7 @@ internal static class EventGenerator
             }
             else
             {
-                AddOrRemoveAccessibilityModifiers(@event.DeclaredAccessibility, tokens, info, Accessibility.Private);
+                AddAccessibilityModifiers(@event.DeclaredAccessibility, tokens, info, Accessibility.Private);
 
                 if (@event.IsStatic)
                     tokens.Add(StaticKeyword);

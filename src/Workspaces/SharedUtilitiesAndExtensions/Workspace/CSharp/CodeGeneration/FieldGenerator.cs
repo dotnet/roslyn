@@ -123,7 +123,7 @@ internal static class FieldGenerator
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
-        AddOrRemoveAccessibilityModifiers(field.DeclaredAccessibility, tokens, info, Accessibility.Private);
+        AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, info, Accessibility.Private);
         if (field.IsConst)
         {
             tokens.Add(ConstKeyword);

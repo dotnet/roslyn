@@ -275,7 +275,7 @@ internal static class NamedTypeGenerator
             var defaultAccessibility = destination is CodeGenerationDestination.CompilationUnit or CodeGenerationDestination.Namespace
                 ? Accessibility.Internal
                 : Accessibility.Private;
-            AddOrRemoveAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
+            AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
         }
         else
         {

@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Module VisualBasicCodeGenerationHelpers
 
-        Friend Sub AddOrRemoveAccessibilityModifiers(
+        Friend Sub AddAccessibilityModifiers(
                 accessibility As Accessibility,
                 tokens As ArrayBuilder(Of SyntaxToken),
                 destination As CodeGenerationDestination,

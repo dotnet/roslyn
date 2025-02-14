@@ -760,7 +760,7 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
     private static SyntaxTokenList UpdateDeclarationAccessibility(SyntaxTokenList modifiersList, Accessibility newAccessibility, CSharpCodeGenerationContextInfo info)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var newModifierTokens);
-        CSharpCodeGenerationHelpers.AddOrRemoveAccessibilityModifiers(newAccessibility, newModifierTokens, info, Accessibility.NotApplicable);
+        CSharpCodeGenerationHelpers.AddAccessibilityModifiers(newAccessibility, newModifierTokens, info, Accessibility.NotApplicable);
         if (newModifierTokens.Count == 0)
         {
             return modifiersList;
