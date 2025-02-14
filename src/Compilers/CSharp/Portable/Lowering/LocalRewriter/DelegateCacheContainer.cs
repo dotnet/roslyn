@@ -37,7 +37,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
         _constructedContainer = Construct(ConstructedFromTypeParameters);
     }
 
-    public override Symbol ContainingSymbol => _containingSymbol;
+    public override Symbol ContainingSymbol => _containingSymbol; // PROTOTYPE: Adjust
 
     public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable();
 
