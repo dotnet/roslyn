@@ -81,7 +81,7 @@ internal partial class SerializerService
 
                 case IAnalyzerReferenceWithGuid analyzerReferenceWithGuid:
                     lock (s_analyzerImageReferenceMapGate)
-                        s_analyzerReferenceMap.Add(reference, analyzerReferenceWithGuid.Guid);
+                        s_analyzerReferenceMap = s_analyzerReferenceMap.Add(reference, analyzerReferenceWithGuid.Guid);
                     writer.WriteGuid(analyzerReferenceWithGuid.Guid);
                     break;
 
@@ -544,6 +544,15 @@ internal partial class SerializerService
             {
                 if (!s_analyzerReferenceMap.ContainsKey(analyzerImageReference))
                     s_analyzerReferenceMap = s_analyzerReferenceMap.Add(analyzerImageReference, Guid.NewGuid());
+            }
+        }
+
+        public static void AddAnalyzerImageReferences(IReadOnlyList<AnalyzerReference> analyzerReferences)
+        {
+            foreach (var analyzer in analyzerReferences)
+            {
+                if (analyzer is AnalyzerImageReference analyzerImageReference)
+                    AddAnalyzerImageReference(analyzerImageReference);
             }
         }
 
