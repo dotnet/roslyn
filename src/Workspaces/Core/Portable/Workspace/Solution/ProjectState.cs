@@ -587,26 +587,6 @@ internal sealed partial class ProjectState
             => NamingStylePreferences.Empty;
     }
 
-    private sealed class GlobalAnalyzerConfigOptionsWithWorkaroundForRazor(SolutionServices services, AnalyzerConfigOptions underlyingOptions) : AnalyzerConfigOptions
-    {
-        private readonly ILegacyGlobalOptionsWorkspaceService? _globalOptions = services.GetService<ILegacyGlobalOptionsWorkspaceService>();
-
-        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-        {
-            if (key == "build_property.SuppressRazorSourceGenerator" &&
-                _globalOptions?.RazorForceRuntimeCodeGeneration == true)
-            {
-                value = "false";
-                return true;
-            }
-
-            return underlyingOptions.TryGetValue(key, out value);
-        }
-
-        public override IEnumerable<string> Keys
-            => underlyingOptions.Keys;
-    }
-
     private sealed class ProjectSyntaxTreeOptionsProvider(AnalyzerConfigOptionsCache lazyAnalyzerConfigSet) : SyntaxTreeOptionsProvider
     {
         private readonly AnalyzerConfigOptionsCache _lazyAnalyzerConfigSet = lazyAnalyzerConfigSet;
