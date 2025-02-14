@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers
     <ExportLanguageService(GetType(IAddOrRemoveAccessibilityModifiersService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicAddOrRemoveAccessibilityModifiersService
+    Friend NotInheritable Class VisualBasicAddOrRemoveAccessibilityModifiersService
         Inherits VisualBasicAddOrRemoveAccessibilityModifiers
         Implements IAddOrRemoveAccessibilityModifiersService
 

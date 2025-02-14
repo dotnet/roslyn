@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer
+    Friend NotInheritable Class VisualBasicAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer
         Inherits AbstractAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer(Of CompilationUnitSyntax)
 
         Protected Overrides Sub ProcessCompilationUnit(

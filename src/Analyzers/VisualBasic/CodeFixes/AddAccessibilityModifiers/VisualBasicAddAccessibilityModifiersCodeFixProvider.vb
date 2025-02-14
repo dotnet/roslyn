@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddOrRemoveAccessibilityModifiers), [Shared]>
-    Friend Class VisualBasicAddOrRemoveAccessibilityModifiersCodeFixProvider
+    Friend NotInheritable Class VisualBasicAddOrRemoveAccessibilityModifiersCodeFixProvider
         Inherits AbstractAddOrRemoveAccessibilityModifiersCodeFixProvider
 
         <ImportingConstructor>
