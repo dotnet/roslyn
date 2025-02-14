@@ -42,6 +42,7 @@ internal partial class DiagnosticAnalyzerService
         // Make sure the cached pair was computed with at least the same state sets we're asking about.  if not,
         // recompute and cache with the new state sets.
         if (!s_projectToCompilationWithAnalyzers.TryGetValue(projectState, out var tupleBox) ||
+            tupleBox.Value.checksum != checksum ||
             !analyzers.IsSubsetOf(tupleBox.Value.analyzers))
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);

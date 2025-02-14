@@ -64,8 +64,8 @@ internal partial class DiagnosticAnalyzerService
                     return ProjectAnalyzerInfo.Default;
                 }
 
-                var hostAnalyzers = solution.Analyzers;
-                var analyzersPerReference = hostAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project);
+                var solutionAnalyzers = solution.Analyzers;
+                var analyzersPerReference = solutionAnalyzers.CreateProjectDiagnosticAnalyzersPerReference(project);
                 if (analyzersPerReference.Count == 0)
                 {
                     return ProjectAnalyzerInfo.Default;
@@ -78,7 +78,7 @@ internal partial class DiagnosticAnalyzerService
                 // workspace placeholder analyzers.  So we should never get host analyzers back here.
                 Contract.ThrowIfTrue(newHostAnalyzers.Count > 0);
 
-                var skippedAnalyzersInfo = solution.Analyzers.GetSkippedAnalyzersInfo(project, _analyzerInfoCache);
+                var skippedAnalyzersInfo = solutionAnalyzers.GetSkippedAnalyzersInfo(project, _analyzerInfoCache);
                 return new ProjectAnalyzerInfo(project.AnalyzerReferences, newAllAnalyzers, skippedAnalyzersInfo);
             }
 
