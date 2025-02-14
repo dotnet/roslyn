@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers;
 
@@ -17,6 +18,18 @@ internal abstract class AbstractAddOrRemoveAccessibilityModifiersDiagnosticAnaly
         new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_required), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     where TCompilationUnitSyntax : SyntaxNode
 {
+    protected abstract IAccessibilityFacts AccessibilityFacts { get; }
+    protected abstract IAddOrRemoveAccessibilityModifiers AddOrRemoveAccessibilityModifiers { get; }
+
+    protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, CodeStyleOption2<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);
+
+    protected readonly DiagnosticDescriptor ModifierRemovedDescriptor = CreateDescriptorWithId(
+        IDEDiagnosticIds.AddOrRemoveAccessibilityModifiersDiagnosticId,
+        EnforceOnBuildValues.AddOrRemoveAccessibilityModifiers,
+        hasAnyCodeStyleOption: true,
+        new LocalizableResourceString(nameof(AnalyzersResources.Remove_accessibility_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_unnecessary), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)));
+
     protected static readonly ImmutableDictionary<string, string?> ModifiersAddedProperties = ImmutableDictionary<string, string?>.Empty.Add(
         AddOrRemoveAccessibilityModifiersConstants.ModifiersAdded, AddOrRemoveAccessibilityModifiersConstants.ModifiersAdded);
 
@@ -39,5 +52,25 @@ internal abstract class AbstractAddOrRemoveAccessibilityModifiersDiagnosticAnaly
         ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)context.Tree.GetRoot(context.CancellationToken));
     }
 
-    protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, CodeStyleOption2<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);
+    protected void CheckMemberAndReportDiagnostic(
+        SyntaxTreeAnalysisContext context,
+        CodeStyleOption2<AccessibilityModifiersRequired> option,
+        SyntaxNode member)
+    {
+        if (!this.AddOrRemoveAccessibilityModifiers.ShouldUpdateAccessibilityModifier(
+                this.AccessibilityFacts, member, option.Value, out var name, out var modifiersAdded))
+        {
+            return;
+        }
+
+        // Have an issue to flag, either add or remove. Report issue to user.
+        var additionalLocations = ImmutableArray.Create(member.GetLocation());
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            modifiersAdded ? Descriptor : ModifierRemovedDescriptor,
+            name.GetLocation(),
+            option.Notification,
+            context.Options,
+            additionalLocations: additionalLocations,
+            modifiersAdded ? ModifiersAddedProperties : null));
+    }
 }

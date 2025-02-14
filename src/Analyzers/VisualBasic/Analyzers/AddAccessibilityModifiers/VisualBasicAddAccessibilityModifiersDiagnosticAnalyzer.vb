@@ -4,15 +4,20 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers
+Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer
         Inherits AbstractAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer(Of CompilationUnitSyntax)
+
+        Protected Overrides ReadOnly Property AccessibilityFacts As IAccessibilityFacts = VisualBasicAccessibilityFacts.Instance
+        Protected Overrides ReadOnly Property AddOrRemoveAccessibilityModifiers As IAddOrRemoveAccessibilityModifiers = VisualBasicAddOrRemoveAccessibilityModifiers.Instance
 
         Protected Overrides Sub ProcessCompilationUnit(
                 context As SyntaxTreeAnalysisContext,
@@ -55,21 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers
                 ProcessMembers(context, [option], typeBlock.Members)
             End If
 
-            Dim name As SyntaxToken = Nothing
-            Dim modifiersAdded As Boolean = False
-            If Not VisualBasicAddOrRemoveAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(VisualBasicAccessibilityFacts.Instance, member, [option].Value, name, modifiersAdded) Then
-                Return
-            End If
-
-            ' Have an issue to flag, either add or remove. Report issue to user.
-            Dim additionalLocations = ImmutableArray.Create(member.GetLocation())
-            context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor,
-                name.GetLocation(),
-                [option].Notification,
-                context.Options,
-                additionalLocations:=additionalLocations,
-                If(modifiersAdded, ModifiersAddedProperties, Nothing)))
+            CheckMemberAndReportDiagnostic(context, [option], member)
         End Sub
     End Class
 End Namespace
