@@ -5354,12 +5354,12 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
         <target state="translated">El elemento {0} "{1}" que no acepta valores NULL debe contener un valor distinto de NULL al salir del constructor. Considere agregar el modificador "requerido", o declarar {0} como anulable, o agregar atributos "[campo: MaybeNull, AllowNull]".</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
-        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
         <target state="translated">La propiedad no anulable debe contener un valor no nulo al salir del constructor. Considere agregar el modificador "requerido", o declarar la propiedad como anulable, o agregar atributos "[campo: MaybeNull, AllowNull]".</target>
         <note />
       </trans-unit>
