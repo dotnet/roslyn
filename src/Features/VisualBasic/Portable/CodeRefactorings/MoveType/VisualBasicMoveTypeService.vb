@@ -20,8 +20,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetSymbolName(syntax As TypeBlockSyntax) As String
-            Return syntax.BlockStatement.Identifier.ValueText
+        Protected Overrides Function GetSymbolNameAndArity(syntax As TypeBlockSyntax) As (name As String, arity As Integer)
+            Dim statement = syntax.BlockStatement
+            Return (statement.Identifier.ValueText, If(statement.TypeParameterList?.Parameters.Count, 0))
         End Function
 
         Protected Overrides Function IsMemberDeclaration(syntaxNode As SyntaxNode) As Boolean
