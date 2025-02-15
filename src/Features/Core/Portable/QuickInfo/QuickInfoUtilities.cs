@@ -20,7 +20,7 @@ internal static class QuickInfoUtilities
 {
     /// <summary>
     /// Display variable name only.
-    /// </summary>.
+    /// </summary>
     private static readonly SymbolDisplayFormat s_nullableDisplayFormat = new SymbolDisplayFormat();
 
     public static Task<QuickInfoItem> CreateQuickInfoItemAsync(SolutionServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
