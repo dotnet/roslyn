@@ -32,8 +32,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             _service = service;
             _operationKind = operationKind;
             _fileName = fileName;
-            Title = CreateDisplayText();
-            EquivalenceKey = _operationKind.ToString();
+            this.Title = CreateDisplayText();
+            this.EquivalenceKey = _operationKind.ToString();
         }
 
         private string CreateDisplayText()
