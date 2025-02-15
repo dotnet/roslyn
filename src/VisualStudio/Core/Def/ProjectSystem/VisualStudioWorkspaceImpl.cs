@@ -1263,7 +1263,15 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             // By setting this property, Visual Studio will perform the file rename, which 
             // will cause the workspace's current solution to update and will fire the 
             // necessary workspace changed events.
-            projectItemForDocument.Name = uniqueName;
+            try
+            {
+                projectItemForDocument.Name = uniqueName;
+            }
+            catch (InvalidOperationException ex)
+            {
+                FatalError.ReportAndCatch(ex);
+                return;
+            }
 
             if (projectItemForDocument.TryGetFullPath(out var newPath))
             {
