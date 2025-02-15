@@ -124,7 +124,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         var generateDocumentationCommentProvider = await _generateDocumentationCommentManager.CreateProviderAsync(document, textView, cancellationToken).ConfigureAwait(false);
         if (generateDocumentationCommentProvider is not null)
         {
-            await generateDocumentationCommentProvider.GenerateDocumentationProposalAsync(document, snippet, snapshot, caret, cancellationToken).ConfigureAwait(false);
+            await generateDocumentationCommentProvider.GenerateDocumentationProposalAsync(snippet, snapshot, caret, cancellationToken).ConfigureAwait(false);
         }
     }
 

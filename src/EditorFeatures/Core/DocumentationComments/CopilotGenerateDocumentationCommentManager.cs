@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             var provider = textView.Properties.GetOrCreateSingletonProperty(typeof(CopilotGenerateDocumentationCommentProvider),
-                () => new CopilotGenerateDocumentationCommentProvider(_threadingContext));
+                () => new CopilotGenerateDocumentationCommentProvider(_threadingContext, copilotService));
 
             await provider!.InitializeAsync(textView, _suggestionServiceBase, cancellationToken).ConfigureAwait(false);
 
