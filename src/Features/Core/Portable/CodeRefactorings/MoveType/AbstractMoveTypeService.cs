@@ -111,7 +111,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (manyTypes || isNestedType || isClassNextToGlobalStatements)
         {
             foreach (var fileName in suggestedFileNames)
-                actions.Add(GetCodeAction(document, typeDeclaration, fileName, operationKind: MoveTypeOperationKind.MoveType));
+                actions.Add(GetCodeAction(fileName, operationKind: MoveTypeOperationKind.MoveType));
         }
 
         // (2) Add rename file and rename type code actions:
@@ -119,13 +119,13 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (!AnyTopLevelTypeMatchesDocumentName())
         {
             foreach (var fileName in suggestedFileNames)
-                actions.Add(GetCodeAction(document, typeDeclaration, fileName, operationKind: MoveTypeOperationKind.RenameFile));
+                actions.Add(GetCodeAction(fileName, operationKind: MoveTypeOperationKind.RenameFile));
 
             // Only if the document name can be legal identifier in the language, offer to rename type with document name
             if (syntaxFacts.IsValidIdentifier(documentNameWithoutExtension))
             {
                 actions.Add(GetCodeAction(
-                    document, typeDeclaration, fileName: documentNameWithoutExtension,
+                    fileName: documentNameWithoutExtension,
                     operationKind: MoveTypeOperationKind.RenameType));
             }
         }
@@ -141,13 +141,13 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                 typeDeclaration => TypeMatchesDocumentName(
                     typeDeclaration, documentNameWithoutExtension));
         }
+
+        MoveTypeCodeAction GetCodeAction(string fileName, MoveTypeOperationKind operationKind)
+            => new((TService)this, document, typeDeclaration, operationKind, fileName);
     }
 
     private static bool ClassNextToGlobalStatements(SyntaxNode root, ISyntaxFactsService syntaxFacts)
         => syntaxFacts.ContainsGlobalStatement(root);
-
-    private MoveTypeCodeAction GetCodeAction(Document document, TTypeDeclarationSyntax typeDeclaration, string fileName, MoveTypeOperationKind operationKind)
-        => new((TService)this, document, typeDeclaration, operationKind, fileName);
 
     private static bool IsNestedType(TTypeDeclarationSyntax typeNode)
         => typeNode.Parent is TTypeDeclarationSyntax;
