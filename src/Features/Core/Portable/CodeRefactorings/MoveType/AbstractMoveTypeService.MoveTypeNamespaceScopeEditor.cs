@@ -20,18 +20,18 @@ internal abstract partial class AbstractMoveTypeService<
     /// it will evaluate if the namespace scope needs to be closed and reopened to create a new scope. 
     /// </summary>
     private sealed class MoveTypeNamespaceScopeEditor(
-        TService service, State state, string fileName, CancellationToken cancellationToken)
-        : Editor(service, state, fileName, cancellationToken)
+        TService service,
+        Document document,
+        TTypeDeclarationSyntax typeDeclaration,
+        string fileName,
+        CancellationToken cancellationToken)
+        : Editor(service, document, typeDeclaration, fileName, cancellationToken)
     {
         public override async Task<Solution?> GetModifiedSolutionAsync()
         {
-            var node = State.TypeNode;
-            var documentToEdit = State.SemanticDocument.Document;
-
-            if (node.Parent is not TNamespaceDeclarationSyntax namespaceDeclaration)
-                return null;
-
-            return await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration, node, documentToEdit, CancellationToken).ConfigureAwait(false);
+            return TypeDeclaration.Parent is TNamespaceDeclarationSyntax namespaceDeclaration
+                ? await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration, TypeDeclaration, Document, CancellationToken).ConfigureAwait(false)
+                : null;
         }
 
         private static async Task<Solution?> GetNamespaceScopeChangedSolutionAsync(

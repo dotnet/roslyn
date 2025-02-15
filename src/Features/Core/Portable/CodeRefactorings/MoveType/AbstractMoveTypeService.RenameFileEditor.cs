@@ -11,11 +11,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 
 internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
 {
-    private sealed class RenameFileEditor(TService service, State state, string fileName, CancellationToken cancellationToken) : Editor(service, state, fileName, cancellationToken)
+    /// <summary>
+    /// Renames the file to match the type contained in it.
+    /// </summary>
+    private sealed class RenameFileEditor(
+        TService service,
+        Document document,
+        TTypeDeclarationSyntax typeDeclaration,
+        string fileName,
+        CancellationToken cancellationToken) : Editor(service, document, typeDeclaration, fileName, cancellationToken)
     {
-        /// <summary>
-        /// Renames the file to match the type contained in it.
-        /// </summary>
         public override async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
         {
             var newSolution = await GetModifiedSolutionAsync().ConfigureAwait(false);
@@ -23,11 +28,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         }
 
         public override Task<Solution> GetModifiedSolutionAsync()
-        {
-            var modifiedSolution = SemanticDocument.Project.Solution
-                .WithDocumentName(SemanticDocument.Document.Id, FileName);
-
-            return Task.FromResult(modifiedSolution);
-        }
+            => Task.FromResult(
+                this.Document.Project.Solution.WithDocumentName(this.Document.Id, FileName));
     }
 }

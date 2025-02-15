@@ -61,7 +61,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         var suggestedFileNames = GetSuggestedFileNames(
             document, typeDeclaration, includeComplexFileNames: false);
 
-        var editor = Editor.GetEditor(operationKind, (TService)this, typeDeclaration, suggestedFileNames.FirstOrDefault(), cancellationToken);
+        var editor = Editor.GetEditor(operationKind, (TService)this, document, typeDeclaration, suggestedFileNames.FirstOrDefault(), cancellationToken);
         var modifiedSolution = await editor.GetModifiedSolutionAsync().ConfigureAwait(false);
         return modifiedSolution ?? document.Project.Solution;
     }

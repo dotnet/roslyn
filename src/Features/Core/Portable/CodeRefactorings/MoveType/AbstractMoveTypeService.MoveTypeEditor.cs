@@ -25,9 +25,10 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 {
     private sealed class MoveTypeEditor(
         TService service,
+        Document document,
         TTypeDeclarationSyntax typeDeclaration,
         string fileName,
-        CancellationToken cancellationToken) : Editor(service, typeDeclaration, fileName, cancellationToken)
+        CancellationToken cancellationToken) : Editor(service, document, typeDeclaration, fileName, cancellationToken)
     {
         /// <summary>
         /// Given a document and a type contained in it, moves the type
@@ -45,7 +46,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         public override async Task<Solution> GetModifiedSolutionAsync()
         {
             // Fork, update and add as new document.
-            var projectToBeUpdated = SemanticDocument.Document.Project;
+            var projectToBeUpdated = this.Document.Project;
             var newDocumentId = DocumentId.CreateNewId(projectToBeUpdated.Id, FileName);
 
             // We do this process in the following steps:
@@ -64,7 +65,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var solutionWithNewDocument = documentWithMovedType.Project.Solution;
 
             // Get the original source document again, from the latest forked solution.
-            var sourceDocument = solutionWithNewDocument.GetRequiredDocument(SemanticDocument.Document.Id);
+            var sourceDocument = solutionWithNewDocument.GetRequiredDocument(this.Document.Id);
 
             // update source document to add partial modifiers to type chain
             // and/or remove type declaration from original source document.
@@ -111,18 +112,18 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         /// <param name="newDocumentId">id for the new document to be added</param>
         private async Task<Document> AddNewDocumentWithSingleTypeDeclarationAsync(DocumentId newDocumentId)
         {
-            var document = SemanticDocument.Document;
+            var document = this.Document;
             Debug.Assert(document.Name != FileName, $"New document name is same as old document name:{FileName}");
 
-            var root = SemanticDocument.Root;
+            var root = await document.GetRequiredSyntaxRootAsync(this.CancellationToken).ConfigureAwait(false);
             var projectToBeUpdated = document.Project;
             var documentEditor = await DocumentEditor.CreateAsync(document, CancellationToken).ConfigureAwait(false);
 
             // Make the type chain above this new type partial.  Also, remove any 
             // attributes from the containing partial types.  We don't want to create
             // duplicate attributes on things.
-            AddPartialModifiersToTypeChain(
-                documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true, removePrimaryConstructor: true);
+            await AddPartialModifiersToTypeChainAsync(
+                documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true, removePrimaryConstructor: true).ConfigureAwait(false);
 
             // Keep track of any associated directives on any of the nodes we're removing. If those directives are then
             // contained in the leading trivia of the type we're moving, we'll remove them from there as well.
@@ -235,8 +236,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
             // Make the type chain above the type we're moving 'partial'. However, keep all the attributes on these
             // types as theses are the original attributes and we don't want to mess with them. 
-            AddPartialModifiersToTypeChain(documentEditor,
-                removeAttributesAndComments: false, removeTypeInheritance: false, removePrimaryConstructor: false);
+            await AddPartialModifiersToTypeChainAsync(documentEditor,
+                removeAttributesAndComments: false, removeTypeInheritance: false, removePrimaryConstructor: false).ConfigureAwait(false);
 
             // Now cleanup and remove the type we're moving to the new file.
             RemoveLeadingBlankLinesFromMovedType(documentEditor);
@@ -298,18 +299,19 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         /// <summary>
         /// if a nested type is being moved, this ensures its containing type is partial.
         /// </summary>
-        private void AddPartialModifiersToTypeChain(
+        private async Task AddPartialModifiersToTypeChainAsync(
             DocumentEditor documentEditor,
             bool removeAttributesAndComments,
             bool removeTypeInheritance,
             bool removePrimaryConstructor)
         {
-            var semanticFacts = State.SemanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
+            var semanticModel = await this.Document.GetRequiredSemanticModelAsync(CancellationToken).ConfigureAwait(false);
+            var semanticFacts = this.Document.GetRequiredLanguageService<ISemanticFactsService>();
             var typeChain = this.TypeDeclaration.Ancestors().OfType<TTypeDeclarationSyntax>();
 
             foreach (var node in typeChain)
             {
-                var symbol = (INamedTypeSymbol?)State.SemanticDocument.SemanticModel.GetDeclaredSymbol(node, CancellationToken);
+                var symbol = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(node, CancellationToken);
                 Contract.ThrowIfNull(symbol);
                 if (!semanticFacts.IsPartial(symbol, CancellationToken))
                 {
@@ -338,8 +340,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         private TTypeDeclarationSyntax RemoveLeadingBlankLines(
             TTypeDeclarationSyntax currentTypeNode)
         {
-            var syntaxFacts = State.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var bannerService = State.SemanticDocument.Document.GetRequiredLanguageService<IFileBannerFactsService>();
+            var syntaxFacts = this.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var bannerService = this.Document.GetRequiredLanguageService<IFileBannerFactsService>();
 
             var withoutBlankLines = bannerService.GetNodeWithoutLeadingBlankLines(currentTypeNode);
 

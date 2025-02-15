@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 
@@ -53,7 +50,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
-            var editor = Editor.GetEditor(_operationKind, _service, _typeDeclaration, _fileName, cancellationToken);
+            var editor = Editor.GetEditor(_operationKind, _service, _document, _typeDeclaration, _fileName, cancellationToken);
             return await editor.GetOperationsAsync().ConfigureAwait(false);
         }
     }

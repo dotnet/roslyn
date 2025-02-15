@@ -2,19 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 
 internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
 {
-    private sealed class RenameTypeEditor(TService service, State state, string fileName, CancellationToken cancellationToken) : Editor(service, state, fileName, cancellationToken)
+    private sealed class RenameTypeEditor(
+        TService service,
+        Document document,
+        TTypeDeclarationSyntax typeDeclaration,
+        string fileName,
+        CancellationToken cancellationToken) : Editor(service, document, typeDeclaration, fileName, cancellationToken)
     {
-
         /// <summary>
         /// Renames a type to match its containing file name.
         /// </summary>
@@ -23,8 +26,9 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             // TODO: detect conflicts ahead of time and open an inline rename session if any exists.
             // this will bring up dashboard with conflicts and will allow the user to resolve them.
             // if no such conflicts exist, proceed with RenameSymbolAsync.
-            var solution = SemanticDocument.Document.Project.Solution;
-            var symbol = State.SemanticDocument.SemanticModel.GetDeclaredSymbol(State.TypeNode, CancellationToken);
+            var solution = this.Document.Project.Solution;
+            var semanticModel = await Document.GetRequiredSemanticModelAsync(CancellationToken).ConfigureAwait(false);
+            var symbol = semanticModel.GetDeclaredSymbol(this.TypeDeclaration, CancellationToken);
             return await Renamer.RenameSymbolAsync(solution, symbol, new SymbolRenameOptions(), FileName, CancellationToken).ConfigureAwait(false);
         }
     }
