@@ -16,13 +16,13 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     /// </summary>
     private abstract class Editor(
         TService service,
-        SemanticDocument document,
+        SemanticDocument semanticDocument,
         TTypeDeclarationSyntax typeDeclaration,
         string fileName,
         CancellationToken cancellationToken)
     {
         protected TService Service { get; } = service;
-        protected SemanticDocument Document { get; } = document;
+        protected SemanticDocument SemanticDocument { get; } = semanticDocument;
         protected TTypeDeclarationSyntax TypeDeclaration { get; } = typeDeclaration;
         protected string FileName { get; } = fileName;
         protected CancellationToken CancellationToken { get; } = cancellationToken;

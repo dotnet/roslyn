@@ -37,13 +37,13 @@ internal abstract partial class AbstractMoveTypeService<
         private async Task<Solution?> GetNamespaceScopeChangedSolutionAsync(
             TNamespaceDeclarationSyntax namespaceDeclaration)
         {
-            var syntaxFactsService = this.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
             var childNodes = syntaxFactsService.GetMembersOfBaseNamespaceDeclaration(namespaceDeclaration);
 
             if (childNodes.Count <= 1)
                 return null;
 
-            var editor = await DocumentEditor.CreateAsync(this.Document.Document, this.CancellationToken).ConfigureAwait(false);
+            var editor = await DocumentEditor.CreateAsync(SemanticDocument.Document, this.CancellationToken).ConfigureAwait(false);
             editor.RemoveNode(this.TypeDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
             var generator = editor.Generator;
 

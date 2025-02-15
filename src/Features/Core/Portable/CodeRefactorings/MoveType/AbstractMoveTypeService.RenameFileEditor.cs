@@ -30,6 +30,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         public override Task<Solution?> GetModifiedSolutionAsync()
             => Task.FromResult<Solution?>(
-                this.Document.Project.Solution.WithDocumentName(this.Document.Id, FileName));
+                SemanticDocument.Project.Solution.WithDocumentName(SemanticDocument.Id, FileName));
     }
 }
