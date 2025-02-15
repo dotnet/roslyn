@@ -2,20 +2,20 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
+Imports Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
+Namespace Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend NotInheritable Class VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer
-        Inherits AbstractAddAccessibilityModifiersDiagnosticAnalyzer(Of CompilationUnitSyntax)
+    Friend NotInheritable Class VisualBasicAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer
+        Inherits AbstractAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer(Of CompilationUnitSyntax)
 
         Protected Overrides ReadOnly Property AccessibilityFacts As IAccessibilityFacts = VisualBasicAccessibilityFacts.Instance
-        Protected Overrides ReadOnly Property AddAccessibilityModifiers As IAddAccessibilityModifiers = VisualBasicAddAccessibilityModifiers.Instance
+        Protected Overrides ReadOnly Property AddOrRemoveAccessibilityModifiers As IAddOrRemoveAccessibilityModifiers = VisualBasicAddOrRemoveAccessibilityModifiers.Instance
 
         Protected Overrides Sub ProcessCompilationUnit(
                 context As SyntaxTreeAnalysisContext,
