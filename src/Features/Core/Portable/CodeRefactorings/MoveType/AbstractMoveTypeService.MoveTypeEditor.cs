@@ -25,9 +25,9 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 {
     private sealed class MoveTypeEditor(
         TService service,
-        State state,
+        TTypeDeclarationSyntax typeDeclaration,
         string fileName,
-        CancellationToken cancellationToken) : Editor(service, state, fileName, cancellationToken)
+        CancellationToken cancellationToken) : Editor(service, typeDeclaration, fileName, cancellationToken)
     {
         /// <summary>
         /// Given a document and a type contained in it, moves the type
@@ -142,7 +142,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             documentEditor.RemoveAllAttributes(root);
 
             // Now remove any leading directives on the type-node that actually correspond to prior nodes we removed.
-            var leadingTrivia = State.TypeNode.GetLeadingTrivia().ToSet();
+            var leadingTrivia = this.TypeDeclaration.GetLeadingTrivia().ToSet();
             foreach (var directive in correspondingDirectives)
             {
                 if (leadingTrivia.Contains(directive.ParentTrivia))
@@ -185,7 +185,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         private void RemoveLeadingBlankLinesFromMovedType(DocumentEditor documentEditor)
         {
-            documentEditor.ReplaceNode(State.TypeNode,
+            documentEditor.ReplaceNode(this.TypeDeclaration,
                 (currentNode, generator) =>
                 {
                     var currentTypeNode = (TTypeDeclarationSyntax)currentNode;
@@ -240,7 +240,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
             // Now cleanup and remove the type we're moving to the new file.
             RemoveLeadingBlankLinesFromMovedType(documentEditor);
-            documentEditor.RemoveNode(State.TypeNode, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+            documentEditor.RemoveNode(this.TypeDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
             var updatedDocument = documentEditor.GetChangedDocument();
             updatedDocument = await AddFileBannerHelpers.CopyBannerAsync(updatedDocument, sourceDocument.FilePath, sourceDocument, this.CancellationToken).ConfigureAwait(false);
@@ -260,12 +260,12 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var spine = new HashSet<SyntaxNode>();
 
             // collect the parent chain of declarations to keep.
-            spine.AddRange(State.TypeNode.GetAncestors());
+            spine.AddRange(this.TypeDeclaration.GetAncestors());
 
             // get potential namespace, types and members to remove.
             var removableCandidates = root
                 .DescendantNodes(spine.Contains)
-                .Where(n => FilterToTopLevelMembers(n, State.TypeNode)).ToSet();
+                .Where(n => FilterToTopLevelMembers(n, this.TypeDeclaration)).ToSet();
 
             // diff candidates with items we want to keep.
             removableCandidates.ExceptWith(spine);
@@ -305,7 +305,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             bool removePrimaryConstructor)
         {
             var semanticFacts = State.SemanticDocument.Document.GetRequiredLanguageService<ISemanticFactsService>();
-            var typeChain = State.TypeNode.Ancestors().OfType<TTypeDeclarationSyntax>();
+            var typeChain = this.TypeDeclaration.Ancestors().OfType<TTypeDeclarationSyntax>();
 
             foreach (var node in typeChain)
             {

@@ -19,15 +19,15 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     /// </summary>
     private abstract class Editor(
         TService service,
-        State state,
+        TTypeDeclarationSyntax typeDeclaration,
         string fileName,
         CancellationToken cancellationToken)
     {
-        protected State State { get; } = state;
         protected TService Service { get; } = service;
+        protected TTypeDeclarationSyntax TypeDeclaration { get; } = typeDeclaration;
         protected string FileName { get; } = fileName;
         protected CancellationToken CancellationToken { get; } = cancellationToken;
-        protected SemanticDocument SemanticDocument => State.SemanticDocument;
+        // protected SemanticDocument SemanticDocument => State.SemanticDocument;
 
         /// <summary>
         /// Operations performed by CodeAction.
@@ -49,13 +49,13 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         /// </summary>
         public abstract Task<Solution> GetModifiedSolutionAsync();
 
-        public static Editor GetEditor(MoveTypeOperationKind operationKind, TService service, State state, string fileName, CancellationToken cancellationToken)
+        public static Editor GetEditor(MoveTypeOperationKind operationKind, TService service, TTypeDeclarationSyntax typeDeclaration, string fileName, CancellationToken cancellationToken)
             => operationKind switch
             {
-                MoveTypeOperationKind.MoveType => new MoveTypeEditor(service, state, fileName, cancellationToken),
-                MoveTypeOperationKind.RenameType => new RenameTypeEditor(service, state, fileName, cancellationToken),
-                MoveTypeOperationKind.RenameFile => new RenameFileEditor(service, state, fileName, cancellationToken),
-                MoveTypeOperationKind.MoveTypeNamespaceScope => new MoveTypeNamespaceScopeEditor(service, state, fileName, cancellationToken),
+                MoveTypeOperationKind.MoveType => new MoveTypeEditor(service, typeDeclaration, fileName, cancellationToken),
+                MoveTypeOperationKind.RenameType => new RenameTypeEditor(service, typeDeclaration, fileName, cancellationToken),
+                MoveTypeOperationKind.RenameFile => new RenameFileEditor(service, typeDeclaration, fileName, cancellationToken),
+                MoveTypeOperationKind.MoveTypeNamespaceScope => new MoveTypeNamespaceScopeEditor(service, typeDeclaration, fileName, cancellationToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(operationKind),
             };
     }
