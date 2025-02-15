@@ -60,7 +60,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             return document.Project.Solution;
 
         var suggestedFileNames = GetSuggestedFileNames(
-            state.TypeNode, state.SemanticDocument.Document.Name, includeArity: false);
+            state.TypeNode, state.SemanticDocument.Document.Name, includeComplexFileNames: false);
 
         var editor = Editor.GetEditor(operationKind, (TService)this, state, suggestedFileNames.FirstOrDefault(), cancellationToken);
         var modifiedSolution = await editor.GetModifiedSolutionAsync().ConfigureAwait(false);
@@ -96,9 +96,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         var isClassNextToGlobalStatements = !manyTypes && ClassNextToGlobalStatements(state.SemanticDocument.Root, syntaxFacts);
 
         var suggestedFileNames = GetSuggestedFileNames(
-            state.TypeNode,
-            state.SemanticDocument.Document.Name,
-            includeArity: false);
+            state.TypeNode, state.SemanticDocument.Document.Name, includeComplexFileNames: false);
 
         // (1) Add Move type to new file code action:
         // case 1: There are multiple type declarations in current document. offer, move to new file.
@@ -269,7 +267,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     private ImmutableArray<string> GetSuggestedFileNames(
         TTypeDeclarationSyntax typeNode,
         string documentNameWithExtension,
-        bool includeArity)
+        bool includeComplexFileNames)
     {
         var isNestedType = IsNestedType(typeNode);
         var (typeName, arity) = this.GetSymbolNameAndArity(typeNode);
@@ -280,7 +278,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         using var _ = ArrayBuilder<string>.GetInstance(out var suggestedFileNames);
 
         suggestedFileNames.Add(typeName + fileExtension);
-        if (includeArity && arity > 0)
+        if (includeComplexFileNames && arity > 0)
             suggestedFileNames.Add($"{typeName}`{arity}{fileExtension}");
 
         if (isNestedType)
@@ -288,7 +286,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode);
             AddNameParts(typeNameParts.Select(t => t.name));
 
-            if (includeArity && typeNameParts.Any(t => t.arity > 0))
+            if (includeComplexFileNames && typeNameParts.Any(t => t.arity > 0))
                 AddNameParts(typeNameParts.Select(t => t.arity > 0 ? $"{t.name}`{t.arity}" : t.name));
         }
 
@@ -297,7 +295,9 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         void AddNameParts(IEnumerable<string> parts)
         {
             AddNamePartsWithSeparator(parts, ".");
-            AddNamePartsWithSeparator(parts, "+");
+
+            if (includeComplexFileNames)
+                AddNamePartsWithSeparator(parts, "+");
         }
 
         void AddNamePartsWithSeparator(IEnumerable<string> parts, string separator)
