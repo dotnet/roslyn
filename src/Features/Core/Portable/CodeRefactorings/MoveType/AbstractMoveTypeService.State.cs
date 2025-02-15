@@ -30,6 +30,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         }
 
         public static State? Generate(TService service, SemanticDocument document, TTypeDeclarationSyntax typeDeclaration)
-            => service.GetDeclaredSymbolName(typeDeclaration) is "" ? null : new State(document, typeDeclaration);
+            => service.GetSymbolName(typeDeclaration) is "" ? null : new State(document, typeDeclaration);
     }
 }

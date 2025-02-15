@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveType
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetDeclaredSymbolName(syntax As TypeBlockSyntax) As String
+        Protected Overrides Function GetSymbolName(syntax As TypeBlockSyntax) As String
             Return syntax.BlockStatement.Identifier.ValueText
         End Function
 
