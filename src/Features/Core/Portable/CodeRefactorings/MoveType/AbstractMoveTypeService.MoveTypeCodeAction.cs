@@ -20,7 +20,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         private readonly State _state;
         private readonly TService _service;
         private readonly MoveTypeOperationKind _operationKind;
-        private readonly string _title;
         private readonly string _fileName;
 
         public MoveTypeCodeAction(
@@ -33,7 +32,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             _service = service;
             _operationKind = operationKind;
             _fileName = fileName;
-            _title = CreateDisplayText();
+            Title = CreateDisplayText();
+            EquivalenceKey = _operationKind.ToString();
         }
 
         private string CreateDisplayText()
@@ -46,7 +46,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                 _ => throw ExceptionUtilities.UnexpectedValue(_operationKind),
             };
 
-        public override string Title => _title;
+        public override string Title { get; }
+        public override string EquivalenceKey { get; }
 
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
