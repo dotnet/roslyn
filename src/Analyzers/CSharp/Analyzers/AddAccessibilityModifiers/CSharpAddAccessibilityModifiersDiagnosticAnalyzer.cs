@@ -2,21 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
+using Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
+namespace Microsoft.CodeAnalysis.CSharp.AddOrRemoveAccessibilityModifiers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
-    : AbstractAddAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
+internal sealed class CSharpAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer
+    : AbstractAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
 {
     protected override IAccessibilityFacts AccessibilityFacts => CSharpAccessibilityFacts.Instance;
-    protected override IAddAccessibilityModifiers AddAccessibilityModifiers => CSharpAddAccessibilityModifiers.Instance;
+    protected override IAddOrRemoveAccessibilityModifiers AddOrRemoveAccessibilityModifiers => CSharpAddOrRemoveAccessibilityModifiers.Instance;
 
     protected override void ProcessCompilationUnit(
         SyntaxTreeAnalysisContext context,
