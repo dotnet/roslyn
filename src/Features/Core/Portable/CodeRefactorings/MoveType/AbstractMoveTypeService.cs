@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -191,7 +192,13 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (topLevelTypeDeclarations is not [var topLevelType])
             return null;
 
-        return null;
+        var deepestType = GetDeepestSingleType(topLevelType);
+        for (var currentType = deepestType; currentType != null; currentType = currentType.Parent as TTypeDeclarationSyntax)
+        {
+            var typeName = GetDeclaredSymbolName(currentType);
+            if (TypeMatchesDocumentName(currentType, typeName, Path.GetFileNameWithoutExtension(document.Name)))
+                return null;
+        }
     }
 
     /// <summary>

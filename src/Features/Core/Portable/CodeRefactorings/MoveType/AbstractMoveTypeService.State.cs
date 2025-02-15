@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.IO;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -16,56 +12,39 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 {
     private sealed class State
     {
+        private readonly TService _service;
+
         public SemanticDocument SemanticDocument { get; }
 
-        public TTypeDeclarationSyntax TypeNode { get; set; }
-        public string TypeName { get; set; }
-        public string DocumentNameWithoutExtension { get; set; }
+        public TTypeDeclarationSyntax TypeNode { get; set; } = null!;
+        public string DocumentNameWithoutExtension { get; set; } = null!;
         public bool IsDocumentNameAValidIdentifier { get; set; }
 
-        private State(SemanticDocument document)
+        public string TypeName => _service.GetDeclaredSymbolName(this.TypeNode);
+
+        private State(TService service, SemanticDocument document)
         {
+            _service = service;
             SemanticDocument = document;
         }
 
-        internal static State Generate(
-            SemanticDocument document, TTypeDeclarationSyntax typeDeclaration,
-            CancellationToken cancellationToken)
+        internal static State? Generate(
+            TService service, SemanticDocument document, TTypeDeclarationSyntax typeDeclaration)
         {
-            var state = new State(document);
-            if (!state.TryInitialize(typeDeclaration, cancellationToken))
-            {
-                return null;
-            }
-
-            return state;
+            var state = new State(service, document);
+            return state.TryInitialize(typeDeclaration) ? state : null;
         }
 
-        private bool TryInitialize(
-            TTypeDeclarationSyntax typeDeclaration,
-            CancellationToken cancellationToken)
+        private bool TryInitialize(TTypeDeclarationSyntax typeDeclaration)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return false;
-            }
-
-            var tree = SemanticDocument.SyntaxTree;
-            var root = SemanticDocument.Root;
-            var syntaxFacts = SemanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+            TypeNode = typeDeclaration;
 
             // compiler declared types, anonymous types, types defined in metadata should be filtered out.
-            if (SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol typeSymbol ||
-                typeSymbol.Locations.Any(static loc => loc.IsInMetadata) ||
-                typeSymbol.IsAnonymousType ||
-                typeSymbol.IsImplicitlyDeclared ||
-                typeSymbol.Name == string.Empty)
-            {
+            var typeName = this.TypeName;
+            if (typeName == string.Empty)
                 return false;
-            }
 
-            TypeNode = typeDeclaration;
-            TypeName = typeSymbol.Name;
+            var syntaxFacts = SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             DocumentNameWithoutExtension = Path.GetFileNameWithoutExtension(SemanticDocument.Document.Name);
             IsDocumentNameAValidIdentifier = syntaxFacts.IsValidIdentifier(DocumentNameWithoutExtension);
 
