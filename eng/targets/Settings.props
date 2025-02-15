@@ -15,6 +15,9 @@
 
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
 
+    <!-- This servicing branch needs to continue to target net7.0. This disables the SDK check for EOL target frameworks. -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
