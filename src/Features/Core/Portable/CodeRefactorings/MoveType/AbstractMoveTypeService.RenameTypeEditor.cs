@@ -27,8 +27,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             // this will bring up dashboard with conflicts and will allow the user to resolve them.
             // if no such conflicts exist, proceed with RenameSymbolAsync.
             var solution = SemanticDocument.Project.Solution;
-            var semanticModel = SemanticDocument.SemanticModel;
-            var symbol = semanticModel.GetRequiredDeclaredSymbol(this.TypeDeclaration, CancellationToken);
+            var symbol = SemanticDocument.SemanticModel.GetRequiredDeclaredSymbol(this.TypeDeclaration, CancellationToken);
             return await Renamer.RenameSymbolAsync(solution, symbol, new SymbolRenameOptions(), FileName, CancellationToken).ConfigureAwait(false);
         }
     }

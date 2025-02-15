@@ -305,13 +305,12 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             bool removeTypeInheritance,
             bool removePrimaryConstructor)
         {
-            var semanticModel = SemanticDocument.SemanticModel;
             var semanticFacts = SemanticDocument.GetRequiredLanguageService<ISemanticFactsService>();
             var typeChain = this.TypeDeclaration.Ancestors().OfType<TTypeDeclarationSyntax>();
 
             foreach (var node in typeChain)
             {
-                var symbol = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(node, CancellationToken);
+                var symbol = (INamedTypeSymbol)SemanticDocument.SemanticModel.GetRequiredDeclaredSymbol(node, CancellationToken);
                 Contract.ThrowIfNull(symbol);
                 if (!semanticFacts.IsPartial(symbol, CancellationToken))
                 {
