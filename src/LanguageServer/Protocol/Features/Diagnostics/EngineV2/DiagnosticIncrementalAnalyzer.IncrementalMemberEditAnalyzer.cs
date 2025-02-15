@@ -16,9 +16,11 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
         /// This type performs incremental analysis in presence of edits to only a single member inside a document.
@@ -45,10 +47,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDiagnosticsAsync(
                 DocumentAnalysisExecutor executor,
-                ImmutableArray<AnalyzerWithState> analyzersWithState,
+                ImmutableArray<DiagnosticAnalyzer> analyzers,
                 VersionStamp version,
-                Func<DiagnosticAnalyzer, DocumentAnalysisExecutor, CancellationToken, Task<ImmutableArray<DiagnosticData>>> computeAnalyzerDiagnosticsAsync,
-                Func<DocumentAnalysisExecutor, CancellationToken, Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>>> computeDiagnosticsNonIncrementallyAsync,
                 CancellationToken cancellationToken)
             {
                 var analysisScope = executor.AnalysisScope;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Debug.Assert(!analysisScope.Span.HasValue);
 
                 // Ensure that only the analyzers that support incremental span-based analysis are provided.
-                Debug.Assert(analyzersWithState.All(stateSet => stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
+                Debug.Assert(analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
                 var document = (Document)analysisScope.TextDocument;
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     // This is not a member-edit scenario, so compute full document diagnostics
                     // without incremental analysis.
-                    return await computeDiagnosticsNonIncrementallyAsync(executor, cancellationToken).ConfigureAwait(false);
+                    return await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
                 }
 
                 var (changedMember, changedMemberId, newMemberSpans, oldDocument) = changedMemberAndIdAndSpansAndDocument.Value;
@@ -75,37 +75,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var oldDocumentVersion = await GetDiagnosticVersionAsync(oldDocument.Project, cancellationToken).ConfigureAwait(false);
 
-                    using var _1 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var spanBasedAnalyzers);
-                    using var _2 = ArrayBuilder<AnalyzerWithState>.GetInstance(out var documentBasedAnalyzers);
-                    (AnalyzerWithState analyzerWithState, bool spanBased)? compilerAnalyzerData = null;
-                    foreach (var analyzerWithState in analyzersWithState)
+                    using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var spanBasedAnalyzers);
+                    using var _2 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var documentBasedAnalyzers);
+                    (DiagnosticAnalyzer analyzer, bool spanBased)? compilerAnalyzerData = null;
+                    foreach (var analyzer in analyzers)
                     {
                         // Check if we have existing cached diagnostics for this analyzer whose version matches the
                         // old document version. If so, we can perform span based incremental analysis for the changed member.
                         // Otherwise, we have to perform entire document analysis.
-                        var state = analyzerWithState.State;
-                        var existingData = analyzerWithState.ExistingData;
-                        if (oldDocumentVersion == existingData.Version)
+                        if (oldDocumentVersion == VersionStamp.Default)
                         {
-                            if (!compilerAnalyzerData.HasValue && analyzerWithState.Analyzer.IsCompilerAnalyzer())
-                                compilerAnalyzerData = (analyzerWithState, spanBased: true);
+                            if (!compilerAnalyzerData.HasValue && analyzer.IsCompilerAnalyzer())
+                                compilerAnalyzerData = (analyzer, spanBased: true);
                             else
-                                spanBasedAnalyzers.Add(analyzerWithState);
+                                spanBasedAnalyzers.Add(analyzer);
                         }
                         else
                         {
-                            var analyzerWithStateAndEmptyData = new AnalyzerWithState(analyzerWithState.Analyzer, analyzerWithState.IsHostAnalyzer, analyzerWithState.State, DocumentAnalysisData.Empty);
-                            if (!compilerAnalyzerData.HasValue && analyzerWithState.Analyzer.IsCompilerAnalyzer())
-                                compilerAnalyzerData = (analyzerWithStateAndEmptyData, spanBased: false);
+                            if (!compilerAnalyzerData.HasValue && analyzer.IsCompilerAnalyzer())
+                                compilerAnalyzerData = (analyzer, spanBased: false);
                             else
-                                documentBasedAnalyzers.Add(analyzerWithStateAndEmptyData);
+                                documentBasedAnalyzers.Add(analyzer);
                         }
                     }
 
                     if (spanBasedAnalyzers.Count == 0 && (!compilerAnalyzerData.HasValue || !compilerAnalyzerData.Value.spanBased))
                     {
                         // No incremental span based-analysis to be performed.
-                        return await computeDiagnosticsNonIncrementallyAsync(executor, cancellationToken).ConfigureAwait(false);
+                        return await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
                     }
 
                     // Get or create the member spans for all member nodes in the old document.
@@ -127,73 +124,59 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 async Task ExecuteCompilerAnalyzerAsync(
-                    (AnalyzerWithState analyzerWithState, bool spanBased)? compilerAnalyzerData,
+                    (DiagnosticAnalyzer analyzer, bool spanBased)? compilerAnalyzerData,
                     ImmutableArray<TextSpan> oldMemberSpans,
-                    PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
+                    Dictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
                     if (!compilerAnalyzerData.HasValue)
                         return;
 
-                    var (analyzerWithState, spanBased) = compilerAnalyzerData.Value;
+                    var (analyzer, spanBased) = compilerAnalyzerData.Value;
                     var span = spanBased ? changedMember.FullSpan : (TextSpan?)null;
                     executor = executor.With(analysisScope.WithSpan(span));
-                    using var _ = ArrayBuilder<AnalyzerWithState>.GetInstance(1, analyzerWithState, out var analyzersWithState);
-                    await ExecuteAnalyzersAsync(executor, analyzersWithState, oldMemberSpans, builder).ConfigureAwait(false);
+                    using var _ = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(1, analyzer, out var analyzers);
+                    await ExecuteAnalyzersAsync(executor, analyzers, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
                 async Task ExecuteSpanBasedAnalyzersAsync(
-                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
+                    ArrayBuilder<DiagnosticAnalyzer> analyzers,
                     ImmutableArray<TextSpan> oldMemberSpans,
-                    PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
+                    Dictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
-                    if (analyzersWithState.Count == 0)
+                    if (analyzers.Count == 0)
                         return;
 
                     executor = executor.With(analysisScope.WithSpan(changedMember.FullSpan));
-                    await ExecuteAnalyzersAsync(executor, analyzersWithState, oldMemberSpans, builder).ConfigureAwait(false);
+                    await ExecuteAnalyzersAsync(executor, analyzers, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
                 async Task ExecuteDocumentBasedAnalyzersAsync(
-                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
+                    ArrayBuilder<DiagnosticAnalyzer> analyzers,
                     ImmutableArray<TextSpan> oldMemberSpans,
-                    PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
+                    Dictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
-                    if (analyzersWithState.Count == 0)
+                    if (analyzers.Count == 0)
                         return;
 
                     executor = executor.With(analysisScope.WithSpan(null));
-                    await ExecuteAnalyzersAsync(executor, analyzersWithState, oldMemberSpans, builder).ConfigureAwait(false);
+                    await ExecuteAnalyzersAsync(executor, analyzers, oldMemberSpans, builder).ConfigureAwait(false);
                 }
 
                 async Task ExecuteAnalyzersAsync(
                     DocumentAnalysisExecutor executor,
-                    ArrayBuilder<AnalyzerWithState> analyzersWithState,
+                    ArrayBuilder<DiagnosticAnalyzer> analyzers,
                     ImmutableArray<TextSpan> oldMemberSpans,
-                    PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
+                    Dictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
                 {
                     var analysisScope = executor.AnalysisScope;
 
                     Debug.Assert(changedMember != null);
                     Debug.Assert(analysisScope.Kind == AnalysisKind.Semantic);
 
-                    foreach (var analyzerWithState in analyzersWithState)
+                    foreach (var analyzer in analyzers)
                     {
-                        var diagnostics = await computeAnalyzerDiagnosticsAsync(analyzerWithState.Analyzer, executor, cancellationToken).ConfigureAwait(false);
-
-                        // If we computed the diagnostics just for a span, then we are performing incremental analysis.
-                        // We need to compute the full document diagnostics by re-using diagnostics outside the changed
-                        // member and using the above computed latest diagnostics for the edited member span.
-                        if (analysisScope.Span.HasValue)
-                        {
-                            Debug.Assert(analysisScope.Span.Value == changedMember.FullSpan);
-
-                            diagnostics = await GetUpdatedDiagnosticsForMemberEditAsync(
-                                diagnostics, analyzerWithState.ExistingData, analyzerWithState.Analyzer,
-                                executor, changedMember, changedMemberId,
-                                oldMemberSpans, computeAnalyzerDiagnosticsAsync, cancellationToken).ConfigureAwait(false);
-                        }
-
-                        builder.Add(analyzerWithState.Analyzer, diagnostics);
+                        var diagnostics = await ComputeDocumentDiagnosticsForAnalyzerCoreAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
+                        builder.Add(analyzer, diagnostics);
                     }
                 }
             }
@@ -217,8 +200,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                using var pooledMembers = syntaxFacts.GetMethodLevelMembers(root);
-                var members = pooledMembers.Object;
+
+                // Specifies false for discardLargeInstances as these objects commonly exceed the default ArrayBuilder capacity threshold.
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(discardLargeInstances: false, out var members);
+                syntaxFacts.AddMethodLevelMembers(root, members);
 
                 var memberSpans = members.SelectAsArray(member => member.FullSpan);
                 var changedMemberId = members.IndexOf(changedMember);
@@ -231,169 +216,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 return (changedMember, changedMemberId, memberSpans, lastDocument);
-            }
-
-            private static async Task<ImmutableArray<DiagnosticData>> GetUpdatedDiagnosticsForMemberEditAsync(
-                ImmutableArray<DiagnosticData> diagnostics,
-                DocumentAnalysisData existingData,
-                DiagnosticAnalyzer analyzer,
-                DocumentAnalysisExecutor executor,
-                SyntaxNode changedMember,
-                int changedMemberId,
-                ImmutableArray<TextSpan> oldMemberSpans,
-                Func<DiagnosticAnalyzer, DocumentAnalysisExecutor, CancellationToken, Task<ImmutableArray<DiagnosticData>>> computeAnalyzerDiagnosticsAsync,
-                CancellationToken cancellationToken)
-            {
-                // We are performing semantic span-based analysis for member-only edit scenario.
-                // Instead of computing the analyzer diagnostics for the entire document,
-                // we have computed the new diagnostics just for the edited member span.
-                Debug.Assert(executor.AnalysisScope.Span.HasValue);
-                Debug.Assert(executor.AnalysisScope.Span.Value == changedMember.FullSpan);
-
-                // We now try to get the new document diagnostics by performing an incremental update:
-                //   1. Re-using all the old cached diagnostics outside the edited member node from a prior
-                //      document snapshot, but with updated diagnostic spans.
-                //      AND
-                //   2. Replacing old diagnostics for the edited member node in a prior document snapshot
-                //      with the new diagnostics for this member node in the latest document snaphot.
-                // If we are unable to perform this incremental diagnostics update,
-                // we fallback to computing the diagnostics for the entire document.
-                var tree = changedMember.SyntaxTree;
-                var text = tree.GetText(cancellationToken);
-                if (TryGetUpdatedDocumentDiagnostics(existingData, oldMemberSpans, diagnostics, tree, text, changedMember, changedMemberId, out var updatedDiagnostics))
-                {
-#if DEBUG_INCREMENTAL_ANALYSIS
-                    await ValidateMemberDiagnosticsAsync(executor, analyzer, updatedDiagnostics, cancellationToken).ConfigureAwait(false);
-#endif
-                    return updatedDiagnostics;
-                }
-                else
-                {
-                    // Incremental diagnostics update failed.
-                    // Fallback to computing the diagnostics for the entire document.
-                    var documentExecutor = executor.With(executor.AnalysisScope.WithSpan(null));
-                    return await computeAnalyzerDiagnosticsAsync(analyzer, documentExecutor, cancellationToken).ConfigureAwait(false);
-                }
-
-#if DEBUG_INCREMENTAL_ANALYSIS
-                static async Task ValidateMemberDiagnosticsAsync(DocumentAnalysisExecutor executor, DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken)
-                {
-                    executor = executor.With(executor.AnalysisScope.WithSpan(null));
-                    var expected = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                    Debug.Assert(diagnostics.SetEquals(expected));
-                }
-#endif
-            }
-
-            private static bool TryGetUpdatedDocumentDiagnostics(
-                DocumentAnalysisData existingData,
-                ImmutableArray<TextSpan> oldMemberSpans,
-                ImmutableArray<DiagnosticData> memberDiagnostics,
-                SyntaxTree tree,
-                SourceText text,
-                SyntaxNode member,
-                int memberId,
-                out ImmutableArray<DiagnosticData> updatedDiagnostics)
-            {
-                // get old span
-                var oldSpan = oldMemberSpans[memberId];
-
-                // get old diagnostics
-                var diagnostics = existingData.Items;
-
-                // check quick exit cases
-                if (diagnostics.Length == 0 && memberDiagnostics.Length == 0)
-                {
-                    updatedDiagnostics = diagnostics;
-                    return true;
-                }
-
-                // simple case
-                if (diagnostics.Length == 0 && memberDiagnostics.Length > 0)
-                {
-                    updatedDiagnostics = memberDiagnostics;
-                    return true;
-                }
-
-                // regular case
-                using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var resultBuilder);
-
-                // update member location
-                Contract.ThrowIfFalse(member.FullSpan.Start == oldSpan.Start);
-                var delta = member.FullSpan.End - oldSpan.End;
-
-                var replaced = false;
-                foreach (var diagnostic in diagnostics)
-                {
-                    if (diagnostic.DocumentId is null)
-                    {
-                        resultBuilder.Add(diagnostic);
-                        continue;
-                    }
-
-                    var diagnosticSpan = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
-                    if (diagnosticSpan.Start < oldSpan.Start)
-                    {
-                        // Bail out if the diagnostic has any additional locations that we don't know how to handle.
-                        if (diagnostic.AdditionalLocations.Any(l => l.DocumentId != null && l.UnmappedFileSpan.GetClampedTextSpan(text).Start >= oldSpan.Start))
-                        {
-                            updatedDiagnostics = default;
-                            return false;
-                        }
-
-                        resultBuilder.Add(diagnostic);
-                        continue;
-                    }
-
-                    if (!replaced)
-                    {
-                        resultBuilder.AddRange(memberDiagnostics);
-                        replaced = true;
-                    }
-
-                    if (oldSpan.End <= diagnosticSpan.Start)
-                    {
-                        // Bail out if the diagnostic has any additional locations that we don't know how to handle.
-                        if (diagnostic.AdditionalLocations.Any(l => l.DocumentId != null && oldSpan.End > l.UnmappedFileSpan.GetClampedTextSpan(text).Start))
-                        {
-                            updatedDiagnostics = default;
-                            return false;
-                        }
-
-                        resultBuilder.Add(UpdateLocations(diagnostic, tree, text, delta));
-                        continue;
-                    }
-                }
-
-                // if it haven't replaced, replace it now
-                if (!replaced)
-                {
-                    resultBuilder.AddRange(memberDiagnostics);
-                }
-
-                updatedDiagnostics = resultBuilder.ToImmutableArray();
-                return true;
-
-                static DiagnosticData UpdateLocations(DiagnosticData diagnostic, SyntaxTree tree, SourceText text, int delta)
-                {
-                    Debug.Assert(diagnostic.DataLocation != null);
-                    var location = UpdateLocation(diagnostic.DataLocation);
-                    var additionalLocations = diagnostic.AdditionalLocations.SelectAsArray(UpdateLocation);
-                    return diagnostic.WithLocations(location, additionalLocations);
-
-                    DiagnosticDataLocation UpdateLocation(DiagnosticDataLocation location)
-                    {
-                        var diagnosticSpan = location.UnmappedFileSpan.GetClampedTextSpan(text);
-                        var start = Math.Max(diagnosticSpan.Start + delta, 0);
-                        var end = start + diagnosticSpan.Length;
-                        if (start >= tree.Length)
-                            start = tree.Length - 1;
-                        if (end >= tree.Length)
-                            end = tree.Length - 1;
-                        var newSpan = new TextSpan(start, end - start);
-                        return location.WithSpan(newSpan, tree);
-                    }
-                }
             }
         }
     }

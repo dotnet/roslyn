@@ -1444,4 +1444,34 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
             """;
         await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14);
     }
+
+    [Theory]
+    [InlineData("set"), InlineData("init")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/76992")]
+    public async Task ProduceFieldBackedProperty2(string setter)
+    {
+        var text = $$"""
+            class TestClass
+            {
+                public int G[||]oo { get; {{setter}}; } = 0;
+            }
+            """;
+        var expected = $$"""
+            class TestClass
+            {
+                public int Goo
+                {
+                    get
+                    {
+                        return field;
+                    }
+                    {{setter}}
+                    {
+                        field = value;
+                    }
+                } = 0;
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14);
+    }
 }

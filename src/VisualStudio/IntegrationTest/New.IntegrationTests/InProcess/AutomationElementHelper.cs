@@ -4,6 +4,8 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using UIAutomationClient;

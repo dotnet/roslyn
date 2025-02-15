@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Symbols;
@@ -36,12 +37,12 @@ internal abstract class ParameterDefinitionBase : Cci.IParameterDefinition
     public sealed override bool Equals(object? obj)
     {
         // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-        throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+        throw ExceptionUtilities.Unreachable();
     }
 
     public sealed override int GetHashCode()
     {
         // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-        throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+        throw ExceptionUtilities.Unreachable();
     }
 }
