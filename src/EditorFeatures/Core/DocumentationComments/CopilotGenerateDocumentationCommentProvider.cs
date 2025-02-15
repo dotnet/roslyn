@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal class CopilotGenerateDocumentationCommentProvider : SuggestionProviderBase
     {
-        private SuggestionManagerBase? _suggestionManagerBase;
+        private SuggestionManagerBase? _suggestionManager;
         private VisualStudio.Threading.IAsyncDisposable? _intellicodeLineCompletionsDisposable;
 
         internal SuggestionSessionBase? _suggestionSession;
@@ -40,31 +40,26 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public async Task InitializeAsync(ITextView textView, SuggestionServiceBase suggestionServiceBase, CancellationToken cancellationToken)
         {
-            _suggestionManagerBase = await suggestionServiceBase.TryRegisterProviderAsync(this, textView, "AmbientAIDocumentationComments", cancellationToken).ConfigureAwait(false);
+            _suggestionManager ??= await suggestionServiceBase.TryRegisterProviderAsync(this, textView, "AmbientAIDocumentationComments", cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<ICopilotCodeAnalysisService?> IsGenerateDocumentationAvailableAsync(Document document, CancellationToken cancellationToken)
+        /*public async Task<ICopilotCodeAnalysisService?> IsGenerateDocumentationAvailableAsync(Document document, CancellationToken cancellationToken)
         {
             // Bailing out if copilot is not available or the option is not enabled.
-            if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-                    await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
-            {
-                return null;
-            }
-
             if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionService ||
                 !await copilotOptionService.IsGenerateDocumentationCommentOptionEnabledAsync().ConfigureAwait(false))
             {
                 return null;
             }
 
-            if (_suggestionManagerBase is null)
+            if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+                    await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
             {
                 return null;
             }
 
             return copilotService;
-        }
+        }*/
 
         public async Task GenerateDocumentationProposalAsync(Document document, DocumentationCommentSnippet snippet,
         ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
@@ -87,7 +82,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             // Do not do IntelliCode line completions if we're about to generate a documentation comment
             // so that won't have interfering grey text.
-            _intellicodeLineCompletionsDisposable = await _suggestionManagerBase!.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
+            _intellicodeLineCompletionsDisposable = await _suggestionManager!.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
 
             var proposalEdits = await GetProposedEditsAsync(snippetProposal, copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
 
@@ -100,7 +95,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             var suggestion = new DocumentationCommentSuggestion(this, proposal);
 
-            var session = this._suggestionSession = await (_suggestionManagerBase.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
+            var session = this._suggestionSession = await (_suggestionManager.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
 
             if (session != null)
             {

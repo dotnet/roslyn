@@ -3,33 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Language.Proposals;
-using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
-using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
@@ -131,8 +121,11 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
     private async Task GenerateDocumentationCommentProposalsAsync(Document document, DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
     {
-        var generateDocumentationCommentProvider = await _generateDocumentationCommentManager.CreateProviderAsync(textView, cancellationToken).ConfigureAwait(false);
-        await generateDocumentationCommentProvider.GenerateDocumentationProposalAsync(document, snippet, snapshot, caret, cancellationToken).ConfigureAwait(false);
+        var generateDocumentationCommentProvider = await _generateDocumentationCommentManager.CreateProviderAsync(document, textView, cancellationToken).ConfigureAwait(false);
+        if (generateDocumentationCommentProvider is not null)
+        {
+            await generateDocumentationCommentProvider.GenerateDocumentationProposalAsync(document, snippet, snapshot, caret, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
