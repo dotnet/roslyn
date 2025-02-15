@@ -1273,10 +1273,19 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
                 return;
             }
 
-            if (projectItemForDocument.TryGetFullPath(out var newPath))
+            string? newPath;
+            try
             {
-                undoManager?.Add(new RenameDocumentUndoUnit(this, uniqueName, document.Name, newPath));
+                projectItemForDocument.TryGetFullPath(out newPath);
             }
+            catch (KeyNotFoundException ex)
+            {
+                FatalError.ReportAndCatch(ex);
+                return;
+            }
+
+            if (newPath != null)
+                undoManager?.Add(new RenameDocumentUndoUnit(this, uniqueName, document.Name, newPath));
         }
     }
 
