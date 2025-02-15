@@ -17,19 +17,22 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 {
     private sealed class MoveTypeCodeAction : CodeAction
     {
-        private readonly State _state;
         private readonly TService _service;
+        private readonly Document _document;
+        private readonly TTypeDeclarationSyntax _typeDeclaration;
         private readonly MoveTypeOperationKind _operationKind;
         private readonly string _fileName;
 
         public MoveTypeCodeAction(
             TService service,
-            State state,
+            Document document,
+            TTypeDeclarationSyntax typeDeclaration,
             MoveTypeOperationKind operationKind,
             string fileName)
         {
-            _state = state;
             _service = service;
+            _document = document;
+            _typeDeclaration = typeDeclaration;
             _operationKind = operationKind;
             _fileName = fileName;
             this.Title = CreateDisplayText();
@@ -39,7 +42,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             => _operationKind switch
             {
                 MoveTypeOperationKind.MoveType => string.Format(FeaturesResources.Move_type_to_0, _fileName),
-                MoveTypeOperationKind.RenameType => string.Format(FeaturesResources.Rename_type_to_0, _state.DocumentNameWithoutExtension),
+                MoveTypeOperationKind.RenameType => string.Format(FeaturesResources.Rename_type_to_0, GetDocumentNameWithoutExtension(_document)),
                 MoveTypeOperationKind.RenameFile => string.Format(FeaturesResources.Rename_file_to_0, _fileName),
                 MoveTypeOperationKind.MoveTypeNamespaceScope => string.Empty,
                 _ => throw ExceptionUtilities.UnexpectedValue(_operationKind),
@@ -50,7 +53,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
             IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
-            var editor = Editor.GetEditor(_operationKind, _service, _state, _fileName, cancellationToken);
+            var editor = Editor.GetEditor(_operationKind, _service, _typeDeclaration, _fileName, cancellationToken);
             return await editor.GetOperationsAsync().ConfigureAwait(false);
         }
     }

@@ -49,7 +49,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var typeDeclaration = await GetTypeDeclarationAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-        return CreateActions(typeDeclaration);
+        return await CreateActionsAsync(document, typeDeclaration, cancellationToken).ConfigureAwait(false);
     }
 
     public override async Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken)
@@ -76,24 +76,27 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         return name == "" ? null : nodeToAnalyze;
     }
 
-    private ImmutableArray<CodeAction> CreateActions(
-        Document document, TTypeDeclarationSyntax? typeDeclaration)
+    private async Task<ImmutableArray<CodeAction>> CreateActionsAsync(
+        Document document, TTypeDeclarationSyntax? typeDeclaration, CancellationToken cancellationToken)
     {
         if (typeDeclaration is null)
             return [];
 
-        var typeMatchesDocumentName = TypeMatchesDocumentName(typeDeclaration, state.DocumentNameWithoutExtension);
+        var documentNameWithoutExtension = GetDocumentNameWithoutExtension(document);
+        var typeMatchesDocumentName = TypeMatchesDocumentName(typeDeclaration, documentNameWithoutExtension);
 
         // if type name matches document name, per style conventions, we have nothing to do.
         if (typeMatchesDocumentName)
             return [];
 
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
-        var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
+
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(root);
         var isNestedType = IsNestedType(typeDeclaration);
 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var isClassNextToGlobalStatements = !manyTypes && ClassNextToGlobalStatements(state.SemanticDocument.Root, syntaxFacts);
+        var isClassNextToGlobalStatements = !manyTypes && ClassNextToGlobalStatements(root, syntaxFacts);
 
         var suggestedFileNames = GetSuggestedFileNames(
             document, typeDeclaration, includeComplexFileNames: false);
@@ -108,21 +111,21 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (manyTypes || isNestedType || isClassNextToGlobalStatements)
         {
             foreach (var fileName in suggestedFileNames)
-                actions.Add(GetCodeAction(state, fileName, operationKind: MoveTypeOperationKind.MoveType));
+                actions.Add(GetCodeAction(document, typeDeclaration, fileName, operationKind: MoveTypeOperationKind.MoveType));
         }
 
         // (2) Add rename file and rename type code actions:
         // Case: No type declaration in file matches the file name.
-        if (!AnyTopLevelTypeMatchesDocumentName(state))
+        if (!AnyTopLevelTypeMatchesDocumentName())
         {
             foreach (var fileName in suggestedFileNames)
-                actions.Add(GetCodeAction(state, fileName, operationKind: MoveTypeOperationKind.RenameFile));
+                actions.Add(GetCodeAction(document, typeDeclaration, fileName, operationKind: MoveTypeOperationKind.RenameFile));
 
             // Only if the document name can be legal identifier in the language, offer to rename type with document name
-            if (syntaxFacts.IsValidIdentifier(state.DocumentNameWithoutExtension))
+            if (syntaxFacts.IsValidIdentifier(documentNameWithoutExtension))
             {
                 actions.Add(GetCodeAction(
-                    state, fileName: state.DocumentNameWithoutExtension,
+                    document, typeDeclaration, fileName: documentNameWithoutExtension,
                     operationKind: MoveTypeOperationKind.RenameType));
             }
         }
@@ -130,13 +133,21 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         Debug.Assert(actions.Count != 0, "No code actions found for MoveType Refactoring");
 
         return actions.ToImmutableAndClear();
+
+        bool AnyTopLevelTypeMatchesDocumentName()
+        {
+            var documentNameWithoutExtension = GetDocumentNameWithoutExtension(document);
+            return TopLevelTypeDeclarations(root).Any(
+                typeDeclaration => TypeMatchesDocumentName(
+                    typeDeclaration, documentNameWithoutExtension));
+        }
     }
 
     private static bool ClassNextToGlobalStatements(SyntaxNode root, ISyntaxFactsService syntaxFacts)
         => syntaxFacts.ContainsGlobalStatement(root);
 
-    private MoveTypeCodeAction GetCodeAction(State state, string fileName, MoveTypeOperationKind operationKind)
-        => new((TService)this, state, operationKind, fileName);
+    private MoveTypeCodeAction GetCodeAction(Document document, TTypeDeclarationSyntax typeDeclaration, string fileName, MoveTypeOperationKind operationKind)
+        => new((TService)this, document, typeDeclaration, operationKind, fileName);
 
     private static bool IsNestedType(TTypeDeclarationSyntax typeNode)
         => typeNode.Parent is TTypeDeclarationSyntax;
@@ -155,14 +166,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
     private static string GetDocumentNameWithoutExtension(Document document)
         => Path.GetFileNameWithoutExtension(document.Name);
-
-    private bool AnyTopLevelTypeMatchesDocumentName(Document document, SyntaxNode root)
-    {
-        var documentNameWithoutExtension = GetDocumentNameWithoutExtension(document);
-        return TopLevelTypeDeclarations(root).Any(
-            typeDeclaration => TypeMatchesDocumentName(
-                typeDeclaration, documentNameWithoutExtension));
-    }
 
     /// <summary>
     /// checks if type name matches its parent document name, per style rules.
