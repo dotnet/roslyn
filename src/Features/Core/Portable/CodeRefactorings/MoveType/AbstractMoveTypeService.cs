@@ -289,13 +289,24 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (isNestedType)
         {
             var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode);
-            suggestedFileNames.Add(typeNameParts.Select(t => t.name).Join(".") + fileExtension);
+            AddNameParts(typeNameParts.Select(t => t.name));
 
             if (includeArity && typeNameParts.Any(t => t.arity > 0))
-                suggestedFileNames.Add(typeNameParts.Select(t => t.arity > 0 ? $"{t.name}`{t.arity}" : t.name).Join(".") + fileExtension);
+                AddNameParts(typeNameParts.Select(t => t.arity > 0 ? $"{t.name}`{t.arity}" : t.name));
         }
 
         return suggestedFileNames.ToImmutableAndClear();
+
+        void AddNameParts(IEnumerable<string> parts)
+        {
+            AddNamePartsWithSeparator(parts, ".");
+            AddNamePartsWithSeparator(parts, "+");
+        }
+
+        void AddNamePartsWithSeparator(IEnumerable<string> parts, string separator)
+        {
+            suggestedFileNames.Add(parts.Join(separator) + fileExtension);
+        }
     }
 
     private IEnumerable<(string name, int arity)> GetTypeNamePartsForNestedTypeNode(TTypeDeclarationSyntax typeNode)
