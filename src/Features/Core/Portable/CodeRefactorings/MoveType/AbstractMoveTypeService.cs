@@ -174,8 +174,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         => TopLevelTypeDeclarations(root).Skip(1).Any();
 
     private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root)
-        => root.DescendantNodes(n => n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax)
-            .OfType<TTypeDeclarationSyntax>();
+        => root.DescendantNodes(n => n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax).OfType<TTypeDeclarationSyntax>();
 
     private static bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)
     {
@@ -190,6 +189,18 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                     typeDeclaration, typeName, state.DocumentNameWithoutExtension,
                     semanticModel, cancellationToken);
             });
+    }
+
+    public async Task<string?> GetDesiredDocumentNameAsync(Document document, CancellationToken cancellationToken)
+    {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        if (root is null)
+            return null;
+
+        // We don't want to rename documents unless they contains a single top level type.
+        var topLevelTypeDeclarations = TopLevelTypeDeclarations(root).ToImmutableArray();
+        if (topLevelTypeDeclarations is not [var topLevelType])
+            return null;
     }
 
     /// <summary>

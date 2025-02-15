@@ -6,10 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
@@ -57,12 +60,53 @@ internal sealed class MoveTypeCodeRefactoringProvider() : CodeRefactoringProvide
                 fixAllContext.CodeActionEquivalenceKey));
         }
 
-        private async Task<Solution> FixAllAsync(
+        private static async Task<Solution> FixAllAsync(
             FixAllContext fixAllContext,
             IProgress<CodeAnalysisProgress> progress,
             CancellationToken cancellationToken)
         {
+            var projects = fixAllContext.Scope is CodeFixes.FixAllScope.Project
+                ? [fixAllContext.Project]
+                : fixAllContext.Solution.Projects.Where(p => p.GetLanguageService<IMoveTypeService>() != null);
+            var documents = projects.SelectManyAsArray(p => p.Documents);
 
+            // Set the progress bar to be the number of documents we have to process.
+            progress.AddItems(documents.Length);
+
+            var documentIdsAndFileNames = await ProducerConsumer<(DocumentId documentId, string name)>.RunParallelAsync(
+                documents,
+                static async (document, callback, args, cancellationToken) =>
+                {
+                    var (fixAllContext, progress) = args;
+
+                    // Ensure we update progress as we process each document.
+                    using var _ = progress.ItemCompletedScope();
+
+                    var moveTypeService = document.GetRequiredLanguageService<IMoveTypeService>();
+                    var name = await moveTypeService.GetDesiredDocumentNameAsync(document, cancellationToken).ConfigureAwait(false);
+                    if (name is null)
+                        return;
+
+                    callback((document.Id, name));
+                },
+                args: (fixAllContext, progress),
+                cancellationToken).ConfigureAwait(false);
+
+            using var _ = PooledHashSet<string>.GetInstance(out var seenFilePaths);
+
+            var currentSolution = fixAllContext.Solution;
+            foreach (var (documentId, name) in documentIdsAndFileNames)
+            {
+                var document = currentSolution.GetRequiredDocument(documentId);
+                if (document.FilePath is null)
+                    continue;
+
+                // There are linked files with the same file path.  Ensure we only ever process such a file once.
+                if (seenFilePaths.Add(document.FilePath))
+                    currentSolution = currentSolution.WithDocumentName(documentId, name);
+            }
+
+            return currentSolution;
         }
     }
 }

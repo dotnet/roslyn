@@ -12,4 +12,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 
 internal static class MoveTypeHelpers
 {
+    public static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations<
+        TCompilationUnitSyntax, TNamespaceDeclarationSyntax, TTypeDeclarationSyntax>(SyntaxNode root)
+        => root.DescendantNodes(n => n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax)
+        .OfType<TTypeDeclarationSyntax>();
+
 }
