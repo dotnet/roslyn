@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public readonly IThreadingContext ThreadingContext;
 
+        public bool Enabled => _enabled && (_suggestionManager != null);
+        private bool _enabled = true;
+
         public CopilotGenerateDocumentationCommentProvider(IThreadingContext threadingContext, ICopilotCodeAnalysisService copilotService)
         {
             _copilotService = copilotService;
@@ -49,6 +52,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
         {
             await Task.Yield().ConfigureAwait(false);
+
+            if (!Enabled)
+            {
+                return;
+            }
 
             var snippetProposal = GetSnippetProposal(snippet.SnippetText, snippet.MemberNode, snippet.Position, snippet.CaretOffset);
 
@@ -300,6 +308,18 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 await _intellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
                 _intellicodeLineCompletionsDisposable = null;
             }
+        }
+
+        public override Task EnabledAsync(CancellationToken cancel)
+        {
+            _enabled = true;
+            return Task.CompletedTask;
+        }
+
+        public override Task DisabledAsync(CancellationToken cancel)
+        {
+            _enabled = false;
+            return Task.CompletedTask;
         }
     }
 }

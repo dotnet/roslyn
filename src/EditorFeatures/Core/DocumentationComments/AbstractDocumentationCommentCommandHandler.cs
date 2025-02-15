@@ -35,15 +35,13 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService;
     private readonly CopilotGenerateDocumentationCommentManager _generateDocumentationCommentManager;
-    private readonly IAsynchronousOperationListener _asyncListener;
 
     protected AbstractDocumentationCommentCommandHandler(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         ITextUndoHistoryRegistry undoHistoryRegistry,
         IEditorOperationsFactoryService editorOperationsFactoryService,
         EditorOptionsService editorOptionsService,
-        CopilotGenerateDocumentationCommentManager generateDocumentationCommentManager,
-        IAsynchronousOperationListenerProvider listenerProvider)
+        CopilotGenerateDocumentationCommentManager generateDocumentationCommentManager)
     {
         Contract.ThrowIfNull(uiThreadOperationExecutor);
         Contract.ThrowIfNull(undoHistoryRegistry);
@@ -54,7 +52,6 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         _editorOperationsFactoryService = editorOperationsFactoryService;
         _editorOptionsService = editorOptionsService;
         _generateDocumentationCommentManager = generateDocumentationCommentManager;
-        _asyncListener = listenerProvider.GetListener(FeatureAttribute.GenerateDocumentation);
     }
 
     protected abstract string ExteriorTriviaText { get; }
@@ -111,23 +108,12 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
                 returnValue = true;
 
-                var token = _asyncListener.BeginAsyncOperation(nameof(GenerateDocumentationCommentProposalsAsync));
-                _ = GenerateDocumentationCommentProposalsAsync(document, snippet, oldSnapshot, oldCaret, textView, cancellationToken).CompletesAsyncOperation(token);
+                _generateDocumentationCommentManager.TriggerDocumentationCommentProposalGeneration(document, snippet, oldSnapshot, oldCaret, textView, cancellationToken);
             }
         }
 
         return returnValue;
     }
-
-    private async Task GenerateDocumentationCommentProposalsAsync(Document document, DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
-    {
-        var generateDocumentationCommentProvider = await _generateDocumentationCommentManager.CreateProviderAsync(document, textView, cancellationToken).ConfigureAwait(false);
-        if (generateDocumentationCommentProvider is not null)
-        {
-            await generateDocumentationCommentProvider.GenerateDocumentationProposalAsync(snippet, snapshot, caret, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
     public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         => nextHandler();
 

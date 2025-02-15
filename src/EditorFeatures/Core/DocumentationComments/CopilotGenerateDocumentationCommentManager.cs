@@ -10,10 +10,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Suggestions;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
@@ -23,16 +25,35 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
     {
         private readonly SuggestionServiceBase _suggestionServiceBase;
         private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CopilotGenerateDocumentationCommentManager(SuggestionServiceBase suggestionServiceBase, IThreadingContext threadingContext)
+        public CopilotGenerateDocumentationCommentManager(SuggestionServiceBase suggestionServiceBase, IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _suggestionServiceBase = suggestionServiceBase;
             _threadingContext = threadingContext;
+            _asyncListener = _asyncListener = listenerProvider.GetListener(FeatureAttribute.GenerateDocumentation);
         }
 
-        public async Task<CopilotGenerateDocumentationCommentProvider?> CreateProviderAsync(Document document, ITextView textView, CancellationToken cancellationToken)
+        public void TriggerDocumentationCommentProposalGeneration(Document document,
+            DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
+        {
+            var token = _asyncListener.BeginAsyncOperation(nameof(GenerateDocumentationCommentProposalsAsync));
+            _ = GenerateDocumentationCommentProposalsAsync(document, snippet, snapshot, caret, textView, cancellationToken).CompletesAsyncOperation(token);
+        }
+
+        private async Task GenerateDocumentationCommentProposalsAsync(Document document, DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
+        {
+            var generateDocumentationCommentProvider = await CreateProviderAsync(document, textView, cancellationToken).ConfigureAwait(false);
+            if (generateDocumentationCommentProvider is not null)
+            {
+                await generateDocumentationCommentProvider.GenerateDocumentationProposalAsync(snippet, snapshot, caret, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task<CopilotGenerateDocumentationCommentProvider?> CreateProviderAsync(Document document, ITextView textView, CancellationToken cancellationToken)
         {
             var copilotService = await IsGenerateDocumentationAvailableAsync(document, cancellationToken).ConfigureAwait(false);
 
@@ -49,7 +70,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return provider;
         }
 
-        public static async Task<ICopilotCodeAnalysisService?> IsGenerateDocumentationAvailableAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<ICopilotCodeAnalysisService?> IsGenerateDocumentationAvailableAsync(Document document, CancellationToken cancellationToken)
         {
             // Bailing out if copilot is not available or the option is not enabled.
             if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionService ||
