@@ -13,7 +13,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 {
     private sealed class RenameTypeEditor(
         TService service,
-        Document document,
+        SemanticDocument document,
         TTypeDeclarationSyntax typeDeclaration,
         string fileName,
         CancellationToken cancellationToken) : Editor(service, document, typeDeclaration, fileName, cancellationToken)
@@ -21,14 +21,14 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         /// <summary>
         /// Renames a type to match its containing file name.
         /// </summary>
-        public override async Task<Solution> GetModifiedSolutionAsync()
+        public override async Task<Solution?> GetModifiedSolutionAsync()
         {
             // TODO: detect conflicts ahead of time and open an inline rename session if any exists.
             // this will bring up dashboard with conflicts and will allow the user to resolve them.
             // if no such conflicts exist, proceed with RenameSymbolAsync.
             var solution = this.Document.Project.Solution;
-            var semanticModel = await Document.GetRequiredSemanticModelAsync(CancellationToken).ConfigureAwait(false);
-            var symbol = semanticModel.GetDeclaredSymbol(this.TypeDeclaration, CancellationToken);
+            var semanticModel = this.Document.SemanticModel;
+            var symbol = semanticModel.GetRequiredDeclaredSymbol(this.TypeDeclaration, CancellationToken);
             return await Renamer.RenameSymbolAsync(solution, symbol, new SymbolRenameOptions(), FileName, CancellationToken).ConfigureAwait(false);
         }
     }

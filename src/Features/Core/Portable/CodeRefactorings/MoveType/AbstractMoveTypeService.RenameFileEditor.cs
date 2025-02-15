@@ -16,7 +16,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     /// </summary>
     private sealed class RenameFileEditor(
         TService service,
-        Document document,
+        SemanticDocument document,
         TTypeDeclarationSyntax typeDeclaration,
         string fileName,
         CancellationToken cancellationToken) : Editor(service, document, typeDeclaration, fileName, cancellationToken)
@@ -24,11 +24,12 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         public override async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
         {
             var newSolution = await GetModifiedSolutionAsync().ConfigureAwait(false);
+            Contract.ThrowIfNull(newSolution);
             return [new ApplyChangesOperation(newSolution)];
         }
 
-        public override Task<Solution> GetModifiedSolutionAsync()
-            => Task.FromResult(
+        public override Task<Solution?> GetModifiedSolutionAsync()
+            => Task.FromResult<Solution?>(
                 this.Document.Project.Solution.WithDocumentName(this.Document.Id, FileName));
     }
 }

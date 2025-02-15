@@ -15,14 +15,14 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     private sealed class MoveTypeCodeAction : CodeAction
     {
         private readonly TService _service;
-        private readonly Document _document;
+        private readonly SemanticDocument _document;
         private readonly TTypeDeclarationSyntax _typeDeclaration;
         private readonly MoveTypeOperationKind _operationKind;
         private readonly string _fileName;
 
         public MoveTypeCodeAction(
             TService service,
-            Document document,
+            SemanticDocument document,
             TTypeDeclarationSyntax typeDeclaration,
             MoveTypeOperationKind operationKind,
             string fileName)

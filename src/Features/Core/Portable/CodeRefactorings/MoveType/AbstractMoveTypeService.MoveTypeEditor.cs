@@ -25,7 +25,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 {
     private sealed class MoveTypeEditor(
         TService service,
-        Document document,
+        SemanticDocument document,
         TTypeDeclarationSyntax typeDeclaration,
         string fileName,
         CancellationToken cancellationToken) : Editor(service, document, typeDeclaration, fileName, cancellationToken)
@@ -43,7 +43,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         /// 3. Add this forked document to the solution.
         /// 4. Finally, update the original document and remove the type from it.
         /// </remarks>
-        public override async Task<Solution> GetModifiedSolutionAsync()
+        public override async Task<Solution?> GetModifiedSolutionAsync()
         {
             // Fork, update and add as new document.
             var projectToBeUpdated = this.Document.Project;
@@ -112,18 +112,18 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         /// <param name="newDocumentId">id for the new document to be added</param>
         private async Task<Document> AddNewDocumentWithSingleTypeDeclarationAsync(DocumentId newDocumentId)
         {
-            var document = this.Document;
+            var document = this.Document.Document;
             Debug.Assert(document.Name != FileName, $"New document name is same as old document name:{FileName}");
 
-            var root = await document.GetRequiredSyntaxRootAsync(this.CancellationToken).ConfigureAwait(false);
+            var root = this.Document.Root;
             var projectToBeUpdated = document.Project;
             var documentEditor = await DocumentEditor.CreateAsync(document, CancellationToken).ConfigureAwait(false);
 
             // Make the type chain above this new type partial.  Also, remove any 
             // attributes from the containing partial types.  We don't want to create
             // duplicate attributes on things.
-            await AddPartialModifiersToTypeChainAsync(
-                documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true, removePrimaryConstructor: true).ConfigureAwait(false);
+            AddPartialModifiersToTypeChain(
+                documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true, removePrimaryConstructor: true);
 
             // Keep track of any associated directives on any of the nodes we're removing. If those directives are then
             // contained in the leading trivia of the type we're moving, we'll remove them from there as well.
@@ -236,8 +236,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
             // Make the type chain above the type we're moving 'partial'. However, keep all the attributes on these
             // types as theses are the original attributes and we don't want to mess with them. 
-            await AddPartialModifiersToTypeChainAsync(documentEditor,
-                removeAttributesAndComments: false, removeTypeInheritance: false, removePrimaryConstructor: false).ConfigureAwait(false);
+            AddPartialModifiersToTypeChain(documentEditor,
+                removeAttributesAndComments: false, removeTypeInheritance: false, removePrimaryConstructor: false);
 
             // Now cleanup and remove the type we're moving to the new file.
             RemoveLeadingBlankLinesFromMovedType(documentEditor);
@@ -299,13 +299,13 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         /// <summary>
         /// if a nested type is being moved, this ensures its containing type is partial.
         /// </summary>
-        private async Task AddPartialModifiersToTypeChainAsync(
+        private void AddPartialModifiersToTypeChain(
             DocumentEditor documentEditor,
             bool removeAttributesAndComments,
             bool removeTypeInheritance,
             bool removePrimaryConstructor)
         {
-            var semanticModel = await this.Document.GetRequiredSemanticModelAsync(CancellationToken).ConfigureAwait(false);
+            var semanticModel = this.Document.SemanticModel;
             var semanticFacts = this.Document.GetRequiredLanguageService<ISemanticFactsService>();
             var typeChain = this.TypeDeclaration.Ancestors().OfType<TTypeDeclarationSyntax>();
 

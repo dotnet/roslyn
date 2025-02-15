@@ -21,7 +21,7 @@ internal abstract partial class AbstractMoveTypeService<
     /// </summary>
     private sealed class MoveTypeNamespaceScopeEditor(
         TService service,
-        Document document,
+        SemanticDocument document,
         TTypeDeclarationSyntax typeDeclaration,
         string fileName,
         CancellationToken cancellationToken)
@@ -30,33 +30,30 @@ internal abstract partial class AbstractMoveTypeService<
         public override async Task<Solution?> GetModifiedSolutionAsync()
         {
             return TypeDeclaration.Parent is TNamespaceDeclarationSyntax namespaceDeclaration
-                ? await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration, TypeDeclaration, Document, CancellationToken).ConfigureAwait(false)
+                ? await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration).ConfigureAwait(false)
                 : null;
         }
 
-        private static async Task<Solution?> GetNamespaceScopeChangedSolutionAsync(
-            TNamespaceDeclarationSyntax namespaceDeclaration,
-            TTypeDeclarationSyntax typeToMove,
-            Document documentToEdit,
-            CancellationToken cancellationToken)
+        private async Task<Solution?> GetNamespaceScopeChangedSolutionAsync(
+            TNamespaceDeclarationSyntax namespaceDeclaration)
         {
-            var syntaxFactsService = documentToEdit.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = this.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             var childNodes = syntaxFactsService.GetMembersOfBaseNamespaceDeclaration(namespaceDeclaration);
 
             if (childNodes.Count <= 1)
                 return null;
 
-            var editor = await DocumentEditor.CreateAsync(documentToEdit, cancellationToken).ConfigureAwait(false);
-            editor.RemoveNode(typeToMove, SyntaxRemoveOptions.KeepNoTrivia);
+            var editor = await DocumentEditor.CreateAsync(this.Document.Document, this.CancellationToken).ConfigureAwait(false);
+            editor.RemoveNode(this.TypeDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
             var generator = editor.Generator;
 
-            var index = childNodes.IndexOf(typeToMove);
+            var index = childNodes.IndexOf(this.TypeDeclaration);
 
             var itemsBefore = childNodes.Take(index).ToImmutableArray();
             var itemsAfter = childNodes.Skip(index + 1).ToImmutableArray();
 
             var name = syntaxFactsService.GetDisplayName(namespaceDeclaration, DisplayNameOptions.IncludeNamespaces);
-            var newNamespaceDeclaration = generator.NamespaceDeclaration(name, WithElasticTrivia(typeToMove)).WithAdditionalAnnotations(NamespaceScopeMovedAnnotation);
+            var newNamespaceDeclaration = generator.NamespaceDeclaration(name, WithElasticTrivia(this.TypeDeclaration)).WithAdditionalAnnotations(NamespaceScopeMovedAnnotation);
 
             if (itemsBefore.Any() && itemsAfter.Any())
             {

@@ -48,8 +48,9 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     public override async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(
         Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
+        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
         var typeDeclaration = await GetTypeDeclarationAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-        return await CreateActionsAsync(document, typeDeclaration, cancellationToken).ConfigureAwait(false);
+        return CreateActions(semanticDocument, typeDeclaration);
     }
 
     public override async Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken)
@@ -58,10 +59,10 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (typeDeclaration == null)
             return document.Project.Solution;
 
-        var suggestedFileNames = GetSuggestedFileNames(
-            document, typeDeclaration, includeComplexFileNames: false);
+        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+        var suggestedFileNames = GetSuggestedFileNames(semanticDocument, typeDeclaration, includeComplexFileNames: false);
 
-        var editor = Editor.GetEditor(operationKind, (TService)this, document, typeDeclaration, suggestedFileNames.FirstOrDefault(), cancellationToken);
+        var editor = Editor.GetEditor(operationKind, (TService)this, semanticDocument, typeDeclaration, suggestedFileNames.First(), cancellationToken);
         var modifiedSolution = await editor.GetModifiedSolutionAsync().ConfigureAwait(false);
         return modifiedSolution ?? document.Project.Solution;
     }
@@ -76,8 +77,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         return name == "" ? null : nodeToAnalyze;
     }
 
-    private async Task<ImmutableArray<CodeAction>> CreateActionsAsync(
-        Document document, TTypeDeclarationSyntax? typeDeclaration, CancellationToken cancellationToken)
+    private ImmutableArray<CodeAction> CreateActions(
+        SemanticDocument document, TTypeDeclarationSyntax? typeDeclaration)
     {
         if (typeDeclaration is null)
             return [];
@@ -91,7 +92,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
 
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var root = document.Root;
         var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(root);
         var isNestedType = IsNestedType(typeDeclaration);
 
@@ -164,8 +165,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root)
         => root.DescendantNodes(n => n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax).OfType<TTypeDeclarationSyntax>();
 
-    private static string GetDocumentNameWithoutExtension(Document document)
-        => Path.GetFileNameWithoutExtension(document.Name);
+    private static string GetDocumentNameWithoutExtension(SemanticDocument document)
+        => Path.GetFileNameWithoutExtension(document.Document.Name);
 
     /// <summary>
     /// checks if type name matches its parent document name, per style rules.
@@ -213,11 +214,11 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     }
 
     private ImmutableArray<string> GetSuggestedFileNames(
-        Document document,
+        SemanticDocument document,
         TTypeDeclarationSyntax typeNode,
         bool includeComplexFileNames)
     {
-        var documentNameWithExtension = document.Name;
+        var documentNameWithExtension = document.Document.Name;
         var isNestedType = IsNestedType(typeNode);
         var (typeName, arity) = this.GetSymbolNameAndArity(typeNode);
         var fileExtension = Path.GetExtension(documentNameWithExtension);

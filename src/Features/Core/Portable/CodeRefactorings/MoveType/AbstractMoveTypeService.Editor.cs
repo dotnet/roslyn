@@ -16,13 +16,13 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     /// </summary>
     private abstract class Editor(
         TService service,
-        Document document,
+        SemanticDocument document,
         TTypeDeclarationSyntax typeDeclaration,
         string fileName,
         CancellationToken cancellationToken)
     {
         protected TService Service { get; } = service;
-        protected Document Document { get; } = document;
+        protected SemanticDocument Document { get; } = document;
         protected TTypeDeclarationSyntax TypeDeclaration { get; } = typeDeclaration;
         protected string FileName { get; } = fileName;
         protected CancellationToken CancellationToken { get; } = cancellationToken;
@@ -39,9 +39,9 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         /// <summary>
         /// Incremental solution edits that correlate to code operations
         /// </summary>
-        public abstract Task<Solution> GetModifiedSolutionAsync();
+        public abstract Task<Solution?> GetModifiedSolutionAsync();
 
-        public static Editor GetEditor(MoveTypeOperationKind operationKind, TService service, Document document, TTypeDeclarationSyntax typeDeclaration, string fileName, CancellationToken cancellationToken)
+        public static Editor GetEditor(MoveTypeOperationKind operationKind, TService service, SemanticDocument document, TTypeDeclarationSyntax typeDeclaration, string fileName, CancellationToken cancellationToken)
             => operationKind switch
             {
                 MoveTypeOperationKind.MoveType => new MoveTypeEditor(service, document, typeDeclaration, fileName, cancellationToken),

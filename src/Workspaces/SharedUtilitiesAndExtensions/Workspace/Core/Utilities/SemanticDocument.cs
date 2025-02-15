@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis;
 internal sealed class SemanticDocument(Document document, SourceText text, SyntaxNode root, SemanticModel semanticModel)
     : SyntacticDocument(document, text, root)
 {
+    public DocumentId Id => this.Document.Id;
     public readonly SemanticModel SemanticModel = semanticModel;
 
     public static new async Task<SemanticDocument> CreateAsync(Document document, CancellationToken cancellationToken)
