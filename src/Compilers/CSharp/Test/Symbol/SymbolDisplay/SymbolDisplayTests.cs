@@ -2164,7 +2164,7 @@ class C {
                 SymbolDisplayPartKind.Keyword);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
         public void TestPropertyBackingField_Minimal_01()
         {
             var text = @"
@@ -2191,7 +2191,7 @@ class C {
                 SymbolDisplayPartKind.Keyword);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
         public void TestPropertyBackingField_Minimal_02()
         {
             var text = @"
@@ -2225,7 +2225,7 @@ class C : I {
                 SymbolDisplayPartKind.Keyword);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
         public void TestPropertyBackingField_Minimal_03()
         {
             var text = @"
@@ -2257,7 +2257,7 @@ class C : I {
                 SymbolDisplayPartKind.Keyword);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
         public void TestOrdinaryField_Minimal()
         {
             var text = @"
