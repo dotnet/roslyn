@@ -8594,7 +8594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                extensionResult = resolveOverloads(binder, methodGroup, analyzedArguments, options, returnType, returnRefKind, in callingConvention, expression, ref useSiteInfo, diagnostics);
+                extensionResult = resolveOverloads(binder, methodGroup, analyzedArguments, options, returnType, returnRefKind, in callingConvention, expression, diagnostics);
                 diagnostics.Free();
                 return true;
             }
@@ -8653,13 +8653,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CombineExtensionMethodArguments(left, analyzedArguments, actualArguments);
                 }
 
-                result = resolveOverloads(binder, methodGroup, actualArguments, options, returnType, returnRefKind, in callingConvention, expression, ref useSiteInfo, diagnostics);
+                result = resolveOverloads(binder, methodGroup, actualArguments, options, returnType, returnRefKind, in callingConvention, expression, diagnostics);
                 diagnostics.Free();
                 return true;
             }
 
             static MethodGroupResolution resolveOverloads(Binder binder, MethodGroup methodGroup, AnalyzedArguments actualArguments, OverloadResolution.Options options,
-                TypeSymbol? returnType, RefKind returnRefKind, in CallingConventionInfo callingConvention, SyntaxNode expression, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, BindingDiagnosticBag diagnostics)
+                TypeSymbol? returnType, RefKind returnRefKind, in CallingConventionInfo callingConvention, SyntaxNode expression, BindingDiagnosticBag diagnostics)
             {
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 if (binder.AllowRefOmittedArguments(methodGroup.Receiver))
@@ -8667,17 +8667,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options |= OverloadResolution.Options.AllowRefOmittedArguments;
                 }
 
+                CompoundUseSiteInfo<AssemblySymbol> overloadresolutionUseSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                 binder.OverloadResolution.MethodInvocationOverloadResolution(
                     methods: methodGroup.Methods,
                     typeArguments: methodGroup.TypeArguments,
                     receiver: methodGroup.Receiver,
                     arguments: actualArguments,
                     result: overloadResolutionResult,
-                    ref useSiteInfo,
+                    ref overloadresolutionUseSiteInfo,
                     options: options | OverloadResolution.Options.IsExtensionMethodResolution,
                     returnRefKind: returnRefKind,
                     returnType: returnType,
                     in callingConvention);
+
+                diagnostics.Add(expression, overloadresolutionUseSiteInfo);
 
                 // Note: the MethodGroupResolution instance is responsible for freeing the method group,
                 //   the overload resolution result and its copy of arguments
