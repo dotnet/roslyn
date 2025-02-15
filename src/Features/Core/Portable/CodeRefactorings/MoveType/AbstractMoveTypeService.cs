@@ -92,12 +92,11 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
 
-        var root = document.Root;
-        var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(root);
+        var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(document.Root);
         var isNestedType = IsNestedType(typeDeclaration);
 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var isClassNextToGlobalStatements = !manyTypes && ClassNextToGlobalStatements(root, syntaxFacts);
+        var isClassNextToGlobalStatements = !manyTypes && ClassNextToGlobalStatements(document.Root, syntaxFacts);
 
         var suggestedFileNames = GetSuggestedFileNames(
             document, typeDeclaration, includeComplexFileNames: false);
@@ -136,12 +135,9 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         return actions.ToImmutableAndClear();
 
         bool AnyTopLevelTypeMatchesDocumentName()
-        {
-            var documentNameWithoutExtension = GetDocumentNameWithoutExtension(document);
-            return TopLevelTypeDeclarations(root).Any(
+            => TopLevelTypeDeclarations(document.Root).Any(
                 typeDeclaration => TypeMatchesDocumentName(
                     typeDeclaration, documentNameWithoutExtension));
-        }
 
         MoveTypeCodeAction GetCodeAction(string fileName, MoveTypeOperationKind operationKind)
             => new((TService)this, document, typeDeclaration, operationKind, fileName);
