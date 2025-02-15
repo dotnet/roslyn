@@ -106,6 +106,7 @@ internal sealed class MoveTypeCodeRefactoringProvider() : CodeRefactoringProvide
                     currentSolution = currentSolution.WithDocumentName(documentId, name);
             }
 
+            progress.Report(CodeAnalysisProgress.Clear());
             return currentSolution;
         }
     }

@@ -178,7 +178,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (topLevelTypeDeclarations is not [var topLevelType])
             return null;
 
-        var (name, arity) = GetSymbolNameAndArity(topLevelType);
         var deepestSingleType = GetDeepestSingleType(topLevelType);
 
         // If the file already matches the name of any of the types in the file (either the name alone, or the dotted

@@ -1237,7 +1237,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             if (projectItemForDocument == null)
             {
                 // TODO(https://github.com/dotnet/roslyn/issues/34276):
-                Debug.Fail("Attempting to change the name of a file in a Shared Project");
                 return;
             }
 
