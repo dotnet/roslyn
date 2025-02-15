@@ -7999,6 +7999,44 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
     }
 
     [Fact]
+    public async Task NullableBackingFieldThatIsMaybeNull()
+    {
+        await TestWithOptionsAsync(TestOptions.RegularPreview,
+            """
+            #nullable enable
+
+            class X
+            {
+                string? P
+                {
+                    get => $$field;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.field}) string? X.P.field"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "P.field")));
+    }
+
+    [Fact]
+    public async Task NullableBackingFieldThatIsNotNull()
+    {
+        await TestWithOptionsAsync(TestOptions.RegularPreview,
+            """
+            #nullable enable
+
+            class X
+            {
+                string P
+                {
+                    get => $$field;
+                } = "a";
+            }
+            """,
+            MainDescription($"({FeaturesResources.field}) string X.P.field"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "P.field")));
+    }
+
+    [Fact]
     public async Task NullablePropertyThatIsMaybeNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
