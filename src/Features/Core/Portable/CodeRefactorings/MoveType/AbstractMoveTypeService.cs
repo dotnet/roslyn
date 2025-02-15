@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,6 +26,7 @@ internal abstract class AbstractMoveTypeService : IMoveTypeService
     /// </summary>
     public static SyntaxAnnotation NamespaceScopeMovedAnnotation = new(nameof(MoveTypeOperationKind.MoveTypeNamespaceScope));
 
+    public abstract Task<string?> GetDesiredDocumentNameAsync(Document document, CancellationToken cancellationToken);
     public abstract Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken);
     public abstract Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 }
@@ -38,6 +38,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     where TNamespaceDeclarationSyntax : SyntaxNode
     where TCompilationUnitSyntax : SyntaxNode
 {
+    protected abstract string GetDeclaredSymbolName(TTypeDeclarationSyntax syntax);
     protected abstract Task<TTypeDeclarationSyntax?> GetRelevantNodeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
     protected abstract bool IsMemberDeclaration(SyntaxNode syntaxNode);
@@ -62,9 +63,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             state.TypeNode,
             IsNestedType(state.TypeNode),
             state.TypeName,
-            state.SemanticDocument.Document.Name,
-            state.SemanticDocument.SemanticModel,
-            cancellationToken);
+            state.SemanticDocument.Document.Name);
 
         var editor = Editor.GetEditor(operationKind, (TService)this, state, suggestedFileNames.FirstOrDefault(), cancellationToken);
         var modifiedSolution = await editor.GetModifiedSolutionAsync().ConfigureAwait(false);
@@ -89,9 +88,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         var typeMatchesDocumentName = TypeMatchesDocumentName(
             state.TypeNode,
             state.TypeName,
-            state.DocumentNameWithoutExtension,
-            state.SemanticDocument.SemanticModel,
-            cancellationToken);
+            state.DocumentNameWithoutExtension);
 
         if (typeMatchesDocumentName)
         {
@@ -112,9 +109,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             state.TypeNode,
             isNestedType,
             state.TypeName,
-            state.SemanticDocument.Document.Name,
-            state.SemanticDocument.SemanticModel,
-            cancellationToken);
+            state.SemanticDocument.Document.Name);
 
         // (1) Add Move type to new file code action:
         // case 1: There are multiple type declarations in current document. offer, move to new file.
@@ -176,7 +171,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root)
         => root.DescendantNodes(n => n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax).OfType<TTypeDeclarationSyntax>();
 
-    private static bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)
+    private bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)
     {
         var root = state.SemanticDocument.Root;
         var semanticModel = state.SemanticDocument.SemanticModel;
@@ -186,12 +181,11 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             {
                 var typeName = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken).Name;
                 return TypeMatchesDocumentName(
-                    typeDeclaration, typeName, state.DocumentNameWithoutExtension,
-                    semanticModel, cancellationToken);
+                    typeDeclaration, typeName, state.DocumentNameWithoutExtension);
             });
     }
 
-    public async Task<string?> GetDesiredDocumentNameAsync(Document document, CancellationToken cancellationToken)
+    public override async Task<string?> GetDesiredDocumentNameAsync(Document document, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (root is null)
@@ -201,6 +195,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         var topLevelTypeDeclarations = TopLevelTypeDeclarations(root).ToImmutableArray();
         if (topLevelTypeDeclarations is not [var topLevelType])
             return null;
+
+        return null;
     }
 
     /// <summary>
@@ -210,19 +206,17 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     /// Note: For a nested type, a matching document name could be just the type name or a
     /// dotted qualified name of its type hierarchy.
     /// </remarks>
-    protected static bool TypeMatchesDocumentName(
+    protected bool TypeMatchesDocumentName(
         TTypeDeclarationSyntax typeNode,
         string typeName,
-        string documentNameWithoutExtension,
-        SemanticModel semanticModel,
-        CancellationToken cancellationToken)
+        string documentNameWithoutExtension)
     {
         // If it is not a nested type, we compare the unqualified type name with the document name.
         // If it is a nested type, the type name `Outer.Inner` matches file names `Inner.cs` and `Outer.Inner.cs`
         var namesMatch = typeName.Equals(documentNameWithoutExtension, StringComparison.CurrentCulture);
         if (!namesMatch)
         {
-            var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode, semanticModel, cancellationToken);
+            var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode);
             var fileNameParts = documentNameWithoutExtension.Split('.');
 
             // qualified type name `Outer.Inner` matches file names `Inner.cs` and `Outer.Inner.cs`
@@ -232,13 +226,11 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         return namesMatch;
     }
 
-    private static ImmutableArray<string> GetSuggestedFileNames(
+    private ImmutableArray<string> GetSuggestedFileNames(
         TTypeDeclarationSyntax typeNode,
         bool isNestedType,
         string typeName,
-        string documentNameWithExtension,
-        SemanticModel semanticModel,
-        CancellationToken cancellationToken)
+        string documentNameWithExtension)
     {
         var fileExtension = Path.GetExtension(documentNameWithExtension);
 
@@ -247,7 +239,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         // If it is a nested type, we should match type hierarchy's name parts with the file name.
         if (isNestedType)
         {
-            var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode, semanticModel, cancellationToken);
+            var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode);
             var dottedName = typeNameParts.Join(".") + fileExtension;
 
             return [standaloneName, dottedName];
@@ -258,10 +250,9 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         }
     }
 
-    private static IEnumerable<string> GetTypeNamePartsForNestedTypeNode(
-        TTypeDeclarationSyntax typeNode, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => typeNode.AncestorsAndSelf()
-                    .OfType<TTypeDeclarationSyntax>()
-                    .Select(n => semanticModel.GetRequiredDeclaredSymbol(n, cancellationToken).Name)
-                    .Reverse();
+    private IEnumerable<string> GetTypeNamePartsForNestedTypeNode(TTypeDeclarationSyntax typeNode)
+        => typeNode.AncestorsAndSelf()
+                   .OfType<TTypeDeclarationSyntax>()
+                   .Select(GetDeclaredSymbolName)
+                   .Reverse();
 }
