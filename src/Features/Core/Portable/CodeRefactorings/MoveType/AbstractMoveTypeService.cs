@@ -47,7 +47,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-        return CreateActions(state, cancellationToken);
+        return CreateActions(state);
     }
 
     public override async Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken)
@@ -80,7 +80,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         return State.Generate(semanticDocument, nodeToAnalyze, cancellationToken);
     }
 
-    private ImmutableArray<CodeAction> CreateActions(State? state, CancellationToken cancellationToken)
+    private ImmutableArray<CodeAction> CreateActions(State? state)
     {
         if (state is null)
             return [];
@@ -128,7 +128,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         // (2) Add rename file and rename type code actions:
         // Case: No type declaration in file matches the file name.
-        if (!AnyTopLevelTypeMatchesDocumentName(state, cancellationToken))
+        if (!AnyTopLevelTypeMatchesDocumentName(state))
         {
             foreach (var fileName in suggestedFileNames)
             {
@@ -171,18 +171,13 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root)
         => root.DescendantNodes(n => n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax).OfType<TTypeDeclarationSyntax>();
 
-    private bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)
+    private bool AnyTopLevelTypeMatchesDocumentName(State state)
     {
         var root = state.SemanticDocument.Root;
-        var semanticModel = state.SemanticDocument.SemanticModel;
 
         return TopLevelTypeDeclarations(root).Any(
-            typeDeclaration =>
-            {
-                var typeName = semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken).Name;
-                return TypeMatchesDocumentName(
-                    typeDeclaration, typeName, state.DocumentNameWithoutExtension);
-            });
+            typeDeclaration => TypeMatchesDocumentName(
+                typeDeclaration, GetDeclaredSymbolName(typeDeclaration), state.DocumentNameWithoutExtension));
     }
 
     public override async Task<string?> GetDesiredDocumentNameAsync(Document document, CancellationToken cancellationToken)
