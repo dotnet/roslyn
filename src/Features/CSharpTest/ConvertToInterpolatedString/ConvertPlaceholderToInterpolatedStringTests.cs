@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -15,12 +16,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-public class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider();
 
-    private static readonly string[] CompositeFormattedMethods =
+    private static readonly ImmutableArray<string> CompositeFormattedMethods =
     [
         "Console.Write",
         "Console.WriteLine",
@@ -81,8 +82,7 @@ public class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharpCodeAct
         }
     }
 
-    [Theory]
-    [MemberData(nameof(InvocationData))]
+    [Theory, MemberData(nameof(InvocationData))]
     public async Task TestInvocationSubstitution(string before, string after)
     {
         await TestInRegularAndScriptAsync(
@@ -1183,6 +1183,39 @@ public class ConvertPlaceholderToInterpolatedStringTests : AbstractCSharpCodeAct
                 void M()
                 {
                     var a = string.Format(CultureInfo.InvariantCulture, [|"{0}", 1|]);
+                }
+            }
+            """);
+    }
+
+    [Theory, MemberData(nameof(InvocationData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/68469")]
+    public async Task TestInvocationSubstitution_FixAll(string before, string after)
+    {
+        await TestInRegularAndScriptAsync(
+            $$"""
+            using System;
+            using System.Diagnostics;
+
+            class T
+            {
+                void M()
+                {
+                    {|FixAllInDocument:{{before}}|};
+                    {{before}};
+                }
+            }
+            """,
+            $$"""
+            using System;
+            using System.Diagnostics;
+
+            class T
+            {
+                void M()
+                {
+                    {{after}};
+                    {{after}};
                 }
             }
             """);

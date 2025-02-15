@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if !MICROSOFT_CODEANALYSIS_CONTRACTS_NO_CONTRACT
+
 using System.Runtime.CompilerServices;
 using System.Text;
 
 #pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/58168
 
-namespace Roslyn.Utilities;
+namespace Microsoft.CodeAnalysis;
 
 internal static partial class Contract
 {
@@ -65,3 +67,5 @@ internal static partial class Contract
         public string GetFormattedText() => _stringBuilder.ToString();
     }
 }
+
+#endif
