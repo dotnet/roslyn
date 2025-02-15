@@ -2250,8 +2250,6 @@ class C : I {
                 findSymbol,
                 format,
                 "P.field",
-                SymbolDisplayPartKind.InterfaceName,
-                SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.PropertyName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword);
