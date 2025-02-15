@@ -12,43 +12,24 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 {
     private sealed class State
     {
-        private readonly TService _service;
-
         public SemanticDocument SemanticDocument { get; }
 
-        public TTypeDeclarationSyntax TypeNode { get; set; } = null!;
-        public string DocumentNameWithoutExtension { get; set; } = null!;
-        public bool IsDocumentNameAValidIdentifier { get; set; }
+        public TTypeDeclarationSyntax TypeNode { get; }
+        public string DocumentNameWithoutExtension { get; }
+        public bool IsDocumentNameAValidIdentifier { get; }
 
-        public string TypeName => _service.GetDeclaredSymbolName(this.TypeNode);
-
-        private State(TService service, SemanticDocument document)
+        private State(SemanticDocument document, TTypeDeclarationSyntax typeNode)
         {
-            _service = service;
             SemanticDocument = document;
-        }
+            TypeNode = typeNode;
 
-        internal static State? Generate(
-            TService service, SemanticDocument document, TTypeDeclarationSyntax typeDeclaration)
-        {
-            var state = new State(service, document);
-            return state.TryInitialize(typeDeclaration) ? state : null;
-        }
-
-        private bool TryInitialize(TTypeDeclarationSyntax typeDeclaration)
-        {
-            TypeNode = typeDeclaration;
-
-            // compiler declared types, anonymous types, types defined in metadata should be filtered out.
-            var typeName = this.TypeName;
-            if (typeName == string.Empty)
-                return false;
+            DocumentNameWithoutExtension = Path.GetFileNameWithoutExtension(SemanticDocument.Document.Name);
 
             var syntaxFacts = SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            DocumentNameWithoutExtension = Path.GetFileNameWithoutExtension(SemanticDocument.Document.Name);
             IsDocumentNameAValidIdentifier = syntaxFacts.IsValidIdentifier(DocumentNameWithoutExtension);
-
-            return true;
         }
+
+        public static State? Generate(TService service, SemanticDocument document, TTypeDeclarationSyntax typeDeclaration)
+            => service.GetDeclaredSymbolName(typeDeclaration) is "" ? null : new State(document, typeDeclaration);
     }
 }

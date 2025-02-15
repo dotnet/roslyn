@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -78,7 +77,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             return null;
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-        return State.Generate(semanticDocument, nodeToAnalyze, cancellationToken);
+        return State.Generate((TService)this, semanticDocument, nodeToAnalyze);
     }
 
     private ImmutableArray<CodeAction> CreateActions(State? state)
@@ -88,7 +87,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         var typeMatchesDocumentName = TypeMatchesDocumentName(
             state.TypeNode,
-            state.TypeName,
             state.DocumentNameWithoutExtension);
 
         if (typeMatchesDocumentName)
@@ -178,7 +176,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         return TopLevelTypeDeclarations(root).Any(
             typeDeclaration => TypeMatchesDocumentName(
-                typeDeclaration, GetDeclaredSymbolName(typeDeclaration), state.DocumentNameWithoutExtension));
+                typeDeclaration, state.DocumentNameWithoutExtension));
     }
 
     public override async Task<string?> GetDesiredDocumentNameAsync(Document document, CancellationToken cancellationToken)
@@ -210,11 +208,11 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     /// </remarks>
     protected bool TypeMatchesDocumentName(
         TTypeDeclarationSyntax typeNode,
-        string typeName,
         string documentNameWithoutExtension)
     {
         // If it is not a nested type, we compare the unqualified type name with the document name.
         // If it is a nested type, the type name `Outer.Inner` matches file names `Inner.cs` and `Outer.Inner.cs`
+        var typeName = GetDeclaredSymbolName(typeNode);
         var namesMatch = typeName.Equals(documentNameWithoutExtension, StringComparison.CurrentCulture);
         if (!namesMatch)
         {
