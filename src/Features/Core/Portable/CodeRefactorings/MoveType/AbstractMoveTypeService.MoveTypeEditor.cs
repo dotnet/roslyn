@@ -65,7 +65,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var solutionWithNewDocument = documentWithMovedType.Project.Solution;
 
             // Get the original source document again, from the latest forked solution.
-            var sourceDocument = solutionWithNewDocument.GetRequiredDocument(SemanticDocument.Id);
+            var sourceDocument = solutionWithNewDocument.GetRequiredDocument(SemanticDocument.Document.Id);
 
             // update source document to add partial modifiers to type chain
             // and/or remove type declaration from original source document.
