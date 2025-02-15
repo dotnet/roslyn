@@ -117,13 +117,10 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (!AnyTopLevelTypeMatchesDocumentName(state))
         {
             foreach (var fileName in suggestedFileNames)
-            {
                 actions.Add(GetCodeAction(state, fileName, operationKind: MoveTypeOperationKind.RenameFile));
-            }
 
-            // only if the document name can be legal identifier in the language,
-            // offer to rename type with document name
-            if (state.IsDocumentNameAValidIdentifier)
+            // Only if the document name can be legal identifier in the language, offer to rename type with document name
+            if (syntaxFacts.IsValidIdentifier(state.DocumentNameWithoutExtension))
             {
                 actions.Add(GetCodeAction(
                     state, fileName: state.DocumentNameWithoutExtension,

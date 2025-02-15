@@ -16,7 +16,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         public TTypeDeclarationSyntax TypeNode { get; }
         public string DocumentNameWithoutExtension { get; }
-        public bool IsDocumentNameAValidIdentifier { get; }
 
         private State(SemanticDocument document, TTypeDeclarationSyntax typeNode)
         {
@@ -24,9 +23,6 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             TypeNode = typeNode;
 
             DocumentNameWithoutExtension = Path.GetFileNameWithoutExtension(SemanticDocument.Document.Name);
-
-            var syntaxFacts = SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            IsDocumentNameAValidIdentifier = syntaxFacts.IsValidIdentifier(DocumentNameWithoutExtension);
         }
 
         public static State? Generate(TService service, SemanticDocument document, TTypeDeclarationSyntax typeDeclaration)
