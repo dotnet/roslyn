@@ -178,6 +178,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (topLevelTypeDeclarations is not [var topLevelType])
             return null;
 
+        var (name, arity) = GetSymbolNameAndArity(topLevelType);
         var deepestSingleType = GetDeepestSingleType(topLevelType);
 
         // If the file already matches the name of any of the types in the file (either the name alone, or the dotted
@@ -185,7 +186,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         for (var currentType = deepestSingleType; currentType != null; currentType = currentType.Parent as TTypeDeclarationSyntax)
         {
             var suggestedFileNames = GetSuggestedFileNames(
-                deepestSingleType, documentNameWithExtension: document.Name, includeArity: true);
+                currentType, documentNameWithExtension: document.Name, includeArity: true);
             foreach (var suggestedFileName in suggestedFileNames)
             {
                 if (document.Name == suggestedFileName)
