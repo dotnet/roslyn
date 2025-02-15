@@ -21889,7 +21889,7 @@ partial class Program
                   }
                   IL_008b:  ldloc.0
                   IL_008c:  ret
-                                }
+                }
                 """);
         }
 

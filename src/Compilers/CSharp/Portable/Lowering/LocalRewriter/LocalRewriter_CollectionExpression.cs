@@ -43,14 +43,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
+                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType) &&
+                            usesParameterlessListConstructor(_compilation, node))
                         {
                             if (TryRewriteSingleElementSpreadToList(node, listElementType, out var result))
                             {
                                 return result;
                             }
 
-                            if (useListOptimization(_compilation, node))
+                            // If the collection type is List<T>, and the list is created with the parameterless constructor,
+                            // and items are added using the expected List<T>.Add(T) method,
+                            // then construction can be optimized to use CollectionsMarshal methods.
+                            if (usesListAddMethodForAllElements(_compilation, node))
                             {
                                 return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node));
                             }
@@ -96,40 +100,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Syntax = previousSyntax;
             }
 
-            // If the collection type is List<T>, and the list is created with the parameterless constructor,
-            // and items are added using the expected List<T>.Add(T) method,
-            // then construction can be optimized to use CollectionsMarshal methods.
-            static bool useListOptimization(CSharpCompilation compilation, BoundCollectionExpression node)
+            static bool usesParameterlessListConstructor(CSharpCompilation compilation, BoundCollectionExpression node)
             {
-                var elements = node.Elements;
-                if (elements.Length == 0)
-                {
-                    return true;
-                }
                 var ctor = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor);
-                if (ctor is null)
-                {
-                    return false;
-                }
-                if (!canOptimizeListConstructor(node.CollectionCreation, ctor))
-                {
-                    return false;
-                }
-                var addMethod = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add);
-                if (addMethod is null)
-                {
-                    return false;
-                }
-                return elements.All(canOptimizeListElement, addMethod);
+                return ctor is { } &&
+                    node.CollectionCreation is BoundObjectCreationExpression { Constructor: var objectCreate } &&
+                    ctor.Equals(objectCreate.OriginalDefinition);
             }
 
-            static bool canOptimizeListConstructor(BoundExpression? collectionCreation, MethodSymbol constructor)
+            static bool usesListAddMethodForAllElements(CSharpCompilation compilation, BoundCollectionExpression node)
             {
-                return collectionCreation is BoundObjectCreationExpression { Constructor: var objectCreate } &&
-                    constructor.Equals(objectCreate.OriginalDefinition);
+                var addMethod = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add);
+                return addMethod is { } &&
+                    node.Elements.All(usesListAddMethod, addMethod);
             }
 
-            static bool canOptimizeListElement(BoundNode element, MethodSymbol addMethod)
+            static bool usesListAddMethod(BoundNode element, MethodSymbol addMethod)
             {
                 BoundExpression expr;
                 if (element is BoundCollectionExpressionSpreadElement spreadElement)
@@ -174,12 +160,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // If we have something like `List<int> l = [.. someEnumerable]`
-        // try rewrite it using `Enumerable.ToList` member if possible
+        // try rewrite it using `Enumerable.ToList` member if possible.
         private bool TryRewriteSingleElementSpreadToList(BoundCollectionExpression node, TypeWithAnnotations listElementType, [NotNullWhen(true)] out BoundExpression? result)
         {
             result = null;
 
-            if (node.Elements is not [BoundCollectionExpressionSpreadElement singleSpread]) // PROTOTYPE: This is not handling [with(...), ..s].
+            if (node.Elements is not [BoundCollectionExpressionSpreadElement singleSpread])
             {
                 return false;
             }

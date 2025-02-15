@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ((NamedTypeSymbol)targetType).HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
 
-                    var collectionBuilderCandidates = GetAndValidateCollectionBuilderMethods(syntax, (NamedTypeSymbol)targetType, builderType, methodName, diagnostics);
+                    var collectionBuilderCandidates = GetAndValidateCollectionBuilderMethods(syntax, ((NamedTypeSymbol)targetType).OriginalDefinition, builderType, methodName, diagnostics);
                     if (collectionBuilderCandidates.IsEmpty)
                     {
                         return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
@@ -1214,8 +1214,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? methodName,
             BindingDiagnosticBag diagnostics)
         {
-            var targetTypeOriginalDefinition = targetType.OriginalDefinition;
-            bool result = TryGetCollectionIterationType(syntax, targetTypeOriginalDefinition, out var elementTypeOriginalDefinition);
+            Debug.Assert(targetType.IsDefinition);
+
+            bool result = TryGetCollectionIterationType(syntax, targetType, out var elementType);
             Debug.Assert(result);
 
             ImmutableArray<MethodSymbol> candidates = ImmutableArray<MethodSymbol>.Empty;
@@ -1224,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !string.IsNullOrEmpty(methodName))
             {
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                candidates = GetCollectionBuilderMethods(targetType, elementTypeOriginalDefinition.Type, (NamedTypeSymbol)builderType, methodName, ref useSiteInfo);
+                candidates = GetCollectionBuilderMethods(targetType, elementType.Type, (NamedTypeSymbol)builderType, methodName, ref useSiteInfo);
                 diagnostics.Add(syntax, useSiteInfo);
 
                 Debug.Assert(candidates.All(static (m, n) => m.Arity == n, targetType.AllTypeArgumentCount()));
@@ -1234,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (candidates.IsEmpty)
             {
-                diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementTypeOriginalDefinition.Type, targetType.OriginalDefinition);
+                diagnostics.Add(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, syntax, methodName ?? "", elementType.Type, targetType);
             }
 
             return candidates;
@@ -2071,12 +2072,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private ImmutableArray<MethodSymbol> GetCollectionBuilderMethods(
-            NamedTypeSymbol targetType, // PROTOTYPE: This should be a definition. Then 'elementTypeOriginalDefinition' can be renamed to 'elementType'.
-            TypeSymbol elementTypeOriginalDefinition,
+            NamedTypeSymbol targetType,
+            TypeSymbol elementType,
             NamedTypeSymbol builderType,
             string methodName,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(targetType.IsDefinition);
             Debug.Assert(builderType.IsDefinition);
             Debug.Assert(!builderType.IsGenericType);
 
@@ -2097,11 +2099,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                targetType.GetAllTypeArgumentsNoUseSiteDiagnostics(builder);
-                var allTypeArguments = builder.ToImmutableAndFree();
-
-                if (method.Arity != allTypeArguments.Length)
+                var allTypeParameters = TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(targetType.GetAllTypeParameters());
+                if (method.Arity != allTypeParameters.Length)
                 {
                     continue;
                 }
@@ -2112,26 +2111,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                MethodSymbol methodWithTargetTypeParameters; // builder method substituted with type parameters from target type
-                if (allTypeArguments.Length > 0)
-                {
-                    var allTypeParameters = TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(targetType.OriginalDefinition.GetAllTypeParameters());
-                    methodWithTargetTypeParameters = method.Construct(allTypeParameters);
-                }
-                else
-                {
-                    methodWithTargetTypeParameters = method;
-                }
+                MethodSymbol methodWithTargetTypeParameters = allTypeParameters.IsEmpty ? // builder method substituted with type parameters from target type
+                    method :
+                    method.Construct(allTypeParameters);
 
                 var spanTypeArg = ((NamedTypeSymbol)methodWithTargetTypeParameters.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-                var conversion = Conversions.ClassifyImplicitConversionFromType(elementTypeOriginalDefinition, spanTypeArg, ref candidateUseSiteInfo);
+                var conversion = Conversions.ClassifyImplicitConversionFromType(elementType, spanTypeArg, ref candidateUseSiteInfo);
                 if (!conversion.IsIdentity)
                 {
                     continue;
                 }
 
-                // PROTOTYPE: Should the return type check be made after overload resolution, rather than as part of the conversion?
-                conversion = Conversions.ClassifyImplicitConversionFromType(methodWithTargetTypeParameters.ReturnType, targetType.OriginalDefinition, ref candidateUseSiteInfo);
+                // PROTOTYPE: Should the return type check be made after overload resolution, rather than as part of identifying candidates?
+                conversion = Conversions.ClassifyImplicitConversionFromType(methodWithTargetTypeParameters.ReturnType, targetType, ref candidateUseSiteInfo);
                 switch (conversion.Kind)
                 {
                     case ConversionKind.Identity:

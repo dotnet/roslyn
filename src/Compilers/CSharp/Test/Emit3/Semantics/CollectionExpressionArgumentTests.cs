@@ -933,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void CollectionBuilder_MultipleConstructors() // PROTOTYPE: Rename all CollectionBuilder*Constructor* methods to use FactoryMethod rather than Constructor.
+        public void CollectionBuilder_MultipleBuilderMethods()
         {
             string sourceA = """
                 using System;
@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void CollectionBuilder_NoParameterlessConstructor()
+        public void CollectionBuilder_NoParameterlessBuilderMethod()
         {
             string sourceA = """
                 using System;
@@ -1380,7 +1380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // (see OverloadResolution.RemoveConstraintViolations()) which allows constructing
         // MyCollection<T> and MyCollection<U> with different factory methods.
         [Fact]
-        public void CollectionBuilder_MultipleConstructors_GenericConstraints_ClassAndStruct()
+        public void CollectionBuilder_MultipleBuilderMethods_GenericConstraints_ClassAndStruct()
         {
             string sourceA = """
                 using System;
@@ -1589,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void CollectionBuilder_MultipleConstructors_GenericConstraints_NoneAndClass()
+        public void CollectionBuilder_MultipleBuilderMethods_GenericConstraints_NoneAndClass()
         {
             string sourceA = """
                 using System;
@@ -1722,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void CollectionBuilder_MultipleConstructors_GenericConstraints_StructAndNone()
+        public void CollectionBuilder_MultipleBuilderMethods_GenericConstraints_StructAndNone()
         {
             string sourceA = """
                 using System;
@@ -2899,6 +2899,142 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (12,22): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, params T[])'
                 //     static void F<T>(params MyCollection<T> c)
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])", "T", "T").WithLocation(12, 22));
+        }
+
+        [Fact]
+        public void List_NoElements()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Report(ListNoArguments<int>());
+                        Report(ListEmptyArguments<int>());
+                        Report(ListWithCapacity<int>(16));
+                    }
+                    static void Report<T>(List<T> list)
+                    {
+                        Console.WriteLine("Count:{0}, Capacity:{1}", list.Count, list.Capacity);
+                    }
+                    static List<T> ListNoArguments<T>() => [];
+                    static List<T> ListEmptyArguments<T>() => [with()];
+                    static List<T> ListWithCapacity<T>(int capacity) => [with(capacity: capacity)];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                source,
+                expectedOutput: """
+                    Count:0, Capacity:0
+                    Count:0, Capacity:0
+                    Count:0, Capacity:16
+                    """);
+            verifier.VerifyDiagnostics();
+            string expectedILNoArguments = """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  newobj     "System.Collections.Generic.List<T>..ctor()"
+                  IL_0005:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.ListNoArguments<T>", expectedILNoArguments);
+            verifier.VerifyIL("Program.ListEmptyArguments<T>", expectedILNoArguments);
+            verifier.VerifyIL("Program.ListWithCapacity<T>", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void List_SingleSpread()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Report(ListNoArguments([1, 2]));
+                        Report(ListEmptyArguments([3, 4]));
+                        Report(ListWithCapacity([5, 6], 16));
+                    }
+                    static void Report<T>(List<T> list)
+                    {
+                        list.Report();
+                        Console.WriteLine("Capacity:{0}", list.Capacity);
+                    }
+                    static List<T> ListNoArguments<T>(IEnumerable<T> e) => [..e];
+                    static List<T> ListEmptyArguments<T>(IEnumerable<T> e) => [with(), ..e];
+                    static List<T> ListWithCapacity<T>(IEnumerable<T> e, int capacity) => [with(capacity: capacity), ..e];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                expectedOutput: """
+                    [1, 2], Capacity:2
+                    [3, 4], Capacity:2
+                    [5, 6], Capacity:16
+                    """);
+            verifier.VerifyDiagnostics();
+            string expectedILNoArguments = """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.List<T> System.Linq.Enumerable.ToList<T>(System.Collections.Generic.IEnumerable<T>)"
+                  IL_0006:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.ListNoArguments<T>", expectedILNoArguments);
+            verifier.VerifyIL("Program.ListEmptyArguments<T>", expectedILNoArguments);
+            verifier.VerifyIL("Program.ListWithCapacity<T>", """
+                {
+                  // Code size       52 (0x34)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<T> V_0,
+                                System.Collections.Generic.IEnumerator<T> V_1,
+                                T V_2)
+                  IL_0000:  ldarg.1
+                  IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator()"
+                  IL_000d:  stloc.1
+                  .try
+                  {
+                    IL_000e:  br.s       IL_001e
+                    IL_0010:  ldloc.1
+                    IL_0011:  callvirt   "T System.Collections.Generic.IEnumerator<T>.Current.get"
+                    IL_0016:  stloc.2
+                    IL_0017:  ldloc.0
+                    IL_0018:  ldloc.2
+                    IL_0019:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                    IL_001e:  ldloc.1
+                    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0024:  brtrue.s   IL_0010
+                    IL_0026:  leave.s    IL_0032
+                  }
+                  finally
+                  {
+                    IL_0028:  ldloc.1
+                    IL_0029:  brfalse.s  IL_0031
+                    IL_002b:  ldloc.1
+                    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0031:  endfinally
+                  }
+                  IL_0032:  ldloc.0
+                  IL_0033:  ret
+                }
+                """);
         }
 
         [Fact]

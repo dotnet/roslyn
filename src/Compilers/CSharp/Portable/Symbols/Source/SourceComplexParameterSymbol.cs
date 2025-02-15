@@ -1640,13 +1640,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            // PROTOTYPE: Update the params collection spec to allow the builder factory method to have an optional or params parameter.
                             var targetType = (NamedTypeSymbol)Type;
-                            targetType.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
+                            targetType.OriginalDefinition.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
                             Debug.Assert(builderType is { });
                             Debug.Assert(!string.IsNullOrEmpty(methodName));
 
-                            var candidateMethods = binder.GetAndValidateCollectionBuilderMethods(syntax, targetType, builderType, methodName, diagnostics);
+                            var candidateMethods = binder.GetAndValidateCollectionBuilderMethods(syntax, targetType.OriginalDefinition, builderType, methodName, diagnostics);
                             if (candidateMethods.Any())
                             {
                                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
