@@ -242,7 +242,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             return true;
 
         var typeNameParts = GetTypeNamePartsForNestedTypeNode(typeNode).ToImmutableArray();
-        var fileNameParts = documentNameWithoutExtension.Split('.');
+        var fileNameParts = documentNameWithoutExtension.Split('.', '+');
 
         if (typeNameParts.Length != fileNameParts.Length)
             return false;
