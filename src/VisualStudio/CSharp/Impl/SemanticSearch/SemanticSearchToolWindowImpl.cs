@@ -199,26 +199,47 @@ internal sealed class SemanticSearchToolWindowImpl(
             return null;
         }
 
-        var grid = new Grid();
+        var outerGrid = new Grid();
 
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        ImageThemingUtilities.SetImageBackgroundColor(outerGrid, (Color)Application.Current.Resources[CommonDocumentColors.PageBackgroundColorKey]);
+        ThemedDialogStyleLoader.SetUseDefaultThemedDialogStyles(outerGrid, true);
 
-        var inputTextBox = copilotUIProvider.GetTextBox();
+        // [ prompt border | empty ]
+        outerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        outerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        Grid.SetColumn(inputTextBox.Control, 0);
-        grid.Children.Add(inputTextBox.Control);
+        var promptGrid = new Grid();
+
+        // [ input | panel ]
+        promptGrid.ColumnDefinitions.Add(new ColumnDefinition { MaxWidth = 600, Width = GridLength.Auto });
+        promptGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        var promptTextBox = copilotUIProvider.GetTextBox();
 
         var panel = new StackPanel()
         {
             Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right,
+            HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Bottom,
             Margin = new Thickness(8, 8, 0, 8),
         };
 
+        Grid.SetColumn(promptTextBox.Control, 0);
+        promptGrid.Children.Add(promptTextBox.Control);
+
         Grid.SetColumn(panel, 1);
-        grid.Children.Add(panel);
+        promptGrid.Children.Add(panel);
+
+        var promptGridBorder = new Border
+        {
+            Name = "PromptBorder",
+            BorderBrush = (Brush)Application.Current.Resources[EnvironmentColors.SystemHighlightBrushKey],
+            BorderThickness = new Thickness(1),
+            Child = promptGrid
+        };
+
+        Grid.SetColumn(promptGridBorder, 0);
+        outerGrid.Children.Add(promptGridBorder);
 
         // ComboBox for model selection
         var modelPicker = new ComboBox
@@ -253,12 +274,12 @@ internal sealed class SemanticSearchToolWindowImpl(
 
         panel.Children.Add(submitButton);
 
-        submitButton.Click += (_, _) => SubmitCopilotQuery(inputTextBox.Text, modelPicker.Text);
+        submitButton.Click += (_, _) => SubmitCopilotQuery(promptTextBox.Text, modelPicker.Text);
 
         return new CopilotUI()
         {
-            Control = grid,
-            Input = inputTextBox,
+            Control = outerGrid,
+            Input = promptTextBox,
             ModelPicker = modelPicker,
         };
     }
