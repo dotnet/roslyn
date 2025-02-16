@@ -1651,6 +1651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
                                 var spanType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct(elementType); // PROTOTYPE: Test missing ReadOnlySpan<T>.
                                 var typeArguments = targetType.GetAllTypeArguments(ref useSiteInfo);
+                                diagnostics.Add(syntax, useSiteInfo);
                                 var candidateMethodGroup = binder.BindCollectionBuilderMethodGroup(syntax, methodName, typeArguments, candidateMethods);
                                 var collectionCreation = binder.BindCollectionBuilderCreate(
                                     syntax,

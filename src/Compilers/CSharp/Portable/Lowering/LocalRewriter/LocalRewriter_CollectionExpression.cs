@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // If we have something like `List<int> l = [.. someEnumerable]`
-        // try rewrite it using `Enumerable.ToList` member if possible.
+        // try rewrite it using `Enumerable.ToList` member if possible
         private bool TryRewriteSingleElementSpreadToList(BoundCollectionExpression node, TypeWithAnnotations listElementType, [NotNullWhen(true)] out BoundExpression? result)
         {
             result = null;
@@ -223,9 +223,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             spreadExpression = null;
 
             if (node.Elements is [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }] &&
-                Binder.GetCollectionBuilderMethod(node) is { } builder &&
-                ConversionsBase.HasIdentityConversion(builder.Parameters[0].Type, spreadType) &&
-                (!builder.ReturnType.IsRefLikeType || builder.Parameters[0].EffectiveScope == ScopedKind.ScopedValue))
+                Binder.GetCollectionBuilderMethod(node) is { Parameters: [var parameter, ..] } builder &&
+                ConversionsBase.HasIdentityConversion(parameter.Type, spreadType) &&
+                (!builder.ReturnType.IsRefLikeType || parameter.EffectiveScope == ScopedKind.ScopedValue))
             {
                 spreadExpression = expr;
             }
