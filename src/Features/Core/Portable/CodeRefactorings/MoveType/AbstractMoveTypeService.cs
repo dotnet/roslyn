@@ -48,54 +48,58 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     public override async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(
         Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
-        var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-        return CreateActions(state);
+        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+        var typeDeclaration = await GetTypeDeclarationAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        return CreateActions(semanticDocument, typeDeclaration);
     }
 
     public override async Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken)
     {
-        var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-        if (state == null)
+        var typeDeclaration = await GetTypeDeclarationAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        if (typeDeclaration == null)
             return document.Project.Solution;
 
-        var suggestedFileNames = GetSuggestedFileNames(
-            state.TypeNode, state.SemanticDocument.Document.Name, includeComplexFileNames: false);
+        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+        var suggestedFileNames = GetSuggestedFileNames(semanticDocument, typeDeclaration, includeComplexFileNames: false);
 
-        var editor = Editor.GetEditor(operationKind, (TService)this, state, suggestedFileNames.FirstOrDefault(), cancellationToken);
+        var editor = Editor.GetEditor(operationKind, (TService)this, semanticDocument, typeDeclaration, suggestedFileNames.First(), cancellationToken);
         var modifiedSolution = await editor.GetModifiedSolutionAsync().ConfigureAwait(false);
         return modifiedSolution ?? document.Project.Solution;
     }
 
-    private async Task<State?> CreateStateAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+    private async Task<TTypeDeclarationSyntax?> GetTypeDeclarationAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var nodeToAnalyze = await GetRelevantNodeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         if (nodeToAnalyze == null)
             return null;
 
-        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-        return State.Generate((TService)this, semanticDocument, nodeToAnalyze);
+        var name = this.GetSymbolName(nodeToAnalyze);
+        return name == "" ? null : nodeToAnalyze;
     }
 
-    private ImmutableArray<CodeAction> CreateActions(State? state)
+    private ImmutableArray<CodeAction> CreateActions(
+        SemanticDocument document, TTypeDeclarationSyntax? typeDeclaration)
     {
-        if (state is null)
+        if (typeDeclaration is null)
             return [];
 
-        var typeMatchesDocumentName = TypeMatchesDocumentName(state.TypeNode, state.DocumentNameWithoutExtension);
+        var documentNameWithoutExtension = GetDocumentNameWithoutExtension(document);
+        var typeMatchesDocumentName = TypeMatchesDocumentName(typeDeclaration, documentNameWithoutExtension);
 
         // if type name matches document name, per style conventions, we have nothing to do.
         if (typeMatchesDocumentName)
             return [];
 
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
-        var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
-        var isNestedType = IsNestedType(state.TypeNode);
 
-        var syntaxFacts = state.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var isClassNextToGlobalStatements = !manyTypes && ClassNextToGlobalStatements(state.SemanticDocument.Root, syntaxFacts);
+        var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(document.Root);
+        var isNestedType = IsNestedType(typeDeclaration);
+
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var isClassNextToGlobalStatements = !manyTypes && ClassNextToGlobalStatements(document.Root, syntaxFacts);
 
         var suggestedFileNames = GetSuggestedFileNames(
-            state.TypeNode, state.SemanticDocument.Document.Name, includeComplexFileNames: false);
+            document, typeDeclaration, includeComplexFileNames: false);
 
         // (1) Add Move type to new file code action:
         // case 1: There are multiple type declarations in current document. offer, move to new file.
@@ -107,21 +111,21 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (manyTypes || isNestedType || isClassNextToGlobalStatements)
         {
             foreach (var fileName in suggestedFileNames)
-                actions.Add(GetCodeAction(state, fileName, operationKind: MoveTypeOperationKind.MoveType));
+                actions.Add(GetCodeAction(fileName, operationKind: MoveTypeOperationKind.MoveType));
         }
 
         // (2) Add rename file and rename type code actions:
         // Case: No type declaration in file matches the file name.
-        if (!AnyTopLevelTypeMatchesDocumentName(state))
+        if (!AnyTopLevelTypeMatchesDocumentName())
         {
             foreach (var fileName in suggestedFileNames)
-                actions.Add(GetCodeAction(state, fileName, operationKind: MoveTypeOperationKind.RenameFile));
+                actions.Add(GetCodeAction(fileName, operationKind: MoveTypeOperationKind.RenameFile));
 
             // Only if the document name can be legal identifier in the language, offer to rename type with document name
-            if (syntaxFacts.IsValidIdentifier(state.DocumentNameWithoutExtension))
+            if (syntaxFacts.IsValidIdentifier(documentNameWithoutExtension))
             {
                 actions.Add(GetCodeAction(
-                    state, fileName: state.DocumentNameWithoutExtension,
+                    fileName: documentNameWithoutExtension,
                     operationKind: MoveTypeOperationKind.RenameType));
             }
         }
@@ -129,13 +133,18 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         Debug.Assert(actions.Count != 0, "No code actions found for MoveType Refactoring");
 
         return actions.ToImmutableAndClear();
+
+        bool AnyTopLevelTypeMatchesDocumentName()
+            => TopLevelTypeDeclarations(document.Root).Any(
+                typeDeclaration => TypeMatchesDocumentName(
+                    typeDeclaration, documentNameWithoutExtension));
+
+        MoveTypeCodeAction GetCodeAction(string fileName, MoveTypeOperationKind operationKind)
+            => new((TService)this, document, typeDeclaration, operationKind, fileName);
     }
 
     private static bool ClassNextToGlobalStatements(SyntaxNode root, ISyntaxFactsService syntaxFacts)
         => syntaxFacts.ContainsGlobalStatement(root);
-
-    private MoveTypeCodeAction GetCodeAction(State state, string fileName, MoveTypeOperationKind operationKind)
-        => new((TService)this, state, operationKind, fileName);
 
     private static bool IsNestedType(TTypeDeclarationSyntax typeNode)
         => typeNode.Parent is TTypeDeclarationSyntax;
@@ -152,14 +161,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root)
         => root.DescendantNodes(n => n is TCompilationUnitSyntax or TNamespaceDeclarationSyntax).OfType<TTypeDeclarationSyntax>();
 
-    private bool AnyTopLevelTypeMatchesDocumentName(State state)
-    {
-        var root = state.SemanticDocument.Root;
-
-        return TopLevelTypeDeclarations(root).Any(
-            typeDeclaration => TypeMatchesDocumentName(
-                typeDeclaration, state.DocumentNameWithoutExtension));
-    }
+    private static string GetDocumentNameWithoutExtension(SemanticDocument document)
+        => Path.GetFileNameWithoutExtension(document.Document.Name);
 
     /// <summary>
     /// checks if type name matches its parent document name, per style rules.
@@ -207,10 +210,11 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     }
 
     private ImmutableArray<string> GetSuggestedFileNames(
+        SemanticDocument document,
         TTypeDeclarationSyntax typeNode,
-        string documentNameWithExtension,
         bool includeComplexFileNames)
     {
+        var documentNameWithExtension = document.Document.Name;
         var isNestedType = IsNestedType(typeNode);
         var (typeName, arity) = this.GetSymbolNameAndArity(typeNode);
         var fileExtension = Path.GetExtension(documentNameWithExtension);
