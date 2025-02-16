@@ -667,7 +667,7 @@ public class UseCollectionExpressionForEmptyTests
             {
                 void M()
                 {
-                    MyList<int> x = {|CS9187:[]|};
+                    MyList<int> x = {|CS7036:[]|};
                 }
             }
             

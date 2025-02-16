@@ -1640,15 +1640,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            MethodSymbol? collectionBuilderMethod = binder.GetAndValidateCollectionBuilderMethod(syntax, (NamedTypeSymbol)Type, diagnostics, elementType: out _);
-                            if (collectionBuilderMethod is null)
-                            {
-                                return;
-                            }
+                            var targetType = (NamedTypeSymbol)Type;
+                            targetType.OriginalDefinition.HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
+                            Debug.Assert(builderType is { });
+                            Debug.Assert(!string.IsNullOrEmpty(methodName));
 
-                            if (ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
+                            var candidateMethods = binder.GetAndValidateCollectionBuilderMethods(syntax, targetType.OriginalDefinition, builderType, methodName, diagnostics);
+                            if (candidateMethods.Any())
                             {
-                                checkIsAtLeastAsVisible(syntax, binder, collectionBuilderMethod, diagnostics);
+                                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+                                var spanType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct(elementType);
+                                var typeArguments = targetType.GetAllTypeArguments(ref useSiteInfo);
+                                diagnostics.Add(syntax, useSiteInfo);
+                                var candidateMethodGroup = binder.BindCollectionBuilderMethodGroup(syntax, methodName, typeArguments, candidateMethods);
+                                var collectionCreation = binder.BindCollectionBuilderCreate(
+                                    syntax,
+                                    candidateMethodGroup,
+                                    spanArgument: new BoundDefaultExpression(syntax, spanType),
+                                    withElement: null, diagnostics);
+
+                                if (collectionCreation is BoundCall { Method: var collectionBuilderMethod } &&
+                                    ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
+                                {
+                                    checkIsAtLeastAsVisible(syntax, binder, collectionBuilderMethod, diagnostics);
+                                }
                             }
                         }
                         break;

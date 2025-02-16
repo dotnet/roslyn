@@ -1251,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
                     case CollectionExpressionTypeKind.CollectionBuilder:
-                        return expr.CollectionBuilderMethod;
+                        return Binder.GetCollectionBuilderMethod(expr);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
                 }
