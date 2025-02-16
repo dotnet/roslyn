@@ -3082,7 +3082,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
-                expectedOutput: """[1, 2], [3, 4], [5, 6, 7], """);
+                expectedOutput: IncludeExpectedOutput("""[1, 2], [3, 4], [5, 6, 7], """));
             verifier.VerifyDiagnostics();
             string expectedILNoArguments = """
                 {
@@ -3157,7 +3157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
-                expectedOutput: """[], [], [], """); // PROTOTYPE: Should report "[], [], [5, 6], ".
+                expectedOutput: IncludeExpectedOutput("""[], [], [], """)); // PROTOTYPE: Should report "[], [], [5, 6], ".
             verifier.VerifyDiagnostics();
             string expectedILNoArguments = """
                 {
@@ -3229,7 +3229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
-                expectedOutput: """[1, 2], [3, 4], [5, 6, 7], """);
+                expectedOutput: IncludeExpectedOutput("""[1, 2], [3, 4], [5, 6, 7], """));
             verifier.VerifyDiagnostics();
             string expectedILNoArguments = """
                 {
