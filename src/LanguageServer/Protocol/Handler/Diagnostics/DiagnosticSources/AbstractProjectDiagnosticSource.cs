@@ -50,8 +50,8 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
             // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
             // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
             // and do not need to be adjusted.
-            var diagnostics = await diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(Project.Solution, Project.Id,
-                diagnosticIds: null, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await diagnosticAnalyzerService.GetProjectDiagnosticsForIdsAsync(
+                Project, diagnosticIds: null, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
 
             // TODO(cyrusn): In the future we could consider reporting these, but with a flag on the diagnostic mentioning
             // that it is suppressed and should be hidden from the task list by default.

@@ -5,8 +5,8 @@
 #nullable disable
 
 using System;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.OLE.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 

@@ -1001,6 +1001,24 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "public static implicit operator global::System.Decimal(global::System.Byte value)\r\n{\r\n}");
         }
 
+        [Fact, WorkItem(77101, "https://github.com/dotnet/roslyn/issues/77101")]
+        public void TestExplicitCheckedOperatorFromSymbol()
+        {
+            var compilation = CSharpCompilation.Create("Test", [SyntaxFactory.ParseSyntaxTree("""
+                public class C
+                {
+                    public static explicit operator checked int(C c) => 0;
+                }
+                """)]);
+
+            var c = compilation.GetTypeByMetadataName("C");
+            var op = c.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.Conversion).Single();
+
+            VerifySyntax<ConversionOperatorDeclarationSyntax>(
+                Generator.OperatorDeclaration(op),
+                "public static explicit operator checked global::System.Int32(global::C c)\r\n{\r\n}");
+        }
+
         [Fact]
         public void TestConstructorDeclaration()
         {

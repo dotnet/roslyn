@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -420,7 +421,8 @@ public class CodeFixServiceTests
         }
     }
 
-    private class MockAnalyzerReference : AnalyzerReference, ICodeFixProviderFactory
+    private class MockAnalyzerReference
+        : AnalyzerReference, ICodeFixProviderFactory, SerializerService.TestAccessor.IAnalyzerReferenceWithGuid
     {
         public readonly ImmutableArray<CodeFixProvider> Fixers;
         public readonly ImmutableArray<DiagnosticAnalyzer> Analyzers;
@@ -480,6 +482,8 @@ public class CodeFixServiceTests
                 return "MockAnalyzerReference";
             }
         }
+
+        public Guid Guid { get; } = Guid.NewGuid();
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
             => Analyzers;
@@ -1066,7 +1070,7 @@ class C
             : root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>().First().Span;
 
         await analyzerService.GetDiagnosticsForIdsAsync(
-            sourceDocument.Project.Solution, sourceDocument.Project.Id, sourceDocument.Id, diagnosticIds: null, shouldIncludeAnalyzer: null,
+            sourceDocument.Project, sourceDocument.Id, diagnosticIds: null, shouldIncludeAnalyzer: null,
             includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
         // await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
 

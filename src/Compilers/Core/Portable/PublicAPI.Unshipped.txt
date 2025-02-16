@@ -18,6 +18,7 @@ Microsoft.CodeAnalysis.IPropertySymbol.PartialImplementationPart.get -> Microsof
 Microsoft.CodeAnalysis.IPropertySymbol.IsPartialDefinition.get -> bool
 Microsoft.CodeAnalysis.ITypeParameterSymbol.AllowsRefLikeType.get -> bool
 Microsoft.CodeAnalysis.RuntimeCapability.ByRefLikeGenerics = 8 -> Microsoft.CodeAnalysis.RuntimeCapability
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.ToString() -> string!
 static Microsoft.CodeAnalysis.GeneratorExtensions.AsIncrementalGenerator(this Microsoft.CodeAnalysis.ISourceGenerator! sourceGenerator) -> Microsoft.CodeAnalysis.IIncrementalGenerator!
 static Microsoft.CodeAnalysis.GeneratorExtensions.GetGeneratorType(this Microsoft.CodeAnalysis.IIncrementalGenerator! generator) -> System.Type!
 Microsoft.CodeAnalysis.Compilation.CreatePreprocessingSymbol(string! name) -> Microsoft.CodeAnalysis.IPreprocessingSymbol!

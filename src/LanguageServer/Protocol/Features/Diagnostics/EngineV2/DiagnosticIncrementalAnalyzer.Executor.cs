@@ -21,16 +21,20 @@ internal partial class DiagnosticAnalyzerService
     private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
-        /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
+        /// Return all diagnostics that belong to given project for the given <see cref="DiagnosticAnalyzer"/> either
+        /// from cache or by calculating them.
         /// </summary>
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticAnalysisResultsAsync(
-            CompilationWithAnalyzersPair? compilationWithAnalyzers, Project project, ImmutableArray<StateSet> stateSets, CancellationToken cancellationToken)
+            CompilationWithAnalyzersPair? compilationWithAnalyzers,
+            Project project,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, analyzers, cancellationToken))
             {
                 try
                 {
-                    var result = await ComputeDiagnosticsForStateSetsAsync(stateSets).ConfigureAwait(false);
+                    var result = await ComputeDiagnosticsForIDEAnalyzersAsync(analyzers).ConfigureAwait(false);
 
                     // If project is not loaded successfully, get rid of any semantic errors from compiler analyzer.
                     // Note: In the past when project was not loaded successfully we did not run any analyzers on the project.
@@ -111,12 +115,12 @@ internal partial class DiagnosticAnalyzerService
                 }
             }
 
-            async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsForStateSetsAsync(
-                ImmutableArray<StateSet> stateSets)
+            async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsForIDEAnalyzersAsync(
+                ImmutableArray<DiagnosticAnalyzer> analyzers)
             {
                 try
                 {
-                    var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
+                    var ideAnalyzers = analyzers.WhereAsArray(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer);
 
                     return await ComputeDiagnosticsForAnalyzersAsync(ideAnalyzers).ConfigureAwait(false);
                 }
