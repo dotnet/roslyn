@@ -171,6 +171,8 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         if (root is null)
             return null;
 
+        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
         // We don't want to rename documents unless they contains a single top level type.
         var topLevelTypeDeclarations = TopLevelTypeDeclarations(root).ToImmutableArray();
         if (topLevelTypeDeclarations is not [var topLevelType])
@@ -183,7 +185,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         for (var currentType = deepestSingleType; currentType != null; currentType = currentType.Parent as TTypeDeclarationSyntax)
         {
             var suggestedFileNames = GetSuggestedFileNames(
-                currentType, documentNameWithExtension: document.Name, includeArity: true);
+                semanticDocument, currentType, includeComplexFileNames: true);
             foreach (var suggestedFileName in suggestedFileNames)
             {
                 if (document.Name == suggestedFileName)
@@ -194,7 +196,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         // Nothing matched. Offer to rename to the first suggested name for the deepest type in the file that isn't
         // already in use.
         var deepestTypeSuggestedFileNames = GetSuggestedFileNames(
-            deepestSingleType, documentNameWithExtension: document.Name, includeArity: true);
+            semanticDocument, deepestSingleType, includeComplexFileNames: true);
 
         foreach (var suggestedFileName in deepestTypeSuggestedFileNames)
         {
