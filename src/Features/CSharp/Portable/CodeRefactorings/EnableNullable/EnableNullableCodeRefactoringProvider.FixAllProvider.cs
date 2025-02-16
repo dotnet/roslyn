@@ -61,8 +61,7 @@ internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefact
         {
             private readonly Func<CodeActionPurpose, IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> _createChangedSolution = createChangedSolution;
 
-            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(
-                IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             {
                 var changedSolution = await _createChangedSolution(
                     CodeActionPurpose.Preview, progress, cancellationToken).ConfigureAwait(false);
