@@ -3157,25 +3157,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("""[], [], [], """)); // PROTOTYPE: Should report "[], [], [5, 6], ".
+                expectedOutput: IncludeExpectedOutput("""[], [], [5, 6], """));
             verifier.VerifyDiagnostics();
             string expectedILNoArguments = """
                 {
-                  // Code size        6 (0x6)
-                  .maxstack  1
-                  IL_0000:  ldsfld     "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.ImmutableArray<T>.Empty"
-                  IL_0005:  ret
+                  // Code size       20 (0x14)
+                  .maxstack  2
+                  .locals init (System.ReadOnlySpan<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "System.ReadOnlySpan<T>"
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "T[] System.Array.Empty<T>()"
+                  IL_000e:  call       "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
+                  IL_0013:  ret
                 }
                 """;
             verifier.VerifyIL("Program.ImmutableArrayNoArguments<T>", expectedILNoArguments);
             verifier.VerifyIL("Program.ImmutableArrayEmptyArguments<T>", expectedILNoArguments);
-            // PROTOTYPE: Should use MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[]).
             verifier.VerifyIL("Program.ImmutableArrayWithArguments<T>", """
                 {
-                  // Code size        6 (0x6)
-                  .maxstack  1
-                  IL_0000:  ldsfld     "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.ImmutableArray<T>.Empty"
-                  IL_0005:  ret
+                  // Code size       16 (0x10)
+                  .maxstack  2
+                  .locals init (System.ReadOnlySpan<T> V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "System.ReadOnlySpan<T>"
+                  IL_0008:  ldloc.0
+                  IL_0009:  ldarg.0
+                  IL_000a:  call       "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
+                  IL_000f:  ret
                 }
                 """);
         }

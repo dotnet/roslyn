@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
                         {
                             // For `[]` try to use `ImmutableArray<T>.Empty` singleton if available
-                            if (node.Elements.IsEmpty && // PROTOTYPE: We need to check there are no arguments. See ImmutableArray_NoElements.
+                            if (node.Elements.IsEmpty &&
+                                usesSingleParameterBuilderMethod(_compilation, node, arrayElementType) &&
                                 _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty) is FieldSymbol immutableArrayOfTEmpty)
                             {
                                 var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember((NamedTypeSymbol)node.Type);
@@ -132,6 +133,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return addMethod.Equals(collectionInitializer.AddMethod.OriginalDefinition);
                 }
                 return false;
+            }
+
+            static bool usesSingleParameterBuilderMethod(CSharpCompilation compilation, BoundCollectionExpression node, TypeWithAnnotations elementType)
+            {
+                return Binder.GetCollectionBuilderMethod(node) is { Parameters: [var parameter] } &&
+                    parameter.Type.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct([elementType]));
             }
 
             static BoundNode unwrapListElement(BoundCollectionExpression node, BoundNode element)

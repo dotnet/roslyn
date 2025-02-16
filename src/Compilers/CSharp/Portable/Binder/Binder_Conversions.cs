@@ -2122,7 +2122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                // PROTOTYPE: Should the return type check be made after overload resolution, rather than as part of identifying candidates?
                 conversion = Conversions.ClassifyImplicitConversionFromType(methodWithTargetTypeParameters.ReturnType, targetType, ref candidateUseSiteInfo);
                 switch (conversion.Kind)
                 {
