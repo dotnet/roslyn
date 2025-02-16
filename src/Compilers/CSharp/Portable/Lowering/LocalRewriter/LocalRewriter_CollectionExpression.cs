@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
                         {
                             // For `[]` try to use `ImmutableArray<T>.Empty` singleton if available
-                            if (node.Elements.IsEmpty &&
+                            if (node.Elements.IsEmpty && // PROTOTYPE: We need to check there are no arguments. See ImmutableArray_NoElements.
                                 _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty) is FieldSymbol immutableArrayOfTEmpty)
                             {
                                 var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember((NamedTypeSymbol)node.Type);
@@ -222,7 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             spreadExpression = null;
 
-            // PROTOTYPE: This is not handling [with(...), ..s].
             if (node.Elements is [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }] &&
                 Binder.GetCollectionBuilderMethod(node) is { } builder &&
                 ConversionsBase.HasIdentityConversion(builder.Parameters[0].Type, spreadType) &&

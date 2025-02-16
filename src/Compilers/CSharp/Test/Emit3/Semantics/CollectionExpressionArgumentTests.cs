@@ -3038,6 +3038,224 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void CollectionBuilder_SingleSpread()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _items;
+                    public MyCollection(T[] args, ReadOnlySpan<T> items)
+                    {
+                        _items = new();
+                        _items.AddRange(items.ToArray());
+                        _items.AddRange(args);
+                    }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, params T[] args) => new(args, items);
+                }
+                """;
+            string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        NoArguments([1, 2]).Report();
+                        EmptyArguments([3, 4]).Report();
+                        WithArguments([5, 6], 7).Report();
+                    }
+                    static MyCollection<T> NoArguments<T>(ReadOnlySpan<T> s) => [..s];
+                    static MyCollection<T> EmptyArguments<T>(ReadOnlySpan<T> s) => [with(), ..s];
+                    static MyCollection<T> WithArguments<T>(ReadOnlySpan<T> s, params T[] args) => [with(args), ..s];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: """[1, 2], [3, 4], [5, 6, 7], """);
+            verifier.VerifyDiagnostics();
+            string expectedILNoArguments = """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "T[] System.Array.Empty<T>()"
+                  IL_0006:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
+                  IL_000b:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.NoArguments<T>", expectedILNoArguments);
+            verifier.VerifyIL("Program.EmptyArguments<T>", expectedILNoArguments);
+            verifier.VerifyIL("Program.WithArguments<T>", """
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
+                  IL_0007:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ImmutableArray_NoElements()
+        {
+            string sourceA = """
+                #pragma warning disable 436 // type conflicts with imported type
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                namespace System.Collections.Immutable
+                {
+                    [CollectionBuilder(typeof(MyBuilder), "Create")]
+                    public struct ImmutableArray<T> : IEnumerable<T>
+                    {
+                        public static readonly ImmutableArray<T> Empty = new(default, new T[0]);
+                        private readonly List<T> _items;
+                        internal ImmutableArray(ReadOnlySpan<T> items, T[] args)
+                        {
+                            _items = new();
+                            _items.AddRange(items.ToArray());
+                            _items.AddRange(args);
+                        }
+                        public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    }
+                    public static class MyBuilder
+                    {
+                        public static ImmutableArray<T> Create<T>(ReadOnlySpan<T> items, params T[] args) => new(items, args);
+                    }
+                }
+                """;
+            string sourceB = """
+                #pragma warning disable 436 // type conflicts with imported type
+                using System.Collections.Immutable;
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArrayNoArguments<int>().Report();
+                        ImmutableArrayEmptyArguments<int>().Report();
+                        ImmutableArrayWithArguments(5, 6).Report();
+                    }
+                    static ImmutableArray<T> ImmutableArrayNoArguments<T>() => [];
+                    static ImmutableArray<T> ImmutableArrayEmptyArguments<T>() => [with()];
+                    static ImmutableArray<T> ImmutableArrayWithArguments<T>(params T[] args) => [with(args)];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: """[], [], [], """); // PROTOTYPE: Should report "[], [], [5, 6], ".
+            verifier.VerifyDiagnostics();
+            string expectedILNoArguments = """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  ldsfld     "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.ImmutableArray<T>.Empty"
+                  IL_0005:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.ImmutableArrayNoArguments<T>", expectedILNoArguments);
+            verifier.VerifyIL("Program.ImmutableArrayEmptyArguments<T>", expectedILNoArguments);
+            // PROTOTYPE: Should use MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[]).
+            verifier.VerifyIL("Program.ImmutableArrayWithArguments<T>", """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  ldsfld     "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.ImmutableArray<T>.Empty"
+                  IL_0005:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ImmutableArray_SingleSpread()
+        {
+            string sourceA = """
+                #pragma warning disable 436 // type conflicts with imported type
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                namespace System.Collections.Immutable
+                {
+                    [CollectionBuilder(typeof(MyBuilder), "Create")]
+                    public struct ImmutableArray<T> : IEnumerable<T>
+                    {
+                        private readonly List<T> _items;
+                        internal ImmutableArray(ReadOnlySpan<T> items, T[] args)
+                        {
+                            _items = new();
+                            _items.AddRange(items.ToArray());
+                            _items.AddRange(args);
+                        }
+                        public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    }
+                    public static class MyBuilder
+                    {
+                        public static ImmutableArray<T> Create<T>(ReadOnlySpan<T> items, params T[] args) => new(items, args);
+                    }
+                }
+                """;
+            string sourceB = """
+                #pragma warning disable 436 // type conflicts with imported type
+                using System;
+                using System.Collections.Immutable;
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArrayNoArguments([1, 2]).Report();
+                        ImmutableArrayEmptyArguments([3, 4]).Report();
+                        ImmutableArrayWithArguments([5, 6], 7).Report();
+                    }
+                    static ImmutableArray<T> ImmutableArrayNoArguments<T>(ReadOnlySpan<T> s) => [..s];
+                    static ImmutableArray<T> ImmutableArrayEmptyArguments<T>(ReadOnlySpan<T> s) => [with(), ..s];
+                    static ImmutableArray<T> ImmutableArrayWithArguments<T>(ReadOnlySpan<T> s, params T[] args) => [with(args), ..s];
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: """[1, 2], [3, 4], [5, 6, 7], """);
+            verifier.VerifyDiagnostics();
+            string expectedILNoArguments = """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "T[] System.Array.Empty<T>()"
+                  IL_0006:  call       "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
+                  IL_000b:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.ImmutableArrayNoArguments<T>", expectedILNoArguments);
+            verifier.VerifyIL("Program.ImmutableArrayEmptyArguments<T>", expectedILNoArguments);
+            verifier.VerifyIL("Program.ImmutableArrayWithArguments<T>", """
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  call       "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
+                  IL_0007:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void Empty_TypeParameter()
         {
             string sourceA = """
