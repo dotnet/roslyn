@@ -5776,9 +5776,9 @@ static class E
             // (2,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // new Derived().M2();
             Diagnostic(ErrorCode.ERR_NoTypeDef, "new Derived().M2").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 1),
-            // (2,1): error CS1929: 'Derived' does not contain a definition for 'M2' and the best extension method overload 'E.M2(Other)' requires a receiver of type 'Other'
+            // (2,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // new Derived().M2();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new Derived()").WithArguments("Derived", "M2", "E.M2(Other)", "Other").WithLocation(2, 1),
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "new Derived().M2").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 1),
             // (2,15): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // new Derived().M2();
             Diagnostic(ErrorCode.ERR_NoTypeDef, "M2").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 15));
