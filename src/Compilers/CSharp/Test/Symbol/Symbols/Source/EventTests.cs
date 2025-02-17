@@ -2766,8 +2766,11 @@ public class Test1
 ".Replace("[netstandard]", ExecutionConditionUtil.IsDesktop ? "[mscorlib]" : "[netstandard]"));
         }
 
-        [Fact]
-        public void Attributes_Locations()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77254")]
+        [InlineData(LanguageVersion.CSharp1)]
+        [InlineData(LanguageVersion.CSharp13)]
+        [InlineData(LanguageVersion.Preview)]
+        public void Attributes_Locations(LanguageVersion langVersion)
         {
             var source = """
                 using System;
@@ -2789,6 +2792,7 @@ public class Test1
                 }
                 """;
             CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: validate,
                 sourceSymbolValidator: validate,
@@ -2802,12 +2806,24 @@ public class Test1
                         """,
                 })
                 .VerifyDiagnostics(
+                    // (8,28): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, field, event'. All attributes in this block will be ignored.
+                    //     [A(1)] [method: A(2)] [param: A(3)] [return: A(4)] [event: A(5)] [field: A(6)] public event Action E;
+                    Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, field, event").WithLocation(8, 28),
+                    // (8,42): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, field, event'. All attributes in this block will be ignored.
+                    //     [A(1)] [method: A(2)] [param: A(3)] [return: A(4)] [event: A(5)] [field: A(6)] public event Action E;
+                    Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "method, field, event").WithLocation(8, 42),
                     // (8,104): warning CS0067: The event 'C.E' is never used
                     //     [A(1)] [method: A(2)] [param: A(3)] [return: A(4)] [event: A(5)] [field: A(6)] public event Action E;
                     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(8, 104),
-                    // (10,71): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event, param, return'. All attributes in this block will be ignored.
+                    // (10,28): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
                     //     [A(1)] [method: A(2)] [param: A(3)] [return: A(4)] [event: A(5)] [field: A(6)] public extern event Action F;
-                    Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, event, param, return").WithLocation(10, 71),
+                    Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, event").WithLocation(10, 28),
+                    // (10,42): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                    //     [A(1)] [method: A(2)] [param: A(3)] [return: A(4)] [event: A(5)] [field: A(6)] public extern event Action F;
+                    Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "method, event").WithLocation(10, 42),
+                    // (10,71): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                    //     [A(1)] [method: A(2)] [param: A(3)] [return: A(4)] [event: A(5)] [field: A(6)] public extern event Action F;
+                    Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, event").WithLocation(10, 71),
                     // (12,13): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
                     //     [A(1)] [method: A(2)] [param: A(3)] [return: A(4)] [event: A(5)] [field: A(6)] public event Action G
                     Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "event").WithLocation(12, 13),
@@ -2842,20 +2858,20 @@ public class Test1
                 AssertEx.Equal(["A(1)", "A(5)"], e.GetAttributes().ToStrings());
                 AssertEx.Equal([.. compiledGeneratedAttr, "A(2)"], e.AddMethod!.GetAttributes().ToStrings());
                 AssertEx.Equal(["A(3)"], e.AddMethod.Parameters.Single().GetAttributes().ToStrings());
-                AssertEx.Equal(["A(4)"], e.AddMethod.GetReturnTypeAttributes().ToStrings());
+                AssertEx.Equal([], e.AddMethod.GetReturnTypeAttributes().ToStrings());
                 AssertEx.Equal([.. compiledGeneratedAttr, "A(2)"], e.RemoveMethod!.GetAttributes().ToStrings());
                 AssertEx.Equal(["A(3)"], e.RemoveMethod.Parameters.Single().GetAttributes().ToStrings());
-                AssertEx.Equal(["A(4)"], e.RemoveMethod.GetReturnTypeAttributes().ToStrings());
+                AssertEx.Equal([], e.RemoveMethod.GetReturnTypeAttributes().ToStrings());
                 AssertEx.Equal([.. compiledGeneratedAttr, "A(6)"], e.AssociatedField.GetAttributes().ToStrings());
 
                 var f = module.GlobalNamespace.GetMember<EventSymbol>("C.F");
                 AssertEx.Equal(["A(1)", "A(5)"], f.GetAttributes().ToStrings());
                 AssertEx.Equal([.. compiledGeneratedAttr, "A(2)"], f.AddMethod!.GetAttributes().ToStrings());
                 AssertEx.Equal(["A(3)"], f.AddMethod.Parameters.Single().GetAttributes().ToStrings());
-                AssertEx.Equal(["A(4)"], f.AddMethod.GetReturnTypeAttributes().ToStrings());
+                AssertEx.Equal([], f.AddMethod.GetReturnTypeAttributes().ToStrings());
                 AssertEx.Equal([.. compiledGeneratedAttr, "A(2)"], f.RemoveMethod!.GetAttributes().ToStrings());
                 AssertEx.Equal(["A(3)"], f.RemoveMethod.Parameters.Single().GetAttributes().ToStrings());
-                AssertEx.Equal(["A(4)"], f.RemoveMethod.GetReturnTypeAttributes().ToStrings());
+                AssertEx.Equal([], f.RemoveMethod.GetReturnTypeAttributes().ToStrings());
 
                 var g = module.GlobalNamespace.GetMember<EventSymbol>("C.G");
                 AssertEx.Equal(["A(1)", "A(5)"], g.GetAttributes().ToStrings());

@@ -2303,12 +2303,24 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 // (12,79): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
                 //         [A(4)] [method: A(14)] [param: A(24)] [return: A(34)] [event: A(44)] [field: A(54)] remove { }
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(12, 79),
-                // (15,75): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event, param, return'. All attributes in this block will be ignored.
+                // (15,29): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
                 //     [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action F;
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, event, param, return").WithLocation(15, 75),
-                // (16,75): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event, param, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, event").WithLocation(15, 29),
+                // (15,44): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                //     [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action F;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "method, event").WithLocation(15, 44),
+                // (15,75): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                //     [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action F;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, event").WithLocation(15, 75),
+                // (16,29): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
                 //     [A(2)] [method: A(12)] [param: A(22)] [return: A(32)] [event: A(42)] [field: A(52)] public extern partial event Action F;
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, event, param, return").WithLocation(16, 75));
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, event").WithLocation(16, 29),
+                // (16,44): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                //     [A(2)] [method: A(12)] [param: A(22)] [return: A(32)] [event: A(42)] [field: A(52)] public extern partial event Action F;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "method, event").WithLocation(16, 44),
+                // (16,75): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                //     [A(2)] [method: A(12)] [param: A(22)] [return: A(32)] [event: A(42)] [field: A(52)] public extern partial event Action F;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, event").WithLocation(16, 75));
 
         static void validate(ModuleSymbol module)
         {
@@ -2340,10 +2352,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             AssertEx.Equal(["A(1)", "A(41)", "A(2)", "A(42)"], f.GetAttributes().ToStrings());
             AssertEx.Equal([.. compiledGeneratedAttr, "A(11)", "A(12)"], f.AddMethod!.GetAttributes().ToStrings());
             AssertEx.Equal(["A(22)", "A(21)"], f.AddMethod.Parameters.Single().GetAttributes().ToStrings());
-            AssertEx.Equal(["A(31)", "A(32)"], f.AddMethod.GetReturnTypeAttributes().ToStrings());
+            AssertEx.Equal([], f.AddMethod.GetReturnTypeAttributes().ToStrings());
             AssertEx.Equal([.. compiledGeneratedAttr, "A(11)", "A(12)"], f.RemoveMethod!.GetAttributes().ToStrings());
             AssertEx.Equal(["A(22)", "A(21)"], f.RemoveMethod.Parameters.Single().GetAttributes().ToStrings());
-            AssertEx.Equal(["A(31)", "A(32)"], f.RemoveMethod.GetReturnTypeAttributes().ToStrings());
+            AssertEx.Equal([], f.RemoveMethod.GetReturnTypeAttributes().ToStrings());
 
             if (isSource)
             {
@@ -2351,10 +2363,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 AssertEx.Equal(["A(1)", "A(41)", "A(2)", "A(42)"], fImpl.GetAttributes().ToStrings());
                 AssertEx.Equal([.. compiledGeneratedAttr, "A(11)", "A(12)"], fImpl.AddMethod!.GetAttributes().ToStrings());
                 AssertEx.Equal(["A(22)", "A(21)"], fImpl.AddMethod.Parameters.Single().GetAttributes().ToStrings());
-                AssertEx.Equal(["A(31)", "A(32)"], fImpl.AddMethod.GetReturnTypeAttributes().ToStrings());
+                AssertEx.Equal([], fImpl.AddMethod.GetReturnTypeAttributes().ToStrings());
                 AssertEx.Equal([.. compiledGeneratedAttr, "A(11)", "A(12)"], fImpl.RemoveMethod!.GetAttributes().ToStrings());
                 AssertEx.Equal(["A(22)", "A(21)"], fImpl.RemoveMethod.Parameters.Single().GetAttributes().ToStrings());
-                AssertEx.Equal(["A(31)", "A(32)"], fImpl.RemoveMethod.GetReturnTypeAttributes().ToStrings());
+                AssertEx.Equal([], fImpl.RemoveMethod.GetReturnTypeAttributes().ToStrings());
             }
         }
     }
@@ -2415,6 +2427,9 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (18,23): error CS0579: Duplicate 'A1' attribute
             //         [A1] [method: A1] [param: A2] remove { }
             Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A1").WithArguments("A1").WithLocation(18, 23),
+            // (21,24): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+            //     [A1] [method: A2] [param: A3] partial event Action F;
+            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, event").WithLocation(21, 24),
             // (21,31): error CS0579: Duplicate 'A3' attribute
             //     [A1] [method: A2] [param: A3] partial event Action F;
             Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A3").WithArguments("A3").WithLocation(21, 31),
@@ -2426,7 +2441,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A1").WithArguments("A1").WithLocation(22, 6),
             // (22,19): error CS0579: Duplicate 'A2' attribute
             //     [A1] [method: A2] [param: A3] extern partial event Action F;
-            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A2").WithArguments("A2").WithLocation(22, 19));
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A2").WithArguments("A2").WithLocation(22, 19),
+            // (22,24): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+            //     [A1] [method: A2] [param: A3] extern partial event Action F;
+            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, event").WithLocation(22, 24));
     }
 
     [Fact]

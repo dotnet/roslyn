@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!IsPartial || IsExtern)
                 {
-                    result |= AttributeLocation.Method | AttributeLocation.Parameter | AttributeLocation.Return;
+                    result |= AttributeLocation.Method;
                 }
 
                 if (AssociatedEventField is not null)
