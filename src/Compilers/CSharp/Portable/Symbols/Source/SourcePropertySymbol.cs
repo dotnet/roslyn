@@ -778,8 +778,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourcePropertySymbol? SourcePartialDefinitionPart => IsPartialImplementation ? OtherPartOfPartial : null;
         internal SourcePropertySymbol? SourcePartialImplementationPart => IsPartialDefinition ? OtherPartOfPartial : null;
 
-        internal override PropertySymbol? PartialDefinitionPart => SourcePartialDefinitionPart;
-        internal override PropertySymbol? PartialImplementationPart => SourcePartialImplementationPart;
+        internal sealed override PropertySymbol? PartialDefinitionPart => SourcePartialDefinitionPart;
+        internal sealed override PropertySymbol? PartialImplementationPart => SourcePartialImplementationPart;
 
         internal static void InitializePartialPropertyParts(SourcePropertySymbol definition, SourcePropertySymbol implementation)
         {
