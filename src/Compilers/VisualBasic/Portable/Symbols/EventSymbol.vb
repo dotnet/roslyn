@@ -323,6 +323,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IEventSymbol_PartialDefinitionPart As IEventSymbol Implements IEventSymbol.PartialDefinitionPart
+            Get
+                ' Feature not supported in VB
+                Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property IEventSymbol_PartialImplementationPart As IEventSymbol Implements IEventSymbol.PartialImplementationPart
+            Get
+                ' Feature not supported in VB
+                Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property IEventSymbol_IsPartialDefinition As Boolean Implements IEventSymbol.IsPartialDefinition
+            Get
+                ' Feature not supported in VB
+                Return False
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitEvent(Me)
         End Sub

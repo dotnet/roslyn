@@ -230,6 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal virtual EventSymbol? PartialImplementationPart => null;
         internal virtual EventSymbol? PartialDefinitionPart => null;
+        internal virtual bool IsPartialDefinition => false;
 
         /// <summary>
         /// Gets the kind of this symbol.

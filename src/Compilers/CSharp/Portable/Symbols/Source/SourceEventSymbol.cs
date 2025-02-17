@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected abstract bool AccessorsHaveImplementation { get; }
 
-        internal bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !HasExternModifier;
+        internal sealed override bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !HasExternModifier;
 
         internal bool IsPartialImplementation => IsPartial && (AccessorsHaveImplementation || HasExternModifier);
 
@@ -880,9 +880,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SourceEventSymbol? SourcePartialImplementationPart => IsPartialDefinition ? OtherPartOfPartial : null;
 
-        internal override EventSymbol? PartialDefinitionPart => SourcePartialDefinitionPart;
+        internal sealed override EventSymbol? PartialDefinitionPart => SourcePartialDefinitionPart;
 
-        internal override EventSymbol? PartialImplementationPart => SourcePartialImplementationPart;
+        internal sealed override EventSymbol? PartialImplementationPart => SourcePartialImplementationPart;
 
         internal static void InitializePartialEventParts(SourceEventSymbol definition, SourceEventSymbol implementation)
         {

@@ -65,5 +65,20 @@ namespace Microsoft.CodeAnalysis
         /// Properties imported from metadata can explicitly implement more than one event.
         /// </remarks>
         ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations { get; }
+
+        /// <summary>
+        /// If this is a partial event implementation part, returns the corresponding definition part, otherwise <see langword="null"/>.
+        /// </summary>
+        IEventSymbol? PartialDefinitionPart { get; }
+
+        /// <summary>
+        /// If this is a partial event definition part, returns the corresponding implementation part, otherwise <see langword="null"/>.
+        /// </summary>
+        IEventSymbol? PartialImplementationPart { get; }
+
+        /// <summary>
+        /// Returns <see langword="true"/> if this is a partial definition part, otherwise <see langword="false"/>.
+        /// </summary>
+        bool IsPartialDefinition { get; }
     }
 }
