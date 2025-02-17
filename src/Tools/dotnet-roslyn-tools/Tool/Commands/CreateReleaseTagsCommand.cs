@@ -4,6 +4,7 @@
 
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using Microsoft.RoslynTools.Utilities;
 using Microsoft.RoslynTools.VS;
 
 namespace Microsoft.RoslynTools.Commands;
@@ -51,7 +52,11 @@ internal class CreateReleaseTagsCommand
 
             var product = parseResult.GetValue(ProductOption)!;
 
-            return await CreateReleaseTags.CreateReleaseTags.CreateReleaseTagsAsync(product, settings, logger);
+            using var remoteConnections = new RemoteConnections(settings);
+            return await CreateReleaseTags.CreateReleaseTags.CreateReleaseTagsAsync(
+                product,
+                remoteConnections,
+                logger);
         }
     }
 }

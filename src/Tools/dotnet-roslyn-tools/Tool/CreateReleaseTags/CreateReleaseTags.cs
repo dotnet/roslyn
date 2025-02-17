@@ -3,370 +3,64 @@
 // See the License.txt file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Net;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
+using System.Diagnostics.CodeAnalysis;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
-using Microsoft.RoslynTools.Authentication;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.RoslynTools.VS;
-using Microsoft.TeamFoundation.SourceControl.WebApi;
-using Microsoft.VisualStudio.Services.Common;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
 
 internal static partial class CreateReleaseTags
 {
-    public static async Task<int> CreateReleaseTagsAsync(string productName, RoslynToolsSettings settings, ILogger logger)
+    public static async Task<int> CreateReleaseTagsAsync(string productName, RemoteConnections connections, ILogger logger)
     {
-        try
+        var product = VSBranchInfo.AllProducts
+            .Single(p => p.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
+
+        logger.LogInformation("Opening {ProductName} repo and gathering tags...", product.Name);
+
+        if (!TryOpenProductRespository(product, logger, out var repository))
         {
-            using var remoteConnections = new RemoteConnections(settings);
-            var devdivConnection = remoteConnections.DevDivConnection;
-            var dncengConnection = remoteConnections.DncEngConnection;
+            return 1;
+        }
 
-            var product = VSBranchInfo.AllProducts.Single(p => p.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
+        var existingTags = repository.Tags.Select(t => t.FriendlyName).ToImmutableHashSet();
 
-            var connections = new[] { dncengConnection, devdivConnection };
+        await new SdkReleaseTagger().CreateReleaseTagsAsync(connections, product, repository, existingTags, logger);
+        await new VsReleaseTagger().CreateReleaseTagsAsync(connections, product, repository, existingTags, logger);
 
-            logger.LogInformation("Opening {ProductName} repo and gathering tags...", product.Name);
+        logger.LogInformation("Tagging complete.");
 
-            var repository = new Repository(Environment.CurrentDirectory);
-            var existingTags = repository.Tags.ToImmutableArray();
+        return 0;
 
-            if (!repository.Network.Remotes.Any(r =>
+        static bool TryOpenProductRespository(
+            IProduct product,
+            ILogger logger,
+            [NotNullWhen(returnValue: true)] out Repository? repository)
+        {
+            try
+            {
+                repository = new Repository(Environment.CurrentDirectory);
+
+                if (!repository.Network.Remotes.Any(r =>
                     r.Url.Equals(product.RepoHttpBaseUrl, StringComparison.OrdinalIgnoreCase) ||
                     r.Url.Equals(product.RepoSshBaseUrl, StringComparison.OrdinalIgnoreCase) ||
                     r.Url.Equals(product.RepoHttpBaseUrl + ".git", StringComparison.OrdinalIgnoreCase)))
-            {
-                logger.LogError("Repo does not appear to be the {ProductName} repo. Please fetch tags if tags are not already fetched and try again.", product.Name);
-                return 1;
-            }
-
-            logger.LogInformation("Loading VS releases...");
-
-            var visualStudioReleases = await GetVisualStudioReleasesAsync(devdivConnection.GitClient);
-
-            logger.LogInformation("Tagging releases...");
-
-            foreach (var visualStudioRelease in visualStudioReleases)
-            {
-                var tagName = TryGetTagName(visualStudioRelease);
-
-                if (tagName is not null)
                 {
-                    if (!existingTags.Any(t => t.FriendlyName == tagName))
-                    {
-                        logger.LogInformation("Tag '{TagName}' is missing.", tagName);
-
-                        BuildInformation? build = null;
-                        foreach (var connection in connections)
-                        {
-                            build = await TryGetBuildInfoForReleaseAsync(product, visualStudioRelease, devdivConnection, connection);
-
-                            if (build is not null)
-                            {
-                                break;
-                            }
-                        }
-
-                        if (build is not null)
-                        {
-                            logger.LogInformation("Tagging {CommitSha} as '{TagName}'.", build.CommitSha, tagName);
-
-                            var message = $"Build Branch: {build.SourceBranch}\r\nInternal ID: {build.BuildId}\r\nInternal VS ID: {visualStudioRelease.BuildId}";
-
-                            try
-                            {
-                                repository.ApplyTag(tagName, build.CommitSha, new Signature(product.GitUserName, product.GitEmail, when: visualStudioRelease.CreationTime), message);
-                            }
-                            catch (Exception ex)
-                            {
-                                logger.LogWarning(ex, "Unable to tag the commit '{CommitSha}' with '{TagName}'.", build.CommitSha, tagName);
-                            }
-                        }
-                        else
-                        {
-                            logger.LogWarning("Unable to find the build for '{TagName}'.", tagName);
-                        }
-                    }
-                    else
-                    {
-                        logger.LogInformation("Tag '{TagName}' already exists.", tagName);
-                    }
-                }
-            }
-
-            logger.LogInformation("Tagging complete.");
-
-            return 0;
-        }
-        catch (VssUnauthorizedException vssEx)
-        {
-            logger.LogError(vssEx, "Authentication error occurred: {Message}. Run `roslyn-tools authenticate` to configure the AzDO authentication tokens.", vssEx.Message);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Unable to open repo. Please run from your repo directory for the product in question.");
-        }
-
-        return 1;
-    }
-
-    private static async Task<BuildInformation?> TryGetBuildInfoForReleaseAsync(IProduct product, VisualStudioVersion release, AzDOConnection vsConnection, AzDOConnection connection)
-    {
-        try
-        {
-            var url = await VisualStudioRepository.GetUrlFromComponentJsonFileAsync(release.CommitSha, GitVersionType.Commit, vsConnection, product.ComponentJsonFileName, product.ComponentName);
-            if (url is null)
-            {
-                return default;
-            }
-
-            // First we try to get the info we want from the build directly, if we can find it
-            var buildNumber = VisualStudioRepository.GetBuildNumberFromUrl(url);
-            var pipelineName = product.GetBuildPipelineName(connection.BuildProjectName);
-            if (pipelineName is not null)
-            {
-                var builds = await connection.TryGetBuildsAsync(pipelineName, buildNumber);
-                if (builds is not null)
-                {
-                    foreach (var build in builds)
-                    {
-                        if (!string.IsNullOrWhiteSpace(build.SourceBranch))
-                        {
-                            return new BuildInformation(build.SourceVersion, build.SourceBranch, build.BuildNumber);
-                        }
-                    }
-                }
-            }
-
-            // Fallback if we can't get the info from the build, to parse the url or nuspec file
-            var branchName = TryGetRoslynBranchForRelease(url);
-            if (string.IsNullOrEmpty(branchName) || string.IsNullOrEmpty(buildNumber))
-            {
-                return null;
-            }
-
-            var commitSha = await TryGetCommitShaFromBuildAsync(product, connection, buildNumber)
-                ?? await TryGetRoslynCommitShaFromNuspecAsync(vsConnection, release);
-            if (string.IsNullOrEmpty(commitSha))
-            {
-                return null;
-            }
-
-            var buildId = product.GetBuildPipelineName(connection.BuildProjectName) + "_" + buildNumber;
-
-            return new BuildInformation(commitSha, branchName, buildId);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private static string? TryGetRoslynBranchForRelease(string url)
-    {
-        try
-        {
-            var parts = url.Split(';');
-            if (parts.Length != 2)
-            {
-                return null;
-            }
-
-            if (!parts[1].EndsWith(".vsman"))
-            {
-                return null;
-            }
-
-            var urlSegments = new Uri(parts[0]).Segments;
-            var branchName = string.Join("", urlSegments.SkipWhile(segment => !segment.EndsWith("roslyn/")).Skip(1).TakeWhile(segment => segment.EndsWith('/'))).TrimEnd('/');
-
-            return branchName;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private static async Task<string?> TryGetCommitShaFromBuildAsync(
-        IProduct product,
-        AzDOConnection buildConnection,
-        string buildNumber)
-    {
-        var build = (await buildConnection.TryGetBuildsAsync(product.GetBuildPipelineName(buildConnection.BuildProjectName)!, buildNumber))?.SingleOrDefault();
-
-        if (build == null)
-        {
-            return null;
-        }
-
-        return build.SourceVersion;
-    }
-
-    private static async Task<string?> TryGetRoslynCommitShaFromNuspecAsync(
-        AzDOConnection vsConnection,
-        VisualStudioVersion release)
-    {
-        var defaultConfigContents = await VisualStudioRepository.GetFileContentsAsync(release.CommitSha, GitVersionType.Commit, vsConnection, @".corext\Configs\default.config");
-        var defaultConfig = XDocument.Parse(defaultConfigContents);
-
-        var packageElement = defaultConfig.Descendants("package")
-            .SingleOrDefault(element => element.Attribute("id")?.Value == "VS.ExternalAPIs.Roslyn");
-        if (packageElement == null)
-        {
-            return null;
-        }
-
-        var version = packageElement.Attribute("version")?.Value;
-        if (version is null)
-        {
-            return null;
-        }
-
-        var nuspecUrl = $@"https://devdiv.pkgs.visualstudio.com/_packaging/VS-CoreXtFeeds/nuget/v3/flat2/vs.externalapis.roslyn/{version}/vs.externalapis.roslyn.nuspec";
-
-        var nuspecResult = await vsConnection.NuGetClient.GetAsync(nuspecUrl);
-        if (nuspecResult.StatusCode != HttpStatusCode.OK)
-        {
-            return null;
-        }
-
-        var nuspecContent = await nuspecResult.Content.ReadAsStringAsync();
-        var nuspec = XElement.Parse(nuspecContent);
-
-        var respository = nuspec.Elements()
-            .SingleOrDefault()
-            ?.Elements(XName.Get("repository", nuspec.Name.NamespaceName))
-            .SingleOrDefault();
-        if (respository == null)
-        {
-            return null;
-        }
-
-        return respository.Attribute("commit")?.Value;
-    }
-
-    private static async Task<ImmutableArray<VisualStudioVersion>> GetVisualStudioReleasesAsync(GitHttpClient gitClient)
-    {
-        var vsRepository = await GetVSRepositoryAsync(gitClient);
-        var tags = await gitClient.GetRefsAsync(vsRepository.Id, filterContains: "release/vs", peelTags: true);
-
-        var builder = ImmutableArray.CreateBuilder<VisualStudioVersion>();
-
-        foreach (var tag in tags)
-        {
-            const string TagPrefix = "refs/tags/release/vs/";
-
-            if (!tag.Name.StartsWith(TagPrefix))
-            {
-                continue;
-            }
-
-            var parts = tag.Name[TagPrefix.Length..].Split('-');
-
-            if (parts.Length != 1 && parts.Length != 2)
-            {
-                continue;
-            }
-
-            if (!IsDottedVersion().IsMatch(parts[0]))
-            {
-                continue;
-            }
-
-            // If there is no peeled object, it means it's a simple tag versus an annotated tag; those aren't usually how
-            // VS releases are tagged so skip it
-            if (tag.PeeledObjectId == null)
-            {
-                continue;
-            }
-
-            var annotatedTag = await gitClient.GetAnnotatedTagAsync(vsRepository.ProjectReference.Id, vsRepository.Id, tag.ObjectId);
-            if (annotatedTag == null)
-            {
-                continue;
-            }
-
-            JObject buildInformation;
-
-            try
-            {
-                buildInformation = JObject.Parse(annotatedTag.Message);
-            }
-            catch
-            {
-                continue;
-            }
-
-            // It's not entirely clear to me how this format was chosen, but for consistency with old tags, we'll keep it
-            var buildId = $"{buildInformation["Branch"]?.ToString().Replace("/", ".")}-{buildInformation["BuildNumber"]}";
-
-            if (parts.Length == 2)
-            {
-                const string PreviewPrefix = "preview.";
-
-                if (!parts[1].StartsWith(PreviewPrefix))
-                {
-                    continue;
+                    logger.LogError("Repo does not appear to be the {ProductName} repo. Please fetch tags if tags are not already fetched and try again.", product.Name);
+                    return false;
                 }
 
-                var possiblePreviewVersion = parts[1][PreviewPrefix.Length..];
-
-                if (!IsDottedVersion().IsMatch(possiblePreviewVersion))
-                {
-                    continue;
-                }
-
-                builder.Add(new VisualStudioVersion(parts[0], possiblePreviewVersion, tag.PeeledObjectId, annotatedTag.TaggedBy.Date, buildId));
+                return true;
             }
-            else
+            catch (Exception ex)
             {
-                builder.Add(new VisualStudioVersion(parts[0], previewVersion: null, tag.PeeledObjectId, annotatedTag.TaggedBy.Date, buildId));
+                logger.LogError(ex, "Unable to open repo. Please run from your repo directory for the product in question.");
+                repository = null;
+                return false;
             }
         }
-
-        return builder.ToImmutable();
     }
-
-    private static async Task<GitRepository> GetVSRepositoryAsync(GitHttpClient gitClient)
-    {
-        return await gitClient.GetRepositoryAsync("DevDiv", "VS");
-    }
-
-    private static string? TryGetTagName(VisualStudioVersion release)
-    {
-        var tag = "Visual-Studio-";
-
-        if (release.MainVersion.StartsWith("16."))
-        {
-            tag += "2019-";
-        }
-        else if (release.MainVersion.StartsWith("17."))
-        {
-            tag += "2022-";
-        }
-        else
-        {
-            // We won't worry about tagging earlier things than VS2019 releases for now
-            return null;
-        }
-
-        tag += "Version-" + release.MainVersion;
-
-        if (release.PreviewVersion != null)
-        {
-            tag += "-Preview-" + release.PreviewVersion;
-        }
-
-        return tag;
-    }
-
-    [GeneratedRegex("^[0-9]+(\\.[0-9]+)*$")]
-    private static partial Regex IsDottedVersion();
 }

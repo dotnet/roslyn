@@ -59,19 +59,19 @@ internal static class VSBranchInfo
 
     private static async Task WritePackageInfo(IProduct product, string gitVersion, GitVersionType gitVersionType, AzDOConnection devdiv)
     {
-        if (product.PackageName is null)
+        if (product.VsPackageName is null)
         {
             return;
         }
 
-        var packageVersion = await VisualStudioRepository.GetPackageVersionFromDefaultConfigAsync(gitVersion, gitVersionType, devdiv, product.PackageName);
+        var packageVersion = await VisualStudioRepository.GetPackageVersionFromDefaultConfigAsync(gitVersion, gitVersionType, devdiv, product.VsPackageName);
 
         if (packageVersion is null)
         {
-            if (product.PackagePropsFileName is null)
-                throw new Exception($"No package props file name is specified for {product.PackageName}");
+            if (product.VsPackagePropsFileName is null)
+                throw new Exception($"No package props file name is specified for {product.VsPackageName}");
 
-            packageVersion = await VisualStudioRepository.GetPackageVersionFromRoslynPropsAsync(gitVersion, gitVersionType, devdiv, product.PackageName, product.PackagePropsFileName);
+            packageVersion = await VisualStudioRepository.GetPackageVersionFromRoslynPropsAsync(gitVersion, gitVersionType, devdiv, product.VsPackageName, product.VsPackagePropsFileName);
         }
 
         WriteNameAndValue("Package Version", packageVersion);

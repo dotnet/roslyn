@@ -16,12 +16,13 @@ internal class TypeScript : IProduct
 
     public string ComponentJsonFileName => @".corext\Configs\components.json";
     public string ComponentName => "TypeScript_Tools";
-    public string? PackageName => "VS.ExternalAPIs.TypeScript.SourceMapReader.dev15";
+    public string? VsPackageName => "VS.ExternalAPIs.TypeScript.SourceMapReader.dev15";
+    public string? VsPackagePropsFileName => "src/ConfigData/Packages/TypeScriptSupport.props";
     public string? DartLabPipelineName => null;
     public string? ArtifactsFolderName => null;
     public string[] ArtifactsSubFolderNames => [];
 
-    public string? PackagePropsFileName => "src/ConfigData/Packages/TypeScriptSupport.props";
+    public string? SdkPackageName => null;
 
     public string? GetBuildPipelineName(string buildProjectName)
         => buildProjectName switch

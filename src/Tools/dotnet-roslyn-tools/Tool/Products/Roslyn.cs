@@ -17,11 +17,13 @@ internal class Roslyn : IProduct
 
     public string ComponentJsonFileName => @".corext\Configs\dotnetcodeanalysis-components.json";
     public string ComponentName => "Microsoft.CodeAnalysis.LanguageServices";
-    public string? PackageName => "VS.ExternalAPIs.Roslyn";
-    public string? PackagePropsFileName => "src/ConfigData/Packages/roslyn.props";
+    public string? VsPackageName => "VS.ExternalAPIs.Roslyn";
+    public string? VsPackagePropsFileName => "src/ConfigData/Packages/roslyn.props";
     public string? DartLabPipelineName => "Roslyn Integration CI DartLab";
     public string? ArtifactsFolderName => "PackageArtifacts";
     public string[] ArtifactsSubFolderNames => ["PackageArtifacts/PreRelease", "PackageArtifacts/Release"];
+
+    public string SdkPackageName => "Microsoft.Net.Compilers.Toolset";
 
     public string? GetBuildPipelineName(string buildProjectName)
         => buildProjectName switch

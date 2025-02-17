@@ -4,11 +4,9 @@
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
 
-public readonly struct VisualStudioVersion(string mainVersion, string? previewVersion, string commitSha, DateTime creationTime, string buildId)
+public abstract class ReleaseInformation(string mainVersion, string? previewVersion, DateTime creationTime)
 {
     public readonly string MainVersion = mainVersion;
     public readonly string? PreviewVersion = previewVersion;
-    public readonly string CommitSha = commitSha;
     public readonly DateTime CreationTime = creationTime;
-    public readonly string BuildId = buildId;
 }
