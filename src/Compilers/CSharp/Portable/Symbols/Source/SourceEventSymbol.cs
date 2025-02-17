@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected abstract bool AccessorsHaveImplementation { get; }
 
-        internal bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !HasExternModifier;
+        internal sealed override bool IsPartialDefinition => IsPartial && !AccessorsHaveImplementation && !HasExternModifier;
 
         internal bool IsPartialImplementation => IsPartial && (AccessorsHaveImplementation || HasExternModifier);
 
