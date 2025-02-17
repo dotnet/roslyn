@@ -32,21 +32,19 @@ internal sealed partial class EventHookupSessionManager(
 
     private IToolTipPresenter _toolTipPresenter;
 
-    private EventHookupSession _currentSessionDoNotAccessDirectly;
-
     internal EventHookupSession CurrentSession
     {
         get
         {
             ThreadingContext.ThrowIfNotOnUIThread();
-            return _currentSessionDoNotAccessDirectly;
+            return field;
         }
 
         set
         {
             ThreadingContext.ThrowIfNotOnUIThread();
-            _currentSessionDoNotAccessDirectly?.CancelBackgroundTasks();
-            _currentSessionDoNotAccessDirectly = value;
+            field?.CancelBackgroundTasks();
+            field = value;
         }
     }
 

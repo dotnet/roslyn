@@ -55,7 +55,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
     private bool _dismissed;
     private bool _isApplyingEdit;
-    private string _replacementText;
     private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = [];
 
     /// <summary>
@@ -74,13 +73,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// </summary>
     public string ReplacementText
     {
-        get
-        {
-            return _replacementText;
-        }
+        get;
         private set
         {
-            _replacementText = value;
+            field = value;
             ReplacementTextChanged?.Invoke(this, EventArgs.Empty);
         }
     }
