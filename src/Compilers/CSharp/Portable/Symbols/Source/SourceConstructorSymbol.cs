@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.ContainingType is SourceMemberContainerTypeSymbol { AnyMemberHasAttributes: true })
                 {
-                    return ((ConstructorDeclarationSyntax)this.SyntaxNode).AttributeLists;
+                    return this.GetSyntax().AttributeLists;
                 }
 
                 return default;

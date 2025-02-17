@@ -325,6 +325,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
+                    // This could happen in error scenarios (when the implementation part of a partial event is missing),
+                    // but then we should not get to the emit stage and call this method.
+                    Debug.Assert(false);
+
                     base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
                 }
             }
@@ -339,6 +343,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         return implementationPart.ImplementationAttributes;
                     }
+
+                    // This could happen in error scenarios (when the implementation part of a partial event is missing),
+                    // but then we should not get to the emit stage and call this property.
+                    Debug.Assert(false);
 
                     return base.ImplementationAttributes;
                 }
