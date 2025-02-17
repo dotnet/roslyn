@@ -5,11 +5,15 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
@@ -25,8 +29,10 @@ internal sealed class DocumentationCommentCommandHandler(
     IUIThreadOperationExecutor uiThreadOperationExecutor,
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
-    EditorOptionsService editorOptionsService)
-        : AbstractDocumentationCommentCommandHandler(uiThreadOperationExecutor, undoHistoryRegistry, editorOperationsFactoryService, editorOptionsService)
+    EditorOptionsService editorOptionsService,
+    CopilotGenerateDocumentationCommentManager generateDocumentationCommentManager)
+            : AbstractDocumentationCommentCommandHandler(uiThreadOperationExecutor, undoHistoryRegistry,
+                editorOperationsFactoryService, editorOptionsService, generateDocumentationCommentManager)
 {
     protected override string ExteriorTriviaText => "///";
 }

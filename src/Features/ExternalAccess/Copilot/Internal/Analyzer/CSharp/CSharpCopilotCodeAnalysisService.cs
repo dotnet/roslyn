@@ -10,12 +10,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp;
 
@@ -23,15 +25,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp
 internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnalysisService
 {
     private IExternalCSharpCopilotCodeAnalysisService AnalysisService { get; }
+    private IExternalCSharpCopilotGenerateDocumentationService GenerateDocumentationService { get; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpCopilotCodeAnalysisService(
-        [Import] IExternalCSharpCopilotCodeAnalysisService externalCopilotService,
+        [Import] IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
+        [Import] IExternalCSharpCopilotGenerateDocumentationService? externalCSharpCopilotGenerateDocumentationService,
         IDiagnosticsRefresher diagnosticsRefresher
         ) : base(diagnosticsRefresher)
     {
+        Contract.ThrowIfNull(externalCopilotService);
+        Contract.ThrowIfNull(externalCSharpCopilotGenerateDocumentationService);
+
         AnalysisService = externalCopilotService;
+        GenerateDocumentationService = externalCSharpCopilotGenerateDocumentationService;
     }
 
     protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
@@ -74,4 +82,7 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
 
     protected override Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken)
         => AnalysisService.IsFileExcludedAsync(filePath, cancellationToken);
+
+    protected override Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
+        => GenerateDocumentationService.GetDocumentationCommentAsync(new CopilotDocumentationCommentProposalWrapper(proposal), cancellationToken);
 }
