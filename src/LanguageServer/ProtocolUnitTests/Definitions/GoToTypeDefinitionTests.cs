@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
@@ -216,7 +217,7 @@ class B
 
             var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             var result = Assert.Single(results);
-            Assert.Equal(SourceGeneratedDocumentUri.Scheme, result.Uri.Scheme);
+            Assert.Equal(SourceGeneratedDocumentUri.Scheme, result.Uri.GetRequiredParsedUri().Scheme);
         }
 
         [Theory, CombinatorialData]
@@ -279,7 +280,7 @@ class B
                            CreateTextDocumentPositionParams(caret), CancellationToken.None);
         }
 
-        private static async Task<Workspace> GetWorkspaceForDocument(TestLspServer testLspServer, Uri fileUri)
+        private static async Task<Workspace> GetWorkspaceForDocument(TestLspServer testLspServer, DocumentUri fileUri)
         {
             var (lspWorkspace, _, _) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = fileUri }, CancellationToken.None);
             return lspWorkspace!;

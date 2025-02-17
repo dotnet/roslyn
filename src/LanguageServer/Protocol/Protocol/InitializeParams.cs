@@ -67,7 +67,7 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonPropertyName("rootUri")]
         [Obsolete("Deprecated in favor of WorkspaceFolders")]
         [JsonConverter(typeof(DocumentUriConverter))]
-        public Uri? RootUri
+        public DocumentUri? RootUri
         {
             get;
             set;

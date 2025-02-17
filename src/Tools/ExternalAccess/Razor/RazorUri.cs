@@ -4,13 +4,18 @@
 
 using System;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 internal static class RazorUri
 {
+    [Obsolete("Use RazorUri.GetUriFromFilePath instead")]
     public static Uri CreateAbsoluteUri(string absolutePath)
         => ProtocolConversions.CreateAbsoluteUri(absolutePath);
+
+    public static DocumentUri CreateAbsoluteDocumentUri(string absolutePath)
+        => ProtocolConversions.CreateAbsoluteDocumentUri(absolutePath);
 
     public static string GetDocumentFilePathFromUri(Uri uri)
         => ProtocolConversions.GetDocumentFilePathFromUri(uri);
