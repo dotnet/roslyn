@@ -330,6 +330,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+#if NET
         private void ILVerify(Verification verification)
         {
             if (verification.Status.HasFlag(VerificationStatus.Skipped))
@@ -473,6 +474,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return name + " = " + value;
             }
         }
+#endif
 
         // TODO(tomat): Fold into CompileAndVerify. 
         // Replace bool verify parameter with string[] expectedPeVerifyOutput. If null, no verification. If empty verify have to succeed. Otherwise compare errors.
@@ -499,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         /// <summary>
-        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int)"/> instead.
+        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int, SymbolDisplayFormat)"/> instead.
         /// </summary>
         public CompilationVerifier VerifyIL(
             string qualifiedMethodName,
@@ -507,13 +509,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool realIL = false,
             string sequencePoints = null,
             [CallerFilePath] string callerPath = null,
-            [CallerLineNumber] int callerLine = 0)
+            [CallerLineNumber] int callerLine = 0,
+            SymbolDisplayFormat ilSymbolDisplayFormat = null)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: false, callerPath, callerLine, escapeQuotes: false);
+            return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: false, callerPath, callerLine, escapeQuotes: false, ilSymbolDisplayFormat: ilSymbolDisplayFormat);
         }
 
         /// <summary>
-        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int)"/> instead.
+        /// Obsolete. Use <see cref="VerifyMethodBody(string, string, bool, string, int, SymbolDisplayFormat)"/> instead.
         /// </summary>
         public CompilationVerifier VerifyIL(
             string qualifiedMethodName,
@@ -522,9 +525,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string sequencePoints = null,
             [CallerFilePath] string callerPath = null,
             [CallerLineNumber] int callerLine = 0,
-            string source = null)
+            string source = null,
+            SymbolDisplayFormat ilSymbolDisplayFormat = null)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: source != null, callerPath, callerLine, escapeQuotes: false);
+            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints: sequencePoints != null, sequencePointsSource: source != null, callerPath, callerLine, escapeQuotes: false, ilSymbolDisplayFormat: ilSymbolDisplayFormat);
         }
 
         public CompilationVerifier VerifyMethodBody(
@@ -532,9 +536,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedILWithSequencePoints,
             bool realIL = false,
             [CallerFilePath] string callerPath = null,
-            [CallerLineNumber] int callerLine = 0)
+            [CallerLineNumber] int callerLine = 0,
+            SymbolDisplayFormat ilSymbolDisplayFormat = null)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedILWithSequencePoints, realIL, sequencePoints: true, sequencePointsSource: true, callerPath, callerLine, escapeQuotes: false);
+            return VerifyILImpl(qualifiedMethodName, expectedILWithSequencePoints, realIL, sequencePoints: true, sequencePointsSource: true, callerPath, callerLine, escapeQuotes: false, ilSymbolDisplayFormat: ilSymbolDisplayFormat);
         }
 
         public void VerifyILMultiple(params string[] qualifiedMethodNamesAndExpectedIL)
@@ -593,17 +598,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool sequencePointsSource,
             string callerPath,
             int callerLine,
-            bool escapeQuotes)
+            bool escapeQuotes,
+            SymbolDisplayFormat ilSymbolDisplayFormat)
         {
-            string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, sequencePointsSource);
+            string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, sequencePointsSource, ilSymbolDisplayFormat);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, message: null, escapeQuotes, callerPath, callerLine);
             return this;
         }
 
-        public string VisualizeIL(string qualifiedMethodName, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true)
-            => VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, sequencePointsSource);
+        public string VisualizeIL(string qualifiedMethodName, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true, SymbolDisplayFormat ilSymbolDisplayFormat = null)
+            => VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, sequencePointsSource, ilSymbolDisplayFormat);
 
-        internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true)
+        internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL = false, bool sequencePoints = false, bool sequencePointsSource = true, SymbolDisplayFormat ilSymbolDisplayFormat = null)
         {
             Dictionary<int, string> markers = null;
 
@@ -651,7 +657,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (!realIL)
             {
-                return ILBuilderVisualizer.ILBuilderToString(methodData.ILBuilder, markers: markers);
+                return ILBuilderVisualizer.ILBuilderToString(methodData.ILBuilder, markers: markers, ilSymbolDisplayFormat: ilSymbolDisplayFormat);
             }
 
             if (_lazyModuleSymbol == null)

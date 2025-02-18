@@ -49,5 +49,10 @@ namespace Microsoft.CodeAnalysis
         /// Indicates that this version of runtime supports generic type parameters allowing substitution with a ref struct.
         /// </summary>
         ByRefLikeGenerics = 8,
+
+        /// <summary>
+        /// Indicates that this version of the runtime supports generating async state machines.
+        /// </summary>
+        RuntimeAsyncMethods = 9,
     }
 }
