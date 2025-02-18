@@ -987,7 +987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     Debug.Assert(builderType is { });
-                    Debug.Assert(methodName is { });
+                    Debug.Assert(!string.IsNullOrEmpty(methodName));
 
                     var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     var typeArguments = ((NamedTypeSymbol)targetType).GetAllTypeArguments(ref useSiteInfo);
@@ -1249,17 +1249,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(node.CollectionCreation is { });
-            return GetCollectionBuilderMethodFromCollectionCreation(node.CollectionCreation);
-        }
+            return getMethodFromExpression(node.CollectionCreation);
 
-        private static MethodSymbol? GetCollectionBuilderMethodFromCollectionCreation(BoundExpression? expr)
-        {
-            return expr switch
+            static MethodSymbol? getMethodFromExpression(BoundExpression? expr)
             {
-                BoundCall call => call.Method,
-                BoundConversion conversion => GetCollectionBuilderMethodFromCollectionCreation(conversion.Operand),
-                _ => null,
-            };
+                return expr switch
+                {
+                    BoundCall call => call.Method,
+                    BoundConversion conversion => getMethodFromExpression(conversion.Operand),
+                    _ => null,
+                };
+            }
         }
 
         internal BoundExpression BindCollectionExpressionConstructor(

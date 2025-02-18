@@ -137,8 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool usesSingleParameterBuilderMethod(CSharpCompilation compilation, BoundCollectionExpression node, TypeWithAnnotations elementType)
             {
-                return Binder.GetCollectionBuilderMethod(node) is { Parameters: [var parameter] } &&
-                    parameter.Type.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct([elementType]));
+                var method = Binder.GetCollectionBuilderMethod(node);
+                Debug.Assert(method is { Parameters: [var parameter, ..] } &&
+                    parameter.Type.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct([elementType])));
+                return method is { Parameters.Length: 1 };
             }
 
             static BoundNode unwrapListElement(BoundCollectionExpression node, BoundNode element)
