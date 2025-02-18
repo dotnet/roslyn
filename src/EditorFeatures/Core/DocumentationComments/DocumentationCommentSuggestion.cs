@@ -47,11 +47,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         public override async Task OnDismissedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForDismiss reason, CancellationToken cancel)
         {
             var threadingContext = providerInstance.ThreadingContext;
-            if (threadingContext != null)
-            {
-                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
-                await ClearSuggestionAsync(reason, cancel).ConfigureAwait(false);
-            }
+            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
+            await ClearSuggestionAsync(reason, cancel).ConfigureAwait(false);
         }
 
         public override Task OnProposalUpdatedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForUpdate reason, VirtualSnapshotPoint caret, CompletionState? completionState, CancellationToken cancel)
