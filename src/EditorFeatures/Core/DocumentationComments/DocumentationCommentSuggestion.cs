@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,9 +12,14 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
-    internal class DocumentationCommentSuggestion(CopilotGenerateDocumentationCommentProvider providerInstance, ProposalBase proposal) : SuggestionBase
+    internal class DocumentationCommentSuggestion(CopilotGenerateDocumentationCommentProvider providerInstance, ProposalBase proposal,
+        SuggestionManagerBase suggestionManager, VisualStudio.Threading.IAsyncDisposable? intellicodeLineCompletionsDisposable) : SuggestionBase
     {
         public ProposalBase Proposal { get; } = proposal;
+
+        public SuggestionManagerBase SuggestionManager { get; } = suggestionManager;
+
+        public VisualStudio.Threading.IAsyncDisposable? IntellicodeLineCompletionsDisposable { get; set; } = intellicodeLineCompletionsDisposable;
 
         public override TipStyle TipStyle => TipStyle.AlwaysShowTip;
 
@@ -23,12 +29,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public override event PropertyChangedEventHandler? PropertyChanged;
 
+        private SuggestionSessionBase? _suggestionSession;
+
         public override async Task OnAcceptedAsync(SuggestionSessionBase session, ProposalBase originalProposal, ProposalBase currentProposal, ReasonForAccept reason, CancellationToken cancel)
         {
             var threadingContext = providerInstance.ThreadingContext;
 
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
-            await providerInstance.DisposeAsync().ConfigureAwait(false);
+            await DisposeAsync().ConfigureAwait(false);
         }
 
         public override Task OnChangeProposalAsync(SuggestionSessionBase session, ProposalBase originalProposal, ProposalBase currentProposal, bool forward, CancellationToken cancel)
@@ -42,7 +50,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             if (threadingContext != null)
             {
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
-                await providerInstance.ClearSuggestionAsync(reason, cancel).ConfigureAwait(false);
+                await ClearSuggestionAsync(reason, cancel).ConfigureAwait(false);
             }
         }
 
@@ -54,6 +62,31 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             return Task.CompletedTask;
+        }
+
+        public async Task<SuggestionSessionBase?> GetSuggestionSessionAsync(CancellationToken cancellationToken)
+        {
+            return _suggestionSession = await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task ClearSuggestionAsync(ReasonForDismiss reason, CancellationToken cancellationToken)
+        {
+            if (_suggestionSession != null)
+            {
+                await _suggestionSession.DismissAsync(reason, cancellationToken).ConfigureAwait(false);
+            }
+
+            _suggestionSession = null;
+            await DisposeAsync().ConfigureAwait(false);
+        }
+
+        private async Task DisposeAsync()
+        {
+            if (IntellicodeLineCompletionsDisposable != null)
+            {
+                await IntellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
+                IntellicodeLineCompletionsDisposable = null;
+            }
         }
     }
 }

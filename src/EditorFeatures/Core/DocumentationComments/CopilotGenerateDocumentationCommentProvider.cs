@@ -27,10 +27,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
     internal class CopilotGenerateDocumentationCommentProvider : SuggestionProviderBase
     {
         private SuggestionManagerBase? _suggestionManager;
-        private VisualStudio.Threading.IAsyncDisposable? _intellicodeLineCompletionsDisposable;
         private readonly ICopilotCodeAnalysisService _copilotService;
-
-        internal SuggestionSessionBase? _suggestionSession;
 
         public readonly IThreadingContext ThreadingContext;
 
@@ -67,7 +64,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             // Do not do IntelliCode line completions if we're about to generate a documentation comment
             // so that won't have interfering grey text.
-            _intellicodeLineCompletionsDisposable = await _suggestionManager!.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
+            var intellicodeLineCompletionsDisposable = await _suggestionManager!.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
 
             var proposalEdits = await GetProposedEditsAsync(snippetProposal, _copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
 
@@ -78,9 +75,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return;
             }
 
-            var suggestion = new DocumentationCommentSuggestion(this, proposal);
+            var suggestion = new DocumentationCommentSuggestion(this, proposal, _suggestionManager, intellicodeLineCompletionsDisposable);
 
-            var session = this._suggestionSession = await (_suggestionManager.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
+            var session = await suggestion.GetSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
+            //var session = this._suggestionSession = await (_suggestionManager.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
 
             if (session != null)
             {
@@ -288,26 +286,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             return false;
-        }
-
-        public async Task ClearSuggestionAsync(ReasonForDismiss reason, CancellationToken cancellationToken)
-        {
-            if (_suggestionSession != null)
-            {
-                await _suggestionSession.DismissAsync(reason, cancellationToken).ConfigureAwait(false);
-            }
-
-            _suggestionSession = null;
-            await DisposeAsync().ConfigureAwait(false);
-        }
-
-        public async Task DisposeAsync()
-        {
-            if (_intellicodeLineCompletionsDisposable != null)
-            {
-                await _intellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
-                _intellicodeLineCompletionsDisposable = null;
-            }
         }
 
         public override Task EnabledAsync(CancellationToken cancel)
