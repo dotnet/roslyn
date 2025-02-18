@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
         private readonly string _workspaceKind;
-        private readonly bool _supportsLspMutation;
 
         internal TestWorkspace(
             TestComposition? composition = null,
@@ -60,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Guid solutionTelemetryId = default,
             bool disablePartialSolutions = true,
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
-            WorkspaceConfigurationOptions? configurationOptions = null,
-            bool supportsLspMutation = false)
+            WorkspaceConfigurationOptions? configurationOptions = null)
             : base(GetHostServices(ref composition, configurationOptions != null), workspaceKind ?? WorkspaceKind.Host)
         {
             this.Composition = composition;
@@ -88,7 +86,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             this.CanApplyChangeDocument = true;
             this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
-            _supportsLspMutation = supportsLspMutation;
             this.GlobalOptions = GetService<IGlobalOptionService>();
 
             if (Services.GetService<INotificationService>() is INotificationServiceCallback callback)
@@ -469,8 +466,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(this._supportsLspMutation);
-
             var testDocument = this.GetTestDocument(documentId);
             Contract.ThrowIfNull(testDocument);
             Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
@@ -779,15 +774,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Ensure that any in-memory analyzer references in this test workspace are known by the serializer service
             // so that we can validate OOP scenarios involving analyzers.
-            foreach (var analyzer in this.CurrentSolution.AnalyzerReferences)
-            {
-                if (analyzer is AnalyzerImageReference analyzerImageReference)
-                {
 #pragma warning disable CA1416 // Validate platform compatibility
-                    SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerImageReference);
+            SerializerService.TestAccessor.AddAnalyzerImageReferences(this.CurrentSolution.AnalyzerReferences);
 #pragma warning restore CA1416 // Validate platform compatibility
-                }
-            }
 
             return result;
         }

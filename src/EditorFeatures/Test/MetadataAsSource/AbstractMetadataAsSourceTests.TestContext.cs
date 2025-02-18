@@ -32,7 +32,7 @@ public abstract partial class AbstractMetadataAsSourceTests
 
     internal class TestContext : IDisposable
     {
-        public readonly TestWorkspace Workspace;
+        public readonly EditorTestWorkspace Workspace;
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
 
         public static TestContext Create(
@@ -68,7 +68,7 @@ public abstract partial class AbstractMetadataAsSourceTests
             return new TestContext(workspace);
         }
 
-        public TestContext(TestWorkspace workspace)
+        public TestContext(EditorTestWorkspace workspace)
         {
             Workspace = workspace;
             _metadataAsSourceService = Workspace.GetService<IMetadataAsSourceFileService>();
@@ -104,7 +104,7 @@ public abstract partial class AbstractMetadataAsSourceTests
             // Get an ISymbol corresponding to the metadata name
             var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
             var diagnostics = compilation.GetDiagnostics().ToArray();
-            Assert.Equal(0, diagnostics.Length);
+            Assert.Empty(diagnostics);
             var symbol = await ResolveSymbolAsync(symbolMetadataName, compilation);
             Contract.ThrowIfNull(symbol);
 
@@ -172,7 +172,7 @@ public abstract partial class AbstractMetadataAsSourceTests
             {
                 compilation = await this.DefaultProject.GetRequiredCompilationAsync(CancellationToken.None);
                 var diagnostics = compilation.GetDiagnostics().ToArray();
-                Assert.Equal(0, diagnostics.Length);
+                Assert.Empty(diagnostics);
             }
 
             foreach (var reference in compilation.References)
@@ -243,7 +243,7 @@ public abstract partial class AbstractMetadataAsSourceTests
                 ? LanguageNames.VisualBasic : LanguageNames.CSharp;
         }
 
-        private static TestWorkspace CreateWorkspace(
+        private static EditorTestWorkspace CreateWorkspace(
             string projectLanguage,
             IEnumerable<string>? metadataSources,
             bool includeXmlDocComments,
@@ -298,7 +298,7 @@ public abstract partial class AbstractMetadataAsSourceTests
                 .WithExcludedPartTypes([typeof(IMetadataAsSourceFileProvider)])
                 .AddParts(typeof(DecompilationMetadataAsSourceFileProvider));
 
-            return TestWorkspace.Create(xmlString, composition: composition);
+            return EditorTestWorkspace.Create(xmlString, composition: composition);
         }
 
         internal Document GetDocument(MetadataAsSourceFile file)

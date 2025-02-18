@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
 
             protected override Assembly? Load(AssemblyName assemblyName)
             {
-                if (_loader.ResolveAssemblyExternally(assemblyName) is { } externallyResolvedAssembly)
+                if (_loader.ResolveAssemblyExternally(assemblyName, Directory) is { } externallyResolvedAssembly)
                 {
                     return externallyResolvedAssembly;
                 }
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly AssemblyLoadContext _compilerAlc = compilerContext;
 
-            public Assembly? ResolveAssembly(AssemblyName assemblyName)
+            public Assembly? ResolveAssembly(AssemblyName assemblyName, string directoryName)
             {
                 try
                 {

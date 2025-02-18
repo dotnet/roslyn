@@ -5050,25 +5050,26 @@ parse_member_name:;
                 }
                 else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
-                    // If we see `for (int i = 0, j < ...` then we do not want to consume j as the next declarator.
+                    // If we see `for (int i = 0, i < ...` then we do not want to consume the second 'i' as the next declarator as it
+                    // is more likely that the user meant to write `for (int i = 0; i < ...` instead and accidentally
+                    // used a comma instead of a semicolon.
                     //
-                    // Legal forms here are `for (int i = 0, j; ...` or `for (int i = 0, j = ...` or `for (int i = 0, j)`.
+                    // Note: the legal forms that we must keep parsing as a variable declarator are:
                     //
-                    // We also accept: `for (int i = 0, ;` as that's likely an intermediary state prior to writing the next
-                    // variable.
+                    //      for (int i = 0, j, k; ...       // identifier comma
+                    //      for (int i = 0, j = ...         // identifier equals
+                    //      for (int i = 0, j; ...          // identifier semicolon
                     //
-                    // Anything else we'll treat as as more likely to be the following conditional.
+                    // We also accept: `for (int i = 0, ;` as that's likely an intermediary state prior to writing the
+                    // next variable. Anything else we'll treat as as more likely to be the following conditional.
 
                     if (flags.HasFlag(VariableFlags.ForStatement) && this.PeekToken(1).Kind != SyntaxKind.SemicolonToken)
                     {
-                        // `int i = 0, ...` where what follows is not an identifier.  Don't treat this as the start of a
-                        // second variable.
-                        if (!IsTrueIdentifier(this.PeekToken(1)))
-                            break;
+                        var isLegalVariableDeclaratorStart =
+                            IsTrueIdentifier(this.PeekToken(1)) &&
+                            this.PeekToken(2).Kind is SyntaxKind.CommaToken or SyntaxKind.EqualsToken or SyntaxKind.SemicolonToken;
 
-                        // `int i = 0, j ...` where what follows is not something that continues a variable declaration.
-                        // In this case, treat that `j` as the start of the condition expression instead.
-                        if (this.PeekToken(2).Kind is not (SyntaxKind.SemicolonToken or SyntaxKind.EqualsToken or SyntaxKind.CloseParenToken))
+                        if (!isLegalVariableDeclaratorStart)
                             break;
                     }
 

@@ -4,16 +4,12 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Test.Utilities</RootNamespace>
-    <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetVS);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsShipping>false</IsShipping>
     <IsTestUtilityProject>true</IsTestUtilityProject>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
   </PropertyGroup>
-  <ItemGroup>
-    <!-- Prevents ambiguity caused by InternalsVisibleTo from dependent assemblies. -->
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
@@ -29,6 +25,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
@@ -36,6 +33,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />

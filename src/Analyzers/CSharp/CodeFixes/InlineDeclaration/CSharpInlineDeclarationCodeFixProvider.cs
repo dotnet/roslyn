@@ -11,9 +11,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
 
@@ -115,8 +116,8 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
             // this local statement will be moved to be above the statement containing
             // the out-var.
             var localDeclarationStatement = (LocalDeclarationStatementSyntax)declaration.Parent;
-            var block = CSharpInlineDeclarationDiagnosticAnalyzer.GetEnclosingPseudoBlock(localDeclarationStatement.Parent);
-            var statements = GetStatements(block);
+            var block = CSharpBlockFacts.Instance.GetImmediateParentExecutableBlockForStatement(localDeclarationStatement);
+            var statements = CSharpBlockFacts.Instance.GetExecutableBlockStatements(block);
             var declarationIndex = statements.IndexOf(localDeclarationStatement);
 
             // Try to find a predecessor Statement on the same line that isn't going to be removed
@@ -155,7 +156,7 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
                 // We initialize this to null here but we must see at least the statement
                 // into which the declaration is going to be inlined so this will be not null
                 StatementSyntax nextStatementSyntax = null;
-                for (var i = declarationIndex + 1; i < statements.Length; i++)
+                for (var i = declarationIndex + 1; i < statements.Count; i++)
                 {
                     var statement = statements[i];
                     if (!declarationsToRemove.Contains(statement))
@@ -235,20 +236,6 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
         editor.ReplaceNode(identifier, declarationExpression);
 
         return editor.GetChangedRoot();
-    }
-
-    private static ImmutableArray<StatementSyntax> GetStatements(SyntaxNode pseudoBlock)
-    {
-        if (pseudoBlock is BlockSyntax block)
-            return [.. block.Statements];
-
-        if (pseudoBlock is SwitchSectionSyntax switchSection)
-            return [.. switchSection.Statements];
-
-        if (pseudoBlock is CompilationUnitSyntax compilationUnit)
-            return [.. compilationUnit.Members.OfType<GlobalStatementSyntax>().Select(g => g.Statement)];
-
-        return [];
     }
 
     public static TypeSyntax GenerateTypeSyntaxOrVar(

@@ -117,12 +117,11 @@ internal partial class CSharpExtensionMethodReducer : AbstractCSharpReducer
                         candidateRewrittenNode,
                         SpeculativeBindingOption.BindAsExpression).Symbol;
 
-                    if (oldSymbol != null && newSymbol != null)
+                    if (oldSymbol != null &&
+                        newSymbol is IMethodSymbol newMethod &&
+                        oldSymbol.Equals(newMethod.GetConstructedReducedFrom()))
                     {
-                        if (newSymbol.Kind == SymbolKind.Method && oldSymbol.Equals(((IMethodSymbol)newSymbol).GetConstructedReducedFrom()))
-                        {
-                            rewrittenNode = candidateRewrittenNode;
-                        }
+                        rewrittenNode = candidateRewrittenNode;
                     }
                 }
             }

@@ -33,8 +33,6 @@ variables:
     value: false
   - name: Codeql.SkipTaskAutoInjection
     value: true
-  - name: SignType
-    value: ''
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
@@ -216,16 +214,6 @@ extends:
             packageType: sdk
             useGlobalJson: true
             workingDirectory: '$(Build.SourcesDirectory)'
-
-        # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
-        - task: NuGetCommand@2
-          displayName: Restore internal tools
-          inputs:
-            command: restore
-            feedsToUse: config
-            restoreSolution: 'eng\common\internal\Tools.csproj'
-            nugetConfigPath: 'NuGet.config'
-            restoreDirectory: '$(Build.SourcesDirectory)\.packages'
 
         - task: MicroBuildSigningPlugin@4
           inputs:

@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             expecteditems = [.. expecteditems.OrderBy(i => i.Name)];
             items = items.OrderBy(i => i.Name).ToList();
 
-            Assert.Equal(expecteditems.Count(), items.Count());
+            Assert.Equal(expecteditems.Count, items.Count());
 
             for (var i = 0; i < expecteditems.Count; i++)
             {

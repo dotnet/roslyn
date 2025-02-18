@@ -330,7 +330,7 @@ namespace A { namespace N { } }
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetDeclaredSymbols(compilation);
-            Assert.Equal(5, symbols.Count());
+            Assert.Equal(5, symbols.Count);
             Assert.Equal(["N", "A", "A.B", "A.B.C", "A.N"],
                 symbols.Select(s => s.ToDisplayString()));
             TestRoundTrip(symbols, compilation);

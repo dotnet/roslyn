@@ -46,12 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
-                ImmutableArray<MetadataBlock> blocks;
-                Guid moduleVersionId;
-                ISymUnmanagedReader symReader;
-                int methodToken;
-                int localSignatureToken;
-                GetContextState(runtime, "C.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+                GetContextState(runtime, "C.M", out var blocks, out var moduleVersionId, out var symReader, out var methodToken, out var localSignatureToken);
 
                 var appDomain = new AppDomain();
                 uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
@@ -341,13 +336,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var runtime = CreateRuntimeInstance(moduleB, referencesB);
             ImmutableArray<MetadataBlock> typeBlocks;
             ImmutableArray<MetadataBlock> methodBlocks;
-            Guid moduleVersionId;
+            ModuleId moduleId;
             ISymUnmanagedReader symReader;
             int typeToken;
             int methodToken;
             int localSignatureToken;
-            GetContextState(runtime, "C", out typeBlocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
-            GetContextState(runtime, "C.F", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+            GetContextState(runtime, "C", out typeBlocks, out moduleId, out symReader, out typeToken, out localSignatureToken);
+            GetContextState(runtime, "C.F", out methodBlocks, out moduleId, out symReader, out methodToken, out localSignatureToken);
 
             // Get non-empty scopes.
             var scopes = symReader.GetScopes(methodToken, methodVersion, EvaluationContext.IsLocalScopeEndInclusive).WhereAsArray(s => s.Locals.Length > 0);
@@ -358,16 +353,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             endOffset = outerScope.EndOffset - 1;
 
             // At start of outer scope.
-            var context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)startOffset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
+            var context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleId, methodToken, methodVersion, (uint)startOffset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
 
             // At end of outer scope - not reused because of the nested scope.
             var previous = appDomain.GetMetadataContext();
-            context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)endOffset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
+            context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleId, methodToken, methodVersion, (uint)endOffset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
             Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext); // Not required, just documentary.
 
             // At type context.
             previous = appDomain.GetMetadataContext();
-            context = CreateTypeContext(appDomain, typeBlocks, moduleVersionId, typeToken, MakeAssemblyReferencesKind.AllAssemblies);
+            context = CreateTypeContext(appDomain, typeBlocks, moduleId, typeToken, MakeAssemblyReferencesKind.AllAssemblies);
             Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext);
             Assert.Null(context.MethodContextReuseConstraints);
             Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation);
@@ -381,10 +376,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var constraints = GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints;
                 if (constraints.HasValue)
                 {
-                    Assert.Equal(scope == previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset));
+                    Assert.Equal(scope == previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleId, methodToken, methodVersion, offset));
                 }
 
-                context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)offset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
+                context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleId, methodToken, methodVersion, (uint)offset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
                 var previousEvaluationContext = GetMetadataContext(previous).EvaluationContext;
                 if (scope == previousScope)
                 {
@@ -407,20 +402,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             // With different references.
             var fewerReferences = new[] { MscorlibRef };
             runtime = CreateRuntimeInstance(moduleB, fewerReferences);
-            GetContextState(runtime, "C.F", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+            GetContextState(runtime, "C.F", out methodBlocks, out moduleId, out symReader, out methodToken, out localSignatureToken);
 
             // Different references. No reuse.
-            context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)endOffset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
+            context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleId, methodToken, methodVersion, (uint)endOffset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
             Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext);
-            Assert.True(GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset));
+            Assert.True(GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleId, methodToken, methodVersion, endOffset));
             Assert.NotEqual(context.Compilation, GetMetadataContext(previous).Compilation);
             previous = appDomain.GetMetadataContext();
 
             // Different method. Should reuse Compilation.
-            GetContextState(runtime, "C.G", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
-            context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
+            GetContextState(runtime, "C.G", out methodBlocks, out moduleId, out symReader, out methodToken, out localSignatureToken);
+            context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
             Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext);
-            Assert.False(GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, 0));
+            Assert.False(GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleId, methodToken, methodVersion, 0));
             Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation);
 
             // No EvaluationContext. Should reuse Compilation
@@ -428,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             previous = appDomain.GetMetadataContext();
             Assert.Null(GetMetadataContext(previous).EvaluationContext);
             Assert.NotNull(GetMetadataContext(previous).Compilation);
-            context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
+            context = CreateMethodContext(appDomain, methodBlocks, symReader, moduleId, methodToken, methodVersion, ilOffset: 0, localSignatureToken: localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
             Assert.Null(GetMetadataContext(previous).EvaluationContext);
             Assert.NotNull(context);
             Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation);
@@ -5602,7 +5597,7 @@ class C
 
             using (var pinnedMetadata = new PinnedBlob(TestResources.ExpressionCompiler.NoValidTables))
             {
-                var corruptMetadata = ModuleInstance.Create(pinnedMetadata.Pointer, pinnedMetadata.Size, default(Guid));
+                var corruptMetadata = ModuleInstance.Create(pinnedMetadata.Pointer, pinnedMetadata.Size, id: default);
 
                 var runtime = RuntimeInstance.Create(new[] { corruptMetadata, comp.ToModuleInstance(), MscorlibRef.ToModuleInstance() });
                 var context = CreateMethodContext(runtime, "C.M");
@@ -6032,11 +6027,11 @@ public class C
                 var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference });
 
                 ImmutableArray<MetadataBlock> blocks;
-                Guid moduleVersionId;
+                ModuleId moduleId;
                 ISymUnmanagedReader symReader2;
                 int methodToken;
                 int localSignatureToken;
-                GetContextState(runtime, "C.M", out blocks, out moduleVersionId, out symReader2, out methodToken, out localSignatureToken);
+                GetContextState(runtime, "C.M", out blocks, out moduleId, out symReader2, out methodToken, out localSignatureToken);
 
                 Assert.Same(symReader, symReader2);
 
@@ -6047,7 +6042,7 @@ public class C
                     new AppDomain(),
                     blocks,
                     symReader,
-                    moduleVersionId,
+                    moduleId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: 0,
@@ -6067,7 +6062,7 @@ public class C
                     new AppDomain(),
                     blocks,
                     symReader,
-                    moduleVersionId,
+                    moduleId,
                     methodToken: methodToken,
                     methodVersion: 2,
                     ilOffset: 0,
@@ -6265,18 +6260,18 @@ class C
             WithRuntimeInstance(compilation0, runtime =>
             {
                 ImmutableArray<MetadataBlock> blocks;
-                Guid moduleVersionId;
+                ModuleId moduleId;
                 ISymUnmanagedReader symReader;
                 int methodToken;
                 int localSignatureToken;
-                GetContextState(runtime, "C.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+                GetContextState(runtime, "C.M", out blocks, out moduleId, out symReader, out methodToken, out localSignatureToken);
 
                 var appDomain = new AppDomain();
                 var context = CreateMethodContext(
                     appDomain,
                     blocks,
                     symReader,
-                    moduleVersionId,
+                    moduleId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: ExpressionCompilerTestHelpers.NoILOffset,
@@ -6302,7 +6297,7 @@ class C
                     appDomain,
                     blocks,
                     symReader,
-                    moduleVersionId,
+                    moduleId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: 0,
@@ -6315,7 +6310,7 @@ class C
                     appDomain,
                     blocks,
                     symReader,
-                    moduleVersionId,
+                    moduleId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: ExpressionCompilerTestHelpers.NoILOffset,

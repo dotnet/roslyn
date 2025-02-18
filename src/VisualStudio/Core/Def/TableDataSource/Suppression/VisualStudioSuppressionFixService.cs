@@ -486,8 +486,8 @@ internal sealed class VisualStudioSuppressionFixService(
                 RoslynDebug.AssertNotNull(latestDocumentDiagnosticsMap);
 
                 var uniqueDiagnosticIds = group.SelectMany(kvp => kvp.Value.Select(d => d.Id)).ToImmutableHashSet();
-                var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null,
-                    diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
+                var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project, documentId: null,
+                    diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
                     .ConfigureAwait(false)).Where(IsDocumentDiagnostic);
 
                 latestDocumentDiagnosticsMap.Clear();
@@ -576,8 +576,8 @@ internal sealed class VisualStudioSuppressionFixService(
                 RoslynDebug.AssertNotNull(latestDiagnosticsToFix);
 
                 var uniqueDiagnosticIds = diagnostics.Select(d => d.Id).ToImmutableHashSet();
-                var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null,
-                    diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
+                var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project, documentId: null,
+                    diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
                     .ConfigureAwait(false));
 
                 latestDiagnosticsToFix.Clear();
