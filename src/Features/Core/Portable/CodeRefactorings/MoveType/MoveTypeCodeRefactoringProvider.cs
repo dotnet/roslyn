@@ -66,7 +66,7 @@ internal sealed class MoveTypeCodeRefactoringProvider() : CodeRefactoringProvide
             CancellationToken cancellationToken)
         {
             var projects = fixAllContext.Scope is CodeFixes.FixAllScope.Project
-                ? [fixAllContext.Project]
+                ? ([fixAllContext.Project])
                 : fixAllContext.Solution.Projects.Where(p => p.GetLanguageService<IMoveTypeService>() != null);
             var documents = projects.SelectManyAsArray(p => p.Documents);
 
