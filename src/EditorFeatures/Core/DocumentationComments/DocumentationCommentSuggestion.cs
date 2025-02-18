@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public override bool HasMultipleSuggestions => false;
 
-        public override event PropertyChangedEventHandler? PropertyChanged;
+        public override event PropertyChangedEventHandler PropertyChanged { add { } remove { } }
 
         private SuggestionSessionBase? _suggestionSession;
 

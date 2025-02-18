@@ -5,21 +5,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
@@ -121,11 +118,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                     break;
                 }
 
-                var paramNameStart = typeParamStartTag + "<typeparam name=\"".Length;
-                var paramNameEnd = comments.IndexOf("\">", paramNameStart, StringComparison.Ordinal);
-                if (paramNameEnd != -1)
+                var typeParamNameStart = typeParamStartTag + "<typeparam name=\"".Length;
+                var typeParamNameEnd = comments.IndexOf("\">", typeParamNameStart, StringComparison.Ordinal);
+                if (typeParamNameEnd != -1)
                 {
-                    var parameterName = comments.Substring(paramNameStart, paramNameEnd - paramNameStart);
+                    var parameterName = comments.Substring(typeParamNameStart, typeParamNameEnd - typeParamNameStart);
                     proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(typeParamEndTag + startIndex, 0), parameterName, DocumentationCommentTagType.TypeParam));
                 }
 
@@ -213,6 +210,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             {
                 string? copilotStatement = null;
                 var textSpan = edit.SpanToReplace;
+
                 string? symbolKey = null;
 
                 if (edit.SymbolName is not null)
