@@ -37,204 +37,332 @@ public class UseExpressionBodyForMethodsRefactoringTests : AbstractCSharpCodeAct
     public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
     {
         await TestMissingAsync(
-@"class C
-{
-    void Goo()
-    {
-        [||]Bar();
-    }
-}", parameters: new TestParameters(options: UseExpressionBody));
+            """
+            class C
+            {
+                void Goo()
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    void Goo()
-    {
-        [||]Bar();
-    }
-}",
-@"class C
-{
-    void Goo() => Bar();
-}", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
+            """
+            class C
+            {
+                void Goo()
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void Goo() => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    void Goo()
-    {
-        [||]Bar();
-    }
-}",
-@"class C
-{
-    void Goo() => Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                void Goo()
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void Goo() => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact]
     public async Task TestNotOfferedInLambda()
     {
         await TestMissingAsync(
-@"class C
-{
-    Action Goo()
-    {
-        return () => { [||] };
-    }
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                Action Goo()
+                {
+                    return () => { [||] };
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact]
     public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
     {
         await TestMissingAsync(
-@"class C
-{
-    void Goo() => [||]Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                void Goo() => [||]Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    void Goo() => [||]Bar();
-}",
-@"class C
-{
-    void Goo()
-    {
-        Bar();
-    }
-}", parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
+            """
+            class C
+            {
+                void Goo() => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                void Goo()
+                {
+                    Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    void Goo() => [||]Bar();
-}",
-@"class C
-{
-    void Goo()
-    {
-        Bar();
-    }
-}", parameters: new TestParameters(options: UseExpressionBody));
+            """
+            class C
+            {
+                void Goo() => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                void Goo()
+                {
+                    Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
     public async Task TestOfferedAtStartOfMethod()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    [||]void Goo()
-    {
-        Bar();
-    }
-}",
-@"class C
-{
-    void Goo() => Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                [||]void Goo()
+                {
+                    Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void Goo() => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
     public async Task TestOfferedBeforeMethodOnSameLine()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-[||]    void Goo()
-    {
-        Bar();
-    }
-}",
-@"class C
-{
-    void Goo() => Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+            [||]    void Goo()
+                {
+                    Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void Goo() => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
     public async Task TestOfferedBeforeAttributes()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    [||][A]
-    void Goo()
-    {
-        Bar();
-    }
-}",
-@"class C
-{
-    [A]
-    void Goo() => Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                [||][A]
+                void Goo()
+                {
+                    Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                [A]
+                void Goo() => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
     public async Task TestNotOfferedBeforeComments()
     {
         await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    [||]/// <summary/>
-    void Goo()
-    {
-        Bar();
-    }
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                [||]/// <summary/>
+                void Goo()
+                {
+                    Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25501")]
     public async Task TestNotOfferedInComments()
     {
         await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    /// [||]<summary/>
-    void Goo()
-    {
-        Bar();
-    }
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                /// [||]<summary/>
+                void Goo()
+                {
+                    Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53532")]
     public async Task TestTriviaOnArrow1()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    void M()
-        // Test
-         [||]=> Console.WriteLine();
-}",
-@"class C
-{
-    void M()
-    {
-        // Test
-        Console.WriteLine();
+            """
+            class C
+            {
+                void M()
+                    // Test
+                     [||]=> Console.WriteLine();
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    // Test
+                    Console.WriteLine();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
     }
-}", parameters: new TestParameters(options: UseExpressionBody));
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideBlockBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void Goo()
+                {
+                    [|Bar()|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void Goo() => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Goo()
+                {
+                    [|Bar();
+                }
+            }|]
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideExpressionBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void Goo() => [|Bar()|];
+            }
+            """,
+            """
+            class C
+            {
+                void Goo()
+                {
+                    Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideExpressionBody()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void Goo() => [|Bar();
+            }|]
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
     }
 }
