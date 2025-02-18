@@ -23,9 +23,9 @@ internal sealed class RemoteAnalyzerPathResolver(string baseDirectory) : IAnalyz
     public bool IsAnalyzerPathHandled(string analzyerPath)
         => File.Exists(GetFixedPath(analzyerPath));
 
-    public string GetRealAnalyzerPath(string analyzerPath)
+    public string GetResolvedAnalyzerPath(string analyzerPath)
         => GetFixedPath(analyzerPath);
 
-    public string? GetRealSatellitePath(string analyzerPath, CultureInfo cultureInfo)
+    public string? GetResolvedSatellitePath(string analyzerPath, CultureInfo cultureInfo)
         => AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(GetFixedPath(analyzerPath), cultureInfo);
 }

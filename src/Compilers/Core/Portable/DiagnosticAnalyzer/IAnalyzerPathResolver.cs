@@ -1,4 +1,4 @@
-
+﻿
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This will only be called for paths that return true from <see cref="IsAnalyzerPathHandled(string)"/>.
         /// </remarks>
-        string GetRealAnalyzerPath(string analyzerPath);
+        string GetResolvedAnalyzerPath(string analyzerPath);
 
         /// <summary>
         /// This method is used to allow compiler hosts to intercept an analyzer satellite path and redirect it to a
@@ -47,6 +47,6 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This will only be called for paths that return true from <see cref="IsAnalyzerPathHandled(string)"/>.
         /// </remarks>
-        string? GetRealSatellitePath(string analyzerPath, CultureInfo cultureInfo);
+        string? GetResolvedSatellitePath(string analyzerPath, CultureInfo cultureInfo);
     }
 }

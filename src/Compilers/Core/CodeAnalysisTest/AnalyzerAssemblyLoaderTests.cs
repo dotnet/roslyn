@@ -439,7 +439,7 @@ Delta: Gamma: Beta: Test B
                 {
                     return getRealSatellitePath(path) ?? "";
                 }
-                return loader.GetRealAnalyzerPath(path ?? "");
+                return loader.GetResolvedAnalyzerPath(path ?? "");
             }
 
             // When PreparePathToLoad is overridden this returns the most recent
@@ -461,7 +461,7 @@ Delta: Gamma: Beta: Test B
 
                 // Real assembly is located in the directory above this one
                 var assemblyPath = Path.Combine(assemblyDir, assemblyFileName);
-                return loader.GetRealSatellitePath(assemblyPath, cultureInfo);
+                return loader.GetResolvedSatellitePath(assemblyPath, cultureInfo);
             }
         }
 
@@ -764,8 +764,8 @@ Delta: Gamma: Beta: Test B
                 var analyzerDependencyReference = new AnalyzerFileReference(analyzerDependencyFile, loader);
                 analyzerDependencyReference.AnalyzerLoadFailed += (_, e) => AssertEx.Fail(e.Exception!.Message);
 
-                Assert.NotNull(loader.GetRealAnalyzerPath(analyzerMainFile));
-                Assert.NotNull(loader.GetRealAnalyzerPath(analyzerDependencyFile));
+                Assert.NotNull(loader.GetResolvedAnalyzerPath(analyzerMainFile));
+                Assert.NotNull(loader.GetResolvedAnalyzerPath(analyzerDependencyFile));
 
                 var analyzers = analyzerMainReference.GetAnalyzersForAllLanguages();
                 Assert.Equal(1, analyzers.Length);
@@ -879,7 +879,7 @@ Delta: Epsilon: Test E
                 {
                     // See limitation 1
                     // The Epsilon.dll has Delta.dll (v2) next to it in the directory. 
-                    Assert.Throws<ArgumentException>(() => loader.GetRealAnalyzerPath(testFixture.Delta2));
+                    Assert.Throws<ArgumentException>(() => loader.GetResolvedAnalyzerPath(testFixture.Delta2));
 
                     // Fake the dependency so we can verify the rest of the load
                     loader.AddDependencyLocation(testFixture.Delta2);
@@ -950,8 +950,8 @@ Delta: Epsilon: Test E
                 if (state is AnalyzerTestKind.LoadDirect)
                 {
                     Assert.NotEqual(delta2B.Location, delta2.Location);
-                    Assert.Equal(loader.GetRealAnalyzerPath(testFixture.Delta2), delta2.Location);
-                    Assert.Equal(loader.GetRealAnalyzerPath(testFixture.Delta2B), delta2B.Location);
+                    Assert.Equal(loader.GetResolvedAnalyzerPath(testFixture.Delta2), delta2.Location);
+                    Assert.Equal(loader.GetResolvedAnalyzerPath(testFixture.Delta2B), delta2B.Location);
                 }
 
 #else
@@ -1810,9 +1810,9 @@ Delta.2: Test D2
                 return _getRealFilePathFunc(originalPath) is not null;
             }
 
-            public string GetRealAnalyzerPath(string originalPath) => _getRealFilePathFunc(originalPath)!;
+            public string GetResolvedAnalyzerPath(string originalPath) => _getRealFilePathFunc(originalPath)!;
 
-            public string? GetRealSatellitePath(string originalPath, CultureInfo cultureInfo) => null;
+            public string? GetResolvedSatellitePath(string originalPath, CultureInfo cultureInfo) => null;
         }
 
 #if NET

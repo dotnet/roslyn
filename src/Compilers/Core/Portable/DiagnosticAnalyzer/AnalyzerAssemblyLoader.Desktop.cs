@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private partial Assembly? Load(AssemblyName assemblyName, string assemblyRealPath)
+        private partial Assembly? Load(AssemblyName assemblyName, string resolvedPath)
         {
             EnsureResolvedHooked();
 
@@ -129,12 +129,12 @@ namespace Microsoft.CodeAnalysis
                     // non-resource part of the assembly name. Once the path information is obtained
                     // GetSatelliteLoadPath will translate to the resource assembly path.
                     assemblyName.Name = simpleName[..^resourcesExtension.Length];
-                    var (_, realPath) = GetBestPath(assemblyName);
-                    loadPath = realPath is not null ? GetSatelliteLoadPath(realPath, assemblyName.CultureInfo) : null;
+                    var (_, resolvedPath) = GetBestResolvedPath(assemblyName);
+                    loadPath = resolvedPath is not null ? GetSatelliteLoadPath(resolvedPath, assemblyName.CultureInfo) : null;
                 }
                 else
                 {
-                    (_, loadPath) = GetBestPath(assemblyName);
+                    (_, loadPath) = GetBestResolvedPath(assemblyName);
                 }
 
                 if (loadPath is not null)

@@ -53,7 +53,7 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
     public void GetRealPath_FileDoesNotExist()
     {
         var analyzerPath = Path.Combine(TempRoot.CreateDirectory().Path, "analyzer.dll");
-        var shadowPath = PathResolver.GetRealAnalyzerPath(analyzerPath);
+        var shadowPath = PathResolver.GetResolvedAnalyzerPath(analyzerPath);
         Assert.False(File.Exists(shadowPath));
     }
 
@@ -65,7 +65,7 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
     {
         var analyzerPath = Path.Combine(TempRoot.CreateDirectory().Path, "analyzer.dll");
         File.WriteAllText(analyzerPath, "test");
-        var shadowPath = PathResolver.GetRealAnalyzerPath(analyzerPath);
+        var shadowPath = PathResolver.GetResolvedAnalyzerPath(analyzerPath);
         Assert.True(File.Exists(shadowPath));
         Assert.Equal("test", File.ReadAllText(shadowPath));
     }
@@ -82,8 +82,8 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
         File.WriteAllText(analyzer1Path, "test");
         var analyzer2Path = Path.Combine(dir, "analyzer2.dll");
         File.WriteAllText(analyzer2Path, "test");
-        var shadow1Path = PathResolver.GetRealAnalyzerPath(analyzer1Path);
-        var shadow2Path = PathResolver.GetRealAnalyzerPath(analyzer2Path);
+        var shadow1Path = PathResolver.GetResolvedAnalyzerPath(analyzer1Path);
+        var shadow2Path = PathResolver.GetResolvedAnalyzerPath(analyzer2Path);
         Assert.Equal(Path.GetDirectoryName(shadow1Path), Path.GetDirectoryName(shadow2Path));
     }
 
@@ -93,8 +93,8 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
         var dir = TempRoot.CreateDirectory().Path;
         var group1AnalyzerPath = createAnalyzer("group1", "analyzer.dll");
         var group2AnalyzerPath = createAnalyzer("group2", "analyzer.dll");
-        var group1ShadowPath = PathResolver.GetRealAnalyzerPath(group1AnalyzerPath);
-        var group2ShadowPath = PathResolver.GetRealAnalyzerPath(group2AnalyzerPath);
+        var group1ShadowPath = PathResolver.GetResolvedAnalyzerPath(group1AnalyzerPath);
+        var group2ShadowPath = PathResolver.GetResolvedAnalyzerPath(group2AnalyzerPath);
         Assert.NotEqual(group1ShadowPath, group2ShadowPath);
         Assert.Equal("group1-analyzer.dll", File.ReadAllText(group1ShadowPath));
         Assert.Equal("group2-analyzer.dll", File.ReadAllText(group2ShadowPath));

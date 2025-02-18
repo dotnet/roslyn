@@ -36,13 +36,13 @@ internal sealed class ProgramFilesAnalyzerPathResolver : IAnalyzerPathResolver
         => analyzerPath.StartsWith(DotNetPath, StringComparison.OrdinalIgnoreCase) ||
            analyzerPath.StartsWith(VisualStudioPath, StringComparison.OrdinalIgnoreCase);
 
-    public string GetRealAnalyzerPath(string analyzerPath)
+    public string GetResolvedAnalyzerPath(string analyzerPath)
     {
         Debug.Assert(IsAnalyzerPathHandled(analyzerPath));
         return analyzerPath;
     }
 
-    public string? GetRealSatellitePath(string analyzerPath, CultureInfo cultureInfo)
+    public string? GetResolvedSatellitePath(string analyzerPath, CultureInfo cultureInfo)
     {
         Debug.Assert(IsAnalyzerPathHandled(analyzerPath));
         return AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(analyzerPath, cultureInfo);

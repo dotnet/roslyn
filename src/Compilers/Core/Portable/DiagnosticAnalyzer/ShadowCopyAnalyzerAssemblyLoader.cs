@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsAnalyzerPathHandled(string analyzerFilePath) => true;
 
-        public string GetRealAnalyzerPath(string analyzerFilePath)
+        public string GetResolvedAnalyzerPath(string analyzerFilePath)
         {
             var analyzerShadowDir = GetAnalyzerShadowDirectory(analyzerFilePath);
             var analyzerShadowPath = Path.Combine(analyzerShadowDir, Path.GetFileName(analyzerFilePath));
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis
             return analyzerShadowPath;
         }
 
-        public string? GetRealSatellitePath(string analyzerFilePath, CultureInfo cultureInfo)
+        public string? GetResolvedSatellitePath(string analyzerFilePath, CultureInfo cultureInfo)
         {
             var satelliteFilePath = AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(analyzerFilePath, cultureInfo);
             if (satelliteFilePath is null)

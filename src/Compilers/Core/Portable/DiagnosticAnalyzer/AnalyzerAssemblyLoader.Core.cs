@@ -75,11 +75,11 @@ namespace Microsoft.CodeAnalysis
             return alc == CompilerLoadContext || alc == AssemblyLoadContext.Default;
         }
 
-        private partial Assembly Load(AssemblyName assemblyName, string assemblyRealPath)
+        private partial Assembly Load(AssemblyName assemblyName, string resolvedPath)
         {
             DirectoryLoadContext? loadContext;
 
-            var fullDirectoryPath = Path.GetDirectoryName(assemblyRealPath) ?? throw new ArgumentException(message: null, paramName: nameof(assemblyRealPath));
+            var fullDirectoryPath = Path.GetDirectoryName(resolvedPath) ?? throw new ArgumentException(message: null, paramName: nameof(resolvedPath));
             lock (_guard)
             {
                 if (!_loadContextByDirectory.TryGetValue(fullDirectoryPath, out loadContext))
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Is this a registered analyzer file path that the loader knows about.
         /// 
-        /// Note: this is using real paths, not the original file paths
+        /// Note: this is using resolved paths, not the original file paths
         /// </summary>
         private bool IsRegisteredAnalyzerPath(string analyzerPath)
         {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
 
             lock (_guard)
             {
-                return _realToOriginalPathMap.ContainsKey(analyzerPath);
+                return _resolvedToOriginalPathMap.ContainsKey(analyzerPath);
             }
         }
 
@@ -137,10 +137,10 @@ namespace Microsoft.CodeAnalysis
             // be necessary but msbuild target defaults have caused a number of customers to 
             // fall into this path. See discussion here for where it comes up
             // https://github.com/dotnet/roslyn/issues/56442
-            var (_, bestRealPath) = GetBestPath(assemblyName);
-            if (bestRealPath is not null)
+            var (_, bestResolvedPath) = GetBestResolvedPath(assemblyName);
+            if (bestResolvedPath is not null)
             {
-                return bestRealPath;
+                return bestResolvedPath;
             }
 
             // No analyzer registered this dependency. Time to fail
@@ -263,8 +263,8 @@ namespace Microsoft.CodeAnalysis
             public static readonly DiskResolver Instance = new DiskResolver();
             public Assembly? Resolve(AnalyzerAssemblyLoader loader, AssemblyName assemblyName, AssemblyLoadContext directoryContext, string directory)
             {
-                var realPath = loader.GetAssemblyLoadPath(assemblyName, directory);
-                return realPath is not null ? directoryContext.LoadFromAssemblyPath(realPath) : null;
+                var assemblyPath = loader.GetAssemblyLoadPath(assemblyName, directory);
+                return assemblyPath is not null ? directoryContext.LoadFromAssemblyPath(assemblyPath) : null;
             }
         }
 
@@ -273,13 +273,13 @@ namespace Microsoft.CodeAnalysis
             public static readonly StreamResolver Instance = new StreamResolver();
             public Assembly? Resolve(AnalyzerAssemblyLoader loader, AssemblyName assemblyName, AssemblyLoadContext directoryContext, string directory)
             {
-                var realPath = loader.GetAssemblyLoadPath(assemblyName, directory);
-                if (realPath is null)
+                var assemblyPath = loader.GetAssemblyLoadPath(assemblyName, directory);
+                if (assemblyPath is null)
                 {
                     return null;
                 }
 
-                using var stream = File.Open(realPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var stream = File.Open(assemblyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 return directoryContext.LoadFromStream(stream);
             }
         }

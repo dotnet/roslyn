@@ -37,6 +37,11 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>
     /// This type generally assumes that files on disk aren't changing, since it ensure that two calls to <see cref="LoadFromPath(string)"/>
     /// will always return the same thing, per that interface's contract.
+    ///
+    /// A given analyzer can have two paths that represent it: the original path of the analyzer passed into this type
+    /// and the path returned after calling <see cref="IAnalyzerPathResolver.GetResolvedAnalyzerPath(string)"/>. In the 
+    /// places where differentiating between the two is important, the original path will be referred to as the "original" and
+    /// the latter is referrred to as "resolved".
     /// </remarks>
     internal sealed partial class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoaderInternal
     {
@@ -48,7 +53,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
-        private readonly Dictionary<string, (IAnalyzerPathResolver? Resolver, string RealPath, AssemblyName? AssemblyName)> _originalPathInfoMap = new();
+        private readonly Dictionary<string, (IAnalyzerPathResolver? Resolver, string ResolvedPath, AssemblyName? AssemblyName)> _originalPathInfoMap = new();
 
         /// <summary>
         /// This is a map between assembly simple names and the collection of original paths that map to them.
@@ -59,12 +64,12 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<string, HashSet<string>> _assemblySimpleNameToOriginalPathListMap = new();
 
         /// <summary>
-        /// Map from real paths to the original ones
+        /// Map from resolved paths to the original ones
         /// </summary>
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
-        private readonly Dictionary<string, string> _realToOriginalPathMap = new();
+        private readonly Dictionary<string, string> _resolvedToOriginalPathMap = new();
 
         /// <summary>
         /// Whether or not we're disposed. Once disposed, all functionality on this type should throw.
@@ -80,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This method should return an <see cref="Assembly"/> instance or throw.
         /// </remarks>
-        private partial Assembly Load(AssemblyName assemblyName, string assemblyRealPath);
+        private partial Assembly Load(AssemblyName assemblyName, string resolvedPath);
 
         /// <summary>
         /// Determines if the <paramref name="candidateName"/> satisfies the request for 
@@ -116,30 +121,30 @@ namespace Microsoft.CodeAnalysis
 
             CompilerPathUtilities.RequireAbsolutePath(originalPath, nameof(originalPath));
             var simpleName = PathUtilities.GetFileName(originalPath, includeExtension: false);
-            string realPath = originalPath;
+            string resolvedPath = originalPath;
             IAnalyzerPathResolver? resolver = null;
             foreach (var current in AnalyzerPathResolvers)
             {
                 if (current.IsAnalyzerPathHandled(originalPath))
                 {
                     resolver = current;
-                    realPath = resolver.GetRealAnalyzerPath(originalPath);
+                    resolvedPath = resolver.GetResolvedAnalyzerPath(originalPath);
                     break;
                 }
             }
 
-            var assemblyName = readAssemblyName(realPath);
+            var assemblyName = readAssemblyName(resolvedPath);
 
             lock (_guard)
             {
-                if (_originalPathInfoMap.TryAdd(originalPath, (resolver, realPath, assemblyName)))
+                if (_originalPathInfoMap.TryAdd(originalPath, (resolver, resolvedPath, assemblyName)))
                 {
-                    // In the case multiple original paths map to the same real path then the first on
+                    // In the case multiple original paths map to the same resolved path then the first on
                     // wins.
                     //
                     // An example reason to map multiple original paths to the same real path would be to
                     // unify references.
-                    _ = _realToOriginalPathMap.TryAdd(realPath, originalPath);
+                    _ = _resolvedToOriginalPathMap.TryAdd(resolvedPath, originalPath);
 
                     if (!_assemblySimpleNameToOriginalPathListMap.TryGetValue(simpleName, out var set))
                     {
@@ -179,7 +184,7 @@ namespace Microsoft.CodeAnalysis
             CheckIfDisposed();
 
             CompilerPathUtilities.RequireAbsolutePath(originalPath, nameof(originalPath));
-            var (realPath, assemblyName) = GetRealAnalyzerPathAndName(originalPath);
+            var (resolvedPath, assemblyName) = GetResolvedAnalyzerPathAndName(originalPath);
             if (assemblyName is null)
             {
                 // Not a managed assembly, nothing else to do
@@ -188,7 +193,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                return Load(assemblyName, realPath);
+                return Load(assemblyName, resolvedPath);
             }
             catch (Exception ex)
             {
@@ -196,7 +201,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private (string RealPath, AssemblyName? AssemblyName) GetRealAnalyzerPathAndName(string originalPath)
+        private (string ResolvedPath, AssemblyName? AssemblyName) GetResolvedAnalyzerPathAndName(string originalPath)
         {
             lock (_guard)
             {
@@ -205,14 +210,14 @@ namespace Microsoft.CodeAnalysis
                     throw new ArgumentException("Path not registered: " + originalPath, nameof(originalPath));
                 }
 
-                return (info.RealPath, info.AssemblyName);
+                return (info.ResolvedPath, info.AssemblyName);
             }
         }
 
-        public string GetRealAnalyzerPath(string originalPath) =>
-            GetRealAnalyzerPathAndName(originalPath).RealPath;
+        public string GetResolvedAnalyzerPath(string originalPath) =>
+            GetResolvedAnalyzerPathAndName(originalPath).ResolvedPath;
 
-        public string? GetRealSatellitePath(string originalPath, CultureInfo cultureInfo)
+        public string? GetResolvedSatellitePath(string originalPath, CultureInfo cultureInfo)
         {
             CheckIfDisposed();
 
@@ -229,14 +234,14 @@ namespace Microsoft.CodeAnalysis
 
             if (resolver is not null)
             {
-                return resolver.GetRealSatellitePath(originalPath, cultureInfo);
+                return resolver.GetResolvedSatellitePath(originalPath, cultureInfo);
             }
 
             return GetSatelliteAssemblyPath(originalPath, cultureInfo);
         }
 
         /// <summary>
-        /// Get the path a satellite assembly should be loaded from for the given real 
+        /// Get the path a satellite assembly should be loaded from for the given resolved 
         /// analyzer path and culture
         /// </summary>
         private string? GetSatelliteLoadPath(string analyzerFilePath, CultureInfo cultureInfo)
@@ -245,13 +250,13 @@ namespace Microsoft.CodeAnalysis
 
             lock (_guard)
             {
-                if (!_realToOriginalPathMap.TryGetValue(analyzerFilePath, out originalPath))
+                if (!_resolvedToOriginalPathMap.TryGetValue(analyzerFilePath, out originalPath))
                 {
                     return null;
                 }
             }
 
-            return GetRealSatellitePath(originalPath, cultureInfo);
+            return GetResolvedSatellitePath(originalPath, cultureInfo);
         }
 
         /// <summary>
@@ -286,13 +291,13 @@ namespace Microsoft.CodeAnalysis
         {
             CheckIfDisposed();
 
-            return GetBestPath(assemblyName).BestOriginalPath;
+            return GetBestResolvedPath(assemblyName).BestOriginalPath;
         }
 
         /// <summary>
-        /// Return the best (original, real) path information for loading an assembly with the specified <see cref="AssemblyName"/>.
+        /// Return the best (original, resolved) path information for loading an assembly with the specified <see cref="AssemblyName"/>.
         /// </summary>
-        private (string? BestOriginalPath, string? BestRealPath) GetBestPath(AssemblyName requestedName)
+        private (string? BestOriginalPath, string? BestResolvedPath) GetBestResolvedPath(AssemblyName requestedName)
         {
             CheckIfDisposed();
 
@@ -312,12 +317,12 @@ namespace Microsoft.CodeAnalysis
                 originalPaths = set.OrderBy(x => x).ToList();
             }
 
-            string? bestRealPath = null;
+            string? bestResolvedPath = null;
             string? bestOriginalPath = null;
             AssemblyName? bestName = null;
             foreach (var candidateOriginalPath in originalPaths)
             {
-                var (candidateRealPath, candidateName) = GetRealAnalyzerPathAndName(candidateOriginalPath);
+                var (candidateResolvedPath, candidateName) = GetResolvedAnalyzerPathAndName(candidateOriginalPath);
                 if (candidateName is null)
                 {
                     continue;
@@ -327,28 +332,28 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (candidateName.Version == requestedName.Version)
                     {
-                        return (candidateOriginalPath, candidateRealPath);
+                        return (candidateOriginalPath, candidateResolvedPath);
                     }
 
                     if (bestName is null || candidateName.Version > bestName.Version)
                     {
                         bestOriginalPath = candidateOriginalPath;
-                        bestRealPath = candidateRealPath;
+                        bestResolvedPath = candidateResolvedPath;
                         bestName = candidateName;
                     }
                 }
             }
 
-            return (bestOriginalPath, bestRealPath);
+            return (bestOriginalPath, bestResolvedPath);
         }
 
-        internal (string OriginalAssemblyPath, string RealAssemblyPath)[] GetPathMapSnapshot()
+        internal (string OriginalAssemblyPath, string ResolvedAssemblyPath)[] GetPathMapSnapshot()
         {
             CheckIfDisposed();
 
             lock (_guard)
             {
-                return _realToOriginalPathMap.Select(x => (x.Value, x.Key)).ToArray();
+                return _resolvedToOriginalPathMap.Select(x => (x.Value, x.Key)).ToArray();
             }
         }
 

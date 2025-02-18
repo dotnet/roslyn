@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 testOutputHelper.WriteLine($"Loader path maps");
                 foreach (var pair in loader.GetPathMapSnapshot())
                 {
-                    testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.RealAssemblyPath}");
+                    testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.ResolvedAssemblyPath}");
                 }
 
                 Assert.Equal(defaultContextCount, AssemblyLoadContext.Default.Assemblies.Count());
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 testOutputHelper.WriteLine($"Loader path maps");
                 foreach (var pair in loader.GetPathMapSnapshot())
                 {
-                    testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.RealAssemblyPath}");
+                    testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.ResolvedAssemblyPath}");
                 }
             }
         }
