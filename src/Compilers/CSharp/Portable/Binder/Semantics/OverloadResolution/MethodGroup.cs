@@ -38,19 +38,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Methods.Add(method);
         }
 
-        internal void PopulateWithExtensionMethods(
+        internal void PopulateWithMethods(
             BoundExpression receiverOpt,
             ArrayBuilder<Symbol> members,
             ImmutableArray<TypeWithAnnotations> typeArguments,
+            bool isExtensionMethodGroup,
             LookupResultKind resultKind = LookupResultKind.Viable,
             DiagnosticInfo error = null)
         {
             this.PopulateHelper(receiverOpt, resultKind, error);
-            this.IsExtensionMethodGroup = true;
+            this.IsExtensionMethodGroup = isExtensionMethodGroup;
+
             foreach (var member in members)
             {
                 this.Methods.Add((MethodSymbol)member);
+                Debug.Assert(((MethodSymbol)member).IsExtensionMethod == isExtensionMethodGroup);
             }
+
             if (!typeArguments.IsDefault)
             {
                 this.TypeArguments.AddRange(typeArguments);

@@ -555,8 +555,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual bool IsNativeIntegerWrapperType => false;
 
+#nullable enable
         public bool IsExtension
             => TypeKind == TypeKind.Extension;
+
+        /// <summary>
+        /// For the type representing an extension container, returns the receiver parameter symbol.
+        /// </summary>
+        internal abstract ParameterSymbol? ExtensionParameter { get; }
+#nullable disable
 
         internal bool IsNativeIntegerType => IsNativeIntegerWrapperType
             || (SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr && this.ContainingAssembly.RuntimeSupportsNumericIntPtr);

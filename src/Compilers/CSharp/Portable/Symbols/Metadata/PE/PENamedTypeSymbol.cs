@@ -366,6 +366,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        // PROTOTYPE metadata is undone
+        internal sealed override ParameterSymbol ExtensionParameter => throw new NotImplementedException();
+
         internal PEModuleSymbol ContainingPEModule
         {
             get

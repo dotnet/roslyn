@@ -591,6 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodGroup = (BoundMethodGroup)expr;
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
+                Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
                 diagnostics.Add(expr.Syntax, useSiteInfo);
                 Symbol otherSymbol = null;
                 bool resolvedToMethodGroup = resolution.MethodGroup != null;

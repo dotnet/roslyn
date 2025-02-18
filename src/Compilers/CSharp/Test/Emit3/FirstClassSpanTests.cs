@@ -4937,9 +4937,9 @@ public class FirstClassSpanTests : CSharpTestBase
             """;
 
         CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (4,5): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Func<int, int>'
+            // (4,7): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // C.R(a.M);
-            Diagnostic(ErrorCode.ERR_BadArgType, "a.M").WithArguments("1", "method group", "System.Func<int, int>").WithLocation(4, 5),
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(4, 7),
             // (5,10): error CS1929: 'int[]' does not contain a definition for 'M' and the best extension method overload 'C.M(Span<int>, int)' requires a receiver of type 'System.Span<int>'
             // C.R(x => a.M(x));
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("int[]", "M", "C.M(System.Span<int>, int)", "System.Span<int>").WithLocation(5, 10));
@@ -4949,6 +4949,37 @@ public class FirstClassSpanTests : CSharpTestBase
             // (4,5): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Func<int, int>'
             // C.R(a.M);
             Diagnostic(ErrorCode.ERR_BadArgType, "a.M").WithArguments("1", "method group", "System.Func<int, int>").WithLocation(4, 5)
+        };
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Nameof_MethodGroup()
+    {
+        var source = """
+            using System;
+
+            var a = new[] { 1, 2, 3 };
+            _ = nameof(a.M);
+
+            static class C
+            {
+                public static int M(this Span<int> x, int y) => x[y];
+            }
+            """;
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (4,14): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // _ = nameof(a.M);
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(4, 14));
+
+        var expectedDiagnostics = new[]
+        {
+            // (4,12): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            // _ = nameof(a.M);
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "a.M").WithLocation(4, 12)
         };
 
         CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -4973,9 +5004,9 @@ public class FirstClassSpanTests : CSharpTestBase
             """;
 
         CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (4,10): error CS8917: The delegate type could not be inferred.
+            // (4,12): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // var d1 = a.M;
-            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "a.M").WithLocation(4, 10),
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(4, 12),
             // (5,10): error CS8917: The delegate type could not be inferred.
             // var d2 = x => a.M(x);
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M(x)").WithLocation(5, 10),
@@ -5027,12 +5058,12 @@ public class FirstClassSpanTests : CSharpTestBase
             """;
 
         CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (4,5): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // (4,7): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // C.R(a.M);
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a.M").WithArguments("int[]", "M").WithLocation(4, 5),
-            // (5,5): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Func<int, int>'
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(4, 7),
+            // (5,7): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // C.R(a.M<int>);
-            Diagnostic(ErrorCode.ERR_BadArgType, "a.M<int>").WithArguments("1", "method group", "System.Func<int, int>").WithLocation(5, 5),
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<int>").WithArguments("int[]", "M").WithLocation(5, 7),
             // (6,12): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // C.R(x => a.M(x));
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(6, 12),
@@ -5077,27 +5108,27 @@ public class FirstClassSpanTests : CSharpTestBase
             """;
 
         CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (4,10): error CS8917: The delegate type could not be inferred.
+            // (4,12): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // var d1 = a.M;
-            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "a.M").WithLocation(4, 10),
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(4, 12),
             // (5,10): error CS8917: The delegate type could not be inferred.
             // var d2 = x => a.M(x);
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M(x)").WithLocation(5, 10),
             // (6,23): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // var d3 = (int x) => a.M(x);
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(6, 23),
-            // (7,10): error CS8917: The delegate type could not be inferred.
+            // (7,12): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // var d4 = a.M<int>;
-            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "a.M<int>").WithLocation(7, 10),
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<int>").WithArguments("int[]", "M").WithLocation(7, 12),
             // (8,10): error CS8917: The delegate type could not be inferred.
             // var d5 = x => a.M<int>(x);
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M<int>(x)").WithLocation(8, 10),
             // (9,21): error CS1929: 'int[]' does not contain a definition for 'M' and the best extension method overload 'C.M<int>(Span<int>, int)' requires a receiver of type 'System.Span<int>'
             // var d6 = (int x) => a.M<int>(x);
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("int[]", "M", "C.M<int>(System.Span<int>, int)", "System.Span<int>").WithLocation(9, 21),
-            // (10,21): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
+            // (10,23): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // Func<int, int> d7 = a.M;
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a.M").WithArguments("int[]", "M").WithLocation(10, 21),
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(10, 23),
             // (11,28): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // Func<int, int> d8 = x => a.M(x);
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(11, 28));

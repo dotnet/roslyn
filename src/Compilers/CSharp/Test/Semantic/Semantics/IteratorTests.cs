@@ -447,10 +447,7 @@ namespace RoslynYield
                 // (1,18): error CS1002: ; expected
                 // yield return int.
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 18),
-                // (1,18): error CS0117: 'int' does not contain a definition for ''
-                // yield return int.
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "").WithArguments("int", "").WithLocation(1, 18),
-                // (1,1): error CS7020: You cannot use 'yield' in top-level script code
+                // (1,1): error CS7020: Cannot use 'yield' in top-level script code
                 // yield return int.
                 Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(1, 1));
 
