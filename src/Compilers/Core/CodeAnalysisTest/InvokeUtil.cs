@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     throw ExceptionUtilities.Unreachable();
             }
 
-            var loader = new AnalyzerAssemblyLoader(pathResolvers, assemblyResolvers);
+            var loader = new AnalyzerAssemblyLoader(pathResolvers, assemblyResolvers, compilerLoadContext: null);
             var compilerContextAsssemblyCount = loader.CompilerLoadContext.Assemblies.Count();
             try
             {

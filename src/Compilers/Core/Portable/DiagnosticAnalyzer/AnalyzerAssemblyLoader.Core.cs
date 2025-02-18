@@ -30,32 +30,40 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<IAnalyzerAssemblyResolver> AnalyzerAssemblyResolvers { get; }
 
         internal AnalyzerAssemblyLoader()
-            : this([], [DiskAnalyzerAssemblyResolver], null)
+            : this(pathResolvers: [])
+        {
+        }
+
+        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerPathResolver> pathResolvers)
+            : this(pathResolvers, assemblyResolvers: [DiskAnalyzerAssemblyResolver], compilerLoadContext: null)
         {
         }
 
         /// <summary>
         /// Create a new <see cref="AnalyzerAssemblyLoader"/> with the given resolvers.
         /// </summary>
-        /// <param name="pathResolvers"></param>
-        /// <param name="assemblyResolvers"></param>
         /// <param name="compilerLoadContext">This is the <see cref="AssemblyLoadContext"/> where the compiler resides. This parameter
         /// is primarily used for testing purposes but is also useful in hosted scenarios where the compiler may be loaded outside
-        /// the default context.</param>
+        /// the default context. When null this will be the <see cref="AssemblyLoadContext"/> the compiler currently resides
+        /// in </param>
         /// <exception cref="ArgumentException"></exception>
         internal AnalyzerAssemblyLoader(
             ImmutableArray<IAnalyzerPathResolver> pathResolvers,
-            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default,
-            AssemblyLoadContext? compilerLoadContext = null)
+            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers,
+            AssemblyLoadContext? compilerLoadContext)
         {
             if (assemblyResolvers.Length == 0)
             {
-                throw new ArgumentException("Cannot be default", nameof(assemblyResolvers));
+                throw new ArgumentException("Cannot be empty", nameof(assemblyResolvers));
             }
 
             CompilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(SyntaxTree).GetTypeInfo().Assembly)!;
             CompilerAnalyzerAssemblyResolver = new CompilerResolver(CompilerLoadContext);
             AnalyzerPathResolvers = pathResolvers;
+
+            // The CompilerAnalyzerAssemblyResolver must be first here as the host is _always_ given a chance
+            // to resolve the assembly before any other resolver. This is crucial to allow for items like
+            // unification of System.Collections.Immutable or other core assemblies for a host.
             AnalyzerAssemblyResolvers = [CompilerAnalyzerAssemblyResolver, .. assemblyResolvers];
         }
 
@@ -270,6 +278,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     return null;
                 }
+
                 using var stream = File.Open(realPath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 return directoryContext.LoadFromStream(stream);
             }

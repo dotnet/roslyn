@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     {
         private static AnalyzerAssemblyLoader Create(string baseDirectory) => new(
             [new RemoteAnalyzerPathResolver(baseDirectory)],
-            [AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver]);
+            [AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver],
+            compilerLoadContext: null);
 
         [Fact]
         public void NonIdeAnalyzerAssemblyShouldBeLoadedInSeparateALC()
