@@ -8451,6 +8451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        // PROTOTYPE consider whether all the use-site diagnostics should be reported by caller, or whether they should all be included in the returned MethodGroupResolution
         protected MethodGroupResolution ResolveExtension(
             SyntaxNode expression,
             string memberName,
