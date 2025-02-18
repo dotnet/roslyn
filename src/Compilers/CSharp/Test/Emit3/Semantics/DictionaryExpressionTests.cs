@@ -1130,6 +1130,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(2, 33));
         }
 
+        [Theory]
+        [InlineData("IDictionary")]
+        [InlineData("IReadOnlyDictionary")]
+        [InlineData("Dictionary")]
+        public void TypeInference(string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Identity([default:default]);
+                        Identity([default:"2"]);
+                        Identity([1:default]);
+                        Identity([1:default, default:"2"]);
+                    }
+                    static {{typeName}}<K, V> Identity<K, V>({{typeName}}<K, V> d) => d;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Type inference should succeed for Identity([1:default, default:"2"]);.
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'Program.Identity<K, V>(IDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([default:default]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments($"Program.Identity<K, V>(System.Collections.Generic.{typeName}<K, V>)").WithLocation(6, 9),
+                // (7,9): error CS0411: The type arguments for method 'Program.Identity<K, V>(IDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([default:"2"]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments($"Program.Identity<K, V>(System.Collections.Generic.{typeName}<K, V>)").WithLocation(7, 9),
+                // (8,9): error CS0411: The type arguments for method 'Program.Identity<K, V>(IDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([1:default]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments($"Program.Identity<K, V>(System.Collections.Generic.{typeName}<K, V>)").WithLocation(8, 9),
+                // (9,9): error CS0411: The type arguments for method 'Program.Identity<K, V>(IDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([1:default, default:"2"]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments($"Program.Identity<K, V>(System.Collections.Generic.{typeName}<K, V>)").WithLocation(9, 9));
+        }
+
         [Fact]
         public void Lock()
         {

@@ -3828,6 +3828,125 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TypeInference_List()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Identity([with()]);
+                        Identity([with(capacity: 1), default]);
+                        Identity([with(capacity: 1), 3]);
+                        Identity([with(collection: [default, 2]), default]);
+                        Identity([with(collection: [default]), default, 3]);
+                    }
+                    static List<T> Identity<T>(List<T> c) => c;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS0411: The type arguments for method 'Program.Identity<T>(List<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([with()]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(System.Collections.Generic.List<T>)").WithLocation(6, 9),
+                // (7,9): error CS0411: The type arguments for method 'Program.Identity<T>(List<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([with(capacity: 1), default]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(System.Collections.Generic.List<T>)").WithLocation(7, 9),
+                // (9,9): error CS0411: The type arguments for method 'Program.Identity<T>(List<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([with(collection: [default, 2]), default]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(System.Collections.Generic.List<T>)").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void TypeInference_CollectionInitializer()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _items;
+                    public MyCollection(params T[] args) { _items = new(args); }
+                    public void Add(T t) { _items.Add(t); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Identity([with()]);
+                        Identity([with(default, 2), default]);
+                        Identity([with(default), default, 3]);
+                    }
+                    static MyCollection<T> Identity<T>(MyCollection<T> c) => c;
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS0411: The type arguments for method 'Program.Identity<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([with()]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(5, 9),
+                // (6,9): error CS0411: The type arguments for method 'Program.Identity<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([with(default, 2), default]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void TypeInference_CollectionBuilder()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _items;
+                    public MyCollection(T[] args, ReadOnlySpan<T> items)
+                    {
+                        _items = new();
+                        _items.AddRange(items.ToArray());
+                        _items.AddRange(args);
+                    }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, params T[] args) => new(args, items);
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Identity([with()]);
+                        Identity([with(default, 2), default]);
+                        Identity([with(default), default, 3]);
+                    }
+                    static MyCollection<T> Identity<T>(MyCollection<T> c) => c;
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, sourceB],
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS0411: The type arguments for method 'Program.Identity<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([with()]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(5, 9),
+                // (6,9): error CS0411: The type arguments for method 'Program.Identity<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Identity([with(default, 2), default]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(6, 9));
+        }
+
+        [Fact]
         public void ParamsCycle_ParamsConstructorOnly()
         {
             string sourceA = """

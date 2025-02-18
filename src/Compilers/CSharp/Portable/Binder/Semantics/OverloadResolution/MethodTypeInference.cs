@@ -658,13 +658,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in argument.Elements)
             {
-                if (element is BoundCollectionExpressionSpreadElement spread)
+                switch (element)
                 {
-                    MakeSpreadElementTypeInferences(spread, targetElementType, ref useSiteInfo);
-                }
-                else
-                {
-                    MakeExplicitParameterTypeInferences(binder, (BoundExpression)element, targetElementType, kind, ref useSiteInfo);
+                    case BoundCollectionExpressionWithElement withElement:
+                        // Arguments do not affect type inference.
+                        break;
+                    case BoundCollectionExpressionSpreadElement spread:
+                        MakeSpreadElementTypeInferences(spread, targetElementType, ref useSiteInfo);
+                        break;
+                    case BoundKeyValuePairElement keyValuePairElement:
+                        // PROTOTYPE: Handle input type inference for key:value elements.
+                        break;
+                    default:
+                        MakeExplicitParameterTypeInferences(binder, (BoundExpression)element, targetElementType, kind, ref useSiteInfo);
+                        break;
                 }
             }
         }
@@ -883,6 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in argument.Elements)
             {
+                // PROTOTYPE: Handle input type inference for key:value elements.
                 if (element is BoundExpression expression)
                 {
                     MakeOutputTypeInferences(binder, expression, targetElementType, ref useSiteInfo);
