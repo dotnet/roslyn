@@ -3430,12 +3430,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void EvaluationOrder_01()
+        public void EvaluationOrder_CollectionInitializer()
         {
             string sourceA = """
                 using System;
-                using System.Collections;
-                using System.Collections.Generic;
                 class A
                 {
                     private int _i;
@@ -3447,6 +3445,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     public override string ToString() => _i.ToString();
                 }
+                """;
+            string sourceB = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
                 class MyCollection<T> : IEnumerable<T>
                 {
                     public MyCollection(A x = null, A y = null) { Console.WriteLine("MyCollection({0}, {1})", x, y); }
@@ -3455,7 +3458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IEnumerator IEnumerable.GetEnumerator() => throw null;
                 }
                 """;
-            string sourceB = """
+            string sourceC = """
                 using System;
                 class Program
                 {
@@ -3472,7 +3475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var verifier = CompileAndVerify(
-                [sourceA, sourceB],
+                [sourceA, sourceB, sourceC],
                 expectedOutput: """
                     1
                     1 -> A
@@ -3513,6 +3516,113 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_003a:  callvirt   "void MyCollection<A>.Add(A)"
                   IL_003f:  pop
                   IL_0040:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void EvaluationOrder_CollectionBuilder()
+        {
+            string sourceA = """
+                using System;
+                class A
+                {
+                    private int _i;
+                    private A(int i) { _i = i; }
+                    public static implicit operator A(int i)
+                    {
+                        Console.WriteLine("{0} -> A", i);
+                        return new(i);
+                    }
+                    public override string ToString() => _i.ToString();
+                }
+                """;
+            string sourceB = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public MyCollection(ReadOnlySpan<T> items, A x, A y) { Console.WriteLine("MyCollection({0}, {1})", x, y); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, A x = null, A y = null) => new(items, x, y);
+                }
+                """;
+            string sourceC = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<A> c;
+                        c = [with(y: Identity(1), x: Identity(2)), Identity(3), Identity(4)];
+                    }
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB, sourceC],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                // PROTOTYPE: 1, ..., 2, ..., should be evaluated before 3, ..., 4, ... .
+                expectedOutput: """
+                    3
+                    3 -> A
+                    4
+                    4 -> A
+                    1
+                    1 -> A
+                    2
+                    2 -> A
+                    MyCollection(2, 1)
+                    """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size       87 (0x57)
+                  .maxstack  3
+                  .locals init (<>y__InlineArray2<A> V_0,
+                                A V_1)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "<>y__InlineArray2<A>"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "ref A <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<A>, A>(ref <>y__InlineArray2<A>, int)"
+                  IL_0010:  ldc.i4.3
+                  IL_0011:  call       "int Program.Identity<int>(int)"
+                  IL_0016:  call       "A A.op_Implicit(int)"
+                  IL_001b:  stind.ref
+                  IL_001c:  ldloca.s   V_0
+                  IL_001e:  ldc.i4.1
+                  IL_001f:  call       "ref A <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<A>, A>(ref <>y__InlineArray2<A>, int)"
+                  IL_0024:  ldc.i4.4
+                  IL_0025:  call       "int Program.Identity<int>(int)"
+                  IL_002a:  call       "A A.op_Implicit(int)"
+                  IL_002f:  stind.ref
+                  IL_0030:  ldloca.s   V_0
+                  IL_0032:  ldc.i4.2
+                  IL_0033:  call       "System.ReadOnlySpan<A> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<A>, A>(in <>y__InlineArray2<A>, int)"
+                  IL_0038:  ldc.i4.1
+                  IL_0039:  call       "int Program.Identity<int>(int)"
+                  IL_003e:  call       "A A.op_Implicit(int)"
+                  IL_0043:  stloc.1
+                  IL_0044:  ldc.i4.2
+                  IL_0045:  call       "int Program.Identity<int>(int)"
+                  IL_004a:  call       "A A.op_Implicit(int)"
+                  IL_004f:  ldloc.1
+                  IL_0050:  call       "MyCollection<A> MyBuilder.Create<A>(System.ReadOnlySpan<A>, A, A)"
+                  IL_0055:  pop
+                  IL_0056:  ret
                 }
                 """);
         }
