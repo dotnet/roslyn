@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\LanguageServer\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\TestAnalyzerReference\Microsoft.CodeAnalysis.TestAnalyzerReference.csproj" />
     <ProjectReference Include="..\Generator\Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.csproj" />
 

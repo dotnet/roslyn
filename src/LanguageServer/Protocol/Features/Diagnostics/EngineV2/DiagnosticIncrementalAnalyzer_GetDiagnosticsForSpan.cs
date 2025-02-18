@@ -59,12 +59,14 @@ internal partial class DiagnosticAnalyzerService
         {
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
+            var project = document.Project;
+            var solutionState = project.Solution.SolutionState;
             var unfilteredAnalyzers = await _stateManager
-                .GetOrCreateAnalyzersAsync(document.Project, cancellationToken)
+                .GetOrCreateAnalyzersAsync(solutionState, project.State, cancellationToken)
                 .ConfigureAwait(false);
             var analyzers = unfilteredAnalyzers
                 .WhereAsArray(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, document.Project, GlobalOptions));
-            var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, project.State, cancellationToken).ConfigureAwait(false);
 
             // Note that some callers, such as diagnostic tagger, might pass in a range equal to the entire document span.
             // We clear out range for such cases as we are computing full document diagnostics.
@@ -229,7 +231,7 @@ internal partial class DiagnosticAnalyzerService
 
                 analyzers = filteredAnalyzers.ToImmutable();
 
-                var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, project.State, cancellationToken).ConfigureAwait(false);
 
                 var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);

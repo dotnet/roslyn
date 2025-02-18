@@ -60,8 +60,11 @@ internal partial class DiagnosticAnalyzerService
         {
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
-            var analyzersForProject = await _stateManager.GetOrCreateAnalyzersAsync(project, cancellationToken).ConfigureAwait(false);
-            var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(project, cancellationToken).ConfigureAwait(false);
+            var solution = project.Solution;
+            var analyzersForProject = await _stateManager.GetOrCreateAnalyzersAsync(
+                solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
+            var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(
+                solution.SolutionState, project.State, cancellationToken).ConfigureAwait(false);
             var analyzers = analyzersForProject.WhereAsArray(a => ShouldIncludeAnalyzer(project, a));
 
             var result = await GetOrComputeDiagnosticAnalysisResultsAsync(analyzers).ConfigureAwait(false);
@@ -108,17 +111,19 @@ internal partial class DiagnosticAnalyzerService
                 // If there was a 'ForceAnalyzeProjectAsync' run for this project, we can piggy back off of the
                 // prior computed/cached results as they will be a superset of the results we want.
                 //
-                // Note: the caller will loop over *its* analzyers, grabbing from the full set of data we've cached
-                // for this project, and filtering down further.  So it's ok to return this potentially larger set.
+                // Note: the caller will loop over *its* analyzers, grabbing from the full set of data we've cached for
+                // this project, and filtering down further.  So it's ok to return this potentially larger set.
                 //
                 // Note: While ForceAnalyzeProjectAsync should always run with a larger set of analyzers than us
                 // (since it runs all analyzers), we still run a paranoia check that the analyzers we care about are
                 // a subset of that call so that we don't accidentally reuse results that would not correspond to
                 // what we are computing ourselves.
-                if (_projectToForceAnalysisData.TryGetValue(project, out var box) &&
+                if (s_projectToForceAnalysisData.TryGetValue(project.State, out var box) &&
                     analyzers.IsSubsetOf(box.Value.analyzers))
                 {
-                    return box.Value.diagnosticAnalysisResults;
+                    var checksum = await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
+                    if (box.Value.checksum == checksum)
+                        return box.Value.diagnosticAnalysisResults;
                 }
 
                 // Otherwise, just compute for the analyzers we care about.

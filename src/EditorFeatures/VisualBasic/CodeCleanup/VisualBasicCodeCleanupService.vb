@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                 New DiagnosticSet(FeaturesResources.Apply_parentheses_preferences,
                     IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId),
                 New DiagnosticSet(AnalyzersResources.Add_accessibility_modifiers,
-                    IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId),
+                    IDEDiagnosticIds.AddOrRemoveAccessibilityModifiersDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Apply_coalesce_expression_preferences,
                     IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Apply_object_collection_initialization_preferences,

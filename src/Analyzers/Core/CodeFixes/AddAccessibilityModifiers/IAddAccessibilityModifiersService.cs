@@ -4,8 +4,8 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers;
+namespace Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers;
 
-internal interface IAddAccessibilityModifiersService : IAddAccessibilityModifiers, ILanguageService
+internal interface IAddOrRemoveAccessibilityModifiersService : IAddOrRemoveAccessibilityModifiers, ILanguageService
 {
 }

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal static class RazorPredefinedCodeFixProviderNames
     {
-        public static string AddAccessibilityModifiers => PredefinedCodeFixProviderNames.AddAccessibilityModifiers;
+        public static string AddAccessibilityModifiers => PredefinedCodeFixProviderNames.AddOrRemoveAccessibilityModifiers;
         public static string AddAnonymousTypeMemberName => PredefinedCodeFixProviderNames.AddAnonymousTypeMemberName;
         public static string AddAsync => PredefinedCodeFixProviderNames.AddAsync;
         public static string AddBraces => PredefinedCodeFixProviderNames.AddBraces;

@@ -298,7 +298,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         // Verify 1 workspace registered to start with.
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
 
-        using var testWorkspaceTwo = EditorTestWorkspace.Create(
+        using var testWorkspaceTwo = LspTestWorkspace.Create(
             XElement.Parse(secondWorkspaceXml),
             workspaceKind: "OtherWorkspaceKind",
             composition: testLspServer.TestWorkspace.Composition);
@@ -512,14 +512,15 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
-    public async Task TestDoesNotForkWhenDocumentTextBufferOpenedAsync(bool mutatingLspWorkspace)
+    public async Task TestDoesNotForkWhenDocumentOpenedInWorkspaceAsync(bool mutatingLspWorkspace)
     {
         var markup = "Text";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
         var documentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.First().GetURI();
 
-        // Calling get text buffer opens the document in the workspace.
-        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+        // Open document in the workspace.
+        await testLspServer.OpenDocumentInWorkspaceAsync(document.Id, openAllLinkedDocuments: false);
 
         await testLspServer.OpenDocumentAsync(documentUri, "Text");
 

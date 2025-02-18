@@ -43,6 +43,7 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
         var location = testLspServer.GetLocations("definition").Single();
         var definition = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,
                            CreateTextDocumentPositionParams(location), CancellationToken.None);
+        AssertEx.NotNull(definition);
 
         // Open the metadata file and verify it gets added to the metadata workspace.
         await testLspServer.OpenDocumentAsync(definition.Single().Uri, text: string.Empty).ConfigureAwait(false);
@@ -89,6 +90,7 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
         var location = testLspServer.GetLocations("definition").Single();
         var definition = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,
                            CreateTextDocumentPositionParams(location), CancellationToken.None);
+        AssertEx.NotNull(definition);
 
         // Open the metadata file and verify it gets added to the metadata workspace.
         // We don't have the real metadata source, so just populate it with our fake metadata source.
