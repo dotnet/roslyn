@@ -31,41 +31,6 @@ namespace Microsoft.CodeAnalysis
     }
 
     /// <summary>
-    /// This interface allows hosts to control where an analyzer is loaded from. It can redirect the path 
-    /// originally passed to the compiler to a new path. Or it can take ownership of a path to prevent 
-    /// other instances of <see cref="IAnalyzerPathResolver"/> from redirecting it.
-    /// </summary>
-    /// <remarks>
-    /// Instances of this type will be accessed from multiple threads. All method implementations are expected 
-    /// to be idempotent.
-    /// </remarks>
-    internal interface IAnalyzerPathResolver
-    {
-        /// <summary>
-        /// Is this path handled by this instance?
-        /// </summary>
-        bool IsAnalyzerPathHandled(string analyzerPath);
-
-        /// <summary>
-        /// This method is used to allow compiler hosts to intercept an analyzer path and redirect it to a
-        /// a different location.
-        /// </summary>
-        /// <remarks>
-        /// This will only be called for paths that return true from <see cref="IsAnalyzerPathHandled(string)"/>.
-        /// </remarks>
-        string GetRealAnalyzerPath(string analyzerPath);
-
-        /// <summary>
-        /// This method is used to allow compiler hosts to intercept an analyzer satellite path and redirect it to a
-        /// a different location.
-        /// </summary>
-        /// <remarks>
-        /// This will only be called for paths that return true from <see cref="IsAnalyzerPathHandled(string)"/>.
-        /// </remarks>
-        string? GetRealSatellitePath(string analyzerPath, CultureInfo cultureInfo);
-    }
-
-    /// <summary>
     /// The base implementation for <see cref="IAnalyzerAssemblyLoader"/>. This type provides caching and tracking of inputs given
     /// to <see cref="AddDependencyLocation(string)"/>.
     /// </summary>

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             {
                 // https://github.com/dotnet/roslyn/issues/76868
                 //
-                // There is a subtle race condition in this logic as another thread could load the assembly inbetween 
+                // There is a subtle race condition in this logic as another thread could load the assembly in between 
                 // the above calls and this one. Short term will just catch and grab the loaded assembly but longer 
                 // term need to think about creating a dedicated AssemblyLoadContext for the razor assemblies 
                 // which avoids this race condition.
