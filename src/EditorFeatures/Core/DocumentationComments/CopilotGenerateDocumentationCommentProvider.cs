@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var suggestion = new DocumentationCommentSuggestion(this, proposal, _suggestionManager, intellicodeLineCompletionsDisposable);
 
             var session = await suggestion.GetSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
-            //var session = this._suggestionSession = await (_suggestionManager.TryDisplaySuggestionAsync(suggestion, cancellationToken)).ConfigureAwait(false);
 
             if (session != null)
             {
@@ -214,16 +213,22 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             {
                 string? copilotStatement = null;
                 var textSpan = edit.SpanToReplace;
+                string? symbolKey = null;
+
+                if (edit.SymbolName is not null)
+                {
+                    symbolKey = edit.TagType.ToString() + ": " + edit.SymbolName;
+                }
 
                 if (edit.TagType == DocumentationCommentTagType.Summary && documentationCommentDictionary.TryGetValue(DocumentationCommentTagType.Summary.ToString(), out var summary) && !string.IsNullOrEmpty(summary))
                 {
                     copilotStatement = summary;
                 }
-                if (edit.TagType == DocumentationCommentTagType.TypeParam && documentationCommentDictionary.TryGetValue(edit.SymbolName!, out var typeParam) && !string.IsNullOrEmpty(typeParam))
+                if (edit.TagType == DocumentationCommentTagType.TypeParam && documentationCommentDictionary.TryGetValue(symbolKey!, out var typeParam) && !string.IsNullOrEmpty(typeParam))
                 {
                     copilotStatement = typeParam;
                 }
-                else if (edit.TagType == DocumentationCommentTagType.Param && documentationCommentDictionary.TryGetValue(edit.SymbolName!, out var param) && !string.IsNullOrEmpty(param))
+                else if (edit.TagType == DocumentationCommentTagType.Param && documentationCommentDictionary.TryGetValue(symbolKey!, out var param) && !string.IsNullOrEmpty(param))
                 {
                     copilotStatement = param;
                 }
@@ -231,7 +236,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 {
                     copilotStatement = returns;
                 }
-                else if (edit.TagType == DocumentationCommentTagType.Exception && documentationCommentDictionary.TryGetValue(edit.SymbolName!, out var exception) && !string.IsNullOrEmpty(exception))
+                else if (edit.TagType == DocumentationCommentTagType.Exception && documentationCommentDictionary.TryGetValue(symbolKey!, out var exception) && !string.IsNullOrEmpty(exception))
                 {
                     copilotStatement = exception;
                 }
