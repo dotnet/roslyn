@@ -199,12 +199,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (SourcePartialImplementationPart is { } implementationPart)
             {
                 return OneOrMany.Create(
-                    ((BasePropertyDeclarationSyntax)CSharpSyntaxNode).AttributeLists,
-                    ((BasePropertyDeclarationSyntax)implementationPart.CSharpSyntaxNode).AttributeLists);
+                    this.AttributeDeclarationSyntaxList,
+                    implementationPart.AttributeDeclarationSyntaxList);
             }
             else
             {
-                return OneOrMany.Create(((BasePropertyDeclarationSyntax)CSharpSyntaxNode).AttributeLists);
+                return OneOrMany.Create(this.AttributeDeclarationSyntaxList);
+            }
+        }
+
+        private SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+        {
+            get
+            {
+                if (this.ContainingType is SourceMemberContainerTypeSymbol { AnyMemberHasAttributes: true })
+                {
+                    return ((BasePropertyDeclarationSyntax)this.CSharpSyntaxNode).AttributeLists;
+                }
+
+                return default;
             }
         }
 

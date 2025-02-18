@@ -654,13 +654,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var syntax = this.GetSyntax();
-                switch (syntax.Kind())
+                if (this._property.ContainingType is SourceMemberContainerTypeSymbol { AnyMemberHasAttributes: true })
                 {
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.InitAccessorDeclaration:
-                        return ((AccessorDeclarationSyntax)syntax).AttributeLists;
+                    var syntax = this.GetSyntax();
+                    switch (syntax.Kind())
+                    {
+                        case SyntaxKind.GetAccessorDeclaration:
+                        case SyntaxKind.SetAccessorDeclaration:
+                        case SyntaxKind.InitAccessorDeclaration:
+                            return ((AccessorDeclarationSyntax)syntax).AttributeLists;
+                    }
                 }
 
                 return default;

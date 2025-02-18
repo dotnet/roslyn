@@ -141,25 +141,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (this.containingType.AnyMemberHasAttributes)
+                if (this.containingType.AnyMemberHasAttributes && MemberSyntax is { } memberSyntax)
                 {
-                    var syntax = this.CSharpSyntaxNode;
-                    if (syntax != null)
-                    {
-                        switch (syntax.Kind())
-                        {
-                            case SyntaxKind.EventDeclaration:
-                                return ((EventDeclarationSyntax)syntax).AttributeLists;
-                            case SyntaxKind.VariableDeclarator:
-                                Debug.Assert(syntax.Parent!.Parent is object);
-                                return ((EventFieldDeclarationSyntax)syntax.Parent.Parent).AttributeLists;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
-                        }
-                    }
+                    return memberSyntax.AttributeLists;
                 }
 
                 return default;
+            }
+        }
+
+        internal MemberDeclarationSyntax? MemberSyntax
+        {
+            get
+            {
+                if (this.CSharpSyntaxNode is { } syntax)
+                {
+                    switch (syntax.Kind())
+                    {
+                        case SyntaxKind.EventDeclaration:
+                            return (EventDeclarationSyntax)syntax;
+                        case SyntaxKind.VariableDeclarator:
+                            Debug.Assert(syntax.Parent?.Parent is not null);
+                            return (EventFieldDeclarationSyntax)syntax.Parent.Parent;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
+                    }
+                }
+
+                return null;
             }
         }
 
@@ -194,8 +203,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
-            if ((_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed) &&
-                LoadAndValidateAttributes(OneOrMany.Create(this.AttributeDeclarationSyntaxList), ref _lazyCustomAttributesBag))
+            var bag = _lazyCustomAttributesBag;
+            if (bag != null && bag.IsSealed)
+            {
+                return bag;
+            }
+
+            bool bagCreatedOnThisThread;
+
+            if (SourcePartialDefinitionPart is { } definitionPart)
+            {
+                Debug.Assert(!ReferenceEquals(definitionPart, this));
+                bag = definitionPart.GetAttributesBag();
+                bagCreatedOnThisThread = Interlocked.CompareExchange(ref _lazyCustomAttributesBag, bag, null) == null;
+            }
+            else
+            {
+                bagCreatedOnThisThread = LoadAndValidateAttributes(this.GetAttributeDeclarations(), ref _lazyCustomAttributesBag);
+            }
+
+            if (bagCreatedOnThisThread)
             {
                 DeclaringCompilation.SymbolDeclaredEvent(this);
                 var wasCompletedThisThread = _state.NotePartComplete(CompletionPart.Attributes);
@@ -204,6 +231,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             RoslynDebug.AssertNotNull(_lazyCustomAttributesBag);
             return _lazyCustomAttributesBag;
+        }
+
+        private OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            // Attributes on partial events are owned by the definition part.
+            // If this symbol has a non-null PartialDefinitionPart, we should have accessed this method through that definition symbol instead.
+            Debug.Assert(PartialDefinitionPart is null);
+
+            if (SourcePartialImplementationPart is { } implementationPart)
+            {
+                return OneOrMany.Create(this.AttributeDeclarationSyntaxList, implementationPart.AttributeDeclarationSyntaxList);
+            }
+
+            return OneOrMany.Create(this.AttributeDeclarationSyntaxList);
         }
 
         /// <summary>

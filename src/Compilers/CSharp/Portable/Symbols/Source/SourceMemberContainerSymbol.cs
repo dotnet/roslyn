@@ -1743,19 +1743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool isMemberInCompleteMemberList(MembersAndInitializers? membersAndInitializers, Symbol member)
             {
-                switch (member)
-                {
-                    case MethodSymbol method:
-                        member = method.PartialDefinitionPart ?? method;
-                        break;
-                    case PropertySymbol property:
-                        member = property.PartialDefinitionPart ?? property;
-                        break;
-                    case EventSymbol ev:
-                        member = ev.PartialDefinitionPart ?? ev;
-                        break;
-                }
-
+                member = member.GetPartialDefinitionPart() ?? member;
                 return membersAndInitializers?.NonTypeMembers.Contains(m => m == (object)member) == true;
             }
         }

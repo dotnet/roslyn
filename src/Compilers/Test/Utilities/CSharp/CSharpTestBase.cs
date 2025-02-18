@@ -213,6 +213,22 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
+        protected static readonly string CallerArgumentExpressionAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
+                public sealed class CallerArgumentExpressionAttribute : Attribute
+                {
+                    public CallerArgumentExpressionAttribute(string parameterName)
+                    {
+                        ParameterName = parameterName;
+                    }
+
+                    public string ParameterName { get; }
+                }
+            }
+            """;
+
         protected static readonly string IsExternalInitTypeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
