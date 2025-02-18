@@ -40,6 +40,36 @@
             "stopAtEntry": false
         },
         {
+            "name": "Run `create-release-tags -p roslyn`",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
+            "args": [
+              "create-release-tags",
+              "-p",
+              "roslyn"
+            ],
+            "cwd": "${workspaceFolder}/../../../roslyn",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Run `create-release-tags -p razor`",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
+            "args": [
+              "create-release-tags",
+              "-p",
+              "razor"
+            ],
+            "cwd": "${workspaceFolder}/../../../razor",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": "Run `authenticate --clear`",
             "type": "coreclr",
             "request": "launch",

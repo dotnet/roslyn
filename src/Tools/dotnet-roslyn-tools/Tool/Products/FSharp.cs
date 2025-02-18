@@ -17,11 +17,12 @@ internal class FSharp : IProduct
 
     public string ComponentJsonFileName => @".corext\Configs\components.json";
     public string ComponentName => "Microsoft.FSharp";
-    public string? PackageName => null;
-    public string? PackagePropsFileName => null;
+    public string? VsPackageName => null;
+    public string? VsPackagePropsFileName => null;
     public string? DartLabPipelineName => null;
     public string? ArtifactsFolderName => null;
     public string[] ArtifactsSubFolderNames => [];
+    public string SdkPackageName => "Microsoft.FSharp.Compiler";
 
 
     public string? GetBuildPipelineName(string buildProjectName)
