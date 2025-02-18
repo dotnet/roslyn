@@ -2227,7 +2227,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         }
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77254")]
     public void Attributes_Locations()
     {
         // Note that [method:] is not allowed on partial events.
