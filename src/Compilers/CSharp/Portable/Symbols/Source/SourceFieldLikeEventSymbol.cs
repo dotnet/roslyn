@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    Debug.Assert(PartialDefinitionPart is null);
+                    Debug.Assert(IsPartialDefinition);
 
                     switch (PartialImplementationPart)
                     {
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
             {
-                Debug.Assert(PartialDefinitionPart is null);
+                Debug.Assert(IsPartialDefinition);
 
                 switch (PartialImplementationPart)
                 {
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
             {
-                Debug.Assert(PartialDefinitionPart is null);
+                Debug.Assert(IsPartialDefinition);
 
                 if (PartialImplementationPart is { } implementationPart)
                 {
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    Debug.Assert(PartialDefinitionPart is null);
+                    Debug.Assert(IsPartialDefinition);
 
                     if (PartialImplementationPart is { } implementationPart)
                     {
