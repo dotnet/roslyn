@@ -53,12 +53,17 @@ internal sealed partial class CSharpIntroduceVariableService
         var updatedExpression = expression.WithoutTrivia();
         var simplifierOptions = (CSharpSimplifierOptions)options.SimplifierOptions;
 
-        // If the target-type new syntax is preferred and "var" is not preferred under any circumstance, then we use the target-type new syntax.
-        // The approach is not exhaustive. We aim to support codebases that rely strictly on the target-type new syntax (i.e., no "var").
+        // If the target-type new syntax is preferred and "var" is not preferred under any circumstance, then we use the
+        // target-type new syntax. The approach is not exhaustive. We aim to support codebases that rely strictly on the
+        // target-type new syntax (i.e., no "var").
         if (simplifierOptions.ImplicitObjectCreationWhenTypeIsApparent.Value && simplifierOptions.GetUseVarPreference() == UseVarPreference.None
             && updatedExpression is ObjectCreationExpressionSyntax objectCreationExpression)
         {
-            updatedExpression = ImplicitObjectCreationExpression(objectCreationExpression.ArgumentList, objectCreationExpression.Initializer);
+            var (newKeyword, argumentList) = objectCreationExpression.ArgumentList is null
+                ? (objectCreationExpression.NewKeyword.WithoutTrailingTrivia(), ArgumentList().WithoutLeadingTrivia().WithTrailingTrivia(objectCreationExpression.NewKeyword.TrailingTrivia))
+                : (objectCreationExpression.NewKeyword, objectCreationExpression.ArgumentList);
+            updatedExpression = ImplicitObjectCreationExpression(
+                newKeyword, argumentList, objectCreationExpression.Initializer);
         }
 
         var declarationStatement = LocalDeclarationStatement(
