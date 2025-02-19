@@ -48,28 +48,46 @@ namespace Microsoft.CodeAnalysis
         private readonly object _guard = new();
 
         /// <summary>
-        /// This is a map between the original full path and how it is represented in this loader.
+        /// The original paths are compared ordinally as the expectation is the host needs to handle normalization,
+        /// if necessary. That means if the host passes in a.dll and a.DLL the loader will treat them as different
+        /// even if the underlying file system is case insensitive.
+        /// </summary>
+        private static readonly StringComparer OriginalPathComparer = StringComparer.Ordinal;
+
+        /// <summary>
+        /// Simple names are not case sensitive
+        /// </summary>
+        private static readonly (StringComparer Comparer, StringComparison Comparison) SimpleNameComparer = (StringComparer.OrdinalIgnoreCase, StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// This is a map between the original full path and how it is represented in this loader. Specifically
+        /// the key is the original path before it is considered by <see cref="IAnalyzerPathResolver.GetResolvedAnalyzerPath(string)"/>.
         /// </summary>
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
-        private readonly Dictionary<string, (IAnalyzerPathResolver? Resolver, string ResolvedPath, AssemblyName? AssemblyName)> _originalPathInfoMap = new();
+        private readonly Dictionary<string, (IAnalyzerPathResolver? Resolver, string ResolvedPath, AssemblyName? AssemblyName)> _originalPathInfoMap = new(OriginalPathComparer);
 
         /// <summary>
         /// This is a map between assembly simple names and the collection of original paths that map to them.
         /// </summary>
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
+        ///
+        /// Simple names are not case sensitive
         /// </remarks>
-        private readonly Dictionary<string, HashSet<string>> _assemblySimpleNameToOriginalPathListMap = new();
+        private readonly Dictionary<string, HashSet<string>> _assemblySimpleNameToOriginalPathListMap = new(SimpleNameComparer.Comparer);
 
         /// <summary>
         /// Map from resolved paths to the original ones
         /// </summary>
         /// <remarks>
         /// Access must be guarded by <see cref="_guard"/>
+        ///
+        /// The paths are compared ordinally here as these are computed values, not user supplied ones, and the
+        /// values should refer to the file on disk with no alteration of its path.
         /// </remarks>
-        private readonly Dictionary<string, string> _resolvedToOriginalPathMap = new();
+        private readonly Dictionary<string, string> _resolvedToOriginalPathMap = new(StringComparer.Ordinal);
 
         /// <summary>
         /// Whether or not we're disposed. Once disposed, all functionality on this type should throw.
@@ -148,7 +166,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (!_assemblySimpleNameToOriginalPathListMap.TryGetValue(simpleName, out var set))
                     {
-                        set = new();
+                        set = new(OriginalPathComparer);
                         _assemblySimpleNameToOriginalPathListMap[simpleName] = set;
                     }
 
