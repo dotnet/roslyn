@@ -11,10 +11,10 @@ using Microsoft.CodeAnalysis.LanguageServer;
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
 [Shared]
-[ExportCohostLspServiceFactory(typeof(IRazorCohostClientLanguageServerManager))]
+[ExportCohostLspServiceFactory(typeof(IRazorClientLanguageServerManager))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class RazorCohostClientLanguageServerManagerFactory() : ILspServiceFactory
+internal class RazorClientLanguageServerManagerFactory() : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
