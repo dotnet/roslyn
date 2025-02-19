@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var ctor = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor);
                 return ctor is { } &&
                     node.CollectionCreation is BoundObjectCreationExpression { Constructor: var objectCreate } &&
-                    ctor.Equals(objectCreate.OriginalDefinition);
+                    object.ReferenceEquals(ctor, objectCreate.OriginalDefinition);
             }
 
             static bool usesListAddMethodForAllElements(CSharpCompilation compilation, BoundCollectionExpression node)
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var method = Binder.GetCollectionBuilderMethod(node);
                 Debug.Assert(method is { Parameters: [var parameter, ..] } &&
-                    parameter.Type.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct([elementType])));
+                    parameter.Type.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct([elementType]), TypeCompareKind.AllIgnoreOptions));
                 return method is { Parameters.Length: 1 };
             }
 

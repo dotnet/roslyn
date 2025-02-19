@@ -932,8 +932,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)>.GetInstance();
                     placeholders.Add((spanPlaceholder, safeContext));
                     using var _ = new PlaceholderRegion(this, placeholders);
+                    Visit(collectionCreation);
                 }
-                Visit(collectionCreation);
+                else
+                {
+                    Visit(collectionCreation);
+                }
             }
             VisitList(node.Elements);
             return null;
