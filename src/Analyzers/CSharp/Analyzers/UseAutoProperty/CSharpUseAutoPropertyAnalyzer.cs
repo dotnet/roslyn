@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -41,22 +42,8 @@ internal sealed class CSharpUseAutoPropertyAnalyzer() : AbstractUseAutoPropertyA
     protected override bool SupportsPropertyInitializer(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
-    protected override bool SupportsFieldExpression(Compilation compilation)
-        => compilation.LanguageVersion() >= LanguageVersion.Preview;
-
     protected override ExpressionSyntax? GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
         => variable.Initializer?.Value;
-
-    protected override bool ContainsFieldExpression(PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
-    {
-        foreach (var node in propertyDeclaration.DescendantNodes())
-        {
-            if (node.IsKind(SyntaxKind.FieldExpression))
-                return true;
-        }
-
-        return false;
-    }
 
     protected override void RecordIneligibleFieldLocations(
         HashSet<string> fieldNames,

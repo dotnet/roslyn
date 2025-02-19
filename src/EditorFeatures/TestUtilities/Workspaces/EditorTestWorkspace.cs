@@ -31,12 +31,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>, ILspWorkspace
+public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
 {
     private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
 
     private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = [];
-    private readonly bool _supportsLspMutation;
 
     internal EditorTestWorkspace(
         TestComposition? composition = null,
@@ -44,8 +43,7 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
         Guid solutionTelemetryId = default,
         bool disablePartialSolutions = true,
         bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
-        WorkspaceConfigurationOptions? configurationOptions = null,
-        bool supportsLspMutation = false)
+        WorkspaceConfigurationOptions? configurationOptions = null)
         : base(composition ?? EditorTestCompositions.EditorFeatures,
                workspaceKind,
                solutionTelemetryId,
@@ -53,22 +51,6 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
                ignoreUnchangeableDocumentsWhenApplyingChanges,
                configurationOptions)
     {
-        _supportsLspMutation = supportsLspMutation;
-    }
-
-    bool ILspWorkspace.SupportsMutation => _supportsLspMutation;
-
-    ValueTask ILspWorkspace.UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfFalse(_supportsLspMutation);
-        OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
-        return ValueTaskFactory.CompletedTask;
-    }
-
-    internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfFalse(_supportsLspMutation);
-        return base.TryOnDocumentClosedAsync(documentId, cancellationToken);
     }
 
     private protected override EditorTestHostDocument CreateDocument(

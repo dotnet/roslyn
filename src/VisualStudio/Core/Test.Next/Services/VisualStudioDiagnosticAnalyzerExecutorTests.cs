@@ -62,8 +62,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(isHostAnalyzer ? DiagnosticSeverity.Info : DiagnosticSeverity.Hidden, diagnostics[0].Severity);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestVisualBasicAnalyzerOptions(bool isHostAnalyzer)
         {
             var code = @"Class Test
@@ -83,7 +82,7 @@ End Class";
             ImmutableArray<DiagnosticData> diagnostics;
             if (isHostAnalyzer)
             {
-                Assert.True(analyzerResult.IsEmpty);
+                Assert.True(analyzerResult.GetAllDiagnostics().IsEmpty);
             }
             else
             {

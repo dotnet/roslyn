@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -28,15 +29,18 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
     private readonly IAsynchronousOperationListenerProvider _listenerProvider;
     private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
     private readonly IThreadingContext _threadingContext;
+    private readonly IServiceProvider _serviceProvider;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IAsynchronousOperationListenerProvider listenerProvider, IAsyncQuickInfoBroker asyncQuickInfoBroker, IThreadingContext threadingContext)
+    public OnTheFlyDocsViewFactory(IViewElementFactoryService factoryService, IAsynchronousOperationListenerProvider listenerProvider,
+        IAsyncQuickInfoBroker asyncQuickInfoBroker, IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
     {
         _factoryService = factoryService;
         _listenerProvider = listenerProvider;
         _asyncQuickInfoBroker = asyncQuickInfoBroker;
         _threadingContext = threadingContext;
+        _serviceProvider = serviceProvider;
     }
 
     public TView? CreateViewElement<TView>(ITextView textView, object model) where TView : class
@@ -64,6 +68,6 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
             OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLinkWithDocComments();
         }
 
-        return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, quickInfoSession, _threadingContext, onTheFlyDocsElement) as TView;
+        return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, quickInfoSession, _threadingContext, onTheFlyDocsElement, _serviceProvider) as TView;
     }
 }

@@ -1679,7 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (name == null)
-                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: default(VoidResult));
+                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: 0);
 
             return results.ToImmutableAndFree();
         }

@@ -40,20 +40,8 @@
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumField.cs">
       <Link>Compiler\InternalUtilities\EnumField.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
-      <Link>Compiler\InternalUtilities\ExceptionUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs">
-      <Link>Compiler\InternalUtilities\NullableAttributes.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs">
-      <Link>Compilers\InternalUtilities\InterpolatedStringHandlerAttribute.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs">
-      <Link>Compilers\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs">
       <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
@@ -94,4 +82,5 @@
     <EmbeddedResource Include="..\..\Source\ResultProvider\Portable\Resources.resx" Link="Resources.resx" GenerateSource="true" />
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\ResultProvider.projitems" Label="Shared" />
+  <Import Project="..\..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

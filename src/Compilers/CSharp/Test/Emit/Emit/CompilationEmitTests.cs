@@ -574,8 +574,8 @@ public class C
                 VerifyMethods(output, "C", new[] { "void C.Main()", "C..ctor()" });
                 VerifyMvid(output, hasMvidSection: false);
 
-                verifyEntryPoint(metadataOutput, expectZero: true);
-                VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
+                verifyEntryPoint(metadataOutput, expectZero: false);
+                VerifyMethods(metadataOutput, "C", new[] { "void C.Main()", "C..ctor()" });
                 VerifyMvid(metadataOutput, hasMvidSection: true);
             }
 
