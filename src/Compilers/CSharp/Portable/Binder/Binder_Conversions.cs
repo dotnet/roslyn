@@ -1301,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node, node, receiver, WellKnownMemberNames.CollectionInitializerAddMethodName, rightArity: 0,
                     typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                     typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
-                    invoked: true, indexed: false, diagnostics, searchExtensionMethodsIfNecessary: true);
+                    invoked: true, indexed: false, diagnostics, searchExtensionsIfNecessary: true);
 
                 // require the target member to be a method.
                 if (boundExpression.Kind == BoundKind.FieldAccess || boundExpression.Kind == BoundKind.PropertyAccess)
@@ -1367,7 +1367,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
 
-                if (resolution.HasAnyErrors)
+                if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
+                {
+                    ReportMakeInvocationExpressionBadMemberKind(syntax, WellKnownMemberNames.CollectionInitializerAddMethodName, methodGroup, diagnostics);
+                    addMethods = [];
+                    result = false;
+                }
+                else if (resolution.HasAnyErrors)
                 {
                     addMethods = [];
                     result = false;

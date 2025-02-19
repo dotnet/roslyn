@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void LookupExtensionMethods(LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            foreach (var scope in new ExtensionMethodScopes(this))
+            foreach (var scope in new ExtensionScopes(this))
             {
                 this.LookupExtensionMethodsInSingleBinder(scope, result, name, arity, options, ref useSiteInfo);
             }
@@ -175,6 +175,137 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.LookupMembersInType(result, (TypeSymbol)nsOrType, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
             }
         }
+
+#nullable enable
+        private void LookupExtensionMembersInSingleBinder(LookupResult result, TypeSymbol receiverType,
+            string name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
+            Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(name is not null);
+
+            var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+
+            getCompatibleExtensions(binder: this, receiverType, compatibleExtensions, originalBinder, ref useSiteInfo);
+
+            var tempResult = LookupResult.GetInstance();
+            foreach (NamedTypeSymbol extension in compatibleExtensions)
+            {
+                // No need for "diagnose" since we discard the lookup results (and associated diagnostic info)
+                // unless the results are good.
+                LookupMembersInClass(tempResult, extension, name, arity, basesBeingResolved,
+                    options, originalBinder, diagnose: false, ref useSiteInfo);
+
+                // PROTOTYPE we should prefer extension members that apply to a more specific type
+                result.MergeEqual(tempResult);
+                tempResult.Clear();
+            }
+
+            tempResult.Free();
+            compatibleExtensions.Free();
+
+            return;
+
+            static void getCompatibleExtensions(Binder binder, TypeSymbol receiverType, ArrayBuilder<NamedTypeSymbol> compatibleExtensions,
+                Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert(!receiverType.IsDynamic());
+                if (receiverType.IsErrorType())
+                {
+                    return;
+                }
+
+                var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                binder.GetExtensionDeclarations(extensions, originalBinder);
+
+                foreach (var extension in extensions)
+                {
+                    addCompatibleExtension(binder, extension, receiverType, compatibleExtensions, ref useSiteInfo);
+                }
+
+                extensions.Free();
+                return;
+            }
+
+            static void addCompatibleExtension(Binder binder, NamedTypeSymbol extension, TypeSymbol receiverType, ArrayBuilder<NamedTypeSymbol> compatibleExtensions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                if (extension.ExtensionParameter is not { } extensionParameter)
+                {
+                    return;
+                }
+
+                var compilation = binder.Compilation;
+                var constructedExtension = inferExtensionTypeArguments(extension, receiverType, compilation, ref useSiteInfo);
+                if (constructedExtension is null)
+                {
+                    return;
+                }
+
+                Debug.Assert(constructedExtension.ExtensionParameter is not null);
+                var conversion = compilation.Conversions.ConvertExtensionMethodThisArg(parameterType: constructedExtension.ExtensionParameter.Type, receiverType, ref useSiteInfo, isMethodGroupConversion: false);
+                if (!conversion.Exists)
+                {
+                    return;
+                }
+
+                compatibleExtensions.Add(constructedExtension);
+            }
+
+            static NamedTypeSymbol? inferExtensionTypeArguments(NamedTypeSymbol extension, TypeSymbol receiverType, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                if (extension.Arity == 0)
+                {
+                    return extension;
+                }
+
+                var containingAssembly = extension.ContainingAssembly;
+                var conversions = containingAssembly.CorLibrary.TypeConversions;
+
+                // Note: we create a value for purpose of inferring type arguments even when the receiver type is static
+                var syntax = (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
+                var receiverValue = new BoundLiteral(syntax, ConstantValue.Bad, receiverType) { WasCompilerGenerated = true };
+
+                var typeArguments = MethodTypeInferrer.InferTypeArgumentsFromReceiverType(extension, receiverValue, compilation, conversions, ref useSiteInfo);
+                if (typeArguments.IsDefault || typeArguments.Any(t => !t.HasType))
+                {
+                    return null;
+                }
+
+                bool success = checkConstraints(extension, typeArguments, compilation, conversions, ref useSiteInfo);
+                if (!success)
+                {
+                    return null;
+                }
+
+                return extension.Construct(typeArguments);
+            }
+
+            static bool checkConstraints(NamedTypeSymbol symbol, ImmutableArray<TypeWithAnnotations> typeArgs, CSharpCompilation compilation,
+                TypeConversions conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                var typeParams = symbol.TypeParameters;
+                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+                var substitution = new TypeMap(typeParams, typeArgs);
+                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
+
+                bool success = symbol.CheckConstraints(
+                    new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo)),
+                    substitution, typeParams, typeArgs, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
+                    ref useSiteDiagnosticsBuilder, ignoreTypeConstraintsDependentOnTypeParametersOpt: null);
+
+                diagnosticsBuilder.Free();
+
+                if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
+                {
+                    foreach (TypeParameterDiagnosticInfo diagnostic in useSiteDiagnosticsBuilder)
+                    {
+                        useSiteInfo.Add(diagnostic.UseSiteInfo);
+                    }
+                }
+
+                return success;
+            }
+        }
+#nullable disable
 
         // Looks up a member of given name and arity in a particular type.
         protected void LookupMembersInType(LookupResult result, TypeSymbol type, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -458,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// binder because extension method search stops at the first applicable
         /// method group from the nearest enclosing namespace.
         /// </summary>
-        private void LookupExtensionMethodsInSingleBinder(ExtensionMethodScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void LookupExtensionMethodsInSingleBinder(ExtensionScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
             var binder = scope.Binder;
@@ -739,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        internal virtual bool SupportsExtensionMethods
+        internal virtual bool SupportsExtensions
         {
             get { return false; }
         }
@@ -759,6 +890,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder originalBinder)
         {
         }
+
+#nullable enable
+        /// <summary>
+        /// Return the extension declarations from this specific binding scope
+        /// Since the lookup of extension members is iterative, proceeding one binding scope at a time,
+        /// GetExtensionDeclarations should not defer to the next binding scope. Instead, the caller is
+        /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
+        /// to search the available members list in binding types that represent types, namespaces, and usings.
+        /// </summary>
+        internal virtual void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        {
+        }
+#nullable disable
 
         // Does a member lookup in a single type, without considering inheritance.
         protected static void LookupMembersWithoutInheritance(LookupResult result, TypeSymbol type, string name, int arity,

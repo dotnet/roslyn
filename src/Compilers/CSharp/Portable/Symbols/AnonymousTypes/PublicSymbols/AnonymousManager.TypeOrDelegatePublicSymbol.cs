@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override bool IsInterpolatedStringHandlerType => false;
 
+            internal sealed override ParameterSymbol? ExtensionParameter => null;
+
             internal sealed override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
             {
                 return this.GetMembersUnordered();

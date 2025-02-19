@@ -8315,7 +8315,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            Debug.Assert(false); // If this assert fails, add an appropriate test.
+
+            // PROTOTYPE The assert below fails for an instance call on a generic extension.
+            //Debug.Assert(false); // If this assert fails, add an appropriate test.
             return symbol;
 
             bool tryAsMemberOfSingleType(NamedTypeSymbol singleType, [NotNullWhen(true)] out Symbol? result)

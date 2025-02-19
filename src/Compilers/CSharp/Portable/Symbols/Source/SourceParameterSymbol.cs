@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(owner is not LambdaSymbol); // therefore we don't need to deal with discard parameters
 
             var name = identifier.ValueText;
-            var location = new SourceLocation(identifier);
+            var location = new SourceLocation(name == "" ? syntax.Type : identifier);
 
             if (hasParamsModifier && parameterType.IsSZArray())
             {

@@ -105,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+
         public sealed override bool IsRefLikeType
         {
             get

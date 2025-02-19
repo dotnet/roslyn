@@ -1436,7 +1436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression colorColorValueReceiver = GetValueExpressionIfTypeOrValueReceiver(receiver);
 
-            Debug.Assert(colorColorValueReceiver is null || (methodGroupFlags & BoundMethodGroupFlags.SearchExtensionMethods) != 0);
+            Debug.Assert(colorColorValueReceiver is null || (methodGroupFlags & BoundMethodGroupFlags.SearchExtensions) != 0);
 
             if (IsPossiblyCapturingPrimaryConstructorParameterReference(colorColorValueReceiver, out ParameterSymbol parameter))
             {
@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!haveInstanceCandidates && members[0].Kind == SymbolKind.Method)
             {
                 // See if there could be extension methods in scope
-                foreach (var scope in new ExtensionMethodScopes(this))
+                foreach (var scope in new ExtensionScopes(this))
                 {
                     lookupResult ??= LookupResult.GetInstance();
                     LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo);
