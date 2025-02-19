@@ -158,8 +158,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
                 var globalStateVersion = _diagnosticRefresher.GlobalStateVersion;
 
                 var project = diagnosticSource.GetProject();
-                var cacheState = new DiagnosticsRequestState(
-                    DiagnosticAnalyzerService, project, globalStateVersion, context, diagnosticSource);
+                var cacheState = new DiagnosticsRequestState(project, globalStateVersion, context, diagnosticSource);
 
                 var newResult = await versionedCache.GetOrComputeNewDataAsync(
                     documentIdToPreviousDiagnosticParams,

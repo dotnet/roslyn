@@ -36,7 +36,7 @@ internal partial class DiagnosticAnalyzerService
             return null;
 
         var projectState = project.State;
-        var checksum = await StaticGetDiagnosticChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+        var checksum = await project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false);
 
         // Make sure the cached pair was computed with at least the same state sets we're asking about.  if not,
         // recompute and cache with the new state sets.
