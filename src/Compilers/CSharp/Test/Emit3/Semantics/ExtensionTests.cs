@@ -502,8 +502,8 @@ public static class Extensions<T>
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
         Assert.True(symbol.IsGenericType);
-        var member = symbol.ContainingType.GetMembers().Single();
-        Assert.Equal("Extensions<T>.<>E__0", member.ToTestDisplayString());
+        var members = symbol.ContainingType.GetMembers();
+        Assert.Equal(["Extensions<T>.<>E__0", "void Extensions<T>.<StaticExtension>M()"], members.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -571,8 +571,8 @@ public static class Extensions
         var nestedExtensionSymbol = model.GetDeclaredSymbol(nestedExtension);
         AssertExtensionDeclaration(nestedExtensionSymbol);
         Assert.Equal("Extensions.Extensions2", nestedExtensionSymbol.ContainingType.ToTestDisplayString());
-        var member = nestedExtensionSymbol.ContainingType.GetMembers().Single();
-        Assert.Equal("Extensions.Extensions2.<>E__0", member.ToTestDisplayString());
+        var members = nestedExtensionSymbol.ContainingType.GetMembers();
+        Assert.Equal(["Extensions.Extensions2.<>E__0", "void Extensions.Extensions2.<StaticExtension>M()"], members.ToTestDisplayStrings());
     }
 
     [Fact]
