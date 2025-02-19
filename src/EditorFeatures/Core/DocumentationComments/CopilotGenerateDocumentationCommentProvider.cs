@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
                 if (edit.SymbolName is not null)
                 {
-                    symbolKey = edit.TagType.ToString() + ": " + edit.SymbolName;
+                    symbolKey = edit.TagType.ToString() + "- " + edit.SymbolName;
                 }
 
                 if (edit.TagType == DocumentationCommentTagType.Summary && documentationCommentDictionary.TryGetValue(DocumentationCommentTagType.Summary.ToString(), out var summary) && !string.IsNullOrEmpty(summary))
