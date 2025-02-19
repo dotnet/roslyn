@@ -1100,11 +1100,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">La méthode « {0} » doit être statique et non générique</target>
         <note />
       </trans-unit>
-      <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
-        <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
-        <target state="translated">Le « {0} » de méthode doit avoir un seul paramètre de type « {1} » et « {2} » de retour</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
         <target state="translated">Fichiers divers</target>
@@ -2705,9 +2700,14 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">L'assembly d'analyseur '{0}' fait référence à la version '{1}' du compilateur, qui est plus récente que la version en cours d'exécution '{2}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
-        <source>The query does not specify '{0}' method or top-level function</source>
-        <target state="translated">La requête ne spécifie pas « {0} » méthode ou fonction de niveau supérieur</target>
+      <trans-unit id="The_query_does_not_specify_0_top_level_function">
+        <source>The query does not specify '{0}' top-level function</source>
+        <target state="new">The query does not specify '{0}' top-level function</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_query_specifies_multiple_top_level_functions_1">
+        <source>The query specifies multiple top-level functions '{1}'</source>
+        <target state="new">The query specifies multiple top-level functions '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2750,9 +2750,19 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Trop de )'s</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
+        <source>Top-level function '{0}' must have a single parameter</source>
+        <target state="new">Top-level function '{0}' must have a single parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">Virgule de fin non autorisée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_is_not_among_supported_types_1">
+        <source>Type '{0}' is not among supported types: {1}</source>
+        <target state="new">Type '{0}' is not among supported types: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">
