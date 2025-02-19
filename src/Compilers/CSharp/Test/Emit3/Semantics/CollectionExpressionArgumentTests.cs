@@ -2345,6 +2345,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void CollectionBuilder_ReadOnlySpanConstraint()
+        {
+            string sourceA = """
+                namespace System
+                {
+                    public ref struct ReadOnlySpan<T>
+                        where T : struct
+                    {
+                    }
+                }
+                """;
+            string sourceB = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, int arg) where T : struct => default;
+                }
+                """;
+            string sourceC = """
+                class Program
+                {
+                    static MyCollection<T> NoArgs<T>() => [];
+                    static MyCollection<T> EmptyArgs<T>() => [with()];
+                    static MyCollection<T> WithArg<T>(int arg) => [with(arg)];
+                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB, sourceC, CollectionBuilderAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (3,43): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'ReadOnlySpan<T>'
+                //     static MyCollection<T> NoArgs<T>() => [];
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[]").WithArguments("System.ReadOnlySpan<T>", "T", "T").WithLocation(3, 43),
+                // (4,47): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'ReadOnlySpan<T>'
+                //     static MyCollection<T> EmptyArgs<T>() => [with()];
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with()").WithArguments("System.ReadOnlySpan<T>", "T", "T").WithLocation(4, 47),
+                // (5,52): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, int)'
+                //     static MyCollection<T> WithArg<T>(int arg) => [with(arg)];
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with(arg)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, int)", "T", "T").WithLocation(5, 52),
+                // (6,38): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'ReadOnlySpan<T>'
+                //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("System.ReadOnlySpan<T>", "T", "T").WithLocation(6, 38),
+                // (13,61): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'ReadOnlySpan<T>'
+                //     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "items").WithArguments("System.ReadOnlySpan<T>", "T", "T").WithLocation(13, 61));
+        }
+
+        [Fact]
         public void CollectionBuilder_SpreadElement_BoxingConversion()
         {
             string sourceA = """
