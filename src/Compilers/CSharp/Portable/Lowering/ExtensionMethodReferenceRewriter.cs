@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         invokedAsExtensionMethod = true;
 
-                        // PROTOTYPE: We probably need to convert the receiver to the parameter's type here
+                        Debug.Assert(receiverOpt.Type!.Equals(method.Parameters[0].Type, TypeCompareKind.ConsiderEverything));
 
                         arguments = arguments.Insert(0, receiverOpt);
                         receiverOpt = null;

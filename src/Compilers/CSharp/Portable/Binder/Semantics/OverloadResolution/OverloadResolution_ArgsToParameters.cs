@@ -55,6 +55,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static ImmutableArray<ParameterSymbol> GetParametersIncludingExtensionParameter(Symbol symbol)
+        {
+            Debug.Assert(symbol.GetIsNewExtensionMember());
+            // PROTOTYPE consider optimizing
+            return [symbol.ContainingType.ExtensionParameter, .. symbol.GetParameters()];
+        }
+
+        private static ImmutableArray<RefKind> GetParameterRefKindsIncludingReceiver(Symbol symbol)
+        {
+            Debug.Assert(symbol.GetIsNewExtensionMember());
+            // PROTOTYPE consider optimizing
+            var refKinds = symbol.GetParameterRefKinds();
+            var receiverRefKind = symbol.ContainingType.ExtensionParameter.RefKind;
+            if (refKinds.IsDefault && receiverRefKind == RefKind.None)
+            {
+                return default;
+            }
+
+            return [receiverRefKind, .. refKinds];
+        }
+
+        private static ImmutableArray<TypeWithAnnotations> GetParameterTypesIncludingReceiver(Symbol symbol)
+        {
+            Debug.Assert(symbol.GetIsNewExtensionMember());
+            // PROTOTYPE consider optimizing
+            return [symbol.ContainingType.ExtensionParameter.TypeWithAnnotations, .. symbol.GetParameterTypes()];
+        }
+
         private static ArgumentAnalysisResult AnalyzeArguments(
             Symbol symbol,
             AnalyzedArguments arguments,
@@ -64,7 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)symbol != null);
             Debug.Assert(arguments != null);
 
-            ImmutableArray<ParameterSymbol> parameters = symbol.GetParameters();
+            bool isNewExtensionMember = symbol.GetIsNewExtensionMember();
+            ImmutableArray<ParameterSymbol> parameters = isNewExtensionMember ? GetParametersIncludingExtensionParameter(symbol) : symbol.GetParameters();
             bool isVararg = symbol.GetIsVararg();
 
             // The easy out is that we have no named arguments and are in normal form.

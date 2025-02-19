@@ -148,6 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(initializer.Arguments.Any());
             Debug.Assert(rewrittenReceiver != null || _inExpressionLambda);
 
+            rewrittenReceiver = VisitExpression(initializer.ImplicitReceiverOpt); // The receiver may have a conversion for a new extension method. The relevant placeholder was already set
+
             var syntax = initializer.Syntax;
 
             if (_allowOmissionOfConditionalCalls)
