@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,10 +13,13 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -32,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map = new();
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
         private readonly IDiagnosticsRefresher _diagnosticsRefresher;
+
+        private static readonly ConditionalWeakTable<Project, Roslyn.Utilities.AsyncLazy<Checksum>> s_projectToDiagnosticChecksum = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -112,6 +118,60 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var analyzer = CreateIncrementalAnalyzer(project.Solution.Workspace);
             return analyzer.GetProjectDiagnosticsForIdsAsync(project, diagnosticIds, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics, cancellationToken);
+        }
+
+        public Task<Checksum> GetDiagnosticChecksumAsync(Project project, CancellationToken cancellationToken)
+            => StaticGetDiagnosticChecksumAsync(project, cancellationToken);
+
+        private static Task<Checksum> StaticGetDiagnosticChecksumAsync(Project project, CancellationToken cancellationToken)
+        {
+            var lazyChecksum = s_projectToDiagnosticChecksum.GetValue(
+                project,
+                static project => AsyncLazy.Create(
+                    static (project, cancellationToken) => ComputeDiagnosticChecksumAsync(project, cancellationToken),
+                    project));
+
+            return lazyChecksum.GetValueAsync(cancellationToken);
+
+            static async Task<Checksum> ComputeDiagnosticChecksumAsync(Project project, CancellationToken cancellationToken)
+            {
+                var solution = project.Solution;
+
+                using var _ = ArrayBuilder<Checksum>.GetInstance(out var tempChecksumArray);
+
+                // Mix in the SG information for this project.  That way if it changes, we will have a different
+                // checksum (since semantics could have changed because of this).
+                if (solution.CompilationState.SourceGeneratorExecutionVersionMap.Map.TryGetValue(project.Id, out var executionVersion))
+                    tempChecksumArray.Add(executionVersion.Checksum);
+
+                // Get the checksum for the project itself.  Note: this will normally be cached.  As such, even if we
+                // have a different Project instance (due to a change in an unrelated project), this will be fast to
+                // compute and return.
+                var projectChecksum = await project.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                tempChecksumArray.Add(projectChecksum);
+
+                // Calculate a checksum this project and for each dependent project that could affect semantics for this
+                // project. We order the projects so that we are resilient to the underlying in-memory graph structure
+                // changing this arbitrarily.  We do not want that to cause us to change our semantic version.. Note: we
+                // use the project filepath+name as a unique way to reference a project.  This matches the logic in our
+                // persistence-service implementation as to how information is associated with a project.
+                var transitiveDependencies = solution.SolutionState.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(project.Id);
+                var orderedProjectIds = transitiveDependencies.OrderBy(id =>
+                {
+                    var depProject = solution.SolutionState.GetRequiredProjectState(id);
+                    return (depProject.FilePath, depProject.Name);
+                });
+
+                foreach (var projectId in orderedProjectIds)
+                {
+                    // Note that these checksums should only actually be calculated once, if the project is unchanged
+                    // the same checksum will be returned.
+                    tempChecksumArray.Add(await StaticGetDiagnosticChecksumAsync(
+                        solution.GetRequiredProject(projectId), cancellationToken).ConfigureAwait(false));
+                }
+
+                return Checksum.Create(tempChecksumArray);
+            }
         }
 
         public TestAccessor GetTestAccessor()
