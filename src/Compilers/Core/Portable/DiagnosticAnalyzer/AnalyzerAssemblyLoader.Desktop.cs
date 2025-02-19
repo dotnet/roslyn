@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         private bool _hookedAssemblyResolve;
 
         internal AnalyzerAssemblyLoader()
-         : this([])
+         : this(analyzerPathResolvers: [])
         {
         }
 

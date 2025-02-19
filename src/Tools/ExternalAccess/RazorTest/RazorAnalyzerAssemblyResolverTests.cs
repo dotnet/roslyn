@@ -26,7 +26,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
 
     public RazorAnalyzerAssemblyResolverTests()
     {
-        InitialAassemblyCount = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.Count();
+        InitialAssemblyCount = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.Count();
     }
 
     public void Dispose()

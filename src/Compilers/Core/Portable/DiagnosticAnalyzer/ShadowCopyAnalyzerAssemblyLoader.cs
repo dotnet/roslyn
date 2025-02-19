@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ConcurrentDictionary<string, string> _shadowToOriginalPathMap = new(AnalyzerAssemblyLoader.GeneratedPathComparer);
 
         /// <summary>
-        /// This interface can be called from mulitple threads for the same original assembly path. This
+        /// This interface can be called from multiple threads for the same original assembly path. This
         /// is a map between the original path and the Task that completes when the shadow copy for that
         /// original path completes.
         /// </summary>
@@ -185,13 +185,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private string GetAnalyzerShadowDirectory(string analyzerFilePath)
         {
-            var orignalDirName = Path.GetDirectoryName(analyzerFilePath)!;
-            var shadowDirName = _originalDirectoryMap.GetOrAdd(orignalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString();
+            var originalDirName = Path.GetDirectoryName(analyzerFilePath)!;
+            var shadowDirName = _originalDirectoryMap.GetOrAdd(originalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString();
             return Path.Combine(_shadowDirectory, shadowDirName);
         }
 
         /// <summary>
-        /// This type has account for multiple threads calling into the various Before APIs. To avoid two threads
+        /// This type has to account for multiple threads calling into the various resolver APIs. To avoid two threads
         /// writing at the same time this method is used to ensure only one thread _wins_ and both can wait for 
         /// that thread to complete the copy.
         /// </summary>
