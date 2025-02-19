@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        protected void LookupExtensionMembersInSingleBinder(LookupResult result, TypeSymbol receiverType,
+        private void LookupExtensionMembersInSingleBinder(LookupResult result, TypeSymbol receiverType,
             string name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
             Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
-            GetCompatibleExtensions(binder: this, receiverType, compatibleExtensions, originalBinder, ref useSiteInfo);
+            getCompatibleExtensions(binder: this, receiverType, compatibleExtensions, originalBinder, ref useSiteInfo);
 
             var tempResult = LookupResult.GetInstance();
             foreach (NamedTypeSymbol extension in compatibleExtensions)
@@ -202,26 +202,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             tempResult.Free();
             compatibleExtensions.Free();
-        }
-
-        private static void GetCompatibleExtensions(Binder binder, TypeSymbol receiverType, ArrayBuilder<NamedTypeSymbol> compatibleExtensions,
-            Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            Debug.Assert(!receiverType.IsDynamic());
-            if (receiverType.IsErrorType())
-            {
-                return;
-            }
-
-            var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            binder.GetExtensionContainers(extensions, originalBinder);
-
-            foreach (var extension in extensions)
-            {
-                addCompatibleExtension(binder, extension, receiverType, compatibleExtensions, ref useSiteInfo);
-            }
 
             return;
+
+            static void getCompatibleExtensions(Binder binder, TypeSymbol receiverType, ArrayBuilder<NamedTypeSymbol> compatibleExtensions,
+                Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert(!receiverType.IsDynamic());
+                if (receiverType.IsErrorType())
+                {
+                    return;
+                }
+
+                var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                binder.GetExtensionDeclarations(extensions, originalBinder);
+
+                foreach (var extension in extensions)
+                {
+                    addCompatibleExtension(binder, extension, receiverType, compatibleExtensions, ref useSiteInfo);
+                }
+
+                extensions.Free();
+                return;
+            }
 
             static void addCompatibleExtension(Binder binder, NamedTypeSymbol extension, TypeSymbol receiverType, ArrayBuilder<NamedTypeSymbol> compatibleExtensions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
@@ -890,13 +893,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         /// <summary>
-        /// Return the extension containers from this specific binding scope
+        /// Return the extension declarations from this specific binding scope
         /// Since the lookup of extension members is iterative, proceeding one binding scope at a time,
-        /// GetExtensionContainers should not defer to the next binding scope. Instead, the caller is
+        /// GetExtensionDeclarations should not defer to the next binding scope. Instead, the caller is
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
         /// </summary>
-        internal virtual void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        internal virtual void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
         {
         }
 #nullable disable

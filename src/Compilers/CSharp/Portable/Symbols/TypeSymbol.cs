@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => TypeKind == TypeKind.Extension;
 
         /// <summary>
-        /// For the type representing an extension container, returns the receiver parameter symbol.
+        /// For the type representing an extension declaration, returns the receiver parameter symbol.
         /// </summary>
         internal abstract ParameterSymbol? ExtensionParameter { get; }
 #nullable disable

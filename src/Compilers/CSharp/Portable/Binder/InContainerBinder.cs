@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
         {
             if (_container is NamespaceSymbol ns)
             {

@@ -7904,7 +7904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!invoked)
                     {
                         var nonMethodExtensionMember = ResolveExtensionMemberAccessIfResultIsNonMethod(node, boundLeft, rightName,
-                            typeArgumentsSyntax, typeArguments, diagnostics);
+                            typeArguments, diagnostics);
 
                         if (nonMethodExtensionMember is not null)
                         {
@@ -7983,8 +7983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // - if the extension member lookup finds nothing, then we return nothing and let the caller represent the failed member lookup with a BoundMethodGroup.
         internal BoundExpression? ResolveExtensionMemberAccessIfResultIsNonMethod(SyntaxNode syntax, BoundExpression receiver, string name,
-            SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
-            BindingDiagnosticBag diagnostics)
+            ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, BindingDiagnosticBag diagnostics)
         {
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
 
@@ -7997,7 +7996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
             {
-                Debug.Assert(typeArgumentsSyntax.IsEmpty());
+                Debug.Assert(typeArgumentsOpt.IsDefault);
                 diagnostics.AddRange(resolution.Diagnostics); // PROTOTYPE test dependencies/diagnostics
                 resolution.Free();
 
@@ -8006,6 +8005,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             resolution.Free();
             return null;
+        }
+
+        private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
+        {
+            receiver = ReplaceTypeOrValueReceiver(receiver, useType: extensionMember.IsStatic, diagnostics);
+
+            switch (extensionMember)
+            {
+                case PropertySymbol propertySymbol:
+                    return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
+
+                case NamedTypeSymbol namedTypeSymbol:
+                    Debug.Assert(namedTypeSymbol is ExtendedErrorTypeSymbol); // An error type is used to represent a bad result symbol (so we don't deal with type arguments)
+                    bool wasError = true;
+                    return BindTypeMemberOfType(receiver, namedTypeSymbol.Name, namedTypeSymbol, syntax, right: syntax, diagnostics, ref wasError);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(extensionMember.Kind);
+            }
         }
 #nullable disable
 
@@ -8066,7 +8084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!invoked)
                     {
                         var nonMethodExtensionMember = ResolveExtensionMemberAccessIfResultIsNonMethod(node, boundLeft, rightName,
-                            typeArgumentsSyntax, typeArgumentsWithAnnotations, diagnostics);
+                            typeArgumentsWithAnnotations, diagnostics);
 
                         if (nonMethodExtensionMember is not null)
                         {
@@ -8668,20 +8686,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options |= OverloadResolution.Options.AllowRefOmittedArguments;
                 }
 
-                CompoundUseSiteInfo<AssemblySymbol> overloadresolutionUseSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+                CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                 binder.OverloadResolution.MethodInvocationOverloadResolution(
                     methods: methodGroup.Methods,
                     typeArguments: methodGroup.TypeArguments,
                     receiver: methodGroup.Receiver,
                     arguments: actualArguments,
                     result: overloadResolutionResult,
-                    ref overloadresolutionUseSiteInfo,
+                    ref overloadResolutionUseSiteInfo,
                     options: options | OverloadResolution.Options.IsExtensionMethodResolution,
                     returnRefKind: returnRefKind,
                     returnType: returnType,
                     in callingConvention);
 
-                diagnostics.Add(expression, overloadresolutionUseSiteInfo);
+                diagnostics.Add(expression, overloadResolutionUseSiteInfo);
 
                 // Note: the MethodGroupResolution instance is responsible for freeing the method group,
                 //   the overload resolution result and its copy of arguments

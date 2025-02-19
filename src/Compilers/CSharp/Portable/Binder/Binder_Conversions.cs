@@ -738,25 +738,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
-        {
-            receiver = ReplaceTypeOrValueReceiver(receiver, useType: extensionMember.IsStatic, diagnostics);
-
-            switch (extensionMember)
-            {
-                case PropertySymbol propertySymbol:
-                    return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
-
-                case NamedTypeSymbol namedTypeSymbol:
-                    Debug.Assert(namedTypeSymbol is ExtendedErrorTypeSymbol); // An error type is used to represent a bad result symbol (so we don't deal with type arguments)
-                    bool wasError = true;
-                    return BindTypeMemberOfType(receiver, namedTypeSymbol.Name, namedTypeSymbol, syntax, right: syntax, diagnostics, ref wasError);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(extensionMember.Kind);
-            }
-        }
-
         private static BoundExpression ConvertObjectCreationExpression(
             SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, Conversion conversion, bool isCast, TypeSymbol destination,
             ConversionGroup? conversionGroupOpt, bool wasCompilerGenerated, BindingDiagnosticBag diagnostics)

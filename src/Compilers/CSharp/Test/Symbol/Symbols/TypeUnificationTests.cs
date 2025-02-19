@@ -94,6 +94,9 @@ class C
                     }
                 }
             }
+
+            AssertCanUnify(null, null);
+            AssertCannotUnify(classType, null);
         }
 
         [Fact]

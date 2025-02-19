@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
         {
             Debug.Assert(extensions.Count == 0);
 
