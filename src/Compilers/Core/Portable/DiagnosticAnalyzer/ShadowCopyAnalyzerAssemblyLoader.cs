@@ -51,11 +51,6 @@ namespace Microsoft.CodeAnalysis
         private readonly ConcurrentDictionary<string, int> _originalDirectoryMap = new(AnalyzerAssemblyLoader.OriginalPathComparer);
 
         /// <summary>
-        /// Map from the shadow assembly path to the original assembly path.
-        /// </summary>
-        private readonly ConcurrentDictionary<string, string> _shadowToOriginalPathMap = new(AnalyzerAssemblyLoader.GeneratedPathComparer);
-
-        /// <summary>
         /// This interface can be called from multiple threads for the same original assembly path. This
         /// is a map between the original path and the Task that completes when the shadow copy for that
         /// original path completes.
@@ -79,6 +74,14 @@ namespace Microsoft.CodeAnalysis
             if (baseDirectory is null)
             {
                 throw new ArgumentNullException(nameof(baseDirectory));
+            }
+
+            // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
+            // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
+            // effect
+            if (!Path.IsPathRooted(baseDirectory))
+            {
+                throw new ArgumentException($"Must be a full path: {baseDirectory}", nameof(baseDirectory));
             }
 
             _baseDirectory = baseDirectory;
@@ -159,7 +162,6 @@ namespace Microsoft.CodeAnalysis
         {
             var analyzerShadowDir = GetAnalyzerShadowDirectory(originalAnalyzerPath);
             var analyzerShadowPath = Path.Combine(analyzerShadowDir, Path.GetFileName(originalAnalyzerPath));
-            _shadowToOriginalPathMap[analyzerShadowPath] = originalAnalyzerPath;
             ShadowCopyFile(originalAnalyzerPath, analyzerShadowPath);
             return analyzerShadowPath;
         }

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests;
 public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
 {
     private TempRoot TempRoot { get; } = new TempRoot();
-    private int InitialAassemblyCount { get; }
+    private int InitialAssemblyCount { get; }
 
     public RazorAnalyzerAssemblyResolverTests()
     {
@@ -35,7 +35,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
 
         // This test should not change the set of assemblies loaded in the current context.
         var count = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.Count();
-        Assert.Equal(InitialAassemblyCount, count);
+        Assert.Equal(InitialAssemblyCount, count);
     }
 
     internal void CreateRazorAssemblies(string directory, string versionNumber = "1.0.0.0")

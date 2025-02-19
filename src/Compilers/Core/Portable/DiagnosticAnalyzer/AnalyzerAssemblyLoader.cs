@@ -227,6 +227,7 @@ namespace Microsoft.CodeAnalysis
 
         private (string ResolvedPath, AssemblyName? AssemblyName) GetResolvedAnalyzerPathAndName(string originalPath)
         {
+            CheckIfDisposed();
             lock (_guard)
             {
                 if (!_originalPathInfoMap.TryGetValue(originalPath, out var info))
@@ -268,13 +269,13 @@ namespace Microsoft.CodeAnalysis
         /// Get the path a satellite assembly should be loaded from for the given resolved 
         /// analyzer path and culture
         /// </summary>
-        private string? GetSatelliteLoadPath(string analyzerFilePath, CultureInfo cultureInfo)
+        private string? GetSatelliteLoadPath(string resolvedPath, CultureInfo cultureInfo)
         {
             string? originalPath;
 
             lock (_guard)
             {
-                if (!_resolvedToOriginalPathMap.TryGetValue(analyzerFilePath, out originalPath))
+                if (!_resolvedToOriginalPathMap.TryGetValue(resolvedPath, out originalPath))
                 {
                     return null;
                 }
@@ -371,13 +372,13 @@ namespace Microsoft.CodeAnalysis
             return (bestOriginalPath, bestResolvedPath);
         }
 
-        internal (string OriginalAssemblyPath, string ResolvedAssemblyPath)[] GetPathMapSnapshot()
+        internal ImmutableArray<(string OriginalAssemblyPath, string ResolvedAssemblyPath)> GetPathMapSnapshot()
         {
             CheckIfDisposed();
 
             lock (_guard)
             {
-                return _resolvedToOriginalPathMap.Select(x => (x.Value, x.Key)).ToArray();
+                return _resolvedToOriginalPathMap.Select(x => (x.Value, x.Key)).ToImmutableArray();
             }
         }
 
@@ -411,14 +412,6 @@ namespace Microsoft.CodeAnalysis
                     compilerLoadContext);
             }
 
-            // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
-            // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
-            // effect
-            if (!Path.IsPathRooted(windowsShadowPath))
-            {
-                throw new ArgumentException($"Must be a full path: {windowsShadowPath}", nameof(windowsShadowPath));
-            }
-
             // The goal here is to avoid locking files on disk that are reasonably expected to be changed by 
             // developers for the lifetime of VBCSCompiler, Visual Studio, VS Code, etc ... Places like 
             // Program Files are not expected to change and so locking is not a concern. But for everything else
@@ -442,14 +435,6 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<IAnalyzerPathResolver> pathResolvers = default)
         {
             pathResolvers = pathResolvers.NullToEmpty();
-
-            // The shadow copy analyzer should only be created on Windows. To create on Linux we cannot use 
-            // GetTempPath as it's not per-user. Generally there is no need as LoadFromStream achieves the same
-            // effect
-            if (!Path.IsPathRooted(windowsShadowPath))
-            {
-                throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
-            }
 
             // The goal here is to avoid locking files on disk that are reasonably expected to be changed by 
             // developers for the lifetime of VBCSCompiler, Visual Studio, VS Code, etc ... Places like 
