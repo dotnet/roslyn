@@ -306,6 +306,12 @@
   <data name="tuple" xml:space="preserve">
     <value>tuple</value>
   </data>
+  <data name="local_function" xml:space="preserve">
+    <value>local function</value>
+  </data>
+  <data name="Local_function" xml:space="preserve">
+    <value>Local function</value>
+  </data>
   <data name="out_var" xml:space="preserve">
     <value>out variable</value>
     <comment>{Locked="out"} "out" is a C# keyword and should not be localized.</comment>

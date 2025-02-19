@@ -48,6 +48,20 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
             => IntPtr.Zero;
     }
 
+    protected enum TargetEntity
+    {
+        Compilation,
+        Assembly,
+        Module,
+        Namespace,
+        NamespaceOrType,
+        NamedType,
+        Method,
+        Field,
+        Property,
+        Event
+    }
+
     private static readonly FindReferencesSearchOptions s_findReferencesSearchOptions = new()
     {
         DisplayAllDefinitions = true,
@@ -56,6 +70,8 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
     private const int StackDisplayDepthLimit = 32;
 
     protected abstract Compilation CreateCompilation(SourceText query, IEnumerable<MetadataReference> references, SolutionServices services, out SyntaxTree queryTree, CancellationToken cancellationToken);
+    protected abstract IMethodSymbol? TryGetFindMethod(Compilation queryCompilation, SyntaxNode queryRoot, out TargetEntity targetEntity, out string? targetLanguage, out string? errorMessage, out string[]? errorMessageArgs);
+    protected abstract string MethodNotFoundMessage { get; }
 
     public async Task<ExecuteQueryResult> ExecuteQueryAsync(
         Solution solution,
@@ -68,6 +84,9 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
     {
         try
         {
+            var executionTime = TimeSpan.Zero;
+            var emitTime = TimeSpan.Zero;
+
             // add progress items - one for compilation, one for emit and one for each project:
             var remainingProgressItemCount = 2 + solution.ProjectIds.Count;
             await observer.AddItemsAsync(remainingProgressItemCount, cancellationToken).ConfigureAwait(false);
@@ -76,6 +95,14 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
             var metadataReferences = SemanticSearchUtilities.GetMetadataReferences(metadataService, referenceAssembliesDir);
             var queryText = SemanticSearchUtilities.CreateSourceText(query);
             var queryCompilation = CreateCompilation(queryText, metadataReferences, solution.Services, out var queryTree, cancellationToken);
+            var queryRoot = await queryTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var findMethodSymbol = TryGetFindMethod(queryCompilation, queryRoot, out var targetEntity, out var targetLanguage, out var errorMessage, out var errorMessageArgs);
+            if (findMethodSymbol == null)
+            {
+                traceSource.TraceInformation($"Semantic search failed: {errorMessage}");
+                return CreateResult(errorMessage, errorMessageArgs);
+            }
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -92,9 +119,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
 
             var emitDifferenceTimer = SharedStopwatch.StartNew();
             var emitResult = queryCompilation.Emit(peStream, pdbStream, options: emitOptions, cancellationToken: cancellationToken);
-            var emitTime = emitDifferenceTimer.Elapsed;
-
-            var executionTime = TimeSpan.Zero;
+            emitTime = emitDifferenceTimer.Elapsed;
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -134,7 +159,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 Contract.ThrowIfNull(moduleCancellationTokenField);
                 moduleCancellationTokenField.SetValue(null, cancellationToken);
 
-                if (!TryGetFindMethod(queryAssembly, out var findMethod, out var errorMessage, out var errorMessageArgs))
+                if (!TryGetFindMethod(queryAssembly, findMethodSymbol, out var findMethod, out errorMessage, out errorMessageArgs))
                 {
                     traceSource.TraceInformation($"Semantic search failed: {errorMessage}");
                     return CreateResult(errorMessage, errorMessageArgs);
@@ -239,6 +264,11 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         }
     }
 
+    //private static Task[] GetSearchTasks(Solution solution, IMethodSymbol findMethod, TargetEntity targetEntity, string? targetLanguage)
+    //{
+
+    //}
+
     private static ImmutableArray<TaggedText> GetExceptionTypeTaggedText(Exception e, Compilation compilation)
         => e.GetType().FullName is { } exceptionTypeName
            ? compilation.GetTypeByMetadataName(exceptionTypeName) is { } exceptionTypeSymbol
@@ -322,18 +352,42 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
 #endif
     }
 
-    private static bool TryGetFindMethod(Assembly queryAssembly, [NotNullWhen(true)] out MethodInfo? method, out string? error, out string[]? errorMessageArgs)
+    // TODO: remove https://github.com/dotnet/roslyn/issues/72844
+    private static string GetQualifiedMetadataName(INamedTypeSymbol type)
     {
-        // TODO: Use Compilation APIs to find the method
+        var builder = new StringBuilder();
+        AppendNames(type);
+        return builder.ToString();
 
+        void AppendNames(INamespaceOrTypeSymbol symbol)
+        {
+            if (symbol.ContainingType is { } containingType)
+            {
+                AppendNames(containingType);
+                builder.Append('+');
+            }
+            else if (symbol.ContainingNamespace is { IsGlobalNamespace: false } ns)
+            {
+                AppendNames(ns);
+                builder.Append('.');
+            }
+
+            builder.Append(symbol.MetadataName);
+        }
+    }
+
+    private bool TryGetFindMethod(Assembly queryAssembly, IMethodSymbol symbol, [NotNullWhen(true)] out MethodInfo? method, out string? error, out string[]? errorMessageArgs)
+    {
         method = null;
         error = null;
         errorMessageArgs = null;
 
-        Type? program;
+        var qualifiedTypeMetadataName = GetQualifiedMetadataName(symbol.ContainingType);
+
+        Type? type;
         try
         {
-            program = queryAssembly.GetType(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, throwOnError: false);
+            type = queryAssembly.GetType(qualifiedTypeMetadataName, throwOnError: true);
         }
         catch (Exception e)
         {
@@ -342,94 +396,58 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
             return false;
         }
 
-        if (program != null)
-        {
-            try
-            {
-                method = GetFindMethod(program, allowLocalFunction: true, ref error);
-            }
-            catch
-            {
-            }
+        Contract.ThrowIfNull(type);
 
-            if (method != null)
-            {
-                return true;
-            }
-        }
-
-        Type[] types;
         try
         {
-            types = queryAssembly.GetTypes();
-        }
-        catch (TypeLoadException e)
-        {
-            error = FeaturesResources.Unable_to_load_type_0_1;
-            errorMessageArgs = [e.TypeName, e.Message];
-            method = null;
-            return false;
-        }
-
-        foreach (var type in types)
-        {
-            method = GetFindMethod(type, allowLocalFunction: false, ref error);
-            if (method != null)
-            {
-                return true;
-            }
-        }
-
-        error ??= string.Format(FeaturesResources.The_query_does_not_specify_0_method_or_top_level_function, SemanticSearchUtilities.FindMethodName);
-        return false;
-    }
-
-    private static MethodInfo? GetFindMethod(Type type, bool allowLocalFunction, ref string? error)
-    {
-        try
-        {
-            using var _ = ArrayBuilder<MethodInfo>.GetInstance(out var candidates);
-
-            foreach (var candidate in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance))
-            {
-                if (candidate.Name == SemanticSearchUtilities.FindMethodName ||
-                    allowLocalFunction && candidate.Name.StartsWith($"<{WellKnownMemberNames.TopLevelStatementsEntryPointMethodName}>g__{SemanticSearchUtilities.FindMethodName}|"))
-                {
-                    candidates.Add(candidate);
-                }
-            }
-
-            if (candidates is [])
-            {
-                error = string.Format(FeaturesResources.The_query_does_not_specify_0_method_or_top_level_function, SemanticSearchUtilities.FindMethodName);
-                return null;
-            }
-
-            candidates.RemoveAll(candidate => candidate.IsGenericMethod || !candidate.IsStatic);
-            if (candidates is [])
-            {
-                error = string.Format(FeaturesResources.Method_0_must_be_static_and_non_generic, SemanticSearchUtilities.FindMethodName);
-                return null;
-            }
-
-            candidates.RemoveAll(candidate => !(
-                typeof(IEnumerable<ISymbol>).IsAssignableFrom(candidate.ReturnType) &&
-                candidate.GetParameters() is [{ ParameterType: var paramType }] &&
-                typeof(Compilation).IsAssignableFrom(paramType)));
-
-            if (candidates is [])
-            {
-                error = string.Format(FeaturesResources.Method_0_must_have_a_single_parameter_of_type_1_and_return_2, SemanticSearchUtilities.FindMethodName, nameof(Compilation));
-                return null;
-            }
-
-            Debug.Assert(candidates.Count == 1);
-            return candidates[0];
+            method = type.GetMethod(symbol.MetadataName, genericParameterCount: 0, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static, binder: null, types: [], modifiers: []);
         }
         catch (Exception e)
         {
-            error = e.Message;
-            return null;
+            error = FeaturesResources.Unable_to_load_method_0_1;
+            errorMessageArgs = [$"{type.FullName}.{symbol.MetadataName}", e.Message];
+            return false;
+        }
+
+        if (method != null)
+        {
+            return true;
+        }
+
+        method = type.GetMethods().FirstOrDefault(m => m.Name == symbol.MetadataName);
+        if (method != null)
+        {
+            error = FeaturesResources.Method_0_has_an_unexpected_signature_1;
+            errorMessageArgs = [$"{type.FullName}.{method.Name}", method.ToString() ?? ""];
+        }
+        else
+        {
+            error = MethodNotFoundMessage;
+        }
+
+        return false;
+    }
+
+    private static IEnumerable<INamedTypeSymbol> GetDeclaredTopLevelTypes(Compilation compilation)
+    {
+        var stack = new Stack<INamespaceOrTypeSymbol>();
+        stack.Push(compilation.Assembly.GlobalNamespace);
+
+        while (stack.Count > 0)
+        {
+            foreach (var member in stack.Pop().GetMembers())
+            {
+                switch (member)
+                {
+                    case INamedTypeSymbol type:
+                        yield return type;
+                        break;
+
+                    case INamespaceSymbol ns:
+                        stack.Push(ns);
+                        break;
+                }
+            }
         }
     }
 }
