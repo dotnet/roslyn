@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private const string CommonReferencesNet9Name = "CommonReferencesNet9";
         private const string CommonReferencesNetStandard20Name = "CommonReferencesNetStandard20";
         private const string CommonReferencesMinCorlibName = "CommonReferencesMinCorlib";
-        private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
         private const string FilePathAttributeName = "FilePath";
         private const string FoldersAttributeName = "Folders";
         private const string KindAttributeName = "Kind";
@@ -721,7 +720,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// Takes completely valid code, compiles it, and emits it to a MetadataReference without using
         /// the file system
         /// </summary>
-        private MetadataReference CreateMetadataReferenceFromSource(XElement projectElement, XElement referencedSource)
+        protected virtual (MetadataReference reference, ImmutableArray<byte> peImage) CreateMetadataReferenceFromSource(XElement projectElement, XElement referencedSource)
         {
             var compilation = CreateCompilation(referencedSource);
 
@@ -737,17 +736,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 includeXmlDocComments = true;
             }
 
-            var referencesOnDisk = projectElement.Attribute(ReferencesOnDiskAttributeName) is { } onDiskAttribute
-                && ((bool?)onDiskAttribute).GetValueOrDefault();
-
             var image = compilation.EmitToArray();
             var metadataReference = MetadataReference.CreateFromImage(image, new MetadataReferenceProperties(aliases: aliases), includeXmlDocComments ? new DeferredDocumentationProvider(compilation) : null);
-            if (referencesOnDisk)
-            {
-                AssemblyResolver.TestAccessor.AddInMemoryImage(metadataReference, "unknown", image);
-            }
-
-            return metadataReference;
+            return (metadataReference, image);
         }
 
         private Compilation CreateCompilation(XElement referencedSource)
@@ -814,7 +805,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             foreach (var metadataReferenceFromSource in element.Elements(MetadataReferenceFromSourceElementName))
             {
-                references.Add(CreateMetadataReferenceFromSource(element, metadataReferenceFromSource));
+                references.Add(CreateMetadataReferenceFromSource(element, metadataReferenceFromSource).reference);
             }
 
             return references;

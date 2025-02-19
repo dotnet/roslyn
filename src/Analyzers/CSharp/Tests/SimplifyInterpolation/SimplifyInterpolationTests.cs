@@ -16,13 +16,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyInterpolation)]
-public partial class SimplifyInterpolationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class SimplifyInterpolationTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public SimplifyInterpolationTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpSimplifyInterpolationDiagnosticAnalyzer(), new CSharpSimplifyInterpolationCodeFixProvider());
 
@@ -1355,6 +1351,24 @@ public partial class SimplifyInterpolationTests : AbstractCSharpDiagnosticProvid
                 void M(bool cond)
                 {
                     _ = $"{(cond ? "1" : "2"),3}";
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47956")]
+    public async Task TestNotPassedToFormattableString1()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void B() => M($"{args[||].Length.ToString()}");
+
+                void M(FormattableString fs)
+                {
+                    foreach (object o in fs.GetArguments())
+                        Console.WriteLine(o?.GetType());
                 }
             }
             """);

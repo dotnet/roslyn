@@ -67,7 +67,6 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
                         arguments.ProjectAnalyzerIds, arguments.HostAnalyzerIds, documentAnalysisKind,
                         _analyzerInfoCache, hostWorkspaceServices,
                         isExplicit: arguments.IsExplicit,
-                        reportSuppressedDiagnostics: arguments.ReportSuppressedDiagnostics,
                         logPerformanceInfo: arguments.LogPerformanceInfo,
                         getTelemetryInfo: arguments.GetTelemetryInfo,
                         cancellationToken).ConfigureAwait(false);

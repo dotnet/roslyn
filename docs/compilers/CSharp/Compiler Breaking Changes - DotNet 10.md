@@ -273,3 +273,44 @@ class MyClass
     }
 }
 ```
+
+## `record` and `record struct` types cannot define pointer type members, even when providing their own Equals implementations
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+The specification for `record class` and `record struct` types indicated that any pointer types are disallowed as instance fields.
+However, this was not enforced correctly when the `record class` or `record struct` type defined its own `Equals` implementation.
+
+The compiler now correctly forbids this.
+
+```cs
+unsafe record struct R(
+    int* P // Previously fine, now CS8908
+)
+{
+    public bool Equals(R other) => true;
+}
+```
+
+## Emitting metadata-only executables requires an entrypoint
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+Previously, the entrypoint was [unintentionally unset](https://github.com/dotnet/roslyn/issues/76707)
+when emitting executables in metadata-only mode (also known as ref assemblies).
+That is now corrected but it also means that a missing entrypoint is a compilation error:
+
+```cs
+// previously successful, now fails:
+CSharpCompilation.Create("test").Emit(new MemoryStream(),
+    options: EmitOptions.Default.WithEmitMetadataOnly(true))
+
+CSharpCompilation.Create("test",
+    // workaround - mark as DLL instead of EXE (the default):
+    options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+    .Emit(new MemoryStream(),
+        options: EmitOptions.Default.WithEmitMetadataOnly(true))
+```
+
+Similarly this can be observed when using the command-line argument `/refonly`
+or the `ProduceOnlyReferenceAssembly` MSBuild property.

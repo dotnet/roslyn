@@ -277,7 +277,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         var modifierList = AsModifierList(accessibility, modifiers, SyntaxKind.OperatorDeclaration);
         var attributes = default(SyntaxList<AttributeListSyntax>);
 
-        if (operatorName is WellKnownMemberNames.ImplicitConversionName or WellKnownMemberNames.ExplicitConversionName)
+        if (operatorName is WellKnownMemberNames.ImplicitConversionName or WellKnownMemberNames.ExplicitConversionName or WellKnownMemberNames.CheckedExplicitConversionName)
         {
             var isImplicit = operatorName is WellKnownMemberNames.ImplicitConversionName;
             return SyntaxFactory.ConversionOperatorDeclaration(
@@ -285,7 +285,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
                 isImplicit ? ImplicitKeyword : ExplicitKeyword,
                 explicitInterfaceSpecifier: null,
                 OperatorKeyword,
-                checkedKeyword: default,
+                checkedKeyword: CSharp.SyntaxFacts.IsCheckedOperator(operatorName) ? CheckedKeyword : default,
                 returnTypeNode, parameterList, body, expressionBody: null, semicolon);
         }
         else
@@ -440,13 +440,15 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     public override SyntaxNode WithAccessorDeclarations(SyntaxNode declaration, IEnumerable<SyntaxNode> accessorDeclarations)
         => declaration switch
         {
-            PropertyDeclarationSyntax property => property.WithAccessorList(CreateAccessorList(property.AccessorList, accessorDeclarations))
-                              .WithExpressionBody(null)
-                              .WithSemicolonToken(default),
+            PropertyDeclarationSyntax property =>
+                property.WithAccessorList(CreateAccessorList(property.AccessorList, accessorDeclarations))
+                        .WithExpressionBody(null)
+                        .WithSemicolonToken(property.Initializer is null ? default : property.SemicolonToken),
 
-            IndexerDeclarationSyntax indexer => indexer.WithAccessorList(CreateAccessorList(indexer.AccessorList, accessorDeclarations))
-                              .WithExpressionBody(null)
-                              .WithSemicolonToken(default),
+            IndexerDeclarationSyntax indexer =>
+                indexer.WithAccessorList(CreateAccessorList(indexer.AccessorList, accessorDeclarations))
+                       .WithExpressionBody(null)
+                       .WithSemicolonToken(default),
 
             _ => declaration,
         };

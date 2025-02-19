@@ -30,13 +30,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Rename;
 
 [ExportLanguageService(typeof(IRenameRewriterLanguageService), LanguageNames.CSharp), Shared]
-internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLanguageService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewriterLanguageService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpRenameConflictLanguageService()
-    {
-    }
     #region "Annotation"
 
     public override SyntaxNode AnnotateAndRename(RenameRewriterParameters parameters)
@@ -1071,14 +1068,14 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
                             }
                         }
                     }
-                    else if (symbol.Kind == SymbolKind.Property && symbol.Name == "Current")
+                    else if (symbol is IPropertySymbol
                     {
-                        var property = (IPropertySymbol)symbol;
-
-                        if (!property.Parameters.Any() && !property.IsWriteOnly)
-                        {
-                            return [originalDeclarationLocation];
-                        }
+                        Name: "Current",
+                        Parameters.Length: 0,
+                        IsWriteOnly: false,
+                    })
+                    {
+                        return [originalDeclarationLocation];
                     }
                 }
             }
@@ -1123,10 +1120,8 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
         else
         {
             var name = SyntaxFactory.ParseName(replacementText);
-            if (name.Kind() == SyntaxKind.IdentifierName)
-            {
-                valueText = ((IdentifierNameSyntax)name).Identifier.ValueText;
-            }
+            if (name is IdentifierNameSyntax identifierName)
+                valueText = identifierName.Identifier.ValueText;
         }
 
         // this also covers the case of an escaped replacementText

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 internal class AlwaysActiveLanguageClientEventListener(
     AlwaysActivateInProcLanguageClient languageClient,
     Lazy<ILanguageClientBroker> languageClientBroker,
-    IAsynchronousOperationListenerProvider listenerProvider) : IEventListener<object>
+    IAsynchronousOperationListenerProvider listenerProvider) : IEventListener
 {
     private readonly AlwaysActivateInProcLanguageClient _languageClient = languageClient;
     private readonly Lazy<ILanguageClientBroker> _languageClientBroker = languageClientBroker;
@@ -38,10 +38,15 @@ internal class AlwaysActiveLanguageClientEventListener(
     /// agnostic.  We know we can provide <see cref="AlwaysActivateInProcLanguageClient"/> as soon as the
     /// workspace is started, so tell the <see cref="ILanguageClientBroker"/> to start loading it.
     /// </summary>
-    public void StartListening(Workspace workspace, object serviceOpt)
+    public void StartListening(Workspace workspace)
     {
         // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
         _ = LoadAsync();
+    }
+
+    public void StopListening(Workspace workspace)
+    {
+        // Nothing to do here.  There's no concept of unloading an ILanguageClient.
     }
 
     private async Task LoadAsync()

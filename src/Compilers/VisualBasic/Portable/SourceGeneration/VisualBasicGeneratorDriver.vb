@@ -53,6 +53,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property EmbeddedAttributeDefinition As String
+            Get
+                Return "Namespace Microsoft.CodeAnalysis
+    Friend NotInheritable Partial Class EmbeddedAttribute
+        Inherits Global.System.Attribute
+    End Class
+End Namespace"
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property SyntaxHelper As ISyntaxHelper = VisualBasicSyntaxHelper.Instance
     End Class
 End Namespace

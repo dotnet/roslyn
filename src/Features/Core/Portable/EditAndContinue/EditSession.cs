@@ -108,8 +108,12 @@ internal sealed class EditSession
         Capabilities = AsyncLazy.Create(static (self, cancellationToken) =>
             self.GetCapabilitiesAsync(cancellationToken),
             arg: this);
-        Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities);
+
+        Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities, debuggingSession.AnalysisLog);
     }
+
+    public TraceLog Log
+        => DebuggingSession.SessionLog;
 
     /// <summary>
     /// The compiler has various scenarios that will cause it to synthesize things that might not be covered
@@ -423,7 +427,7 @@ internal sealed class EditSession
         return false;
     }
 
-    internal static async Task PopulateChangedAndAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, ArrayBuilder<ProjectDiagnostics> diagnostics, CancellationToken cancellationToken)
+    internal static async Task PopulateChangedAndAddedDocumentsAsync(TraceLog log, Project oldProject, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, ArrayBuilder<ProjectDiagnostics> diagnostics, CancellationToken cancellationToken)
     {
         changedOrAddedDocuments.Clear();
 
@@ -432,10 +436,10 @@ internal sealed class EditSession
             return;
         }
 
-        var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(oldProject, diagnostics, cancellationToken).ConfigureAwait(false);
+        var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, oldProject, diagnostics, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var newSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(newProject, diagnostics, cancellationToken).ConfigureAwait(false);
+        var newSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, newProject, diagnostics, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
         foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
@@ -461,7 +465,7 @@ internal sealed class EditSession
         }
     }
 
-    private static async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(Project project, ArrayBuilder<ProjectDiagnostics>? diagnostics, CancellationToken cancellationToken)
+    private static async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(TraceLog log, Project project, ArrayBuilder<ProjectDiagnostics>? diagnostics, CancellationToken cancellationToken)
     {
         var generatorDiagnostics = await project.Solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, cancellationToken).ConfigureAwait(false);
 
@@ -472,7 +476,12 @@ internal sealed class EditSession
 
         foreach (var generatorDiagnostic in generatorDiagnostics)
         {
-            EditAndContinueService.Log.Write("Source generator failed: {0}", generatorDiagnostic);
+            log.Write($"Source generator failed: {generatorDiagnostic}", generatorDiagnostic.Severity switch
+            {
+                DiagnosticSeverity.Warning => LogMessageSeverity.Warning,
+                DiagnosticSeverity.Error => LogMessageSeverity.Error,
+                _ => LogMessageSeverity.Info
+            });
         }
 
         return await project.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
@@ -481,7 +490,7 @@ internal sealed class EditSession
     /// <summary>
     /// Enumerates <see cref="DocumentId"/>s of changed (not added or removed) <see cref="Document"/>s (not additional nor analyzer config).
     /// </summary>
-    internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(Project oldProject, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
+    internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(TraceLog log, Project oldProject, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         Debug.Assert(oldProject.Id == newProject.Id);
 
@@ -511,10 +520,10 @@ internal sealed class EditSession
             yield break;
         }
 
-        var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(oldProject, diagnostics: null, cancellationToken).ConfigureAwait(false);
+        var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, oldProject, diagnostics: null, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var newSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(newProject, diagnostics: null, cancellationToken).ConfigureAwait(false);
+        var newSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, newProject, diagnostics: null, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
         foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
@@ -798,11 +807,9 @@ internal sealed class EditSession
 
     public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, UpdateId updateId, CancellationToken cancellationToken)
     {
-        var log = EditAndContinueService.Log;
-
         try
         {
-            log.Write("EmitSolutionUpdate {0}.{1}: '{2}'", updateId.SessionId.Ordinal, updateId.Ordinal, solution.FilePath);
+            Log.Write($"Found {updateId.SessionId} potentially changed document(s) in project {updateId.Ordinal} '{solution.FilePath}'");
 
             using var _1 = ArrayBuilder<ManagedHotReloadUpdate>.GetInstance(out var deltas);
             using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
@@ -818,7 +825,7 @@ internal sealed class EditSession
             var hasEmitErrors = false;
             foreach (var newProject in solution.Projects)
             {
-                if (!newProject.SupportsEditAndContinue(log))
+                if (!newProject.SupportsEditAndContinue(Log))
                 {
                     continue;
                 }
@@ -826,7 +833,7 @@ internal sealed class EditSession
                 var oldProject = oldSolution.GetProject(newProject.Id);
                 if (oldProject == null)
                 {
-                    log.Write("EnC state of {0} '{1}' queried: project not loaded", newProject.Name, newProject.FilePath);
+                    Log.Write($"EnC state of {newProject.Name} '{newProject.FilePath}' queried: project not loaded");
 
                     // TODO (https://github.com/dotnet/roslyn/issues/1204):
                     //
@@ -842,13 +849,13 @@ internal sealed class EditSession
                     continue;
                 }
 
-                await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, diagnostics, cancellationToken).ConfigureAwait(false);
+                await PopulateChangedAndAddedDocumentsAsync(Log, oldProject, newProject, changedOrAddedDocuments, diagnostics, cancellationToken).ConfigureAwait(false);
                 if (changedOrAddedDocuments.IsEmpty)
                 {
                     continue;
                 }
 
-                log.Write("Found {0} potentially changed document(s) in project {1} '{2}'", changedOrAddedDocuments.Count, newProject.Name, newProject.FilePath);
+                Log.Write($"Found {changedOrAddedDocuments.Count} potentially changed document(s) in project {newProject.Name} '{newProject.FilePath}'");
 
                 var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                 if (mvidReadError != null)
@@ -865,7 +872,7 @@ internal sealed class EditSession
 
                 if (mvid == Guid.Empty)
                 {
-                    log.Write("Emitting update of {0} '{1}': project not built", newProject.Name, newProject.FilePath);
+                    Log.Write($"Emitting update of {newProject.Name} '{newProject.FilePath}': project not built");
                     continue;
                 }
 
@@ -901,18 +908,18 @@ internal sealed class EditSession
                         // only remember the first syntax error we encounter:
                         syntaxError ??= changedDocumentAnalysis.SyntaxError;
 
-                        log.Write("Changed document '{0}' has syntax error: {1}", changedDocumentAnalysis.FilePath, changedDocumentAnalysis.SyntaxError);
+                        Log.Write($"Changed document '{changedDocumentAnalysis.FilePath}' has syntax error: {changedDocumentAnalysis.SyntaxError}");
                     }
                     else if (changedDocumentAnalysis.HasChanges)
                     {
-                        log.Write("Document changed, added, or deleted: '{0}'", changedDocumentAnalysis.FilePath);
+                        Log.Write($"Document changed, added, or deleted: '{changedDocumentAnalysis.FilePath}'");
                     }
 
                     Telemetry.LogAnalysisTime(changedDocumentAnalysis.ElapsedTime);
                 }
 
                 var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
-                log.Write("Project summary for {0} '{1}': {2}", newProject.Name, newProject.FilePath, projectSummary);
+                Log.Write($"Project summary for {newProject.Name} '{newProject.FilePath}': {projectSummary}");
 
                 if (projectSummary == ProjectAnalysisSummary.NoChanges)
                 {
@@ -972,7 +979,7 @@ internal sealed class EditSession
 
                 Contract.ThrowIfTrue(projectBaselines.IsEmpty);
 
-                log.Write("Emitting update of '{0}' {1}", newProject.Name, newProject.FilePath);
+                Log.Write($"Emitting update of {newProject.Name} '{newProject.FilePath}': project not built");
 
                 var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -1092,7 +1099,7 @@ internal sealed class EditSession
                     nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
                     newProjectBaselines.Add(new ProjectBaseline(mvid, projectBaseline.ProjectId, emitResult.Baseline, projectBaseline.Generation + 1));
 
-                    var fileLog = log.FileLog;
+                    var fileLog = Log.FileLog;
                     if (fileLog != null)
                     {
                         await LogDeltaFilesAsync(fileLog, delta, projectBaseline.Generation, oldProject, newProject, cancellationToken).ConfigureAwait(false);
@@ -1103,7 +1110,7 @@ internal sealed class EditSession
 
                 async ValueTask LogDocumentChangesAsync(int? generation, CancellationToken cancellationToken)
                 {
-                    var fileLog = log.FileLog;
+                    var fileLog = Log.FileLog;
                     if (fileLog != null)
                     {
                         foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
@@ -1146,7 +1153,7 @@ internal sealed class EditSession
 
         bool LogException(Exception e)
         {
-            log.Write("Exception while emitting update: {0}", e.ToString());
+            Log.Write($"Exception while emitting update: {e}", LogMessageSeverity.Error);
             return true;
         }
     }

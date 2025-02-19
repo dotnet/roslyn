@@ -873,10 +873,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     }
 
     private static bool IsDelegateInvoke(ISymbol symbol)
-    {
-        return symbol.Kind == SymbolKind.Method &&
-            ((IMethodSymbol)symbol).MethodKind == MethodKind.DelegateInvoke;
-    }
+        => symbol is IMethodSymbol { MethodKind: MethodKind.DelegateInvoke };
 
     private static bool IsAnonymousDelegateInvoke(ISymbol symbol)
     {

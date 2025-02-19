@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             {
                 Assert.Equal(1, results.Length);
                 Assert.Equal(2, results[0].Diagnostics?.Length);
-                var orderedDiagnostics = results[0].Diagnostics.OrderBy(d => d.Code!.Value.Value).ToList();
+                var orderedDiagnostics = results[0].Diagnostics!.OrderBy(d => d.Code!.Value.Value).ToList();
                 Assert.Equal(NonLocalDiagnosticsAnalyzer.NonLocalDescriptor.Id, orderedDiagnostics[0].Code);
                 Assert.Equal(NonLocalDiagnosticsAnalyzer.CompilationEndDescriptor.Id, orderedDiagnostics[1].Code);
                 Assert.Equal(document.GetURI(), results[0].Uri);

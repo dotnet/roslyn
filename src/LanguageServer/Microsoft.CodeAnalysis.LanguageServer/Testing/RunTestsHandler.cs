@@ -50,6 +50,8 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
         // Find the appropriate vstest.console.dll from the SDK.
         var vsTestConsolePath = await dotnetCliHelper.GetVsTestConsolePathAsync(projectOutputDirectory, cancellationToken);
 
+        var dotnetRootUser = Environment.GetEnvironmentVariable("DOTNET_ROOT_USER");
+
         // Instantiate the test platform wrapper.
         var vsTestConsoleWrapper = new VsTestConsoleWrapper(vsTestConsolePath, new ConsoleParameters
         {
@@ -58,7 +60,7 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
             EnvironmentVariables = new()
             {
                 // Reset dotnet root so that vs test console can find the right runtimes.
-                { DotnetCliHelper.DotnetRootEnvVar, string.Empty },
+                { DotnetCliHelper.DotnetRootEnvVar, string.IsNullOrEmpty(dotnetRootUser) || dotnetRootUser == "EMPTY" ? string.Empty : dotnetRootUser }
             }
         });
 

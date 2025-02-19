@@ -6,6 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -13,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -28,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 
 public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
 {
+    private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
+
     private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = [];
 
     internal EditorTestWorkspace(
@@ -36,15 +43,13 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
         Guid solutionTelemetryId = default,
         bool disablePartialSolutions = true,
         bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
-        WorkspaceConfigurationOptions? configurationOptions = null,
-        bool supportsLspMutation = false)
+        WorkspaceConfigurationOptions? configurationOptions = null)
         : base(composition ?? EditorTestCompositions.EditorFeatures,
                workspaceKind,
                solutionTelemetryId,
                disablePartialSolutions,
                ignoreUnchangeableDocumentsWhenApplyingChanges,
-               configurationOptions,
-               supportsLspMutation)
+               configurationOptions)
     {
     }
 
@@ -503,5 +508,20 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
 
             return textBuffer;
         });
+    }
+
+    protected override (MetadataReference reference, ImmutableArray<byte> peImage) CreateMetadataReferenceFromSource(XElement projectElement, XElement referencedSource)
+    {
+        var (reference, image) = base.CreateMetadataReferenceFromSource(projectElement, referencedSource);
+
+        var referencesOnDisk = projectElement.Attribute(ReferencesOnDiskAttributeName) is { } onDiskAttribute
+            && ((bool?)onDiskAttribute).GetValueOrDefault();
+
+        if (referencesOnDisk)
+        {
+            AssemblyResolver.TestAccessor.AddInMemoryImage(reference, "unknown", image);
+        }
+
+        return (reference, image);
     }
 }

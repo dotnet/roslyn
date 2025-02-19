@@ -234,7 +234,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
         CancellationToken cancellationToken)
     {
         var (destinationDeclaration, availableIndices) =
-            await FindMostRelevantDeclarationAsync(context.Solution, destination, context.Context.BestLocation, cancellationToken).ConfigureAwait(false);
+            FindMostRelevantDeclaration(context.Solution, destination, context.Context.BestLocation, cancellationToken);
 
         if (destinationDeclaration == null)
             throw new ArgumentException(WorkspaceExtensionsResources.Could_not_find_location_to_generation_symbol_into);

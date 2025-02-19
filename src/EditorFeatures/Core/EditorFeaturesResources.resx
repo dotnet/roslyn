@@ -950,4 +950,8 @@ Do you want to proceed?</value>
   <data name="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization" xml:space="preserve">
     <value>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</value>
   </data>
+  <data name="Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset" xml:space="preserve">
+    <value>Chat limit reached, [upgrade now] or wait for the limit to reset.</value>
+    <comment>The text surrounded by "[" and "]" characters will be hyperlinked. Please ensure the localized text still has "[" and "]" characters.</comment>
+  </data>
 </root>

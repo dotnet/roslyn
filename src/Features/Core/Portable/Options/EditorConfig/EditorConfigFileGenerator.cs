@@ -40,7 +40,10 @@ internal static partial class EditorConfigFileGenerator
 
         foreach ((var feature, var options) in groupedOptions)
         {
-            AppendOptionsToEditorConfig(configOptions, feature, options, language, editorconfig);
+            if (!options.Contains(NamingStyleOptions.NamingPreferences))
+            {
+                AppendOptionsToEditorConfig(configOptions, feature, options, language, editorconfig);
+            }
         }
 
         if (configOptions.TryGetOption(new OptionKey2(NamingStyleOptions.NamingPreferences, language), out NamingStylePreferences namingStylePreferences))
