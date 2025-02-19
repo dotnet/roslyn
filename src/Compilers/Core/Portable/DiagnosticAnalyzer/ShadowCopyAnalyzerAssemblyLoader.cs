@@ -44,19 +44,34 @@ namespace Microsoft.CodeAnalysis
 
         private int _directoryCount;
 
-        private readonly ConcurrentDictionary<string, int> _directoryMap = new();
+        /// <summary>
+        /// This is a map from the original directory name to the numbered directory name it 
+        /// occupies in the shadow directory.
+        /// </summary>
+        private readonly ConcurrentDictionary<string, int> _originalDirectoryMap = new(AnalyzerAssemblyLoader.OriginalPathComparer);
 
         /// <summary>
-        /// Map from the shadow assembly path to the original assembly path
+        /// Map from the shadow assembly path to the original assembly path.
         /// </summary>
-        private readonly ConcurrentDictionary<string, string> _shadowToOriginalPathMap = new();
+        private readonly ConcurrentDictionary<string, string> _shadowToOriginalPathMap = new(AnalyzerAssemblyLoader.GeneratedPathComparer);
 
-        private readonly ConcurrentDictionary<string, Task> _copyMap = new();
+        /// <summary>
+        /// This interface can be called from mulitple threads for the same original assembly path. This
+        /// is a map between the original path and the Task that completes when the shadow copy for that
+        /// original path completes.
+        /// </summary>
+        private readonly ConcurrentDictionary<string, Task> _copyMap = new(AnalyzerAssemblyLoader.OriginalPathComparer);
 
         internal string BaseDirectory => _baseDirectory;
 
         internal string ShadowDirectory => _shadowDirectory;
 
+        /// <summary>
+        /// This is the number of shadow copies that have occurred in this instance.
+        /// </summary>
+        /// <remarks>
+        /// This is used for testing, it should not be used for any other purpose.
+        /// </remarks>
         internal int CopyCount => _copyMap.Count;
 
         public ShadowCopyAnalyzerPathResolver(string baseDirectory)
@@ -140,24 +155,24 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsAnalyzerPathHandled(string analyzerFilePath) => true;
 
-        public string GetResolvedAnalyzerPath(string analyzerFilePath)
+        public string GetResolvedAnalyzerPath(string originalAnalyzerPath)
         {
-            var analyzerShadowDir = GetAnalyzerShadowDirectory(analyzerFilePath);
-            var analyzerShadowPath = Path.Combine(analyzerShadowDir, Path.GetFileName(analyzerFilePath));
-            _ = _shadowToOriginalPathMap[analyzerShadowPath] = analyzerFilePath;
-            ShadowCopyFile(analyzerFilePath, analyzerShadowPath);
+            var analyzerShadowDir = GetAnalyzerShadowDirectory(originalAnalyzerPath);
+            var analyzerShadowPath = Path.Combine(analyzerShadowDir, Path.GetFileName(originalAnalyzerPath));
+            _shadowToOriginalPathMap[analyzerShadowPath] = originalAnalyzerPath;
+            ShadowCopyFile(originalAnalyzerPath, analyzerShadowPath);
             return analyzerShadowPath;
         }
 
-        public string? GetResolvedSatellitePath(string analyzerFilePath, CultureInfo cultureInfo)
+        public string? GetResolvedSatellitePath(string originalAnalyzerPath, CultureInfo cultureInfo)
         {
-            var satelliteFilePath = AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(analyzerFilePath, cultureInfo);
+            var satelliteFilePath = AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(originalAnalyzerPath, cultureInfo);
             if (satelliteFilePath is null)
             {
                 return null;
             }
 
-            var analyzerShadowDir = GetAnalyzerShadowDirectory(analyzerFilePath);
+            var analyzerShadowDir = GetAnalyzerShadowDirectory(originalAnalyzerPath);
             var satelliteFileName = Path.GetFileName(satelliteFilePath);
             var satelliteDirectoryName = Path.GetFileName(Path.GetDirectoryName(satelliteFilePath));
             var shadowSatellitePath = Path.Combine(analyzerShadowDir, satelliteDirectoryName!, satelliteFileName);
@@ -171,7 +186,7 @@ namespace Microsoft.CodeAnalysis
         private string GetAnalyzerShadowDirectory(string analyzerFilePath)
         {
             var orignalDirName = Path.GetDirectoryName(analyzerFilePath)!;
-            var shadowDirName = _directoryMap.GetOrAdd(orignalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString();
+            var shadowDirName = _originalDirectoryMap.GetOrAdd(orignalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString();
             return Path.Combine(_shadowDirectory, shadowDirName);
         }
 

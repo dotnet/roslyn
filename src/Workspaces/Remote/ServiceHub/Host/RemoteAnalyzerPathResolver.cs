@@ -20,12 +20,12 @@ internal sealed class RemoteAnalyzerPathResolver(string baseDirectory) : IAnalyz
     private string GetFixedPath(string analyzerPath)
         => Path.GetFullPath(Path.Combine(_baseDirectory, Path.GetFileName(analyzerPath)));
 
-    public bool IsAnalyzerPathHandled(string analzyerPath)
-        => File.Exists(GetFixedPath(analzyerPath));
+    public bool IsAnalyzerPathHandled(string originalAnalyzerPath)
+        => File.Exists(GetFixedPath(originalAnalyzerPath));
 
-    public string GetResolvedAnalyzerPath(string analyzerPath)
-        => GetFixedPath(analyzerPath);
+    public string GetResolvedAnalyzerPath(string originalAnalyzerPath)
+        => GetFixedPath(originalAnalyzerPath);
 
-    public string? GetResolvedSatellitePath(string analyzerPath, CultureInfo cultureInfo)
-        => AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(GetFixedPath(analyzerPath), cultureInfo);
+    public string? GetResolvedSatellitePath(string originalAnalyzerPath, CultureInfo cultureInfo)
+        => AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(GetFixedPath(originalAnalyzerPath), cultureInfo);
 }

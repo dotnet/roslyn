@@ -1810,9 +1810,9 @@ Delta.2: Test D2
                 return _getRealFilePathFunc(originalPath) is not null;
             }
 
-            public string GetResolvedAnalyzerPath(string originalPath) => _getRealFilePathFunc(originalPath)!;
+            public string GetResolvedAnalyzerPath(string originalAnalyzerPath) => _getRealFilePathFunc(originalAnalyzerPath)!;
 
-            public string? GetResolvedSatellitePath(string originalPath, CultureInfo cultureInfo) => null;
+            public string? GetResolvedSatellitePath(string originalAnalyzerPath, CultureInfo cultureInfo) => null;
         }
 
 #if NET

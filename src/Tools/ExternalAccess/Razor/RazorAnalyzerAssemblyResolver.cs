@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class RazorAnalyzerAssemblyResolver() : IAnalyzerAssemblyResolver
     {
-        internal const string RazorCompilerAssemblyName = "Microsoft.CodeAnalysis.Razor.Compiler";
-        internal const string RazorUtilsAssemblyName = "Microsoft.AspNetCore.Razor.Utilities.Shared";
-        internal const string ObjectPoolAssemblyName = "Microsoft.Extensions.ObjectPool";
+        public const string RazorCompilerAssemblyName = "Microsoft.CodeAnalysis.Razor.Compiler";
+        public const string RazorUtilsAssemblyName = "Microsoft.AspNetCore.Razor.Utilities.Shared";
+        public const string ObjectPoolAssemblyName = "Microsoft.Extensions.ObjectPool";
 
         internal static readonly ImmutableArray<string> RazorAssemblyNames = [RazorCompilerAssemblyName, RazorUtilsAssemblyName, ObjectPoolAssemblyName];
 

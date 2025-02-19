@@ -21,11 +21,13 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 internal sealed class ProgramFilesAnalyzerPathResolver : IAnalyzerPathResolver
 {
-    public string ProgramFilesPath { get; }
-    public string DotNetPath { get; }
-    public string VisualStudioPath { get; }
+    internal static readonly IAnalyzerPathResolver Instance = new ProgramFilesAnalyzerPathResolver();
 
-    public ProgramFilesAnalyzerPathResolver()
+    private string ProgramFilesPath { get; }
+    private string DotNetPath { get; }
+    private string VisualStudioPath { get; }
+
+    private ProgramFilesAnalyzerPathResolver()
     {
         ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
         DotNetPath = Path.Combine(ProgramFilesPath, "dotnet");
@@ -36,15 +38,15 @@ internal sealed class ProgramFilesAnalyzerPathResolver : IAnalyzerPathResolver
         => analyzerPath.StartsWith(DotNetPath, StringComparison.OrdinalIgnoreCase) ||
            analyzerPath.StartsWith(VisualStudioPath, StringComparison.OrdinalIgnoreCase);
 
-    public string GetResolvedAnalyzerPath(string analyzerPath)
+    public string GetResolvedAnalyzerPath(string originalAnalyzerPath)
     {
-        Debug.Assert(IsAnalyzerPathHandled(analyzerPath));
-        return analyzerPath;
+        Debug.Assert(IsAnalyzerPathHandled(originalAnalyzerPath));
+        return originalAnalyzerPath;
     }
 
-    public string? GetResolvedSatellitePath(string analyzerPath, CultureInfo cultureInfo)
+    public string? GetResolvedSatellitePath(string originalAnalyzerPath, CultureInfo cultureInfo)
     {
-        Debug.Assert(IsAnalyzerPathHandled(analyzerPath));
-        return AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(analyzerPath, cultureInfo);
+        Debug.Assert(IsAnalyzerPathHandled(originalAnalyzerPath));
+        return AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(originalAnalyzerPath, cultureInfo);
     }
 }

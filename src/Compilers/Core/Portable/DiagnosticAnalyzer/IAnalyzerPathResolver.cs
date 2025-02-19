@@ -19,6 +19,10 @@ namespace Microsoft.CodeAnalysis
     /// This interface allows hosts to control where an analyzer is loaded from. It can redirect the path 
     /// originally passed to the compiler to a new path. Or it can take ownership of a path to prevent 
     /// other instances of <see cref="IAnalyzerPathResolver"/> from redirecting it.
+    ///
+    /// Instances of these types are considered in the order they are added to the <see cref="AnalyzerAssemblyLoader"/>.
+    /// The first instance to return true from <see cref="IsAnalyzerPathHandled(string)"/> will be considered to 
+    /// be the owner of that path.
     /// </summary>
     /// <remarks>
     /// Instances of this type will be accessed from multiple threads. All method implementations are expected 
@@ -38,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This will only be called for paths that return true from <see cref="IsAnalyzerPathHandled(string)"/>.
         /// </remarks>
-        string GetResolvedAnalyzerPath(string analyzerPath);
+        string GetResolvedAnalyzerPath(string originalAnalyzerPath);
 
         /// <summary>
         /// This method is used to allow compiler hosts to intercept an analyzer satellite path and redirect it to a
@@ -47,6 +51,6 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This will only be called for paths that return true from <see cref="IsAnalyzerPathHandled(string)"/>.
         /// </remarks>
-        string? GetResolvedSatellitePath(string analyzerPath, CultureInfo cultureInfo);
+        string? GetResolvedSatellitePath(string originalAnalyzerPath, CultureInfo cultureInfo);
     }
 }
