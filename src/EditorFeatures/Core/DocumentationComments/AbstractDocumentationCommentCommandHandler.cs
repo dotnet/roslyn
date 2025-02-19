@@ -5,12 +5,10 @@
 using System;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
@@ -34,14 +32,14 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService;
-    private readonly CopilotGenerateDocumentationCommentManager _generateDocumentationCommentManager;
+    private readonly CopilotGenerateDocumentationCommentManager? _generateDocumentationCommentManager;
 
     protected AbstractDocumentationCommentCommandHandler(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         ITextUndoHistoryRegistry undoHistoryRegistry,
         IEditorOperationsFactoryService editorOperationsFactoryService,
         EditorOptionsService editorOptionsService,
-        CopilotGenerateDocumentationCommentManager generateDocumentationCommentManager)
+        CopilotGenerateDocumentationCommentManager? generateDocumentationCommentManager)
     {
         Contract.ThrowIfNull(uiThreadOperationExecutor);
         Contract.ThrowIfNull(undoHistoryRegistry);
@@ -108,7 +106,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
                 returnValue = true;
 
-                _generateDocumentationCommentManager.TriggerDocumentationCommentProposalGeneration(document, snippet, oldSnapshot, oldCaret, textView, cancellationToken);
+                _generateDocumentationCommentManager?.TriggerDocumentationCommentProposalGeneration(document, snippet, oldSnapshot, oldCaret, textView, cancellationToken);
             }
         }
 
