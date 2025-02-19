@@ -5,10 +5,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 internal interface IRazorDynamicFileInfoProvider
 {
@@ -18,7 +17,7 @@ internal interface IRazorDynamicFileInfoProvider
     /// <param name="projectId"><see cref="ProjectId"/> this file belongs to</param>
     /// <param name="projectFilePath">full path to project file (ex, csproj)</param>
     /// <param name="filePath">full path to non source file (ex, cshtml)</param>
-    Task<IRazorDynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken);
+    Task<RazorDynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken);
 
     /// <summary>
     /// let provider know certain file has been removed
@@ -32,9 +31,4 @@ internal interface IRazorDynamicFileInfoProvider
     /// indicate content of a file has updated. the event argument "string" should be same as "filepath" given to <see cref="GetDynamicFileInfoAsync(ProjectId, string, string, CancellationToken)"/>
     /// </summary>
     event EventHandler<string> Updated;
-
-    /// <summary>
-    /// Ensures the dynamic file info provider is initialized and can send messages with the <see cref="IRazorClientLanguageServerManager"/>. as needed
-    /// </summary>
-    public Task EnsureInitializedAsync(Func<CancellationToken, Task<IRazorClientLanguageServerManager>> getLanguageServerManager, CancellationToken cancellationToken);
 }

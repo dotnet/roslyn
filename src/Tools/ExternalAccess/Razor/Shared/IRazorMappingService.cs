@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 internal interface IRazorMappingService
 {

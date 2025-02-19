@@ -9,11 +9,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 internal sealed class RazorMappingServiceWrapper(IRazorMappingService razorMappingService) : ISpanMappingService
 {

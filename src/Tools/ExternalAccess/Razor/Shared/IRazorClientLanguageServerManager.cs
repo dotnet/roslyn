@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 internal interface IRazorClientLanguageServerManager : ILspService
 {

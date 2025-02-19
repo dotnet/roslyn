@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 /// <summary>
 /// provides info on the given file

@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 

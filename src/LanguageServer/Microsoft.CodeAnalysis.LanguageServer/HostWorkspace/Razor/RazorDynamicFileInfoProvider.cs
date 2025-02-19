@@ -4,8 +4,8 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Services.Razor;
@@ -86,9 +86,9 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         return ValueTask.CompletedTask;
     }
 
-    private async Task<IRazorDynamicFileInfoProvider> GetFileProviderAsync(CancellationToken cancellationToken)
+    private async Task<IRazorLSPDynamicFileInfoProvider> GetFileProviderAsync(CancellationToken cancellationToken)
     {
-        var dynamicFileInfoProvider = await RazorLSPServiceProvider.GetRequiredServiceAsync<IRazorDynamicFileInfoProvider>(cancellationToken);
+        var dynamicFileInfoProvider = await RazorLSPServiceProvider.GetRequiredServiceAsync<IRazorLSPDynamicFileInfoProvider>(cancellationToken);
 
         await dynamicFileInfoProvider.EnsureInitializedAsync(
             static ct =>

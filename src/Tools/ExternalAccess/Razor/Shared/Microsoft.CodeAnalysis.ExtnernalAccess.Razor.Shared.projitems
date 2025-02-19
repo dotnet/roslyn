@@ -10,8 +10,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)IRazorClientLanguageServerManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentOperationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentServiceProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)IRazorDynamicFileInfoProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRazorMappingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorClientLanguageServerManager.cs" />
     <Compile Include="..\Shared\IRazorDynamicFileInfo.cs" />
