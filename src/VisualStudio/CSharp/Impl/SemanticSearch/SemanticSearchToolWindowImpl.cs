@@ -199,7 +199,10 @@ internal sealed class SemanticSearchToolWindowImpl(
             return null;
         }
 
-        var outerGrid = new Grid();
+        var outerGrid = new Grid()
+        {
+            Background = (Brush)Application.Current.FindResource(CommonControlsColors.TextBoxBackgroundBrushKey),
+        };
 
         ImageThemingUtilities.SetImageBackgroundColor(outerGrid, (Color)Application.Current.Resources[CommonDocumentColors.PageBackgroundColorKey]);
         ThemedDialogStyleLoader.SetUseDefaultThemedDialogStyles(outerGrid, true);
@@ -251,7 +254,7 @@ internal sealed class SemanticSearchToolWindowImpl(
             Height = 24,
             IsEditable = false,
             IsReadOnly = true,
-            BorderThickness = new Thickness(1),
+            BorderThickness = new Thickness(0),
             MinHeight = 24,
             VerticalContentAlignment = VerticalAlignment.Top,
             TabIndex = 1,
