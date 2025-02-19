@@ -4415,7 +4415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(reinferredMethod is object);
                 if (node.ImplicitReceiverOpt != null)
                 {
-                    Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ObjectOrCollectionValuePlaceholder);
+                    //Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ObjectOrCollectionValuePlaceholder); // PROTOTYPE the receiver may be converted now
                     SetAnalyzedNullability(node.ImplicitReceiverOpt, new VisitResult(node.ImplicitReceiverOpt.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
                 }
                 SetUnknownResultNullability(node);

@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     {
                         var call = (BoundCall)expression;
-                        if (!call.HasAnyErrors && call.ReceiverOpt != null && (object)call.ReceiverOpt.Type != null)
+                        if (!call.HasAnyErrors && call.ReceiverOpt != null && (object)call.ReceiverOpt.Type != null && !call.Method.GetIsNewExtensionMember())
                         {
                             // error CS0029: Cannot implicitly convert type 'A' to 'B'
 
@@ -1134,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(methodGroup.Methods.Count > 0);
             Debug.Assert(((object)delegateTypeOpt == null) || (methodGroup.Methods.Count == 1));
 
-            var invokedAsExtensionMethod = methodGroup.IsExtensionMethodGroup;
+            bool invokedAsExtensionMethod = methodGroup.IsExtensionMethodGroup;
 
             // Delegate invocations should never be considered extension method
             // invocations (even though the delegate may refer to an extension method).
@@ -1198,6 +1198,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodResult = result.ValidResult;
             var returnType = methodResult.Member.ReturnType;
             var method = methodResult.Member;
+            bool isNewExtensionMethod = method.GetIsNewExtensionMember();
+
+            if (isNewExtensionMethod)
+            {
+                // For new extension methods, we performed overload resolution giving the receiver as one of the arguments.
+                // We now restore the arguments to their original state and update the result accordingly.
+                invokedAsExtensionMethod = false;
+                analyzedArguments.Arguments.RemoveAt(0);
+
+                if (analyzedArguments.Names is { Count: > 0 })
+                {
+                    analyzedArguments.Names.RemoveAt(0);
+                }
+
+                if (analyzedArguments.RefKinds is { Count: > 0 })
+                {
+                    analyzedArguments.RefKinds.RemoveAt(0);
+                }
+
+                Debug.Assert(methodResult.Result.ConversionForArg(0).Exists);
+                methodResult = methodResult.WithResult(methodResult.Result.WithoutReceiverArgument());
+            }
 
             // It is possible that overload resolution succeeded, but we have chosen an
             // instance method and we're in a static method. A careful reading of the
@@ -1262,9 +1284,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 analyzedArguments.Arguments[0] = receiverArgument;
             }
+            else if (isNewExtensionMethod)
+            {
+                if (receiver is not BoundTypeExpression)
+                {
+                    ParameterSymbol extensionParameter = method.ContainingType.ExtensionParameter;
+                    Debug.Assert(extensionParameter is not null);
+
+                    CheckArgumentRefKind(RefKind.None, receiver, arg: 0, extensionParameter, invokedAsExtensionMethod: true, diagnostics);
+
+                    if (extensionParameter.RefKind == RefKind.Ref)
+                    {
+                        // If this was a ref extension method, the receiver must be checked for L-value constraints.
+                        // This helper method will also replace it with a BoundBadExpression if it was invalid.
+                        receiver = CheckValue(receiver, BindValueKind.RefOrOut, diagnostics);
+                    }
+
+                    receiver = CreateConversion(receiver, extensionParameter.Type, diagnostics);
+                }
+            }
 
             // This will be the receiver of the BoundCall node that we create.
-            // For extension methods, there is no receiver because the receiver in source was actually the first argument.
+            // For classic extension methods, there is no receiver because the receiver in source was actually the first argument.
             // For instance methods, we may have synthesized an implicit this node.  We'll keep it for the emitter.
             // For static methods, we may have synthesized a type expression.  It serves no purpose, so we'll drop it.
             if (invokedAsExtensionMethod || (!method.RequiresInstanceReceiver && receiver != null && receiver.WasCompilerGenerated))
@@ -1725,7 +1766,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? parameterIndex
                         : argsToParamsOpt.IndexOf(parameterIndex);
             }
-
         }
 
         private BoundExpression CreateParamsCollection(SyntaxNode node, ParameterSymbol paramsParameter, ImmutableArray<BoundExpression> collectionArgs, BindingDiagnosticBag diagnostics)
@@ -2272,7 +2312,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(resolution.Diagnostics);
             if (resolution.IsExtensionMethodGroup)
             {
-                // PROTOTYPE we probably want this error for extension members too
                 diagnostics.Add(ErrorCode.ERR_NameofExtensionMethod, methodGroup.Syntax.Location);
             }
         }

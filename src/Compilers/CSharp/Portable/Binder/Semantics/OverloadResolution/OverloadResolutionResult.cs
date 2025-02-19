@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to required formal parameter 'y'.
 
             TMember badMember = bad.Member;
-            ImmutableArray<ParameterSymbol> parameters = badMember.GetParameters();
+            ImmutableArray<ParameterSymbol> parameters = badMember.GetIsNewExtensionMember() ? OverloadResolution.GetParametersIncludingExtensionParameter(badMember) : badMember.GetParameters();
             int badParamIndex = bad.Result.BadParameter;
             string badParamName;
             if (badParamIndex == parameters.Length)
@@ -1115,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // as there is no explicit call to Add method.
 
                 int argumentOffset = arguments.IsExtensionMethodInvocation ? 1 : 0;
-                var parameters = method.GetParameters();
+                var parameters = method.GetIsNewExtensionMember() ? OverloadResolution.GetParametersIncludingExtensionParameter(method) : method.GetParameters();
 
                 for (int i = argumentOffset; i < parameters.Length; i++)
                 {
@@ -1156,6 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TMember method,
             int arg)
         {
+            // PROTOTYPE consider adjusting or removing the argument index for displaying in diagnostic
             BoundExpression argument = arguments.Argument(arg);
             if (argument.HasAnyErrors)
             {
@@ -1169,7 +1170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Early out: if the bad argument is an __arglist parameter then simply report that:
 
-            if (method.GetIsVararg() && parm == method.GetParameterCount())
+            var parameters = method.GetIsNewExtensionMember() ? OverloadResolution.GetParametersIncludingExtensionParameter(method) : method.GetParameters();
+            if (method.GetIsVararg() && parm == parameters.Length)
             {
                 // NOTE: No SymbolDistinguisher required, since one of the arguments is "__arglist".
 
@@ -1184,8 +1186,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            ParameterSymbol parameter = method.GetParameters()[parm];
-            bool isLastParameter = method.GetParameterCount() == parm + 1; // This is used to later decide if we need to try to unwrap a params collection
+            ParameterSymbol parameter = parameters[parm];
+            bool isLastParameter = parameters.Count() == parm + 1; // This is used to later decide if we need to try to unwrap a params collection
             RefKind refArg = arguments.RefKind(arg);
             RefKind refParameter = parameter.RefKind;
 
