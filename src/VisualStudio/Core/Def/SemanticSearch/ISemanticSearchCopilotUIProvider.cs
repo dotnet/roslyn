@@ -8,6 +8,9 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
+/// <summary>
+/// Abstraction over Copilot prompt text box UI.
+/// </summary>
 internal interface ITextBoxControl
 {
     Control Control { get; }
@@ -16,6 +19,9 @@ internal interface ITextBoxControl
     IWpfTextView View { get; }
 }
 
+/// <summary>
+/// Abstraction over Copilot prompt UI.
+/// </summary>
 internal interface ISemanticSearchCopilotUIProvider
 {
     bool IsAvailable { get; }
