@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _inUnsafeRegion;
         private SafeContext _localScopeDepth;
         private Dictionary<LocalSymbol, (SafeContext RefEscapeScope, SafeContext ValEscapeScope)>? _localEscapeScopes;
-        private Dictionary<BoundValuePlaceholderBase, SafeContext>? _placeholderScopes;
+        private KeyedStack<BoundValuePlaceholderBase, SafeContext>? _placeholderScopes;
         private SafeContext _patternInputValEscape;
 #if DEBUG
         private const int MaxTrackVisited = 100; // Avoid tracking if too many expressions.
@@ -152,14 +153,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private readonly RefSafetyAnalysis _analysis;
             private readonly ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)> _placeholders;
+            private readonly bool _overwriteExistingTemporarily;
 
-            public PlaceholderRegion(RefSafetyAnalysis analysis, ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)> placeholders)
+            public PlaceholderRegion(RefSafetyAnalysis analysis, ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)> placeholders, bool overwriteExistingTemporarily = false)
             {
                 _analysis = analysis;
                 _placeholders = placeholders;
+                _overwriteExistingTemporarily = overwriteExistingTemporarily;
                 foreach (var (placeholder, valEscapeScope) in placeholders)
                 {
-                    _analysis.AddPlaceholderScope(placeholder, valEscapeScope);
+                    _analysis.AddPlaceholderScope(placeholder, valEscapeScope, canExist: overwriteExistingTemporarily);
                 }
             }
 
@@ -167,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var (placeholder, _) in _placeholders)
                 {
-                    _analysis.RemovePlaceholderScope(placeholder);
+                    _analysis.RemovePlaceholderScope(placeholder, forcePop: _overwriteExistingTemporarily);
                 }
                 _placeholders.Free();
             }
@@ -189,33 +192,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddOrSetLocalScopes(local, refEscapeScope, valEscapeScope);
         }
 
-        private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, SafeContext valEscapeScope)
+        private void AddPlaceholderScope(BoundValuePlaceholderBase placeholder, SafeContext valEscapeScope, bool canExist = false)
         {
-            Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) != true);
+            Debug.Assert(canExist || _placeholderScopes?.ContainsKey(placeholder) != true);
 
             // Consider not adding the placeholder to the dictionary if the escape scope is
             // CallingMethod, and simply fallback to that value in GetPlaceholderScope().
 
-            _placeholderScopes ??= new Dictionary<BoundValuePlaceholderBase, SafeContext>();
-            _placeholderScopes[placeholder] = valEscapeScope;
+            _placeholderScopes ??= new KeyedStack<BoundValuePlaceholderBase, SafeContext>();
+            _placeholderScopes.Push(placeholder, valEscapeScope);
         }
 
-#pragma warning disable IDE0060
-        private void RemovePlaceholderScope(BoundValuePlaceholderBase placeholder)
+        private void RemovePlaceholderScope(BoundValuePlaceholderBase placeholder, bool forcePop = false)
         {
             Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) == true);
 
             // https://github.com/dotnet/roslyn/issues/65961: Currently, analysis may require subsequent calls
             // to GetRefEscape(), etc. for the same expression so we cannot remove placeholders eagerly.
-            //_placeholderScopes.Remove(placeholder);
+            if (forcePop)
+            {
+                _placeholderScopes?.TryPop(placeholder, out _);
+            }
         }
-#pragma warning restore IDE0060
 
         private SafeContext GetPlaceholderScope(BoundValuePlaceholderBase placeholder)
         {
             Debug.Assert(_placeholderScopes?.ContainsKey(placeholder) == true);
 
-            return _placeholderScopes?.TryGetValue(placeholder, out var scope) == true
+            return _placeholderScopes?.TryPeek(placeholder, out var scope) == true
                 ? scope
                 : SafeContext.CallingMethod;
         }
