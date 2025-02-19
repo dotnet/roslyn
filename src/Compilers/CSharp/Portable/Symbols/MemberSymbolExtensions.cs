@@ -593,6 +593,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _ => null,
             };
         }
+
+        internal static Symbol? GetPartialDefinitionPart(this Symbol member)
+        {
+            Debug.Assert(member.IsDefinition);
+            return member switch
+            {
+                MethodSymbol method => method.PartialDefinitionPart,
+                SourcePropertySymbol property => property.PartialDefinitionPart,
+                SourceEventSymbol ev => ev.PartialDefinitionPart,
+                _ => null,
+            };
+        }
 #nullable disable
 
         internal static bool ContainsTupleNames(this Symbol member)
