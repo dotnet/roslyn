@@ -830,9 +830,6 @@ public partial class Project
     private string GetDebuggerDisplay()
         => this.Name;
 
-    internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
-        => Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
-
     internal async ValueTask<Document?> GetDocumentAsync(ImmutableArray<byte> contentHash, CancellationToken cancellationToken)
     {
         var documentId = await State.GetDocumentIdAsync(contentHash, cancellationToken).ConfigureAwait(false);

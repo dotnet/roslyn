@@ -130,8 +130,9 @@ class A
             };
 
             var actualInlayHints = await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
+            AssertEx.NotNull(actualInlayHints);
             var firstInlayHint = actualInlayHints.First();
-            var data = JsonSerializer.Deserialize<InlayHintResolveData>(firstInlayHint.Data!.ToString(), ProtocolConversions.LspJsonSerializerOptions);
+            var data = JsonSerializer.Deserialize<InlayHintResolveData>(firstInlayHint.Data!.ToString()!, ProtocolConversions.LspJsonSerializerOptions);
             AssertEx.NotNull(data);
             var firstResultId = data.ResultId;
 
@@ -143,6 +144,7 @@ class A
             await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
             await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
             var lastInlayHints = await testLspServer.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]?>(LSP.Methods.TextDocumentInlayHintName, inlayHintParams, CancellationToken.None);
+            AssertEx.NotNull(lastInlayHints);
             Assert.True(lastInlayHints.Any());
 
             // Assert that the first result id is no longer in the cache.

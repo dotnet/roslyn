@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 
 internal static class PredefinedCodeFixProviderNames
 {
-    public const string AddAccessibilityModifiers = nameof(AddAccessibilityModifiers);
+    public const string AddOrRemoveAccessibilityModifiers = nameof(AddOrRemoveAccessibilityModifiers);
     public const string AddAnonymousTypeMemberName = nameof(AddAnonymousTypeMemberName);
     public const string AddAsync = nameof(AddAsync);
     public const string AddBraces = nameof(AddBraces);

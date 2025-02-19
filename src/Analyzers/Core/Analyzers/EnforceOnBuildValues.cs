@@ -14,7 +14,7 @@ internal static class EnforceOnBuildValues
     public const EnforceOnBuild UseExplicitType = /*IDE0008*/ EnforceOnBuild.HighlyRecommended;
     public const EnforceOnBuild AddBraces = /*IDE0011*/ EnforceOnBuild.HighlyRecommended;
     public const EnforceOnBuild OrderModifiers = /*IDE0036*/ EnforceOnBuild.HighlyRecommended;
-    public const EnforceOnBuild AddAccessibilityModifiers = /*IDE0040*/ EnforceOnBuild.HighlyRecommended;
+    public const EnforceOnBuild AddOrRemoveAccessibilityModifiers = /*IDE0040*/ EnforceOnBuild.HighlyRecommended;
     public const EnforceOnBuild ValidateFormatString = /*IDE0043*/ EnforceOnBuild.HighlyRecommended;
     public const EnforceOnBuild MakeFieldReadonly = /*IDE0044*/ EnforceOnBuild.HighlyRecommended;
     public const EnforceOnBuild RemoveUnusedMembers = /*IDE0051*/ EnforceOnBuild.HighlyRecommended;

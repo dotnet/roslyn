@@ -207,9 +207,10 @@ internal static partial class OperationExtensions
         }
         else if (operation is { Type.IsValueType: true, Parent: IPropertyReferenceOperation })
         {
-            // accessing an indexer/property off of a value type will read/write the value type depending on how the
-            // indexer/property itself is used.
-            return GetValueUsageInfo(operation.Parent, containingSymbol);
+            // Accessing an indexer/property off of a value type will read/write the value type depending on how the
+            // indexer/property itself is used. We add ValueUsageInfo.Read to the result since the value on which we are
+            // accessing a property is always read.
+            return ValueUsageInfo.Read | GetValueUsageInfo(operation.Parent, containingSymbol);
         }
         else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation)
         {
