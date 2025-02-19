@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundCollectionExpressionWithElement
     {
-        internal void AddArguments(AnalyzedArguments analyzedArguments)
+        internal void AddToArguments(AnalyzedArguments analyzedArguments)
         {
             int previousLength = analyzedArguments.Arguments.Count;
             int addedLength = Arguments.Length;

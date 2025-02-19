@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (element is BoundCollectionExpressionWithElement withElement)
                     {
                         var analyzedArguments = AnalyzedArguments.GetInstance();
-                        withElement.AddArguments(analyzedArguments);
+                        withElement.AddToArguments(analyzedArguments);
                         // PROTOTYPE: If there are multiple with() elements, should with() elements after
                         // the first be bound for error recovery only rather than as a constructor call?
                         var collectionWithArguments = BindCollectionExpressionConstructor(syntax, targetType, constructor, analyzedArguments, diagnostics);
@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
             analyzedArguments.Arguments.Add(spanArgument);
-            withElement?.AddArguments(analyzedArguments);
+            withElement?.AddToArguments(analyzedArguments);
             var collectionCreation = BindMethodGroupInvocation(
                 syntax,
                 expression: syntax,
