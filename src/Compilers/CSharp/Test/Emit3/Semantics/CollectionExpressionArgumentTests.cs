@@ -3575,7 +3575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
                 // PROTOTYPE: 1, ..., 2, ..., should be evaluated before 3, ..., 4, ... .
-                expectedOutput: """
+                expectedOutput: IncludeExpectedOutput("""
                     3
                     3 -> A
                     4
@@ -3585,7 +3585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     2
                     2 -> A
                     MyCollection(2, 1)
-                    """);
+                    """));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main()", """
                 {
