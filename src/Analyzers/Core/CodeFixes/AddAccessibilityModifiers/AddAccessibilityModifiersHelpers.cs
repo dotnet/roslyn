@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers;
+namespace Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers;
 
-internal static partial class AddAccessibilityModifiersHelpers
+internal static partial class AddOrRemoveAccessibilityModifiersHelpers
 {
     public static void UpdateDeclaration(
         SyntaxEditor editor, ISymbol symbol, SyntaxNode declaration)

@@ -8047,4 +8047,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_InterceptsLocationAttributeUnsupportedSignature_Title" xml:space="preserve">
     <value>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</value>
   </data>
+  <data name="ERR_DataSectionStringLiteralHashCollision" xml:space="preserve">
+    <value>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</value>
+  </data>
 </root>
