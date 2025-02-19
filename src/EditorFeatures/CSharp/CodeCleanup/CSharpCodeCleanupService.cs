@@ -36,7 +36,7 @@ internal class CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnos
                 IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
                 IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId),
             new DiagnosticSet(AnalyzersResources.Add_accessibility_modifiers,
-                IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId),
+                IDEDiagnosticIds.AddOrRemoveAccessibilityModifiersDiagnosticId),
             new DiagnosticSet(FeaturesResources.Apply_coalesce_expression_preferences,
                 IDEDiagnosticIds.UseCoalesceExpressionForTernaryConditionalCheckDiagnosticId),
             new DiagnosticSet(FeaturesResources.Apply_object_collection_initialization_preferences,

@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             AnalyzerDriver analyzerDriver = compilation.CreateAnalyzerDriver(analyzers, analyzerManager, severityFilter);
             newCompilation = compilation
-                .WithSemanticModelProvider(new CachingSemanticModelProvider())
+                .WithSemanticModelProvider(CachingSemanticModelProvider.Instance)
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             var categorizeDiagnostics = false;

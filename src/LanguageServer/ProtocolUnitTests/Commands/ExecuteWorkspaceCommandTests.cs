@@ -63,7 +63,7 @@ public class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtocolTests
 
         public override TextDocumentIdentifier GetTextDocumentIdentifier(ExecuteCommandParams request)
         {
-            return JsonSerializer.Deserialize<TextDocumentIdentifier>((JsonElement)request.Arguments.First(), ProtocolConversions.LspJsonSerializerOptions)!;
+            return JsonSerializer.Deserialize<TextDocumentIdentifier>((JsonElement)request.Arguments!.First(), ProtocolConversions.LspJsonSerializerOptions)!;
         }
 
         public override Task<object> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)

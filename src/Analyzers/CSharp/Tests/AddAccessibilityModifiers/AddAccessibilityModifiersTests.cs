@@ -5,20 +5,20 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
+using Microsoft.CodeAnalysis.CSharp.AddOrRemoveAccessibilityModifiers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifiers;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddOrRemoveAccessibilityModifiers;
 
 using VerifyCS = CSharpCodeFixVerifier<
-    CSharpAddAccessibilityModifiersDiagnosticAnalyzer,
-    CSharpAddAccessibilityModifiersCodeFixProvider>;
+    CSharpAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer,
+    CSharpAddOrRemoveAccessibilityModifiersCodeFixProvider>;
 
-[Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
-public sealed class AddAccessibilityModifiersTests
+[Trait(Traits.Feature, Traits.Features.CodeActionsAddOrRemoveAccessibilityModifiers)]
+public sealed class AddOrRemoveAccessibilityModifiersTests
 {
     [Theory, CombinatorialData]
     public void TestStandardProperty(AnalyzerProperty property)

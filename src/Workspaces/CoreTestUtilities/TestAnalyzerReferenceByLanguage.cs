@@ -6,11 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal class TestAnalyzerReferenceByLanguage : AnalyzerReference
+    internal class TestAnalyzerReferenceByLanguage :
+        AnalyzerReference,
+        SerializerService.TestAccessor.IAnalyzerReferenceWithGuid
     {
         private readonly IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzersMap;
 
@@ -28,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override string? FullPath { get; }
         public override string Display => nameof(TestAnalyzerReferenceByLanguage);
         public override object Id => Display;
+        public Guid Guid { get; } = Guid.NewGuid();
 
         public Checksum Checksum;
 

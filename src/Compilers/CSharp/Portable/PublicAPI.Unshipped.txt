@@ -9,6 +9,7 @@ override abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Equals(obj
 override abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.GetHashCode() -> int
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetInterceptableLocation(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax! node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.CSharp.InterceptableLocation?
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetInterceptsLocationAttributeSyntax(this Microsoft.CodeAnalysis.CSharp.InterceptableLocation! location) -> string!
+abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Equals(Microsoft.CodeAnalysis.CSharp.InterceptableLocation? other) -> bool
 [RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser
 [RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Dispose() -> void
 [RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ParseLeadingTrivia() -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result

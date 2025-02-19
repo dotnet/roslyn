@@ -29,7 +29,7 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
         Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
+        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
         Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         // Asking again should give us back an unchanged diagnostic.
@@ -46,7 +46,7 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
         Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
+        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
         Assert.Equal(ProtocolConversions.CreateAbsoluteUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         var initialSolution = testLspServer.GetCurrentSolution();

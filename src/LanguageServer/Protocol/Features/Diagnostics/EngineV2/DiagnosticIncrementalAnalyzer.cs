@@ -50,7 +50,7 @@ internal partial class DiagnosticAnalyzerService
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
         public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersForTestingPurposesOnlyAsync(Project project, CancellationToken cancellationToken)
-            => _stateManager.GetOrCreateAnalyzersAsync(project, cancellationToken);
+            => _stateManager.GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken);
 
         private static string GetProjectLogMessage(Project project, ImmutableArray<DiagnosticAnalyzer> analyzers)
             => $"project: ({project.Id}), ({string.Join(Environment.NewLine, analyzers.Select(a => a.ToString()))})";

@@ -40,7 +40,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
             @"C:\C.cs: []",
             @$"C:\Test.txt: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
             @"C:\CSProj1.csproj: []"
-        ], results.Select(r => $"{r.Uri.LocalPath}: [{string.Join(", ", r.Diagnostics.Select(d => d.Code?.Value?.ToString()))}]"));
+        ], results.Select(r => $"{r.Uri.LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
@@ -64,7 +64,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         Assert.Equal(3, results.Length);
 
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
+        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
         Assert.Equal(@"C:\Test.txt", results[1].Uri.LocalPath);
         AssertEx.Empty(results[2].Diagnostics);
 
@@ -100,12 +100,12 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true);
         Assert.Equal(6, results.Length);
 
-        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
+        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
         Assert.Equal(@"C:\Test.txt", results[1].Uri.LocalPath);
-        Assert.Equal("CSProj1", ((LSP.VSDiagnostic)results[1].Diagnostics.Single()).Projects.First().ProjectName);
-        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[4].Diagnostics.Single().Code);
+        Assert.Equal("CSProj1", ((LSP.VSDiagnostic)results[1].Diagnostics!.Single()).Projects!.First().ProjectName);
+        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[4].Diagnostics!.Single().Code);
         Assert.Equal(@"C:\Test.txt", results[4].Uri.LocalPath);
-        Assert.Equal("CSProj2", ((LSP.VSDiagnostic)results[4].Diagnostics.Single()).Projects.First().ProjectName);
+        Assert.Equal("CSProj2", ((LSP.VSDiagnostic)results[4].Diagnostics!.Single()).Projects!.First().ProjectName);
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, previousResults: CreateDiagnosticParamsFromPreviousReports(results));

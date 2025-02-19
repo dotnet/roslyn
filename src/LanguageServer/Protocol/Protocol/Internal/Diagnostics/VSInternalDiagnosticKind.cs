@@ -22,6 +22,11 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Edit and Continue diagnostic kind.
         /// </summary>
-        public static readonly VSInternalDiagnosticKind EditAndContiue = new("enc");
+        public static readonly VSInternalDiagnosticKind EditAndContinue = new("enc");
+
+        /// <summary>
+        /// Syntax diagnostic kind.
+        /// </summary>
+        public static readonly VSInternalDiagnosticKind Syntax = new("syntax");
     }
 }

@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString), Shared]
-internal sealed partial class CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider :
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider() :
     AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<
         ExpressionSyntax,
         LiteralExpressionSyntax,
@@ -21,12 +23,6 @@ internal sealed partial class CSharpConvertPlaceholderToInterpolatedStringRefact
         ArgumentListSyntax,
         InterpolationSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpConvertPlaceholderToInterpolatedStringRefactoringProvider()
-    {
-    }
-
     protected override ExpressionSyntax ParseExpression(string text)
         => SyntaxFactory.ParseExpression(text);
 }

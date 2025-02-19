@@ -356,7 +356,8 @@ internal class DiagnosticComputer
             }
         }
 
-        var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
+        var skippedAnalyzersInfo = _project.Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(
+            _project.State, _analyzerInfoCache);
 
         return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo,
             logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);

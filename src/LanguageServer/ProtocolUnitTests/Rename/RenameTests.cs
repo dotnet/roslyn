@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
         {
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRenameAsync(bool mutatingLspWorkspace)
         {
             var markup =
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
             AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRename_InvalidIdentifierAsync(bool mutatingLspWorkspace)
         {
             var markup =
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
             Assert.Null(results);
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRename_WithLinkedFilesAsync(bool mutatingLspWorkspace)
         {
             var markup =
@@ -101,7 +101,7 @@ $@"<Workspace>
             AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRename_WithLinkedFilesAndPreprocessorAsync(bool mutatingLspWorkspace)
         {
             var markup =
@@ -147,7 +147,7 @@ $@"<Workspace>
             AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRename_WithMappedFileAsync(bool mutatingLspWorkspace)
         {
             var markup =
