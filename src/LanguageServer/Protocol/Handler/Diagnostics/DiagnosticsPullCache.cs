@@ -15,11 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>
     where TDiagnosticsParams : IPartialResultParams<TReport>
 {
-    internal record struct DiagnosticsRequestState(Project Project, int GlobalStateVersion, RequestContext Context, IDiagnosticSource DiagnosticSource);
-
-    internal record struct CheapDiagnosticState(int GlobalStateVersion, SourceGeneratorExecutionVersion ExecutionVersion, VersionStamp DependentVersion);
-
-    internal record struct ExpensiveDiagnosticState(int GlobalStateVersion, SourceGeneratorExecutionVersion ExecutionVersion, Checksum DependentChecksum);
+    internal readonly record struct DiagnosticsRequestState(Project Project, int GlobalStateVersion, RequestContext Context, IDiagnosticSource DiagnosticSource);
 
     /// <summary>
     /// Cache where we store the data produced by prior requests so that they can be returned if nothing of significance 
@@ -28,18 +24,16 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
     /// update the version stamp but not the content (for example, forking LSP text).
     /// </summary>
-    private sealed class DiagnosticsPullCache(string uniqueKey) : VersionedPullCache<CheapDiagnosticState, ExpensiveDiagnosticState, DiagnosticsRequestState, ImmutableArray<DiagnosticData>>(uniqueKey)
+    private sealed class DiagnosticsPullCache(string uniqueKey) : VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum), DiagnosticsRequestState, ImmutableArray<DiagnosticData>>(uniqueKey)
     {
-        public override async Task<CheapDiagnosticState> ComputeCheapVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
+        public override async Task<(int globalStateVersion, VersionStamp? dependentVersion)> ComputeCheapVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
         {
-            var sgState = state.Project.Solution.GetSourceGeneratorExecutionVersion(state.Project.Id);
-            return new(state.GlobalStateVersion, sgState, await state.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false));
+            return (state.GlobalStateVersion, await state.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false));
         }
 
-        public override async Task<ExpensiveDiagnosticState> ComputeExpensiveVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
+        public override async Task<(int globalStateVersion, Checksum dependentChecksum)> ComputeExpensiveVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
         {
-            var sgState = state.Project.Solution.GetSourceGeneratorExecutionVersion(state.Project.Id);
-            return new(state.GlobalStateVersion, sgState, await state.Project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false));
+            return (state.GlobalStateVersion, await state.Project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false));
         }
 
         /// <inheritdoc cref="VersionedPullCache{TCheapVersion, TExpensiveVersion, TState, TComputedData}.ComputeDataAsync(TState, CancellationToken)"/>

@@ -651,9 +651,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var configService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<TestWorkspaceConfigurationService>();
         configService.Options = new WorkspaceConfigurationOptions(SourceGeneratorExecution: executionPreference);
 
-        //var globalOptionService = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
-        //globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
-
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         // Add a generator to the solution that reports a diagnostic if the text matches original markup
@@ -697,7 +694,6 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         else
         {
             // In the non-mutating workspace, we need to ensure that both the workspace and LSP view of the world are updated.
-            //TODO - not needed.  Enqueuing the refresh should update the workspace solution (triggering generators to run on the fork?)
             var workspaceText = await document.GetTextAsync(CancellationToken.None);
             var textChange = ProtocolConversions.TextEditToTextChange(textEdit, workspaceText);
             await testLspServer.TestWorkspace.ChangeDocumentAsync(document.Id, workspaceText.WithChanges(textChange));
