@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
     }
 
     /// <summary>
-    /// The base implementation for <see cref="IAnalyzerAssemblyLoader"/>. This type provides caching and tracking of inputs given
+    /// The implementation for <see cref="IAnalyzerAssemblyLoader"/>. This type provides caching and tracking of inputs given
     /// to <see cref="AddDependencyLocation(string)"/>.
     /// </summary>
     /// <remarks>

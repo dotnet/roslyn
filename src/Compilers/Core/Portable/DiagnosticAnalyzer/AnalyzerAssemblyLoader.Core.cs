@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal string? GetAssemblyLoadPath(AssemblyName assemblyName, string directory)
+        private string? GetAssemblyLoadPath(AssemblyName assemblyName, string directory)
         {
             // Prefer registered dependencies in the same directory first.
             var simpleName = assemblyName.Name!;

@@ -14,17 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    /// <summary>
-    /// Loads analyzer assemblies from their original locations in the file system.
-    /// Assemblies will only be loaded from the locations specified when the loader
-    /// is instantiated.
-    /// </summary>
-    /// <remarks>
-    /// This type is meant to be used in scenarios where it is OK for the analyzer
-    /// assemblies to be locked on disk for the lifetime of the host; for example,
-    /// csc.exe and vbc.exe. In scenarios where support for updating or deleting
-    /// the analyzer on disk is required a different loader should be used.
-    /// </remarks>
     internal partial class AnalyzerAssemblyLoader
     {
         private bool _hookedAssemblyResolve;
@@ -123,7 +112,7 @@ namespace Microsoft.CodeAnalysis
                 var simpleName = assemblyName.Name;
 
                 string? loadPath;
-                if (assemblyName.CultureInfo is not null && simpleName.EndsWith(resourcesExtension, StringComparison.Ordinal))
+                if (assemblyName.CultureInfo is not null && simpleName.EndsWith(resourcesExtension, SimpleNameComparer.Comparison))
                 {
                     // Satellite assemblies should get the best path information using the
                     // non-resource part of the assembly name. Once the path information is obtained
