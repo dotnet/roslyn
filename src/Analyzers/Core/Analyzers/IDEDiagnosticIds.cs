@@ -63,7 +63,7 @@ internal static class IDEDiagnosticIds
 
     public const string UseLocalFunctionDiagnosticId = "IDE0039";
 
-    public const string AddAccessibilityModifiersDiagnosticId = "IDE0040";
+    public const string AddOrRemoveAccessibilityModifiersDiagnosticId = "IDE0040";
 
     public const string UseIsNullCheckDiagnosticId = "IDE0041";
 

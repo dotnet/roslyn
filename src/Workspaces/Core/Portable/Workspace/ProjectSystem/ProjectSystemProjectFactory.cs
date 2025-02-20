@@ -603,11 +603,12 @@ internal sealed partial class ProjectSystemProjectFactory
         Contract.ThrowIfNull(projectWithMetadataReference);
         Contract.ThrowIfNull(referencedProject);
 
-        // We don't want to convert a metadata reference to a project reference if the project being referenced isn't something
-        // we can create a Compilation for. For example, if we have a C# project, and it's referencing a F# project via a metadata reference
-        // everything would be fine if we left it a metadata reference. Converting it to a project reference means we couldn't create a Compilation
-        // anymore in the IDE, since the C# compilation would need to reference an F# compilation. F# projects referencing other F# projects though
-        // do expect this to work, and so we'll always allow references through of the same language.
+        // We don't want to convert a metadata reference to a project reference if the project being referenced isn't
+        // something we can create a Compilation for. For example, if we have a C# project, and it's referencing a F#
+        // project via a metadata reference everything would be fine if we left it a metadata reference. Converting it
+        // to a project reference means we couldn't create a Compilation anymore in the IDE, since the C# compilation
+        // would need to reference an F# compilation. F# projects referencing other F# projects though do expect this to
+        // work, and so we'll always allow references through of the same language.
         if (projectWithMetadataReference.Language != referencedProject.Language)
         {
             if (projectWithMetadataReference.LanguageServices.GetService<ICompilationFactoryService>() != null &&
@@ -617,6 +618,12 @@ internal sealed partial class ProjectSystemProjectFactory
                 return false;
             }
         }
+
+        // Getting a metadata reference from a 'module' is not supported from the compilation layer.  Nor is emitting a
+        // 'metadata-only' stream for it (a 'skeleton' reference).  So converting a NetModule reference to a project
+        // reference won't actually help us out.  Best to keep this as a plain metadata reference.
+        if (referencedProject.CompilationOptions?.OutputKind == OutputKind.NetModule)
+            return false;
 
         // If this is going to cause a circular reference, also disallow it
         if (solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(referencedProjectId).Contains(projectIdWithMetadataReference))

@@ -55,7 +55,6 @@
   </Target>
 
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
     <Compile Include="..\..\..\Workspaces\Remote\Core\VisualStudioMefHostServices.cs" Link="VisualStudioMefHostServices.cs" />
   </ItemGroup>
 

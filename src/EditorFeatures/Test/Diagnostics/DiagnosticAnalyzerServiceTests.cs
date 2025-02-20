@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -63,12 +64,11 @@ public class DiagnosticAnalyzerServiceTests
         var document = GetDocumentFromIncompleteProject(workspace);
 
         var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-        var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
-        var analyzer = service.CreateIncrementalAnalyzer(workspace);
+        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
         var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
-        var diagnostics = await analyzer.GetDiagnosticsForIdsAsync(
-            workspace.CurrentSolution, projectId: null, documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null, getDocuments: null,
+        var diagnostics = await service.GetDiagnosticsForIdsAsync(
+            workspace.CurrentSolution.Projects.Single(), documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
             includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
     }
@@ -178,8 +178,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         Assert.True(applied);
 
         var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-        var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
-        var analyzer = service.CreateIncrementalAnalyzer(workspace);
+        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
 
         // listen to events
         var syntaxDiagnostic = false;
@@ -189,7 +188,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         // open document
         workspace.OpenDocument(document.Id);
 
-        var diagnostics = await analyzer.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
+        var diagnostics = await service.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
 
         foreach (var diagnostic in diagnostics)
         {
@@ -220,14 +219,12 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
     {
         var exportProvider = workspace.Services.SolutionServices.ExportProvider;
 
-        var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
-
-        var analyzer = service.CreateIncrementalAnalyzer(workspace);
+        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
 
         var syntax = false;
         var semantic = false;
 
-        var diagnostics = await analyzer.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
+        var diagnostics = await service.ForceAnalyzeProjectAsync(document.Project, CancellationToken.None);
 
         (syntax, semantic) = resultSetter(syntax, semantic, diagnostics);
 
@@ -266,8 +263,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
         var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
-        var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
-        var analyzers = await incrementalAnalyzer.GetAnalyzersTestOnlyAsync(project, CancellationToken.None).ConfigureAwait(false);
+        var analyzers = await service.GetTestAccessor().GetAnalyzersAsync(project, CancellationToken.None).ConfigureAwait(false);
         var analyzersArray = analyzers.ToArray();
 
         AssertEx.Equal(
@@ -314,10 +310,9 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                                   filePath: "test.cs")]));
 
         var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-        var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
+        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
 
-        var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
-        var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
     }
 
@@ -400,10 +395,9 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
     private static async Task TestFullSolutionAnalysisForProjectAsync(AdhocWorkspace workspace, Project project, bool expectAnalyzerExecuted)
     {
         var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-        var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
+        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
 
-        var incrementalAnalyzer = service.CreateIncrementalAnalyzer(project.Solution.Workspace);
-        var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
         if (expectAnalyzerExecuted)
         {
@@ -442,18 +436,18 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             project = project.AddAdditionalDocument(name: "dummy2.txt", text: "Additional File2 Text", filePath: "dummy2.txt").Project;
         }
 
+        SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences);
         var applied = workspace.TryApplyChanges(project.Solution);
         Assert.True(applied);
 
         var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-        var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
+        var service = exportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
 
-        var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
         var firstAdditionalDocument = project.AdditionalDocuments.FirstOrDefault();
 
         workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
 
-        var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
         var expectedCount = testMultiple ? 4 : 1;
 
@@ -511,10 +505,8 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         var project = workspace.CurrentSolution.Projects.Single();
         var document = project.Documents.Single();
 
-        var service = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
+        var service = workspace.GetService<IDiagnosticAnalyzerService>();
         var globalOptions = workspace.GetService<IGlobalOptionService>();
-
-        var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
 
         switch (analysisScope)
         {
@@ -536,7 +528,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 throw ExceptionUtilities.UnexpectedValue(analysisScope);
         }
 
-        var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
         var diagnostic = diagnostics.SingleOrDefault();
         if (includeAnalyzer)
@@ -630,11 +622,9 @@ class A
         else
             Assert.IsType<Document>(document);
 
-        var service = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
+        var service = workspace.GetService<IDiagnosticAnalyzerService>();
 
         var text = await document.GetTextAsync();
-
-        var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
 
         switch (analysisScope)
         {
@@ -661,7 +651,7 @@ class A
                 break;
         }
 
-        var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
         diagnostics = [.. diagnostics
             .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
@@ -870,10 +860,9 @@ class A
             workspace.OpenDocument(document.Id);
         }
 
-        var service = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
+        var service = workspace.GetService<IDiagnosticAnalyzerService>();
 
-        var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
-        var diagnostics = await incrementalAnalyzer.ForceAnalyzeProjectAsync(project, CancellationToken.None);
+        var diagnostics = await service.ForceAnalyzeProjectAsync(project, CancellationToken.None);
 
         Assert.NotEmpty(diagnostics);
     }
