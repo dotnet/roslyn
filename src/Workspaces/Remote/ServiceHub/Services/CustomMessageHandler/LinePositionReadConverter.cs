@@ -8,7 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
+namespace Microsoft.CodeAnalysis.Remote.CustomMessageHandler;
 
 internal class LinePositionReadConverter : JsonConverter<LinePosition>
 {
