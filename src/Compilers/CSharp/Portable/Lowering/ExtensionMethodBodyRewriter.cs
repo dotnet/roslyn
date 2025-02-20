@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(sourceMethod is not null);
             Debug.Assert(implementationMethod is not null);
-            Debug.Assert(MethodCompiler.TryGetCorrespondingExtensionImplementationMethod(sourceMethod) == (object)implementationMethod);
+            Debug.Assert(sourceMethod == (object)implementationMethod.UnderlyingMethod);
 
             _implementationMethod = implementationMethod;
             _symbolMap = ImmutableDictionary<Symbol, Symbol>.Empty.WithComparers(ReferenceEqualityComparer.Instance, ReferenceEqualityComparer.Instance);
@@ -159,6 +159,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return base.VisitMethodSymbol(symbol);
             }
+        }
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        protected override FieldSymbol? VisitFieldSymbol(FieldSymbol? symbol)
+        {
+            if (symbol is null)
+            {
+                return null;
+            }
+
+            return symbol.OriginalDefinition
+                .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(symbol.ContainingType).AsTypeSymbolOnly());
         }
 
         // PROTOTYPE: Handle deep recursion on long chain of binary operators, calls, etc.

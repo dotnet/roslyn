@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Calling a static method defined on the current class via its simple name.
                         Debug.Assert(_factory.CurrentType is { });
-                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, _factory.CurrentType);
+                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, _factory.CurrentType); // PROTOTYPE: Follow up (_factory.CompilationState.Type?)
                     }
                     else
                     {

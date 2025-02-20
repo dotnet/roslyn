@@ -9,23 +9,20 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceExtensionImplementationMethodSymbol : RewrittenMethodSymbol
+    internal sealed class SourceExtensionImplementationMethodSymbol : RewrittenMethodSymbol // PROTOTYPE: Do we need to implement ISynthesizedMethodBodyImplementationSymbol?
     {
         public const string StaticExtensionNamePrefix = "<StaticExtension>";
         public const string InstanceExtensionNamePrefix = "<Extension>";
 
-        public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod) : base(sourceMethod, TypeMap.Empty)
+        public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod)
+            : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
         {
             Debug.Assert(sourceMethod.ContainingSymbol is NamedTypeSymbol { IsExtension: true });
             Debug.Assert(!sourceMethod.IsExtern);
             Debug.Assert(!sourceMethod.IsExternal);
-        }
 
-        protected override void CreateTypeParameters(MethodSymbol originalMethod, ref TypeMap typeMap, out ImmutableArray<TypeParameterSymbol> typeParameters)
-        {
             // PROTOTYPE: Are we creating type parameters with the right emit behavior? Attributes, etc.
             //            Also, they should be IsImplicitlyDeclared
-            typeMap = typeMap.WithAlphaRename(originalMethod.ContainingType.TypeParameters.Concat(originalMethod.TypeParameters), this, out typeParameters);
         }
 
         public override int Arity => TypeParameters.Length;

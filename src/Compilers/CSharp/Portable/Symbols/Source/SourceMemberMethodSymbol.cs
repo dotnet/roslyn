@@ -1039,6 +1039,8 @@ done:
             // The async state machine type is not synthesized until the async method body is rewritten. If we are
             // only emitting metadata the method body will not have been rewritten, and the async state machine
             // type will not have been created. In this case, omit the attribute.
+
+            // PROTOTYPE: These attributes probably should be synthesized only on the extension implementation method
             if (moduleBuilder.CompilationState.TryGetStateMachineType(MethodCompiler.TryGetCorrespondingExtensionImplementationMethod(this) ?? (MethodSymbol)this, out NamedTypeSymbol stateMachineType))
             {
                 var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),

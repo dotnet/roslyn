@@ -23,19 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<TypeParameterSymbol> _constructedFromTypeParameters;
 
-        protected SynthesizedContainer(string name, MethodSymbol containingMethod)
+        protected SynthesizedContainer(string name, ImmutableArray<TypeParameterSymbol> typeParametersToAlphaRename)
         {
             Debug.Assert(name != null);
             Name = name;
-            if (containingMethod == null)
-            {
-                TypeMap = TypeMap.Empty;
-                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
-            }
-            else
-            {
-                TypeMap = TypeMap.Empty.WithConcatAlphaRename(containingMethod, this, out _typeParameters, out _constructedFromTypeParameters);
-            }
+            _constructedFromTypeParameters = typeParametersToAlphaRename;
+            TypeMap = TypeMap.Empty.WithAlphaRename(typeParametersToAlphaRename, this, out _typeParameters);
         }
 
         protected SynthesizedContainer(string name)
