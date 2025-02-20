@@ -24,7 +24,7 @@ internal static class Completion
     private static CompletionListCache GetCache()
         => s_completionListCache ??= InterlockedOperations.Initialize(ref s_completionListCache, () => new());
 
-    public static async Task<LSP.CompletionList?> GetCompletionListAsync(
+    public static async Task<LSP.VSInternalCompletionList?> GetCompletionListAsync(
         Document document,
         LinePosition linePosition,
         LSP.CompletionContext? completionContext,
