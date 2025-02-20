@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.MethodImplementation;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -84,4 +85,12 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </summary>
     /// <param name="proposal">The documentation comment that has been broken down into its individual pieces.</param>
     Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Method to retrieve the implementation of a method for a given <paramref name="proposal"/>
+    /// </summary>
+    /// <param name="proposal"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetMethodImplementationAsync(MethodImplementationProposal proposal, CancellationToken cancellationToken);
 }

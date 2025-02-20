@@ -18,6 +18,18 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType.Returns = 3 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType.Summary = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType.TypeParam = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationProposalWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationProposalWrapper.CopilotMethodImplementationProposalWrapper(Microsoft.CodeAnalysis.MethodImplementation.MethodImplementationProposal! methodImplementationProposal) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationProposalWrapper.ProposedEdits.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationProposedEditWrapper!>
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationProposalWrapper.SymbolToAnalyze.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationProposedEditWrapper
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationProposedEditWrapper.CopilotMethodImplementationProposedEditWrapper(Microsoft.CodeAnalysis.MethodImplementation.MethodImplementationProposedEdit! proposedEdit) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationProposedEditWrapper.SpanToReplace.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationProposedEditWrapper.SymbolName.get -> string?
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationProposedEditWrapper.TagType.get -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationTagType.BusinessLogic = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationTagType
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationTagType.InputValidation = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationTagType
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysisService
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysisService.AnalyzeDocumentAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan? span, string! promptTitle, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
@@ -30,6 +42,8 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysis
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotCodeAnalysisService.StartRefinementSessionAsync(Microsoft.CodeAnalysis.Document! oldDocument, Microsoft.CodeAnalysis.Document! newDocument, Microsoft.CodeAnalysis.Diagnostic? primaryDiagnostic, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateDocumentationService
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateDocumentationService.GetDocumentationCommentAsync(Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper! proposal, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<(System.Collections.Generic.Dictionary<string!, string!>? responseDictionary, bool isQuotaExceeded)>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateImplementationService
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateImplementationService.GetMethodImplementationAsync(Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotMethodImplementationProposalWrapper! proposal, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<(System.Collections.Generic.Dictionary<string!, string!>? responseDictionary, bool isQuotaExceeded)>!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.RelatedDocuments.ICopilotRelatedDocumentsService
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.RelatedDocuments.ICopilotRelatedDocumentsService.GetRelatedDocumentIdsAsync(Microsoft.CodeAnalysis.Document! document, int position, System.Func<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId!>, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! callbackAsync, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
 override Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Equals(object? obj) -> bool

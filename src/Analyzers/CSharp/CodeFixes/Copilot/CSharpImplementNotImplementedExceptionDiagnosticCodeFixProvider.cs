@@ -542,7 +542,7 @@ internal sealed partial class CSharpImplementNotImplementedExceptionCodeFixProvi
     {
         // Get the using directives from the syntax tree
         var usingDirectives = root.DescendantNodes().OfType<UsingDirectiveSyntax>()
-            .Select(usingDirective => usingDirective.Name.ToString());
+            .Select(usingDirective => usingDirective.Name?.ToString() ?? string.Empty);
         return usingDirectives;
     }
 }
