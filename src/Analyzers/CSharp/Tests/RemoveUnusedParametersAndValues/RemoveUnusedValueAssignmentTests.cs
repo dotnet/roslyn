@@ -23,13 +23,9 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnusedValuesCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
-public class RemoveUnusedValueAssignmentTests : RemoveUnusedValuesTestsBase
+public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
+    : RemoveUnusedValuesTestsBase(logger)
 {
-    public RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     private protected override OptionsCollection PreferNone
         => Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
@@ -10091,5 +10087,40 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72829")]
+    public async Task TestWriteIntoRefStructParameter()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                internal sealed class UrlDecoder
+                {
+                    private static bool DecodeCore(ref int destinationIndex, Span<byte> buffer)
+                    {
+                        // preserves the original head. if the percent-encodings cannot be interpreted as sequence of UTF-8 octets,
+                        // bytes from this till the last scanned one will be copied to the memory pointed by writer.
+                        var byte1 = 0;
+                        if (byte1 == -1)
+                        {
+                            return false;
+                        }
+
+                        if (byte1 <= 0x7F)
+                        {
+                            // first byte < U+007f, it is a single byte ASCII
+                            buffer[destinationIndex++] = (byte)byte1;
+                            return true;
+                        }
+
+                        return false;
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
     }
 }
