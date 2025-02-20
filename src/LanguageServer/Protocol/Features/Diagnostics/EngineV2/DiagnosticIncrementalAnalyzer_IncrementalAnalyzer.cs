@@ -4,13 +4,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -18,30 +18,51 @@ internal partial class DiagnosticAnalyzerService
 {
     private partial class DiagnosticIncrementalAnalyzer
     {
+        /// <summary>
+        /// Cached data from a real <see cref="ProjectState"/> instance to the cached diagnostic data produced by
+        /// <em>all</em> the analyzers for the project.  This data can then be used by <see
+        /// cref="GetDiagnosticsForIdsAsync"/> to speed up subsequent calls through the normal <see
+        /// cref="IDiagnosticAnalyzerService"/> entry points as long as the project hasn't changed at all.
+        /// </summary>
+        /// <remarks>
+        /// This table is keyed off of <see cref="ProjectState"/> but stores data from <see cref="SolutionState"/> on
+        /// it.  Specifically <see cref="SolutionState.Analyzers"/>.  Normally keying off a ProjectState would not be ok
+        /// as the ProjectState might stay the same while the SolutionState changed.  However, that can't happen as
+        /// SolutionState has the data for Analyzers computed prior to Projects being added, and then never changes.
+        /// Practically, solution analyzers are the core Roslyn analyzers themselves we distribute, or analyzers shipped
+        /// by vsix (not nuget).  These analyzers do not get loaded after changing *until* VS restarts.
+        /// </remarks>
+        private static readonly ConditionalWeakTable<ProjectState, StrongBox<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)>> s_projectToForceAnalysisData = new();
+
         public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
+            var projectState = project.State;
+            var checksum = await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
+
             try
             {
-                var stateSetsForProject = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
-                var stateSets = GetStateSetsForFullSolutionAnalysis(stateSetsForProject, project);
+                if (!s_projectToForceAnalysisData.TryGetValue(projectState, out var box) ||
+                    box.Value.checksum != checksum)
+                {
+                    box = new(await ComputeForceAnalyzeProjectAsync().ConfigureAwait(false));
 
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(
-                    project, stateSets, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
-
-                var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, cancellationToken).ConfigureAwait(false);
+                    // Try to add the new computed data to the CWT.  But use any existing value that another thread
+                    // might have beaten us to storing in it.
+#if NET
+                    if (!s_projectToForceAnalysisData.TryAdd(projectState, box))
+                        Contract.ThrowIfFalse(s_projectToForceAnalysisData.TryGetValue(projectState, out box));
+#else
+                    box = s_projectToForceAnalysisData.GetValue(projectState, _ => box);
+#endif
+                }
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
 
-                // no cancellation after this point.
-                foreach (var stateSet in stateSets)
+                var (_, analyzers, projectAnalysisData) = box.Value;
+                foreach (var analyzer in analyzers)
                 {
-                    var state = stateSet.GetOrCreateProjectState(project.Id);
-
-                    if (result.TryGetResult(stateSet.Analyzer, out var analyzerResult))
-                    {
+                    if (projectAnalysisData.TryGetValue(analyzer, out var analyzerResult))
                         diagnostics.AddRange(analyzerResult.GetAllDiagnostics());
-                        await state.SaveToInMemoryStorageAsync(project, analyzerResult).ConfigureAwait(false);
-                    }
                 }
 
                 return diagnostics.ToImmutableAndClear();
@@ -50,59 +71,68 @@ internal partial class DiagnosticAnalyzerService
             {
                 throw ExceptionUtilities.Unreachable();
             }
-        }
 
-        /// <summary>
-        /// Return list of <see cref="StateSet"/> to be used for full solution analysis.
-        /// </summary>
-        private ImmutableArray<StateSet> GetStateSetsForFullSolutionAnalysis(ImmutableArray<StateSet> stateSets, Project project)
-        {
-            // Include only analyzers we want to run for full solution analysis.
-            // Analyzers not included here will never be saved because result is unknown.
-            return stateSets.WhereAsArray(static (s, arg) => arg.self.IsCandidateForFullSolutionAnalysis(s.Analyzer, s.IsHostAnalyzer, arg.project), (self: this, project));
-        }
-
-        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, bool isHostAnalyzer, Project project)
-        {
-            // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
-            if (analyzer == FileContentLoadAnalyzer.Instance ||
-                analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance ||
-                analyzer.IsCompilerAnalyzer())
+            async Task<(Checksum checksum, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> diagnosticAnalysisResults)> ComputeForceAnalyzeProjectAsync()
             {
-                return true;
+                var solutionState = project.Solution.SolutionState;
+                var allAnalyzers = await _stateManager.GetOrCreateAnalyzersAsync(solutionState, projectState, cancellationToken).ConfigureAwait(false);
+                var hostAnalyzerInfo = await _stateManager.GetOrCreateHostAnalyzerInfoAsync(solutionState, projectState, cancellationToken).ConfigureAwait(false);
+
+                var fullSolutionAnalysisAnalyzers = allAnalyzers.WhereAsArray(
+                    static (analyzer, arg) => IsCandidateForFullSolutionAnalysis(
+                        arg.self.DiagnosticAnalyzerInfoCache, analyzer, arg.hostAnalyzerInfo.IsHostAnalyzer(analyzer), arg.project),
+                    (self: this, project, hostAnalyzerInfo));
+
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
+                    project, fullSolutionAnalysisAnalyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+
+                var projectAnalysisData = await ComputeDiagnosticAnalysisResultsAsync(compilationWithAnalyzers, project, fullSolutionAnalysisAnalyzers, cancellationToken).ConfigureAwait(false);
+                return (checksum, fullSolutionAnalysisAnalyzers, projectAnalysisData);
             }
 
-            if (analyzer.IsBuiltInAnalyzer())
+            static bool IsCandidateForFullSolutionAnalysis(
+                DiagnosticAnalyzerInfoCache infoCache, DiagnosticAnalyzer analyzer, bool isHostAnalyzer, Project project)
             {
-                // always return true for builtin analyzer. we can't use
-                // descriptor check since many builtin analyzer always return 
-                // hidden descriptor regardless what descriptor it actually
-                // return on runtime. they do this so that they can control
-                // severity through option page rather than rule set editor.
-                // this is special behavior only ide analyzer can do. we hope
-                // once we support editorconfig fully, third party can use this
-                // ability as well and we can remove this kind special treatment on builtin
-                // analyzer.
-                return true;
+                // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
+                if (analyzer == FileContentLoadAnalyzer.Instance ||
+                    analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance ||
+                    analyzer.IsCompilerAnalyzer())
+                {
+                    return true;
+                }
+
+                if (analyzer.IsBuiltInAnalyzer())
+                {
+                    // always return true for builtin analyzer. we can't use
+                    // descriptor check since many builtin analyzer always return 
+                    // hidden descriptor regardless what descriptor it actually
+                    // return on runtime. they do this so that they can control
+                    // severity through option page rather than rule set editor.
+                    // this is special behavior only ide analyzer can do. we hope
+                    // once we support editorconfig fully, third party can use this
+                    // ability as well and we can remove this kind special treatment on builtin
+                    // analyzer.
+                    return true;
+                }
+
+                if (analyzer is DiagnosticSuppressor)
+                {
+                    // Always execute diagnostic suppressors.
+                    return true;
+                }
+
+                if (project.CompilationOptions is null)
+                {
+                    // Skip compilation options based checks for non-C#/VB projects.
+                    return true;
+                }
+
+                // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
+                var descriptors = infoCache.GetDiagnosticDescriptors(analyzer);
+                var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
+
+                return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.isHostAnalyzer ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, isHostAnalyzer, analyzerConfigOptions));
             }
-
-            if (analyzer is DiagnosticSuppressor)
-            {
-                // Always execute diagnostic suppressors.
-                return true;
-            }
-
-            if (project.CompilationOptions is null)
-            {
-                // Skip compilation options based checks for non-C#/VB projects.
-                return true;
-            }
-
-            // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
-            var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
-            var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
-
-            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.isHostAnalyzer ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, isHostAnalyzer, analyzerConfigOptions));
         }
     }
 }

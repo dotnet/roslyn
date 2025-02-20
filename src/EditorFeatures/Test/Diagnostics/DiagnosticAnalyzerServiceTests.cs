@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -67,7 +68,7 @@ public class DiagnosticAnalyzerServiceTests
         var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
         var diagnostics = await service.GetDiagnosticsForIdsAsync(
-            workspace.CurrentSolution, projectId: workspace.CurrentSolution.ProjectIds.Single(), documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
+            workspace.CurrentSolution.Projects.Single(), documentId: null, diagnosticIds: null, shouldIncludeAnalyzer: null,
             includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, CancellationToken.None);
         Assert.NotEmpty(diagnostics);
     }
@@ -435,6 +436,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             project = project.AddAdditionalDocument(name: "dummy2.txt", text: "Additional File2 Text", filePath: "dummy2.txt").Project;
         }
 
+        SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences);
         var applied = workspace.TryApplyChanges(project.Solution);
         Assert.True(applied);
 

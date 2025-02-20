@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -775,6 +776,7 @@ public class DiagnosticAnalyzerDriverTests
         if (nugetAnalyzerReferences.Count > 0)
         {
             project = project.WithAnalyzerReferences([new AnalyzerImageReference([.. nugetAnalyzerReferences])]);
+            SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences);
         }
 
         var document = project.Documents.Single();

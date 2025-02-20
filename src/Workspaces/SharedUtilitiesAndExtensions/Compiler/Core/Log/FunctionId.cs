@@ -639,4 +639,9 @@ internal enum FunctionId
     VSCode_LanguageServer_Started = 860,
     VSCode_Project_Load_Started = 861,
     VSCode_Projects_Load_Completed = 862,
+
+    // 900-999 for items that don't fit into other categories.
+    Workspace_EventsImmediate = 900,
+    ChecksumUpdater_SynchronizeTextChangesStatus = 901,
+    RemoteHostService_SynchronizeTextAsyncStatus = 902,
 }

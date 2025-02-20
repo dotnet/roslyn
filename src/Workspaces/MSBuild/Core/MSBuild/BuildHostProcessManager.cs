@@ -413,7 +413,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             var pipeClient = new NamedPipeClientStream(".", GetPipeNameOrPath(pipeName), PipeDirection.InOut, PipeOptions.Asynchronous);
             pipeClient.Connect(TimeOutMsNewProcess);
 
-            _rpcClient = new RpcClient(sendingStream: pipeClient, receivingStream: pipeClient);
+            _rpcClient = new RpcClient(pipeClient);
             _rpcClient.Start();
             _rpcClient.Disconnected += Process_Exited;
             BuildHost = new RemoteBuildHost(_rpcClient);

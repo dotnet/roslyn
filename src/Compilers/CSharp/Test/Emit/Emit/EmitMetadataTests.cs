@@ -3176,6 +3176,27 @@ public class Child : Parent, IParent
         }
 
         [Fact]
+        public void DataSectionStringLiterals_HashCollision()
+        {
+            var emitOptions = new EmitOptions
+            {
+                // Take only the first byte of each string as its hash to simulate collisions.
+                TestOnly_DataToHexViaXxHash128 = static (data) => data[0].ToString(),
+            };
+            var source = """
+                System.Console.Write("a");
+                System.Console.Write("b");
+                System.Console.Write("aa");
+                """;
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"))
+                .VerifyEmitDiagnostics(emitOptions,
+                    // (3,22): error CS9274: Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: a
+                    // System.Console.Write("aa");
+                    Diagnostic(ErrorCode.ERR_DataSectionStringLiteralHashCollision, @"""aa""").WithArguments("a").WithLocation(3, 22));
+        }
+
+        [Fact]
         public void DataSectionStringLiterals_SynthesizedTypes()
         {
             var source = """

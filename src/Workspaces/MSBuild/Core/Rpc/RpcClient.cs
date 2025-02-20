@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -24,19 +25,23 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 /// </remarks>
 internal sealed class RpcClient
 {
-    private readonly TextWriter _sendingStream;
-    private readonly SemaphoreSlim _sendingStreamSemaphore = new SemaphoreSlim(initialCount: 1);
-    private readonly TextReader _receivingStream;
+    private readonly PipeStream _stream;
+
+    /// <summary>
+    /// A semaphore taken to synchronize all writes to <see cref="_stream"/>.
+    /// </summary>
+    private readonly SemaphoreSlim _streamWritingSemaphore = new SemaphoreSlim(initialCount: 1);
+    private readonly TextReader _receivingStreamReader;
 
     private readonly ConcurrentDictionary<int, (TaskCompletionSource<object?>, System.Type? expectedReturnType)> _outstandingRequests = [];
     private volatile int _nextRequestId = 0;
 
     private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
-    public RpcClient(Stream sendingStream, Stream receivingStream)
+    public RpcClient(PipeStream stream)
     {
-        _sendingStream = new StreamWriter(sendingStream, JsonSettings.StreamEncoding);
-        _receivingStream = new StreamReader(receivingStream, JsonSettings.StreamEncoding);
+        _stream = stream;
+        _receivingStreamReader = new StreamReader(stream, JsonSettings.StreamEncoding);
     }
 
     public event EventHandler? Disconnected;
@@ -50,7 +55,7 @@ internal sealed class RpcClient
             try
             {
                 string? line;
-                while ((line = await _receivingStream.TryReadLineOrReturnNullIfCancelledAsync(_shutdownTokenSource.Token).ConfigureAwait(false)) != null)
+                while ((line = await _receivingStreamReader.TryReadLineOrReturnNullIfCancelledAsync(_shutdownTokenSource.Token).ConfigureAwait(false)) != null)
                 {
                     Response? response;
                     try
@@ -153,20 +158,22 @@ internal sealed class RpcClient
             Parameters = parameters.SelectAsArray(static p => p is not null ? JToken.FromObject(p) : JValue.CreateNull())
         };
 
-        var requestJson = JsonConvert.SerializeObject(request, JsonSettings.SingleLineSerializerSettings);
+        var requestJson = JsonConvert.SerializeObject(request, JsonSettings.SingleLineSerializerSettings) + Environment.NewLine;
+        var requestJsonBytes = JsonSettings.StreamEncoding.GetBytes(requestJson);
 
         try
         {
             // The only cancellation we support is cancelling before we are able to write the request to the stream; once it's been written
             // the other side will execute it to completion. Thus cancellationToken is checked here, but nowhere else.
-            using (await _sendingStreamSemaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            using (await _streamWritingSemaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                await _sendingStream.WriteLineAsync(requestJson).ConfigureAwait(false);
-#if NET8_0_OR_GREATER
-                await _sendingStream.FlushAsync(CancellationToken.None).ConfigureAwait(false);
-#else
-                await _sendingStream.FlushAsync().ConfigureAwait(false);
-#endif
+                // Write out the request to the stream. This previously used a TextWriter and called Flush(), but it was discovered that wasn't safe
+                // around PipeStream: the TextWriter might call Flush() on the underlying stream, and PipeStream's Flush() implementation doesn't do
+                // anything other than check if the pipe was disconnected. This created a race condition during us trying to shutdown the build host:
+                // we'd send a shutdown message, but if TextWriter calls PipeStream.Flush() at any point (either because we ask it to flush, or it were
+                // to decide it wants to flush), it might do so once the pipe has disconnected and we'll get an IOException -- even though the other
+                // process did exactly what we wanted it to! By just writing to the pipe directly we avoid any surprises here.
+                await _stream.WriteAsync(requestJsonBytes, 0, requestJsonBytes.Length, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException)

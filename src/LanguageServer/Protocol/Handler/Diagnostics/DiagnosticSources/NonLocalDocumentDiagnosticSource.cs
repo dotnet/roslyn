@@ -26,8 +26,7 @@ internal sealed class NonLocalDocumentDiagnosticSource(TextDocument document, ID
         // document including those reported as a compilation end diagnostic.  These are not included in document pull
         // (uses GetDiagnosticsForSpan) due to cost.
         var diagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(
-            Document.Project.Solution, Document.Project.Id, Document.Id,
-            diagnosticIds: null, _shouldIncludeAnalyzer,
+            Document.Project, Document.Id, diagnosticIds: null, _shouldIncludeAnalyzer,
             includeLocalDocumentDiagnostics: false, includeNonLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
         // TODO(cyrusn): In the future we could consider reporting these, but with a flag on the diagnostic mentioning

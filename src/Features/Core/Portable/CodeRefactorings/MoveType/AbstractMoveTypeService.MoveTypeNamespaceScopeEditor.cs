@@ -20,43 +20,40 @@ internal abstract partial class AbstractMoveTypeService<
     /// it will evaluate if the namespace scope needs to be closed and reopened to create a new scope. 
     /// </summary>
     private sealed class MoveTypeNamespaceScopeEditor(
-        TService service, State state, string fileName, CancellationToken cancellationToken)
-        : Editor(service, state, fileName, cancellationToken)
+        TService service,
+        SemanticDocument document,
+        TTypeDeclarationSyntax typeDeclaration,
+        string fileName,
+        CancellationToken cancellationToken)
+        : Editor(service, document, typeDeclaration, fileName, cancellationToken)
     {
         public override async Task<Solution?> GetModifiedSolutionAsync()
         {
-            var node = State.TypeNode;
-            var documentToEdit = State.SemanticDocument.Document;
-
-            if (node.Parent is not TNamespaceDeclarationSyntax namespaceDeclaration)
-                return null;
-
-            return await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration, node, documentToEdit, CancellationToken).ConfigureAwait(false);
+            return TypeDeclaration.Parent is TNamespaceDeclarationSyntax namespaceDeclaration
+                ? await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration).ConfigureAwait(false)
+                : null;
         }
 
-        private static async Task<Solution?> GetNamespaceScopeChangedSolutionAsync(
-            TNamespaceDeclarationSyntax namespaceDeclaration,
-            TTypeDeclarationSyntax typeToMove,
-            Document documentToEdit,
-            CancellationToken cancellationToken)
+        private async Task<Solution?> GetNamespaceScopeChangedSolutionAsync(
+            TNamespaceDeclarationSyntax namespaceDeclaration)
         {
-            var syntaxFactsService = documentToEdit.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
             var childNodes = syntaxFactsService.GetMembersOfBaseNamespaceDeclaration(namespaceDeclaration);
 
             if (childNodes.Count <= 1)
                 return null;
 
-            var editor = await DocumentEditor.CreateAsync(documentToEdit, cancellationToken).ConfigureAwait(false);
-            editor.RemoveNode(typeToMove, SyntaxRemoveOptions.KeepNoTrivia);
+            var editor = await DocumentEditor.CreateAsync(SemanticDocument.Document, this.CancellationToken).ConfigureAwait(false);
+            editor.RemoveNode(this.TypeDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
             var generator = editor.Generator;
 
-            var index = childNodes.IndexOf(typeToMove);
+            var index = childNodes.IndexOf(this.TypeDeclaration);
 
             var itemsBefore = childNodes.Take(index).ToImmutableArray();
             var itemsAfter = childNodes.Skip(index + 1).ToImmutableArray();
 
             var name = syntaxFactsService.GetDisplayName(namespaceDeclaration, DisplayNameOptions.IncludeNamespaces);
-            var newNamespaceDeclaration = generator.NamespaceDeclaration(name, WithElasticTrivia(typeToMove)).WithAdditionalAnnotations(NamespaceScopeMovedAnnotation);
+            var newNamespaceDeclaration = generator.NamespaceDeclaration(name, WithElasticTrivia(this.TypeDeclaration)).WithAdditionalAnnotations(NamespaceScopeMovedAnnotation);
 
             if (itemsBefore.Any() && itemsAfter.Any())
             {
