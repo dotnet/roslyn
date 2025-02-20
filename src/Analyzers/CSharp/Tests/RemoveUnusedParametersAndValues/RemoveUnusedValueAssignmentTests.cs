@@ -10089,34 +10089,66 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72829")]
-    public async Task TestWriteIntoRefStructParameter()
+    [Fact]
+    public async Task TestWriteIntoPropertyOfRefStructParameter()
     {
         await new VerifyCS.Test
         {
             TestCode = """
                 using System;
 
-                internal sealed class UrlDecoder
+                internal sealed class C
                 {
-                    private static bool DecodeCore(ref int destinationIndex, Span<byte> buffer)
+                    private static void M(ref int destinationIndex, Span<byte> buffer)
                     {
-                        // preserves the original head. if the percent-encodings cannot be interpreted as sequence of UTF-8 octets,
-                        // bytes from this till the last scanned one will be copied to the memory pointed by writer.
-                        var byte1 = 0;
-                        if (byte1 == -1)
-                        {
-                            return false;
-                        }
+                        buffer[destinationIndex++] = (byte)0;
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 
-                        if (byte1 <= 0x7F)
-                        {
-                            // first byte < U+007f, it is a single byte ASCII
-                            buffer[destinationIndex++] = (byte)byte1;
-                            return true;
-                        }
+    [Fact]
+    public async Task TestWriteIntoPropertyOfRefStructParameterThenWriteTheParameter()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
 
-                        return false;
+                internal sealed class C
+                {
+                    private static void M(ref int destinationIndex, Span<byte> buffer)
+                    {
+                        buffer[destinationIndex++] = (byte)0;
+                        // /0/Test0.cs(8,9): info IDE0059: Unnecessary assignment of a value to 'buffer'
+                        {|IDE0059:buffer|} = default;
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWriteIntoPropertyOfStructParameter()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                internal struct S
+                {
+                    public byte this[int index] { get => 0; set => _ = value; }
+                }
+
+                internal sealed class C
+                {
+                    private static void M(ref int destinationIndex, S buffer)
+                    {
+                        // /0/Test0.cs(11,9): info IDE0059: Unnecessary assignment of a value to 'buffer'
+                        {|IDE0059:buffer|}[destinationIndex++] = (byte)0;
                     }
                 }
                 """,

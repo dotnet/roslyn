@@ -210,7 +210,16 @@ internal static partial class OperationExtensions
             // Accessing an indexer/property off of a value type will read/write the value type depending on how the
             // indexer/property itself is used. We add ValueUsageInfo.Read to the result since the value on which we are
             // accessing a property is always read.
-            return ValueUsageInfo.Read | GetValueUsageInfo(operation.Parent, containingSymbol);
+            // We consider a potential write only if the type is not a ref-like type.
+            // For example, if we have `s[0] = ...`, we will consider this as:
+            // 1. Read+Write: if s is value type and is not ref-like type.
+            // 2. Read only: if s is value type and is ref-like type.
+            // In the second case, it's a similar treatment as if it was a reference type.
+            // This is to help with unused assignment analysis where it's valid to have s[0] = ... without a subsequent read
+            // as the assignment can be observed by the caller.
+            return operation.Type.IsRefLikeType
+                ? ValueUsageInfo.Read
+                : ValueUsageInfo.Read | GetValueUsageInfo(operation.Parent, containingSymbol);
         }
         else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation)
         {
