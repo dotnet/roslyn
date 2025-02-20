@@ -16,7 +16,8 @@
     <EmbeddedResource Include="Resources\**\*.*" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\BuildHost\Rpc\RpcServer.cs" Link="Rpc\RpcServer.cs"/>
+    <Compile Include="..\..\..\Compilers\Shared\NamedPipeUtil.cs" Link="Utilities\NamedPipeUtil.cs" />
+    <Compile Include="..\BuildHost\Rpc\RpcServer.cs" Link="Rpc\RpcServer.cs" />
     <Compile Remove="Resources\**\*.*" />
   </ItemGroup>
   <ItemGroup>

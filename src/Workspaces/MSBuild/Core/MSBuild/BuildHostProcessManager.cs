@@ -10,6 +10,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,16 +63,26 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         var buildHost = await GetBuildHostAsync(buildHostKind, cancellationToken).ConfigureAwait(false);
 
-        // If this is a .NET Framework build host, we may not have have build tools installed and thus can't actually use it to build.
-        // Check if this is the case. Unlike the mono case, we have to actually ask the other process since MSBuildLocator only allows
-        // us to discover VS instances in .NET Framework hosts right now.
-        if (buildHostKind == BuildHostProcessKind.NetFramework)
+        // We might have a process but we need to check if it actually has a usable MSBuild. In the case of .NET Framework, you also have
+        // to have either Visual Studio or the Build Tools for Visual Studio installed. In the case of .NET Core, you have to have the SDK installed.
+        // Since we can't use MSBuildLocator in-process to discover the other "kinds" of MSBuild instances, we just have to ask the other process.
+        if (buildHostKind is BuildHostProcessKind.NetFramework or BuildHostProcessKind.NetCore)
         {
             if (!await buildHost.HasUsableMSBuildAsync(projectOrSolutionFilePath, cancellationToken).ConfigureAwait(false))
             {
-                // It's not usable, so we'll fall back to the .NET Core one.
-                _logger?.LogWarning($"An installation of Visual Studio or the Build Tools for Visual Studio could not be found; {projectOrSolutionFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
-                return (await GetBuildHostAsync(BuildHostProcessKind.NetCore, cancellationToken).ConfigureAwait(false), actualKind: BuildHostProcessKind.NetCore);
+                if (buildHostKind == BuildHostProcessKind.NetCore)
+                {
+                    buildHostKind = GetKindForNetFrameworkCompatibleDependingOnOperatingSystem();
+                    _logger?.LogWarning($"An installation of the .NET SDK could not be found; {projectOrSolutionFilePath} will be loaded with the .NET Framework and may encounter errors.");
+
+                }
+                else
+                {
+                    buildHostKind = BuildHostProcessKind.NetCore;
+                    _logger?.LogWarning($"An installation of Visual Studio or the Build Tools for Visual Studio could not be found; {projectOrSolutionFilePath} will be loaded with the .NET Core SDK and may encounter errors.");
+                }
+
+                return (await GetBuildHostAsync(buildHostKind, cancellationToken).ConfigureAwait(false), actualKind: buildHostKind);
             }
         }
 
@@ -286,6 +297,29 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         DtdProcessing = DtdProcessing.Prohibit,
     };
 
+    /// <summary>
+    /// Returns either .NET Framework or Mono depending on the operating system.
+    /// </summary>
+    private static BuildHostProcessKind GetKindForNetFrameworkCompatibleDependingOnOperatingSystem()
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? BuildHostProcessKind.NetFramework : BuildHostProcessKind.Mono;
+    }
+
+    /// <summary>
+    /// Returns a kind that matches the current process.
+    /// </summary>
+    /// <remarks>
+    /// There's a few times when we want to create a build host process, but we don't actually need it to be a specific kind; in this case if we know we're running on .NET Core
+    /// or .NET Framework, we can just use that kind rather than trying to use the other kind and discovering that doesn't work.
+    /// </remarks>
+    public static BuildHostProcessKind GetKindForCurrentProcess()
+    {
+        if (RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework"))
+            return GetKindForNetFrameworkCompatibleDependingOnOperatingSystem();
+        else
+            return BuildHostProcessKind.NetCore;
+    }
+
     public static BuildHostProcessKind GetKindForProject(string projectFilePath)
     {
         // In Source Build builds, we don't have a net472 host at all, so the answer is simple. We unfortunately can't create a net472 build because there's no
@@ -297,8 +331,6 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         // This implements the algorithm as stated in https://github.com/dotnet/project-system/blob/9a761848e0f330a45e349685a266fea00ac3d9c5/docs/opening-with-new-project-system.md;
         // we'll load the XML of the project directly, and inspect for certain elements.
         XDocument document;
-
-        var frameworkHostType = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? BuildHostProcessKind.NetFramework : BuildHostProcessKind.Mono;
 
         try
         {
@@ -312,11 +344,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             // We were unable to read the file; rather than having callers of the build process manager have to deal with this special case
             // we'll instead just give them a host that corresponds to what they are running as; we know that host unquestionably exists
             // and the rest of the code can deal with this cleanly.
-#if NET
-            return BuildHostProcessKind.NetCore;
-#else
-            return frameworkHostType;
-#endif
+            return GetKindForCurrentProcess();
         }
 
         // If we don't have a root, doesn't really matter which. This project is just malformed.
@@ -341,7 +369,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             return BuildHostProcessKind.NetCore;
 
         // Nothing that indicates it's an SDK-style project, so use our .NET framework host
-        return frameworkHostType;
+        return GetKindForNetFrameworkCompatibleDependingOnOperatingSystem();
 
 #endif
     }
@@ -382,9 +410,10 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
             _process.ErrorDataReceived += Process_ErrorDataReceived;
 
-            var pipeClient = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+            // Inlined NamedPipeUtil.CreateClient because it does not support netstandard tfm due to using runtime specific functionality.
+            var pipeClient = new NamedPipeClientStream(".", GetPipeNameOrPath(pipeName), PipeDirection.InOut, GetPipeOptions());
             pipeClient.Connect(TimeOutMsNewProcess);
-            if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeClient))
+            if (!CheckPipeConnectionOwnership(pipeClient))
             {
                 throw new Exception("Ownership of BuildHost pipe is incorrect.");
             }
@@ -396,6 +425,44 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
             // Call this last so our type is fully constructed before we start firing events
             _process.BeginErrorReadLine();
+
+            static string GetPipeNameOrPath(string pipeName) => PlatformInformation.IsUnix
+                ? Path.Combine("/tmp", pipeName)
+                : pipeName;
+
+            static PipeOptions GetPipeOptions()
+            {
+                const int CurrentUserOnlyValue = 0x20000000;
+
+                // Mono supports CurrentUserOnly even though it's not exposed on the reference assemblies for net472. This
+                // must be used because ACL security does not work.
+                return PlatformInformation.IsRunningOnMono || IsNetCore()
+                    ? PipeOptions.Asynchronous | (PipeOptions)CurrentUserOnlyValue
+                    : PipeOptions.Asynchronous;
+            }
+
+            // Check if the runtime is .NET 5 or higher.
+            // This method is borrowed from https://github.com/dotnet/runtime/blob/7e9343be8e693f23d8a7a5c00d6f668668dc7769/src/libraries/Common/tests/TestUtilities/System/PlatformDetection.cs#L29
+            static bool IsNetCore() => Environment.Version.Major >= 5
+                || RuntimeInformation.FrameworkDescription.StartsWith(".NET Core", StringComparison.OrdinalIgnoreCase);
+
+            // Check to ensure that the named pipe server we connected to is owned by the same
+            // user.
+            static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream)
+            {
+                if (PlatformInformation.IsWindows && !IsNetCore())
+                {
+                    var currentIdentity = WindowsIdentity.GetCurrent();
+                    var currentOwner = currentIdentity.Owner!;
+                    var remotePipeSecurity = pipeStream.GetAccessControl();
+                    var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
+                    return currentOwner.Equals(remoteOwner);
+                }
+
+                // Client side validation isn't necessary on NetCore or supported on Unix. The model relies on
+                // the server side security here.
+                return true;
+            }
         }
 
         private void Process_Exited(object? sender, EventArgs e)

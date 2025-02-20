@@ -116,7 +116,7 @@
     <PackageVersion Include="Nerdbank.Streams" Version="2.11.79" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="StreamJsonRpc" Version="2.20.8-beta" />
-    
+
     <!--
       VS Debugger
     -->
@@ -197,6 +197,7 @@
     <PackageVersion Include="System.Numerics.Vectors" Version="$(SystemNumericsVectorsVersion)" />
     <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" />
     <PackageVersion Include="System.Resources.Extensions" Version="$(SystemResourcesExtensionsVersion)" />
+    <PackageVersion Include="System.Security.AccessControl" Version="6.0.0" />
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="$(SystemSecurityCryptographyProtectedDataVersion)" />
     <PackageVersion Include="System.Security.Permissions" Version="$(SystemSecurityPermissionsVersion)" />
     <PackageVersion Include="System.Text.Encoding.CodePages" Version="7.0.0" />

@@ -51,6 +51,10 @@ internal static class Program
 
         var pipeServer = NamedPipeUtil.CreateServer(pipeName, PipeDirection.InOut);
         await pipeServer.WaitForConnectionAsync().ConfigureAwait(false);
+        if (!NamedPipeUtil.CheckClientElevationMatches(pipeServer))
+        {
+            throw new Exception("Ownership of BuildHost pipe client is incorrect.");
+        }
 
         var server = new RpcServer(pipeServer);
 

@@ -170,7 +170,6 @@
       <!-- Make sure we include ContentFilesProjectOutputGroup so we get the BuildHosts deployed into the VSIX -->
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup;ContentFilesProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
 
       <!-- Disable ngen. If we don't set this, ngen is enabled for all binaries coming from this ProjectReference, which includes the build hosts coming in as content.

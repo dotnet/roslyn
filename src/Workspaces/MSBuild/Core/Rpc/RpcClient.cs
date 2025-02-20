@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 /// </summary>
 /// <remarks>
 /// The RPC system implemented here is pretty close to something like JSON-RPC; however since we need the Build Host to be usable in Source Build
-/// scenarios, we are limited to using only what is either in .NET or can be easily made buildable in Source Build. Thus existing solutions like StreamJsonRpc 
+/// scenarios, we are limited to using only what is either in .NET or can be easily made buildable in Source Build. Thus existing solutions like StreamJsonRpc
 /// are out. If at some point there is a standard RPC mechanism exposed in .NET or Source Build, we should delete this and use that instead.
 /// </remarks>
 internal sealed class RpcClient

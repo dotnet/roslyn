@@ -7,8 +7,6 @@
     <TargetFrameworks>$(NetRoslynBuildHostNetCoreVersion);net472</TargetFrameworks>
     <!-- We'll always be running our build host with the same host that is used to launch the language server process directly, so we don't need to create another one -->
     <UseAppHost>false</UseAppHost>
-    <!-- Set to false since it's also set in Microsoft.CodeAnalysis.LanguageServer -->
-    <SelfContained>false</SelfContained>
     <!-- We don't ship a regular NuGet package for this (it gets included in the Workspaces.MSBuild package directly), but we still need to publish symbols -->
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
     <!-- Explicitly mark ourselves as AnyCPU; if we don't do this, since this project is an executable targeting net472, the SDK has logic that assumes we're targeting Windows
@@ -47,6 +45,7 @@
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <PackageReference Include="System.Text.Json" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
@@ -80,18 +79,15 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
-    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Include="Rpc\Readme.md" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <EmbeddedResource Update="WorkspaceMSBuildBuildHostResources.resx" GenerateSource="true" />
   </ItemGroup>
@@ -110,5 +106,6 @@
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
-  <Import Project="$(RepositoryEngineeringDir)targets\PackageDownloadAndReference.targets" />
+  <Import Project="$(RepositoryEngineeringDir)targets\PackageDownloadAndReference.targets"/>
+  <Import Project="..\Shared\WorkspacesMSBuildShared.projitems" Label="Shared" />
 </Project>

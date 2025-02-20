@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -145,11 +146,22 @@ internal sealed class BuildHost : IBuildHost
         // WARNING: do not use a lambda in this function, as it internally will be put in a class that contains other lambdas used in
         // TryEnsureMSBuildLoaded; on Mono this causes type load errors.
 
+        var projectFilter = ImmutableHashSet<string>.Empty;
+        if (SolutionFilterReader.IsSolutionFilterFilename(solutionFilePath))
+            (solutionFilePath, projectFilter) = SolutionFilterReader.Read(solutionFilePath);
+
         var builder = ImmutableArray.CreateBuilder<(string ProjectPath, string ProjectGuid)>();
 
         foreach (var project in SolutionFile.Parse(solutionFilePath).ProjectsInOrder)
         {
-            if (project.ProjectType != SolutionProjectType.SolutionFolder)
+            if (project.ProjectType == SolutionProjectType.SolutionFolder)
+            {
+                continue;
+            }
+
+            // Load project if we have an empty project filter and the project path is present.
+            if (projectFilter.IsEmpty ||
+                projectFilter.Contains(project.AbsolutePath))
             {
                 builder.Add((project.AbsolutePath, project.ProjectGuid));
             }
