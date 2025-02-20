@@ -136,7 +136,12 @@ for given scenarios are elaborated in more detail below.
 
 TODO: Async iterators (returning `IAsyncEnumerable<T>`)
 
-#### Await `Task`-returning method
+#### `Task`, `Task<T>`, `ValueTask`, `ValueTask<T>` Scenarios
+
+For any lvalue of one of these types, we'll generally rewrite `await expr` into `System.Runtime.CompilerServices.RuntimeHelpers.Await(expr)`. A number of different example scenarios for this are covered below. The
+main interesting deviations are when `struct` rvalues need to be hoisted across an `await`, and exception handling rewriting.
+
+##### Await `Task`-returning method
 
 ```cs
 class C
@@ -183,7 +188,7 @@ callvirt instance class [System.Runtime]System.Threading.Tasks.Task C::M()
 call void [System.Runtime]System.Runtime.CompilerServices.RuntimeHelpers::Await(class [System.Runtime]System.Threading.Tasks.Task)
 ```
 
-#### Await a concrete `T` `Task<T>`-returning method
+##### Await a concrete `T` `Task<T>`-returning method
 
 ```cs
 int i = await C.M();
@@ -232,7 +237,7 @@ call int32 [System.Runtime]System.Runtime.CompilerServices.RuntimeHelpers::Await
 stloc.0
 ```
 
-#### Await local of type `Task`
+##### Await local of type `Task`
 
 ```cs
 var local = M();
@@ -265,7 +270,7 @@ System.Runtime.CompilerServices.RuntimeHelpers.Await(local);
 }
 ```
 
-#### Await local of concrete type `Task<T>`
+##### Await local of concrete type `Task<T>`
 
 ```cs
 var local = M();
@@ -300,7 +305,7 @@ var i = System.Runtime.CompilerServices.RuntimeHelpers.Await<int>(local);
 }
 ```
 
-#### Await a `T`-returning method
+##### Await a `T`-returning method
 
 ```cs
 await C.M<Task>();
@@ -325,7 +330,7 @@ System.Runtime.CompilerServices.RuntimeHelpers.Await(C.M<Task>());
 }
 ```
 
-#### Await a generic `T` `Task<T>`-returning method
+##### Await a generic `T` `Task<T>`-returning method
 
 ```cs
 int i = await C.M<int>();
@@ -351,7 +356,7 @@ int i = System.Runtime.CompilerServices.RuntimeHelpers.Await<int>(C.M<int>());
 }
 ```
 
-#### Await a `Task`-returning delegate
+##### Await a `Task`-returning delegate
 
 ```cs
 AsyncDelegate d = C.M;
@@ -391,7 +396,7 @@ System.Runtime.CompilerServices.RuntimeHelpers.Await(d());
 }
 ```
 
-#### Await a `T`-returning delegate
+##### Await a `T`-returning delegate where `T` becomes `Task`
 
 ```cs
 Func<Task> d = C.M;
@@ -429,7 +434,7 @@ System.Runtime.CompilerServices.RuntimeHelpers.Await(d());
 }
 ```
 
-#### Awaiting in a `catch` block
+##### Awaiting in a `catch` block
 
 ```cs
 try
@@ -505,7 +510,7 @@ if (pendingCatch == 1)
 }
 ```
 
-#### Awaiting in a `finally` block
+##### Awaiting in a `finally` block
 
 ```cs
 try
@@ -573,7 +578,7 @@ if (pendingException != null)
 }
 ```
 
-#### Preserving compound assignments
+##### Preserving compound assignments
 
 ```cs
 int[] a = new int[] { };
@@ -624,7 +629,14 @@ a[_tmp1] = _tmp2 + _tmp3;
 }
 ```
 
-#### Await a non-Task/ValueTask implementor of ICriticalNotifyCompletion
+#### Await a non-Task/ValueTask
+
+For anything that isn't a `Task`, `Task<T>`, `ValueTask`, and `ValueTask<T>`, we instead use `System.Runtime.CompilerServices.RuntimeHelpers.AwaitAwaiterFromRuntimeAsync` or
+`System.Runtime.CompilerServices.RuntimeHelpers.UnsafeAwaitAwaiterFromRuntimeAsync`. These are covered below.
+
+##### Implementor of ICriticalNotifyCompletion
+
+`ICriticalNotifyCompletion` lowering is always preferred over `INotifyCompletion` lowering, when we statically know `ICriticalNotifyCompletion` is implemented by the expression.
 
 ```cs
 var c = new C();
@@ -680,7 +692,7 @@ _ = {
 }
 ```
 
-#### Await a non-Task/ValueTask implementor of INotifyCompletion
+#### Implementor of INotifyCompletion
 
 ```cs
 var c = new C();
