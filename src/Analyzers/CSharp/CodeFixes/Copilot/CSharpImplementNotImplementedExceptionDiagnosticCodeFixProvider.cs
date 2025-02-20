@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
+//using Microsoft.CodeAnalysis.MethodImplementation
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
@@ -59,6 +59,8 @@ internal sealed partial class CSharpImplementNotImplementedExceptionCodeFixProvi
         }
 
         var containingClass = containingMethod.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+        // TODO: handle containingRecord and containingStruct, do not return if method is in a record.
+
         if (containingClass == null)
         {
             return;
@@ -228,6 +230,8 @@ internal sealed partial class CSharpImplementNotImplementedExceptionCodeFixProvi
             }
         }
 
+        // TODO: add logic for picking up editor config and prefer newer C# features when available
+
         // Split the comment into individual lines
         var commentLines = referencesComment.Split(['\n'], StringSplitOptions.RemoveEmptyEntries);
 
@@ -262,6 +266,24 @@ internal sealed partial class CSharpImplementNotImplementedExceptionCodeFixProvi
 
         // Add a placeholder for business logic
         newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.Comment("// TODO: Add business logic here")).Add(SyntaxFactory.ElasticCarriageReturnLineFeed);
+
+        //// build a MethodImplementationProposal from here
+        //MethodImplementationProposal methodImplementationProposal = new BuildMethodImplementationProposal(
+        //    containingMethod,
+        //    containingClass,
+        //    referencedMethods,
+        //    attributes,
+        //    baseTypes,
+        //    properties,
+        //    methods,
+        //    parameters,
+        //    containingMethod.ReturnType.ToString(),
+        //    referencedPackages,
+        //    usingDirectives);
+
+        // then call the Copilot service to get the implementation
+
+        // Replace the throw statement with the implementation rather than the comment
 
         // Replace the throw statement with the new leading trivia
         editor.ReplaceNode(throwStatement, (currentNode, generator) =>
