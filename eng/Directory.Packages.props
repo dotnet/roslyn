@@ -103,7 +103,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="17.12.145-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.12.39-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
-    <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.12.11-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.13.7" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.12.39557-preview.2.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.2" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.12.145-preview" />
@@ -120,7 +120,7 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.13.0-beta.24561.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.13.0-beta.25105.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.13.1121201-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.13.1121201-preview" />
 
