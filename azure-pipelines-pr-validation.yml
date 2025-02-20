@@ -143,6 +143,9 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
+        - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
+          displayName: Disable Real-time Monitoring
+          
         - task: Powershell@2
           displayName: Setting OriginalBuildNumber variable
           condition: succeeded()
