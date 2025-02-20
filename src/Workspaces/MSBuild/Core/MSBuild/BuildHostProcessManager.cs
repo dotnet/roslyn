@@ -10,6 +10,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -412,6 +413,10 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             // Inlined NamedPipeUtil.CreateClient because it does not support netstandard tfm due to using runtime specific functionality.
             var pipeClient = new NamedPipeClientStream(".", GetPipeNameOrPath(pipeName), PipeDirection.InOut, GetPipeOptions());
             pipeClient.Connect(TimeOutMsNewProcess);
+            if (!CheckPipeConnectionOwnership(pipeClient))
+            {
+                throw new Exception("Ownership of BuildHost pipe is incorrect.");
+            }
 
             _rpcClient = new RpcClient(pipeClient);
             _rpcClient.Start();
@@ -440,6 +445,24 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             // This method is borrowed from https://github.com/dotnet/runtime/blob/7e9343be8e693f23d8a7a5c00d6f668668dc7769/src/libraries/Common/tests/TestUtilities/System/PlatformDetection.cs#L29
             static bool IsNetCore() => Environment.Version.Major >= 5
                 || RuntimeInformation.FrameworkDescription.StartsWith(".NET Core", StringComparison.OrdinalIgnoreCase);
+
+            // Check to ensure that the named pipe server we connected to is owned by the same
+            // user.
+            static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream)
+            {
+                if (PlatformInformation.IsWindows && !IsNetCore())
+                {
+                    var currentIdentity = WindowsIdentity.GetCurrent();
+                    var currentOwner = currentIdentity.Owner!;
+                    var remotePipeSecurity = pipeStream.GetAccessControl();
+                    var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
+                    return currentOwner.Equals(remoteOwner);
+                }
+
+                // Client side validation isn't necessary on NetCore or supported on Unix. The model relies on
+                // the server side security here.
+                return true;
+            }
         }
 
         private void Process_Exited(object? sender, EventArgs e)

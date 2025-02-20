@@ -24,6 +24,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Framework" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" />
     <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
