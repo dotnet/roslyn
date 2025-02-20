@@ -59,19 +59,11 @@ internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fa
         if (message != null && logLevel != LogLevel.None)
         {
             message = $"[{categoryName}] {message}";
-            try
+            var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
             {
-                var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
-                {
-                    Message = message,
-                    MessageType = LogLevelToMessageType(logLevel),
-                }, CancellationToken.None);
-            }
-            catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
-            {
-                // It is entirely possible that we're shutting down and the connection is lost while we're trying to send a log notification
-                // as this runs outside of the guaranteed ordering in the queue. We can safely ignore this exception.
-            }
+                Message = message,
+                MessageType = LogLevelToMessageType(logLevel),
+            }, CancellationToken.None);
         }
     }
 
