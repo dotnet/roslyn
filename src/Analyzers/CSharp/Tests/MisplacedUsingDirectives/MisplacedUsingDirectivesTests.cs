@@ -725,7 +725,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
 
     #region OutsideNamespaceIgnoringAliases
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
     public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved()
     {
         var testCode = """
@@ -749,7 +749,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
         return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
     public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved_InnerType()
     {
         var testCode = """
@@ -781,7 +781,7 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
         return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
     public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved_AliasInMiddle()
     {
         var testCode = """
