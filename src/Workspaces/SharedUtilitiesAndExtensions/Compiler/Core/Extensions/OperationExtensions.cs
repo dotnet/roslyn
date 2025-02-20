@@ -217,6 +217,12 @@ internal static partial class OperationExtensions
             // In the second case, it's a similar treatment as if it was a reference type.
             // This is to help with unused assignment analysis where it's valid to have s[0] = ... without a subsequent read
             // as the assignment can be observed by the caller.
+            // Put in other words, we think of "write" in this context as "changing the value of the value type"
+            // The "value" for value types is just the value itself, except for ref-like types where we think of
+            // the "value" more as the "reference" itself (think of it as a pointer).
+            // s[0] = ... where s is value type and not ref-like type: Read+Write (the conceptual value of s changes)
+            // s[0] = ... where s is value type and ref-like type: Read (the ceonceptual value of s (i.e, the reference) doesn't change)
+            // s = ... is always considered a write regardless of what "s" is (this is handled by the IAssignmentOperation condition)
             return operation.Type.IsRefLikeType
                 ? ValueUsageInfo.Read
                 : ValueUsageInfo.Read | GetValueUsageInfo(operation.Parent, containingSymbol);
