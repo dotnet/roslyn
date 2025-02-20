@@ -6,7 +6,7 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
             await DisposeAsync().ConfigureAwait(false);
+            Logger.Log(FunctionId.Copilot_Generate_Documentation_Accepted, logLevel: LogLevel.Information);
         }
 
         public override Task OnChangeProposalAsync(SuggestionSessionBase session, ProposalBase originalProposal, ProposalBase currentProposal, bool forward, CancellationToken cancel)
@@ -50,12 +51,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var threadingContext = providerInstance.ThreadingContext;
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
             await ClearSuggestionAsync(reason, cancel).ConfigureAwait(false);
+            Logger.Log(FunctionId.Copilot_Generate_Documentation_Dismissed, logLevel: LogLevel.Information);
         }
 
         public override Task OnProposalUpdatedAsync(SuggestionSessionBase session, ProposalBase? originalProposal, ProposalBase? currentProposal, ReasonForUpdate reason, VirtualSnapshotPoint caret, CompletionState? completionState, CancellationToken cancel)
         {
             if (reason.HasFlag(ReasonForUpdate.Diverged))
             {
+                Logger.Log(FunctionId.Copilot_Generate_Documentation_Diverged, logLevel: LogLevel.Information);
                 return session.DismissAsync(ReasonForDismiss.DismissedAfterBufferChange, cancel);
             }
 
@@ -68,7 +71,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             if (_suggestionSession != null)
             {
-                await TryDisplayProposalAsync(_suggestionSession, cancellationToken).ConfigureAwait(false);
+                var success = await TryDisplayProposalAsync(_suggestionSession, cancellationToken).ConfigureAwait(false);
+                if (success)
+                {
+                    Logger.Log(FunctionId.Copilot_Generate_Documentation_Displayed, logLevel: LogLevel.Information);
+                }
             }
         }
 
@@ -82,6 +89,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
             catch (OperationCanceledException)
             {
+                Logger.Log(FunctionId.Copilot_Generate_Documentation_Canceled, logLevel: LogLevel.Information);
             }
 
             return false;
