@@ -188,6 +188,9 @@ callvirt instance class [System.Runtime]System.Threading.Tasks.Task C::M()
 call void [System.Runtime]System.Runtime.CompilerServices.RuntimeHelpers::Await(class [System.Runtime]System.Threading.Tasks.Task)
 ```
 
+<details>
+<summary>Extended examples of further variations on the simple `await expr` scenario</summary>
+
 ##### Await a concrete `T` `Task<T>`-returning method
 
 ```cs
@@ -433,6 +436,8 @@ System.Runtime.CompilerServices.RuntimeHelpers.Await(d());
     IL_0025: ret
 }
 ```
+
+</details>
 
 ##### Awaiting in a `catch` block
 
