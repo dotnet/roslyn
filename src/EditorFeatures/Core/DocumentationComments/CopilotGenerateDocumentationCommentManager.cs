@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             _suggestionServiceBase = suggestionServiceBase;
             _threadingContext = threadingContext;
-            _asyncListener = _asyncListener = listenerProvider.GetListener(FeatureAttribute.GenerateDocumentation);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.GenerateDocumentation);
         }
 
         public void TriggerDocumentationCommentProposalGeneration(Document document,
