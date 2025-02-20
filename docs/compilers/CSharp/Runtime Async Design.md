@@ -697,7 +697,7 @@ _ = {
 }
 ```
 
-#### Implementor of INotifyCompletion
+##### Implementor of INotifyCompletion
 
 ```cs
 var c = new C();
