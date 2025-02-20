@@ -65,6 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (IsPartialDefinition && syntax.Initializer is { } initializer)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialConstructorInitializer, initializer, this);
+            }
+
             if (methodKind == MethodKind.StaticConstructor)
             {
                 CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
