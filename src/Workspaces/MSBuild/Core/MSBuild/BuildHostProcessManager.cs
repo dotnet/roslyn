@@ -410,7 +410,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             _process.ErrorDataReceived += Process_ErrorDataReceived;
 
             // Inlined NamedPipeUtil.CreateClient because it does not support netstandard tfm due to using runtime specific functionality.
-            var pipeClient = new NamedPipeClientStream(".", GetPipeNameOrPath(pipeName), PipeDirection.InOut, PipeOptions.Asynchronous);
+            var pipeClient = new NamedPipeClientStream(".", GetPipeNameOrPath(pipeName), PipeDirection.InOut, GetPipeOptions());
             pipeClient.Connect(TimeOutMsNewProcess);
 
             _rpcClient = new RpcClient(pipeClient);
@@ -424,6 +424,22 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             static string GetPipeNameOrPath(string pipeName) => PlatformInformation.IsUnix
                 ? Path.Combine("/tmp", pipeName)
                 : pipeName;
+
+            static PipeOptions GetPipeOptions()
+            {
+                const int CurrentUserOnlyValue = 0x20000000;
+
+                // Mono supports CurrentUserOnly even though it's not exposed on the reference assemblies for net472. This
+                // must be used because ACL security does not work.
+                return PlatformInformation.IsRunningOnMono || IsNetCore()
+                    ? PipeOptions.Asynchronous | (PipeOptions)CurrentUserOnlyValue
+                    : PipeOptions.Asynchronous;
+            }
+
+            // Check if the runtime is .NET 5 or higher.
+            // This method is borrowed from https://github.com/dotnet/runtime/blob/7e9343be8e693f23d8a7a5c00d6f668668dc7769/src/libraries/Common/tests/TestUtilities/System/PlatformDetection.cs#L29
+            static bool IsNetCore() => Environment.Version.Major >= 5
+                || RuntimeInformation.FrameworkDescription.StartsWith(".NET Core", StringComparison.OrdinalIgnoreCase);
         }
 
         private void Process_Exited(object? sender, EventArgs e)

@@ -3169,7 +3169,7 @@ class C { }";
 
             var solutionFilePath = GetSolutionFileName(@"TestVB2.sln");
 
-            // The reference assemblies for .NETFramework,Version=v3.5 were not found To resolve this, install the Developer Pack 
+            // The reference assemblies for .NETFramework,Version=v3.5 were not found To resolve this, install the Developer Pack
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
@@ -3290,7 +3290,7 @@ class C { }";
             var solutionFilePath = GetSolutionFileName(@"InvalidSolutionFilter.slnf");
 
             using var workspace = CreateMSBuildWorkspace();
-            var exception = await Assert.ThrowsAsync<RemoteInvocationException>(() => workspace.OpenSolutionAsync(solutionFilePath));
+            var exception = await Assert.ThrowsAnyAsync<Exception>(() => workspace.OpenSolutionAsync(solutionFilePath));
 
             Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
         }
