@@ -26,7 +26,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
         _containingSymbol = containingType;
     }
 
-    /// <summary>Creates a method-scope generic delegate cache container.</summary>
+    /// <summary>Creates a generic delegate cache container "scoped" to a specific <paramref name="owner"/>.</summary>
     internal DelegateCacheContainer(NamedTypeSymbol containingType, Symbol owner, int topLevelMethodOrdinal, int ownerUniqueId, int generationOrdinal)
         : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal, owner.Name, topLevelMethodOrdinal, ownerUniqueId),
                owner is NamedTypeSymbol type ?
@@ -42,7 +42,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
         _constructedContainer = Construct(ConstructedFromTypeParameters);
     }
 
-    public override Symbol ContainingSymbol => _containingSymbol; // PROTOTYPE: Adjust
+    public override Symbol ContainingSymbol => _containingSymbol;
 
     public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable();
 
