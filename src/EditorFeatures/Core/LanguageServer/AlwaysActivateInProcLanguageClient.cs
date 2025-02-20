@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 [ContentType(ContentTypeNames.CSharpContentType)]
 [ContentType(ContentTypeNames.VisualBasicContentType)]
 [ContentType(ContentTypeNames.FSharpContentType)]
+// TEMPORARY. Playing around with XAML diagnostics in VS.
+[ContentType("XAML")]
+[ContentType("Xaml")]
+[ContentType("xaml")]
+// TEMPORARY - END.
 [Export(typeof(ILanguageClient))]
 [Export(typeof(AlwaysActivateInProcLanguageClient))]
 [method: ImportingConstructor]
