@@ -24,7 +24,7 @@
       "rollForward": false
     },
     "docfx": {
-      "version": "2.78.2",
+      "version": "2.78.3",
       "commands": [
         "docfx"
       ],
