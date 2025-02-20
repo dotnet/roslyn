@@ -26,7 +26,7 @@ internal sealed class DocumentationCommentCommandHandler(
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     EditorOptionsService editorOptionsService,
-    [Import(AllowDefault = true)] CopilotGenerateDocumentationCommentManager? generateDocumentationCommentManager)
+    CopilotGenerateDocumentationCommentManager generateDocumentationCommentManager)
             : AbstractDocumentationCommentCommandHandler(uiThreadOperationExecutor, undoHistoryRegistry,
                 editorOperationsFactoryService, editorOptionsService, generateDocumentationCommentManager)
 {

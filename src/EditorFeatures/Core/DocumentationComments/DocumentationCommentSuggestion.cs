@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
@@ -61,9 +62,29 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return Task.CompletedTask;
         }
 
-        public async Task<SuggestionSessionBase?> GetSuggestionSessionAsync(CancellationToken cancellationToken)
+        public async Task TryDisplaySuggestionAsync(CancellationToken cancellationToken)
         {
-            return _suggestionSession = await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false);
+            _suggestionSession = await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false);
+
+            if (_suggestionSession != null)
+            {
+                await TryDisplayProposalAsync(_suggestionSession, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task<bool> TryDisplayProposalAsync(SuggestionSessionBase session, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await providerInstance.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await session.DisplayProposalAsync(Proposal, cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+
+            return false;
         }
 
         private async Task ClearSuggestionAsync(ReasonForDismiss reason, CancellationToken cancellationToken)

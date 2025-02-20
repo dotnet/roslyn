@@ -30,8 +30,8 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpCopilotCodeAnalysisService(
-        [Import] IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
-        [Import] IExternalCSharpCopilotGenerateDocumentationService? externalCSharpCopilotGenerateDocumentationService,
+        [Import(AllowDefault = true)] IExternalCSharpCopilotCodeAnalysisService externalCopilotService,
+        [Import(AllowDefault = true)] IExternalCSharpCopilotGenerateDocumentationService externalCSharpCopilotGenerateDocumentationService,
         IDiagnosticsRefresher diagnosticsRefresher
         ) : base(diagnosticsRefresher)
     {

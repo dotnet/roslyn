@@ -69,17 +69,12 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             if (proposal is null)
             {
+                await intellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
                 return;
             }
 
             var suggestion = new DocumentationCommentSuggestion(this, proposal, _suggestionManager, intellicodeLineCompletionsDisposable);
-
-            var session = await suggestion.GetSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
-
-            if (session != null)
-            {
-                await TryDisplaySuggestionAsync(session, suggestion, cancellationToken).ConfigureAwait(false);
-            }
+            await suggestion.TryDisplaySuggestionAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -274,21 +269,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
                 return builder.ToString();
             }
-        }
-
-        private async Task<bool> TryDisplaySuggestionAsync(SuggestionSessionBase session, DocumentationCommentSuggestion suggestion, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                await session.DisplayProposalAsync(suggestion.Proposal, cancellationToken).ConfigureAwait(false);
-                return true;
-            }
-            catch (OperationCanceledException)
-            {
-            }
-
-            return false;
         }
 
         public override Task EnabledAsync(CancellationToken cancel)

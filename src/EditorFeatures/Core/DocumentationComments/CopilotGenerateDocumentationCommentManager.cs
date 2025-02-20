@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
     [Export(typeof(CopilotGenerateDocumentationCommentManager))]
     internal class CopilotGenerateDocumentationCommentManager
     {
-        private readonly SuggestionServiceBase _suggestionServiceBase;
+        private readonly SuggestionServiceBase? _suggestionServiceBase;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CopilotGenerateDocumentationCommentManager(SuggestionServiceBase suggestionServiceBase, IThreadingContext threadingContext,
+        public CopilotGenerateDocumentationCommentManager([Import(AllowDefault = true)] SuggestionServiceBase? suggestionServiceBase, IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _suggestionServiceBase = suggestionServiceBase;
@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         public void TriggerDocumentationCommentProposalGeneration(Document document,
             DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
         {
+            if (_suggestionServiceBase is null)
+            {
+                return;
+            }
+
             var token = _asyncListener.BeginAsyncOperation(nameof(GenerateDocumentationCommentProposalsAsync));
             _ = GenerateDocumentationCommentProposalsAsync(document, snippet, snapshot, caret, textView, cancellationToken).CompletesAsyncOperation(token);
         }
@@ -65,7 +70,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var provider = textView.Properties.GetOrCreateSingletonProperty(typeof(CopilotGenerateDocumentationCommentProvider),
                 () => new CopilotGenerateDocumentationCommentProvider(_threadingContext, copilotService));
 
-            await provider!.InitializeAsync(textView, _suggestionServiceBase, cancellationToken).ConfigureAwait(false);
+            await provider!.InitializeAsync(textView, _suggestionServiceBase!, cancellationToken).ConfigureAwait(false);
 
             return provider;
         }
