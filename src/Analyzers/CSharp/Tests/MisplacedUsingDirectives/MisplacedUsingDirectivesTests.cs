@@ -787,9 +787,9 @@ public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
         var testCode = """
             namespace TestNamespace
             {
-                [|using System;|]
+                [|using System;
                 using SCG = System.Collections.Generic;
-                [|using System.Threading;|]
+                using System.Threading;|]
 
                 class C
                 {
