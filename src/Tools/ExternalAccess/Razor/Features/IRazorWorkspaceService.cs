@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.LanguageServer;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 
-internal interface IRazorWorkspaceService
+internal interface IRazorWorkspaceService : ILspService
 {
     public void Initialize(Workspace workspace, string pipeName);
     public bool IsInitialized { get; }

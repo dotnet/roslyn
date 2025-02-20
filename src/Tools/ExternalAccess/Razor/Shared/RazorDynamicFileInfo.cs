@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     /// this will be used to provide dynamic content such as generated content from cshtml to workspace
     /// we acquire this from <see cref="IDynamicFileInfoProvider"/> exposed from external components such as razor for cshtml
     /// </summary>
-    internal sealed class RazorDynamicFileInfo : IRazorDynamicFileInfo
+    internal sealed class RazorDynamicFileInfo
     {
         public RazorDynamicFileInfo(string filePath, SourceCodeKind sourceCodeKind, TextLoader textLoader, IRazorDocumentServiceProvider documentServiceProvider)
         {

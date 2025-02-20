@@ -8,11 +8,8 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Services.Razor;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 
@@ -23,6 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 {
     private readonly AsyncBatchingWorkQueue<string> _updateWorkQueue;
+    private IRazorWorkspaceService? _razorWorkspaceService;
+    private IRazorDynamicFileInfoProvider? _dynamicFileInfoProvider;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -36,6 +35,12 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
             CancellationToken.None);
     }
 
+    public void Initialize(IRazorWorkspaceService razorWorkspaceService, IRazorDynamicFileInfoProvider dynamicFileInfoProvider)
+    {
+        _razorWorkspaceService = razorWorkspaceService;
+        _dynamicFileInfoProvider = dynamicFileInfoProvider;
+    }
+
     public event EventHandler<string>? Updated;
 
     public void Update(string filePath)
@@ -45,17 +50,14 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 
     public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
-        var razorWorkspaceService = await RazorLSPServiceProvider.TryGetServiceAsync<IRazorWorkspaceService>(cancellationToken);
-
-        if (razorWorkspaceService is not { IsInitialized: true })
+        if (_razorWorkspaceService is not { IsInitialized: true } || _dynamicFileInfoProvider is null)
         {
             return null;
         }
 
-        razorWorkspaceService.NotifyDynamicFile(projectId);
-        var dynamicFileInfoProvider = await GetFileProviderAsync(cancellationToken);
+        _razorWorkspaceService.NotifyDynamicFile(projectId);
 
-        var dynamicInfo = await dynamicFileInfoProvider.GetDynamicFileInfoAsync(projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
+        var dynamicInfo = await _dynamicFileInfoProvider.GetDynamicFileInfoAsync(projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
         if (dynamicInfo is null)
         {
             return null;
@@ -71,8 +73,12 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 
     public async Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
-        var dynamicFileInfoProvider = await GetFileProviderAsync(cancellationToken).ConfigureAwait(false);
-        await dynamicFileInfoProvider.RemoveDynamicFileInfoAsync(projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
+        if (_dynamicFileInfoProvider is null)
+        {
+            return;
+        }
+
+        await _dynamicFileInfoProvider.RemoveDynamicFileInfoAsync(projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
     }
 
     private ValueTask UpdateAsync(ImmutableSegmentedList<string> paths, CancellationToken token)
@@ -84,19 +90,5 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         }
 
         return ValueTask.CompletedTask;
-    }
-
-    private async Task<IRazorLSPDynamicFileInfoProvider> GetFileProviderAsync(CancellationToken cancellationToken)
-    {
-        var dynamicFileInfoProvider = await RazorLSPServiceProvider.GetRequiredServiceAsync<IRazorLSPDynamicFileInfoProvider>(cancellationToken);
-
-        await dynamicFileInfoProvider.EnsureInitializedAsync(
-            static ct =>
-            {
-                return RazorLSPServiceProvider.GetRequiredServiceAsync<IRazorClientLanguageServerManager>(ct);
-            },
-            cancellationToken);
-
-        return dynamicFileInfoProvider;
     }
 }

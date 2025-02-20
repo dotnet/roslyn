@@ -4,10 +4,10 @@
 
 using System.Composition;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Services.Razor;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
@@ -17,21 +17,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 internal class RazorInitializeHandler : ILspServiceNotificationHandler<RazorInitializeParams>
 {
     private readonly Lazy<LanguageServerWorkspaceFactory> _workspaceFactory;
+    private readonly RazorDynamicFileInfoProvider _razorDynamicFileInfoProvider;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorInitializeHandler(Lazy<LanguageServerWorkspaceFactory> workspaceFactory)
+    public RazorInitializeHandler(Lazy<LanguageServerWorkspaceFactory> workspaceFactory, RazorDynamicFileInfoProvider razorDynamicFileInfoProvider)
     {
         _workspaceFactory = workspaceFactory;
+        _razorDynamicFileInfoProvider = razorDynamicFileInfoProvider;
     }
 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => false;
 
-    async Task INotificationHandler<RazorInitializeParams, RequestContext>.HandleNotificationAsync(RazorInitializeParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    Task INotificationHandler<RazorInitializeParams, RequestContext>.HandleNotificationAsync(RazorInitializeParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        var initializer = await RazorLSPServiceProvider.TryGetServiceAsync<IRazorWorkspaceService>(cancellationToken);
-        initializer?.Initialize(_workspaceFactory.Value.Workspace, request.PipeName);
+        var workspaceService = requestContext.GetRequiredLspService<IRazorWorkspaceService>();
+        workspaceService.Initialize(_workspaceFactory.Value.Workspace, request.PipeName);
+
+        var dynamicFileInfoProvider = requestContext.GetRequiredLspService<IRazorLspDynamicFileInfoProvider>();
+        _razorDynamicFileInfoProvider.Initialize(workspaceService, dynamicFileInfoProvider);
+
+        return Task.CompletedTask;
     }
 }
 

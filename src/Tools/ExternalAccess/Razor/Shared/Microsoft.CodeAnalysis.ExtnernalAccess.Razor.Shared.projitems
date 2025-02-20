@@ -10,11 +10,20 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)IRazorClientLanguageServerManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentExcerptService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentOperationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentPropertiesService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentServiceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorDynamicFileInfoProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRazorMappingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorClassificationOptionsWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorClientLanguageServerManager.cs" />
-    <Compile Include="..\Shared\IRazorDynamicFileInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentExcerptServiceWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentPropertiesServiceWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentServiceProviderWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorDynamicFileInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorExcerptMode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorExcerptResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorMappedSpanResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorMappingServiceWrapper.cs" />
   </ItemGroup>

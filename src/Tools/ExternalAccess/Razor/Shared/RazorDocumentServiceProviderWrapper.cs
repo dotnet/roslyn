@@ -36,9 +36,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     ref _lazySpanMappingService,
                     static documentServiceProvider =>
                     {
-                        // Razor is transitioning implementations from IRazorSpanMappingService to IRazorMappingService.
-                        // While this is happening the service may not be available. If it is, use the newer implementation,
-                        // otherwise fallback to IRazorSpanMappingService
                         var razorMappingService = documentServiceProvider.GetService<IRazorMappingService>();
                         if (razorMappingService is not null)
                         {

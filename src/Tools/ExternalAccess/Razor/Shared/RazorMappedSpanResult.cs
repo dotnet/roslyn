@@ -30,7 +30,7 @@ internal readonly struct RazorMappedSpanResult
     public bool IsDefault => FilePath == null;
 }
 
-internal readonly record struct RazorMappedEditoResult(string FilePath, TextChange[] TextChanges)
+internal readonly record struct RazorMappedEditResult(string FilePath, TextChange[] TextChanges)
 {
     public bool IsDefault => FilePath == null || TextChanges == null;
 }
