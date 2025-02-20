@@ -460,8 +460,11 @@ internal static partial class Extensions
     /// This checksum is also affected by the <see cref="SourceGeneratorExecutionVersion"/> for this project.
     /// As such, it is not usable across different sessions of a particular host.
     /// </remarks>
-    public static Task<Checksum> GetDiagnosticChecksumAsync(this Project project, CancellationToken cancellationToken)
+    public static Task<Checksum> GetDiagnosticChecksumAsync(this Project? project, CancellationToken cancellationToken)
     {
+        if (project is null)
+            return SpecializedTasks.Default<Checksum>();
+
         var lazyChecksum = s_projectToDiagnosticChecksum.GetValue(
             project,
             static project => AsyncLazy.Create(
@@ -488,23 +491,14 @@ internal static partial class Extensions
             tempChecksumArray.Add(projectChecksum);
 
             // Calculate a checksum this project and for each dependent project that could affect semantics for this
-            // project. We order the projects so that we are resilient to the underlying in-memory graph structure
-            // changing this arbitrarily.  We do not want that to cause us to change our semantic version.. Note: we
-            // use the project filepath+name as a unique way to reference a project.  This matches the logic in our
-            // persistence-service implementation as to how information is associated with a project.
-            var transitiveDependencies = solution.SolutionState.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(project.Id);
-            var orderedProjectIds = transitiveDependencies.OrderBy(id =>
-            {
-                var depProject = solution.SolutionState.GetRequiredProjectState(id);
-                return (depProject.FilePath, depProject.Name);
-            });
-
-            foreach (var projectId in orderedProjectIds)
+            // project. We order the projects guid so that we are resilient to the underlying in-memory graph structure
+            // changing this arbitrarily.
+            foreach (var projectRef in project.ProjectReferences.OrderBy(r => r.ProjectId.Id))
             {
                 // Note that these checksums should only actually be calculated once, if the project is unchanged
                 // the same checksum will be returned.
                 tempChecksumArray.Add(await GetDiagnosticChecksumAsync(
-                    solution.GetRequiredProject(projectId), cancellationToken).ConfigureAwait(false));
+                    solution.GetProject(projectRef.ProjectId), cancellationToken).ConfigureAwait(false));
             }
 
             return Checksum.Create(tempChecksumArray);
