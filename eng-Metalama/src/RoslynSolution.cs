@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;
 using PostSharp.Engineering.BuildTools.ContinuousIntegration;
@@ -75,12 +76,29 @@ namespace Build
                     new Regex(".+The process cannot access the file.+because it is being used by another process."), 1)
             };
 
-            return ToolInvocationHelper.InvokePowershell(
-                context.Console,
-                Path.Combine(context.RepoDirectory, "eng", "build.ps1"),
-                argsBuilder.ToString(),
-                context.RepoDirectory,
-                toolOptions);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return ToolInvocationHelper.InvokePowershell(
+                    context.Console,
+                    Path.Combine(context.RepoDirectory, "eng", "build.ps1"),
+                    argsBuilder.ToString(),
+                    context.RepoDirectory,
+                    toolOptions);
+            }
+            else
+            {
+                argsBuilder
+                    .Replace("-build", "--build")
+                    .Replace("-pack", "--pack")
+                    .Replace("-restore", "--restore");
+
+                return ToolInvocationHelper.InvokeTool(
+                    context.Console,
+                    "bash",
+                    $"{Path.Combine(context.RepoDirectory, "eng", "build.sh")} {argsBuilder}",
+                    context.RepoDirectory,
+                    toolOptions);                
+            }
         }
 
         public override bool Pack(BuildContext context, BuildSettings settings)

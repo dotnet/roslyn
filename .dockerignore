@@ -1,0 +1,7 @@
+artifacts/
+.github/
+.teamcity/
+**/bin/
+**/obj/
+eng-Metalama/*.g.props
+Dockerfile

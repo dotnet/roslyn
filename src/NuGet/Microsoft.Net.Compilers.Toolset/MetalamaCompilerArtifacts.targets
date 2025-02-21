@@ -74,7 +74,6 @@
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Features.dll" />
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Features.dll" />
-      <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Scripting.dll"/>
       <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_AttributedModel)\lib\net462\System.Composition.AttributedModel.dll"/>
       <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Convention)\lib\net462\System.Composition.Convention.dll"/>
       <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Hosting)\lib\net462\System.Composition.Hosting.dll"/>

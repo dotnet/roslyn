@@ -1,0 +1,15 @@
+name: Build on Docker
+
+on: workflow_dispatch
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build Metalama.Premium using Docker
+      # Don't do the final copying step, since that fails with "no space left on device"
+      run: docker build . --target build
