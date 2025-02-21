@@ -498,11 +498,11 @@ Delta: Gamma: Beta: Test B
                 .GetAssemblies()
                 .Where(x => isInLoadFromContext(loader, x));
 
-            // When debugging the debugger will load this DLL and that can throw off the debugging 
+            // When debugging, the debugger will load this DLL and that can throw off the debugging 
             // session so exclude it here.
             if (Debugger.IsAttached)
             {
-                loadedAssemblies = loadedAssemblies.Where(x => !(x.GetName().Name == "Microsoft.VisualStudio.Debugger.Runtime.Desktop"));
+                loadedAssemblies = loadedAssemblies.Where(x => x.GetName().Name != "Microsoft.VisualStudio.Debugger.Runtime.Desktop");
             }
 
             static bool isInLoadFromContext(AnalyzerAssemblyLoader loader, Assembly assembly)
