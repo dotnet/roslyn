@@ -191,6 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected abstract void EnsureAllMembersLoaded();
 
+#nullable enable
+
         /// <summary>
         /// Initializes namespaces and types maps with information about 
         /// namespaces and types immediately contained within this namespace.
@@ -209,14 +211,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert(typesByNS != null);
 
             // A sequence of groups of TypeDef row ids for types immediately contained within this namespace.
-            IEnumerable<IGrouping<string, TypeDefinitionHandle>> nestedTypes = null;
+            IEnumerable<IGrouping<string, TypeDefinitionHandle>>? nestedTypes = null;
 
             // A sequence with information about namespaces immediately contained within this namespace.
             // For each pair:
             //    Key - contains simple name of a child namespace.
             //    Value - contains a sequence similar to the one passed to this function, but
             //            calculated for the child namespace. 
-            IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>> nestedNamespaces = null;
+            IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>>? nestedNamespaces = null;
             bool isGlobalNamespace = this.IsGlobalNamespace;
 
             MetadataHelpers.GetInfoForImmediateNamespaceMembers(
@@ -245,6 +247,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return length;
         }
+
+#nullable restore
 
         /// <summary>
         /// Create symbols for nested namespaces and initialize namespaces map.
@@ -277,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 var children = ArrayBuilder<PENamedTypeSymbol>.GetInstance();
                 var skipCheckForPiaType = !moduleSymbol.Module.ContainsNoPiaLocalTypes();
-                Dictionary<string, TypeDefinitionHandle> noPiaLocalTypes = null;
+                Dictionary<string, TypeDefinitionHandle>? noPiaLocalTypes = null;
 
                 foreach (var g in typeGroups)
                 {
