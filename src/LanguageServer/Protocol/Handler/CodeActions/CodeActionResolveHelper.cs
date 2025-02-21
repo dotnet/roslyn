@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     var newTextDoc = getNewDocument(docId);
                     Contract.ThrowIfNull(newTextDoc);
 
-                    Uri? uri = null;
+                    DocumentUri? uri = null;
                     if (newTextDoc.FilePath != null)
                     {
                         uri = newTextDoc.GetURI();
