@@ -13,15 +13,16 @@ internal sealed record MethodImplementationProposal
 {
     public string SymbolToAnalyze { get; }
 
-    public string MethodName { get; }
+    public string LeadingTrivia { get; }
 
-    public SyntaxTriviaList LeadingTrivia { get; }
+    public string MethodName { get; }
 
     public ImmutableArray<MethodImplementationProposedEdit> ProposedEdits { get; }
 
-    public MethodImplementationProposal(string symbolToAnalyze, string methodName, ImmutableArray<MethodImplementationProposedEdit> proposedEdits)
+    public MethodImplementationProposal(string symbolToAnalyze, string leadingTrivia, string methodName, ImmutableArray<MethodImplementationProposedEdit> proposedEdits)
     {
         SymbolToAnalyze = symbolToAnalyze;
+        LeadingTrivia = leadingTrivia;
         MethodName = methodName;
         ProposedEdits = proposedEdits;
     }

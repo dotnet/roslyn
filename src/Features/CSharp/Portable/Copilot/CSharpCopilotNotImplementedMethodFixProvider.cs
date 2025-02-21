@@ -10,11 +10,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-//using Microsoft.CodeAnalysis.MethodImplementation
+using Microsoft.CodeAnalysis.MethodImplementation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ImplementNotImplementedException), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class CSharpImplementNotImplementedExceptionCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.CopilotImplementNotImplementedExceptionDiagnosticId];
@@ -281,9 +282,89 @@ internal sealed partial class CSharpImplementNotImplementedExceptionCodeFixProvi
         //    referencedPackages,
         //    usingDirectives);
 
-        // then call the Copilot service to get the implementation
+        var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
+        if (copilotService is null)
+        {
+            // Replace the throw statement with the new leading trivia
+            editor.ReplaceNode(throwStatement, (currentNode, generator) =>
+            {
+                return currentNode.WithLeadingTrivia(newLeadingTrivia);
+            });
+
+            // Remove the throw statement but keep its leading trivia
+            editor.RemoveNode(throwStatement, SyntaxRemoveOptions.KeepLeadingTrivia);
+
+            return;
+        }
+
+        var proposedEdits = new List<MethodImplementationProposedEdit>();
+        if (parameters.Count > 1)
+        {
+            proposedEdits.Add(new(
+                default,
+                string.Empty,
+                MethodImplementationTagType.InputValidation
+                ));
+        }
+
+        proposedEdits.Add(new(
+            default,
+            string.Empty,
+            MethodImplementationTagType.BusinessLogic
+            ));
+
+        var proposal = new MethodImplementationProposal(
+            string.Empty,
+            newLeadingTrivia.ToFullString(),
+            containingMethodName,
+            proposedEdits.ToImmutableArray());
+
+        var (dictionary, isQuotaExceeded) = await copilotService.GetMethodImplementationAsync(proposal, cancellationToken).ConfigureAwait(false);
+
+        // Quietly fail if the quota has been exceeded.
+        if (isQuotaExceeded || dictionary is null || dictionary.Count == 0)
+
+        {
+            // Replace the throw statement with the new leading trivia
+            editor.ReplaceNode(throwStatement, (currentNode, generator) =>
+            {
+                return currentNode.WithLeadingTrivia(newLeadingTrivia);
+            });
+
+            // Remove the throw statement but keep its leading trivia
+            editor.RemoveNode(throwStatement, SyntaxRemoveOptions.KeepLeadingTrivia);
+
+            return;
+        }
 
         // Replace the throw statement with the implementation rather than the comment
+        foreach (var edit in proposedEdits)
+        {
+            string? copilotStatement = null;
+            var textSpan = edit.SpanToReplace;
+
+            //string? symbolKey = null;
+
+            if (edit.SymbolName is not null)
+            {
+                //symbolKey = edit.TagType.ToString() + "- " + edit.SymbolName;
+            }
+
+            if (edit.TagType == MethodImplementationTagType.InputValidation && dictionary.TryGetValue(MethodImplementationTagType.InputValidation.ToString(), out var inputValidation) && !string.IsNullOrEmpty(inputValidation))
+            {
+                copilotStatement = inputValidation;
+            }
+            else if (edit.TagType == MethodImplementationTagType.BusinessLogic && dictionary.TryGetValue(MethodImplementationTagType.BusinessLogic.ToString(), out var businessLogic) && !string.IsNullOrEmpty(businessLogic))
+            {
+                copilotStatement = businessLogic;
+            }
+
+            if (copilotStatement != null)
+            {
+                var newTrivia = SyntaxFactory.ParseLeadingTrivia(copilotStatement);
+                newLeadingTrivia = newLeadingTrivia.AddRange(newTrivia);
+            }
+        }
 
         // Replace the throw statement with the new leading trivia
         editor.ReplaceNode(throwStatement, (currentNode, generator) =>

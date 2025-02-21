@@ -21,6 +21,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
         public string SymbolToAnalyze => _methodImplementationProposal.SymbolToAnalyze;
         public string MethodName => _methodImplementationProposal.MethodName;
         public ImmutableArray<CopilotMethodImplementationProposedEditWrapper> ProposedEdits => _wrappedProposedEdits;
-        public SyntaxTriviaList LeadingTrivia => _methodImplementationProposal.LeadingTrivia;
+        public string LeadingTrivia => _methodImplementationProposal.LeadingTrivia;
     }
 }
