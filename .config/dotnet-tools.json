@@ -10,7 +10,7 @@
       "rollForward": false
     },
     "dotnet-coverage": {
-      "version": "17.13.1",
+      "version": "17.14.1",
       "commands": [
         "dotnet-coverage"
       ],
@@ -24,7 +24,7 @@
       "rollForward": false
     },
     "docfx": {
-      "version": "2.78.2",
+      "version": "2.78.3",
       "commands": [
         "docfx"
       ],
