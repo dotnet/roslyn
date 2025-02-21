@@ -10147,8 +10147,37 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 {
                     private static void M(ref int destinationIndex, S buffer)
                     {
-                        // /0/Test0.cs(11,9): info IDE0059: Unnecessary assignment of a value to 'buffer'
-                        {|IDE0059:buffer|}[destinationIndex++] = (byte)0;
+                        // Don't want to report IDE0059 here.  This write might be necessary as the struct might be wrapping
+                        // memory visible elsewhere.
+                        buffer[destinationIndex++] = (byte)0;
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77258")]
+    public async Task TestWriteIntoStructIndexer()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                int[] a = new int[5];
+                MyStruct m = new MyStruct(a);
+                m[0] = 1;
+                Console.WriteLine(a[0]);
+
+                struct MyStruct(int[] a)
+                {
+                    private int[] array = a;
+
+                    public int this[int index]
+                    {
+                        get => array[index];
+                        set => array[index] = value;
                     }
                 }
                 """,

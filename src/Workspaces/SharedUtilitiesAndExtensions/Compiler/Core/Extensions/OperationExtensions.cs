@@ -205,28 +205,6 @@ internal static partial class OperationExtensions
         {
             return ValueUsageInfo.Write;
         }
-        else if (operation is { Type.IsValueType: true, Parent: IPropertyReferenceOperation })
-        {
-            // Accessing an indexer/property off of a value type will read/write the value type depending on how the
-            // indexer/property itself is used. We add ValueUsageInfo.Read to the result since the value on which we are
-            // accessing a property is always read.
-            // We consider a potential write only if the type is not a ref-like type.
-            // For example, if we have `s[0] = ...`, we will consider this as:
-            // 1. Read+Write: if s is value type and is not ref-like type.
-            // 2. Read only: if s is value type and is ref-like type.
-            // In the second case, it's a similar treatment as if it was a reference type.
-            // This is to help with unused assignment analysis where it's valid to have s[0] = ... without a subsequent read
-            // as the assignment can be observed by the caller.
-            // Put in other words, we think of "write" in this context as "changing the value of the value type"
-            // The "value" for value types is just the value itself, except for ref-like types where we think of
-            // the "value" more as the "reference" itself (think of it as a pointer).
-            // s[0] = ... where s is value type and not ref-like type: Read+Write (the conceptual value of s changes)
-            // s[0] = ... where s is value type and ref-like type: Read (the ceonceptual value of s (i.e, the reference) doesn't change)
-            // s = ... is always considered a write regardless of what "s" is (this is handled by the IAssignmentOperation condition)
-            return operation.Type.IsRefLikeType
-                ? ValueUsageInfo.Read
-                : ValueUsageInfo.Read | GetValueUsageInfo(operation.Parent, containingSymbol);
-        }
         else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation)
         {
             if (variableInitializerOperation.Parent is IVariableDeclaratorOperation variableDeclaratorOperation)
