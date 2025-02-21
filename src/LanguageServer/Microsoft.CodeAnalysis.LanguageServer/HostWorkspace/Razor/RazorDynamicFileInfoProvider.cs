@@ -3,13 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 
@@ -17,29 +14,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 [Export(typeof(IDynamicFileInfoProvider))]
 [Export(typeof(RazorDynamicFileInfoProvider))]
 [ExportMetadata("Extensions", new string[] { "cshtml", "razor", })]
-internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class RazorDynamicFileInfoProvider() : IDynamicFileInfoProvider
 {
-    private readonly AsyncBatchingWorkQueue<string> _updateWorkQueue;
     private IRazorWorkspaceService? _razorWorkspaceService;
     private IRazorDynamicFileInfoProvider? _dynamicFileInfoProvider;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorDynamicFileInfoProvider(
-        IAsynchronousOperationListenerProvider listenerProvider)
-    {
-        _updateWorkQueue = new AsyncBatchingWorkQueue<string>(
-            TimeSpan.FromMilliseconds(200),
-            UpdateAsync,
-            listenerProvider.GetListener(nameof(RazorDynamicFileInfoProvider)),
-            CancellationToken.None);
-    }
 
     public void Initialize(IRazorWorkspaceService razorWorkspaceService, IRazorDynamicFileInfoProvider dynamicFileInfoProvider)
     {
         _razorWorkspaceService = razorWorkspaceService;
         _dynamicFileInfoProvider = dynamicFileInfoProvider;
-        _dynamicFileInfoProvider.Updated += (s, filePath) => _updateWorkQueue.AddWork(filePath);
+        _dynamicFileInfoProvider.Updated += (s, filePath) => Updated?.Invoke(this, filePath);
     }
 
     public event EventHandler<string>? Updated;
@@ -75,16 +61,5 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         }
 
         await _dynamicFileInfoProvider.RemoveDynamicFileInfoAsync(projectId, projectFilePath, filePath, cancellationToken).ConfigureAwait(false);
-    }
-
-    private ValueTask UpdateAsync(ImmutableSegmentedList<string> paths, CancellationToken token)
-    {
-        foreach (var path in paths)
-        {
-            token.ThrowIfCancellationRequested();
-            Updated?.Invoke(this, path);
-        }
-
-        return ValueTask.CompletedTask;
     }
 }
