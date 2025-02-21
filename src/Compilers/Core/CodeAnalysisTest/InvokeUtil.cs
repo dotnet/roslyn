@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             var loader = new AnalyzerAssemblyLoader(pathResolvers, assemblyResolvers, compilerLoadContext: null);
-            var compilerContextAsssemblyCount = loader.CompilerLoadContext.Assemblies.Count();
+            var compilerContextAssemblyCount = loader.CompilerLoadContext.Assemblies.Count();
             try
             {
                 Exec(testOutputHelper, fixture, loader, typeName, methodName, state);
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 // When using the actual compiler load context (the one shared by all of our unit tests) the test
                 // did not load any additional assemblies that could interfere with later tests.
-                Assert.Equal(compilerContextAsssemblyCount, loader.CompilerLoadContext.Assemblies.Count());
+                Assert.Equal(compilerContextAssemblyCount, loader.CompilerLoadContext.Assemblies.Count());
             }
         }
 

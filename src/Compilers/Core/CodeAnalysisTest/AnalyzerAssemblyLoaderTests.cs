@@ -329,7 +329,7 @@ Delta: Gamma: Beta: Test B
         /// <summary>
         /// The loaders should not _require_ contents to actually be on disk until the
         /// <see cref="AnalyzerAssemblyLoader.LoadFromPath(string)"/> call has occurred. If the file
-        /// contents were required immediately then <see cref="AnalyzerReference"/> would throw in it's ctor 
+        /// contents were required immediately then <see cref="AnalyzerReference"/> would throw in its ctor 
         /// rather than when using the reference.
         /// </summary>
         [Theory]
@@ -499,7 +499,7 @@ Delta: Gamma: Beta: Test B
                 .Where(x => isInLoadFromContext(loader, x));
 
             // When debugging the debugger will load this DLL and that can throw off the debugging 
-            // session so excude it here.
+            // session so exclude it here.
             if (Debugger.IsAttached)
             {
                 loadedAssemblies = loadedAssemblies.Where(x => !(x.GetName().Name == "Microsoft.VisualStudio.Debugger.Runtime.Desktop"));

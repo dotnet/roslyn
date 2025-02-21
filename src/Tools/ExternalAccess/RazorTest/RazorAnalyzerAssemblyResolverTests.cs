@@ -38,7 +38,7 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
         Assert.Equal(InitialAssemblyCount, count);
     }
 
-    internal void CreateRazorAssemblies(string directory, string versionNumber = "1.0.0.0")
+    private void CreateRazorAssemblies(string directory, string versionNumber = "1.0.0.0")
     {
         foreach (var simpleName in RazorAnalyzerAssemblyResolver.RazorAssemblyNames)
         {

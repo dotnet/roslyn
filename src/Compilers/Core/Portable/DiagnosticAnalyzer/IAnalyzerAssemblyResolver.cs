@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis
     internal interface IAnalyzerAssemblyResolver
     {
         /// <summary>
-        /// Resolve a <see cref="Assembly"/> for the given parameters.
+        /// Resolve an <see cref="Assembly"/> for the given parameters.
         /// </summary>
         /// <remarks>
         /// The <see cref="AnalyzerAssemblyLoader"/> will partition analyzers into the directories they live
         /// in and will create a separate <see cref="AssemblyLoadContext"/> for each directory. That instance
-        /// and the directory name represent the last two parameters here.
+        /// and the directory name represent <paramref name="directoryContext" /> and <paramref name="directory" />.
         /// 
         /// This is invoked as part of <see cref="AssemblyLoadContext.Load(AssemblyName)"/>. Exceptions in
         /// the implementation of this interface will escape from that method and be registered as the result

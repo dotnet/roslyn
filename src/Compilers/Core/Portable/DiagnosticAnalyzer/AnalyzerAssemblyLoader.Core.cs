@@ -101,13 +101,13 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Note: this is using resolved paths, not the original file paths
         /// </summary>
-        private bool IsRegisteredAnalyzerPath(string analyzerPath)
+        private bool IsRegisteredAnalyzerPath(string resolvedPath)
         {
             CheckIfDisposed();
 
             lock (_guard)
             {
-                return _resolvedToOriginalPathMap.ContainsKey(analyzerPath);
+                return _resolvedToOriginalPathMap.ContainsKey(resolvedPath);
             }
         }
 
