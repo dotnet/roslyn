@@ -23,20 +23,16 @@ internal sealed class ProgramFilesAnalyzerPathResolver : IAnalyzerPathResolver
 {
     internal static readonly IAnalyzerPathResolver Instance = new ProgramFilesAnalyzerPathResolver();
 
-    private string ProgramFilesPath { get; }
     private string DotNetPath { get; }
-    private string VisualStudioPath { get; }
 
     private ProgramFilesAnalyzerPathResolver()
     {
-        ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-        DotNetPath = Path.Combine(ProgramFilesPath, "dotnet");
-        VisualStudioPath = Path.Combine(ProgramFilesPath, "Microsoft Visual Studio");
+        var programFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        DotNetPath = Path.Combine(programFilesPath, "dotnet");
     }
 
     public bool IsAnalyzerPathHandled(string analyzerPath)
-        => analyzerPath.StartsWith(DotNetPath, StringComparison.OrdinalIgnoreCase) ||
-           analyzerPath.StartsWith(VisualStudioPath, StringComparison.OrdinalIgnoreCase);
+        => analyzerPath.StartsWith(DotNetPath, StringComparison.OrdinalIgnoreCase);
 
     public string GetResolvedAnalyzerPath(string originalAnalyzerPath)
     {

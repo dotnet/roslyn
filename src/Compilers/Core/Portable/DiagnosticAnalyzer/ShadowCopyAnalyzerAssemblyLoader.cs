@@ -23,43 +23,36 @@ namespace Microsoft.CodeAnalysis
         /// subdirectory under this directory. This is also the starting point
         /// for scavenge operations.
         /// </summary>
-        private readonly string _baseDirectory;
+        private string BaseDirectory { get; }
 
-        /// <summary>
-        /// The name of the shadow directory. This will be the same name as used for the <see cref="_mutex"/>
-        /// field. That allows other instances of this type to coordinate on active and inactive
-        /// shadow copy directories.
-        /// </summary>
-        private readonly string _shadowDirectoryName;
-
-        private readonly string _shadowDirectory;
+        private string ShadowDirectory { get; }
 
         /// <summary>
         /// As long as this mutex is alive, other instances of this type will not try to clean
         /// up the shadow directory.
         /// </summary>
-        private readonly Mutex _mutex;
+        private Mutex Mutex { get; }
 
-        internal readonly Task DeleteLeftoverDirectoriesTask;
+        internal Task DeleteLeftoverDirectoriesTask { get; }
 
+        /// <summary>
+        /// This is a counter that is incremented each time a new shadow sub directory is created to ensure they 
+        /// have unique names.
+        /// </summary>
         private int _directoryCount;
 
         /// <summary>
         /// This is a map from the original directory name to the numbered directory name it 
         /// occupies in the shadow directory.
         /// </summary>
-        private readonly ConcurrentDictionary<string, int> _originalDirectoryMap = new(AnalyzerAssemblyLoader.OriginalPathComparer);
+        private ConcurrentDictionary<string, int> OriginalDirectoryMap { get; } = new(AnalyzerAssemblyLoader.OriginalPathComparer);
 
         /// <summary>
         /// This interface can be called from multiple threads for the same original assembly path. This
         /// is a map between the original path and the Task that completes when the shadow copy for that
         /// original path completes.
         /// </summary>
-        private readonly ConcurrentDictionary<string, Task> _copyMap = new(AnalyzerAssemblyLoader.OriginalPathComparer);
-
-        internal string BaseDirectory => _baseDirectory;
-
-        internal string ShadowDirectory => _shadowDirectory;
+        private ConcurrentDictionary<string, Task> CopyMap { get; } = new(AnalyzerAssemblyLoader.OriginalPathComparer);
 
         /// <summary>
         /// This is the number of shadow copies that have occurred in this instance.
@@ -67,7 +60,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This is used for testing, it should not be used for any other purpose.
         /// </remarks>
-        internal int CopyCount => _copyMap.Count;
+        internal int CopyCount => CopyMap.Count;
 
         public ShadowCopyAnalyzerPathResolver(string baseDirectory)
         {
@@ -84,27 +77,27 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException($"Must be a full path: {baseDirectory}", nameof(baseDirectory));
             }
 
-            _baseDirectory = baseDirectory;
-            _shadowDirectoryName = Guid.NewGuid().ToString("N").ToLowerInvariant();
+            BaseDirectory = baseDirectory;
+            var shadowDirectoryName = Guid.NewGuid().ToString("N").ToLowerInvariant();
 
             // The directory is deliberately _not_ created at this point. It will only be created when the first
             // request comes in. This avoids creating unnecessary directories when no analyzers are loaded 
             // via the shadow layer.
-            _shadowDirectory = Path.Combine(_baseDirectory, _shadowDirectoryName);
-            _mutex = new Mutex(initiallyOwned: false, name: _shadowDirectoryName);
+            ShadowDirectory = Path.Combine(BaseDirectory, shadowDirectoryName);
+            Mutex = new Mutex(initiallyOwned: false, name: shadowDirectoryName);
             DeleteLeftoverDirectoriesTask = Task.Run(DeleteLeftoverDirectories);
         }
 
         private void DeleteLeftoverDirectories()
         {
             // Avoid first chance exception
-            if (!Directory.Exists(_baseDirectory))
+            if (!Directory.Exists(BaseDirectory))
                 return;
 
             IEnumerable<string> subDirectories;
             try
             {
-                subDirectories = Directory.EnumerateDirectories(_baseDirectory);
+                subDirectories = Directory.EnumerateDirectories(BaseDirectory);
             }
             catch (DirectoryNotFoundException)
             {
@@ -188,8 +181,8 @@ namespace Microsoft.CodeAnalysis
         private string GetAnalyzerShadowDirectory(string analyzerFilePath)
         {
             var originalDirName = Path.GetDirectoryName(analyzerFilePath)!;
-            var shadowDirName = _originalDirectoryMap.GetOrAdd(originalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString();
-            return Path.Combine(_shadowDirectory, shadowDirName);
+            var shadowDirName = OriginalDirectoryMap.GetOrAdd(originalDirName, _ => Interlocked.Increment(ref _directoryCount)).ToString();
+            return Path.Combine(ShadowDirectory, shadowDirName);
         }
 
         /// <summary>
@@ -199,14 +192,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private void ShadowCopyFile(string originalFilePath, string shadowCopyPath)
         {
-            if (_copyMap.TryGetValue(originalFilePath, out var copyTask))
+            if (CopyMap.TryGetValue(originalFilePath, out var copyTask))
             {
                 copyTask.Wait();
                 return;
             }
 
             var tcs = new TaskCompletionSource<object?>();
-            var task = _copyMap.GetOrAdd(originalFilePath, tcs.Task);
+            var task = CopyMap.GetOrAdd(originalFilePath, tcs.Task);
             if (object.ReferenceEquals(task, tcs.Task))
             {
                 // This thread won and we need to do the copy.

@@ -1677,6 +1677,8 @@ Delta.2: Test D2
 
                 Assert.Equal("42", sb.ToString());
             });
+
+            alc.Unload();
         }
 #endif
 

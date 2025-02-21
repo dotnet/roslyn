@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
     ///
     /// Instances of these types are considered in the order they are added to the <see cref="AnalyzerAssemblyLoader"/>.
     /// The first instance to return true from <see cref="IsAnalyzerPathHandled(string)"/> will be considered to 
-    /// be the owner of that path.
+    /// be the owner of that path. 
     /// </summary>
     /// <remarks>
     /// Instances of this type will be accessed from multiple threads. All method implementations are expected 
