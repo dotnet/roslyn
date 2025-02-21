@@ -3,33 +3,39 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using System.ServiceModel.Syndication;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.LanguageServer.Protocol;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Nerdbank.Streams;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.LanguageServer;
+
 public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 {
     public VSTypeScriptHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 
-    protected override TestComposition Composition => base.Composition.AddParts(typeof(TypeScriptHandlerFactory));
+    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocolEditorFeatures
+        .AddParts(typeof(TypeScriptHandlerFactory))
+        .AddParts(typeof(TestWorkspaceRegistrationService));
 
     [Fact]
     public async Task TestExternalAccessTypeScriptHandlerInvoked()
@@ -88,43 +94,50 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         Assert.Same(SimplifierOptions.CommonDefaults, simplifierOptions);
     }
 
-    private async Task<TestLspServer> CreateTsTestLspServerAsync(string workspaceXml, InitializationOptions? options = null)
+    private async Task<VSTypeScriptTestLspServer> CreateTsTestLspServerAsync(string workspaceXml, InitializationOptions? options = null)
     {
-        var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-
         var testWorkspace = CreateWorkspace(options, mutatingLspWorkspace: false, workspaceKind: null);
         testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
 
-        // Ensure workspace operations are completed so we don't get unexpected workspace changes while running.
-        await WaitForWorkspaceOperationsAsync(testWorkspace);
-        var languageServerTarget = CreateLanguageServer(serverStream, serverStream, testWorkspace);
-
-        return await TestLspServer.CreateAsync(testWorkspace, new ClientCapabilities(), languageServerTarget, clientStream);
+        return await VSTypeScriptTestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);
     }
 
-    private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, EditorTestWorkspace workspace)
+    private class VSTypeScriptTestLspServer : AbstractTestLspServer<LspTestWorkspace, TestHostDocument, TestHostProject, TestHostSolution>
     {
-        var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
-        var servicesProvider = workspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>();
-
-        var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
-        var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter))
+        public VSTypeScriptTestLspServer(LspTestWorkspace testWorkspace, Dictionary<string, IList<Roslyn.LanguageServer.Protocol.Location>> locations, InitializationOptions options, AbstractLspLogger logger) : base(testWorkspace, locations, options, logger)
         {
-            ExceptionStrategy = ExceptionProcessing.ISerializable,
-        };
+        }
 
-        var logger = NoOpLspLogger.Instance;
+        protected override RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, WellKnownLspServerKinds serverKind, AbstractLspLogger logger)
+        {
+            var capabilitiesProvider = TestWorkspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
+            var servicesProvider = TestWorkspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>();
 
-        var languageServer = new RoslynLanguageServer(
-            servicesProvider, jsonRpc, messageFormatter.JsonSerializerOptions,
-            capabilitiesProvider,
-            logger,
-            workspace.Services.HostServices,
-            [InternalLanguageNames.TypeScript],
-            WellKnownLspServerKinds.RoslynTypeScriptLspServer);
+            var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
+            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter))
+            {
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
+            };
 
-        jsonRpc.StartListening();
-        return languageServer;
+            var languageServer = new RoslynLanguageServer(
+                servicesProvider, jsonRpc, messageFormatter.JsonSerializerOptions,
+                capabilitiesProvider,
+                logger,
+                TestWorkspace.Services.HostServices,
+                [InternalLanguageNames.TypeScript],
+                WellKnownLspServerKinds.RoslynTypeScriptLspServer);
+
+            jsonRpc.StartListening();
+            return languageServer;
+        }
+
+        public static async Task<VSTypeScriptTestLspServer> CreateAsync(LspTestWorkspace testWorkspace, InitializationOptions options, AbstractLspLogger logger)
+        {
+            var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
+            var server = new VSTypeScriptTestLspServer(testWorkspace, locations, options, logger);
+            await server.InitializeAsync();
+            return server;
+        }
     }
 
     internal record TSRequest(Uri Document, string Project);

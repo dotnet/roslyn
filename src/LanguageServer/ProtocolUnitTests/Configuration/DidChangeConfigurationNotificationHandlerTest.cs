@@ -156,7 +156,7 @@ public class A { }";
                 string.Join(Environment.NewLine, actualNames));
         }
 
-        private static void VerifyValuesInServer(EditorTestWorkspace workspace, List<string> expectedValues)
+        private static void VerifyValuesInServer(LspTestWorkspace workspace, List<string> expectedValues)
         {
             var globalOptionService = workspace.GetService<IGlobalOptionService>();
             var supportedOptions = DidChangeConfigurationNotificationHandler.SupportedOptions;
@@ -244,7 +244,7 @@ public class A { }";
                 => value switch
                 {
                     null => "null",
-                    _ => value.ToString()
+                    _ => value.ToString()!
                 };
 
             private static string GenerateNonDefaultValue(IOption2 option)
