@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -36,6 +37,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
@@ -61,6 +63,9 @@ internal sealed class SemanticSearchToolWindowImpl(
     IGlobalOptionService globalOptions,
     VisualStudioWorkspace workspace,
     IStreamingFindUsagesPresenter resultsPresenter,
+    ITextUndoHistoryRegistry undoHistoryRegistry,
+    ISemanticSearchCopilotService copilotService,
+    ISemanticSearchCopilotUIProvider copilotUIProvider,
     IVsService<SVsUIShell, IVsUIShell> vsUIShellProvider) : ISemanticSearchWorkspaceHost, OptionsProvider<ClassificationOptions>
 {
     private const int ToolBarHeight = 26;
@@ -68,7 +73,7 @@ internal sealed class SemanticSearchToolWindowImpl(
 
     private static readonly Lazy<ControlTemplate> s_buttonTemplate = new(CreateButtonTemplate);
 
-    private readonly IContentType _contentType = contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType);
+    private readonly IContentType _contentType = contentTypeRegistry.GetContentType(CSharpSemanticSearchContentType.Name);
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.SemanticSearch);
 
     private readonly Lazy<SemanticSearchEditorWorkspace> _semanticSearchWorkspace
@@ -100,7 +105,9 @@ internal sealed class SemanticSearchToolWindowImpl(
 
         var vsUIShell = await vsUIShellProvider.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-        var textViewHost = CreateTextViewHost(vsUIShell);
+        var copilotUI = CreateCopilotUI();
+
+        var textViewHost = CreateTextViewHost(vsUIShell, copilotUI);
         var textViewControl = textViewHost.HostControl;
         _textView = textViewHost.TextView;
         _textBuffer = textViewHost.TextView.TextBuffer;
@@ -112,7 +119,8 @@ internal sealed class SemanticSearchToolWindowImpl(
         var toolWindowGrid = new Grid();
         toolWindowGrid.ColumnDefinitions.Add(new ColumnDefinition());
         toolWindowGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(ToolBarHeight, GridUnitType.Pixel) });
-        toolWindowGrid.RowDefinitions.Add(new RowDefinition());
+        toolWindowGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+        toolWindowGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
 
         var toolbarGrid = new Grid();
 
@@ -143,17 +151,29 @@ internal sealed class SemanticSearchToolWindowImpl(
         _cancelButton = cancelButton;
 
         toolWindowGrid.Children.Add(toolbarGrid);
+
+        if (copilotUI != null)
+        {
+            toolWindowGrid.Children.Add(copilotUI.Control);
+        }
+
         toolWindowGrid.Children.Add(textViewControl);
         toolbarGrid.Children.Add(executeButton);
         toolbarGrid.Children.Add(cancelButton);
 
         // placement within the tool window grid:
 
-        Grid.SetRow(textViewControl, 1);
-        Grid.SetColumn(textViewControl, 0);
-
         Grid.SetRow(toolbarGrid, 0);
         Grid.SetColumn(toolbarGrid, 0);
+
+        if (copilotUI != null)
+        {
+            Grid.SetRow(copilotUI.Control, 1);
+            Grid.SetColumn(copilotUI.Control, 0);
+        }
+
+        Grid.SetRow(textViewControl, 2);
+        Grid.SetColumn(textViewControl, 0);
 
         // placement within the toolbar grid:
 
@@ -171,6 +191,101 @@ internal sealed class SemanticSearchToolWindowImpl(
     }
 
     SemanticSearchWorkspace ISemanticSearchWorkspaceHost.Workspace => _semanticSearchWorkspace.Value;
+
+    private CopilotUI? CreateCopilotUI()
+    {
+        if (!copilotUIProvider.IsAvailable || !copilotService.IsAvailable)
+        {
+            return null;
+        }
+
+        var outerGrid = new Grid()
+        {
+            Background = (Brush)Application.Current.FindResource(CommonControlsColors.TextBoxBackgroundBrushKey),
+        };
+
+        ImageThemingUtilities.SetImageBackgroundColor(outerGrid, (Color)Application.Current.Resources[CommonDocumentColors.PageBackgroundColorKey]);
+        ThemedDialogStyleLoader.SetUseDefaultThemedDialogStyles(outerGrid, true);
+
+        // [ prompt border | empty ]
+        outerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        outerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        var promptGrid = new Grid();
+
+        // [ input | panel ]
+        promptGrid.ColumnDefinitions.Add(new ColumnDefinition { MaxWidth = 600, Width = GridLength.Auto });
+        promptGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        var promptTextBox = copilotUIProvider.GetTextBox();
+
+        var panel = new StackPanel()
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Bottom,
+            Margin = new Thickness(8, 8, 0, 8),
+        };
+
+        Grid.SetColumn(promptTextBox.Control, 0);
+        promptGrid.Children.Add(promptTextBox.Control);
+
+        Grid.SetColumn(panel, 1);
+        promptGrid.Children.Add(panel);
+
+        var promptGridBorder = new Border
+        {
+            Name = "PromptBorder",
+            BorderBrush = (Brush)Application.Current.Resources[EnvironmentColors.SystemHighlightBrushKey],
+            BorderThickness = new Thickness(1),
+            Child = promptGrid
+        };
+
+        Grid.SetColumn(promptGridBorder, 0);
+        outerGrid.Children.Add(promptGridBorder);
+
+        // ComboBox for model selection
+        var modelPicker = new ComboBox
+        {
+            SelectedIndex = 0,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(4, 0, 4, 0),
+            Height = 24,
+            IsEditable = false,
+            IsReadOnly = true,
+            BorderThickness = new Thickness(0),
+            MinHeight = 24,
+            VerticalContentAlignment = VerticalAlignment.Top,
+            TabIndex = 1,
+            Style = (Style)Application.Current.FindResource(VsResourceKeys.ComboBoxStyleKey)
+        };
+
+        modelPicker.Items.Add("gpt-4o");
+        modelPicker.Items.Add("gpt-4o-mini");
+        modelPicker.Items.Add("o1");
+        modelPicker.Items.Add("o1-ga");
+        modelPicker.Items.Add("o1-mini");
+
+        panel.Children.Add(modelPicker);
+
+        var submitButton = CreateButton(
+            KnownMonikers.Send,
+            automationName: "Generate query",
+            acceleratorKey: "Ctrl+Enter",
+            toolTip: "Generate query");
+
+        panel.Children.Add(submitButton);
+
+        submitButton.Click += (_, _) => SubmitCopilotQuery(promptTextBox.Text, modelPicker.Text);
+
+        return new CopilotUI()
+        {
+            Control = outerGrid,
+            Input = promptTextBox,
+            ModelPicker = modelPicker,
+        };
+    }
 
     private static Button CreateButton(
         Imaging.Interop.ImageMoniker moniker,
@@ -250,7 +365,7 @@ internal sealed class SemanticSearchToolWindowImpl(
             """, context);
     }
 
-    private IWpfTextViewHost CreateTextViewHost(IVsUIShell vsUIShell)
+    private IWpfTextViewHost CreateTextViewHost(IVsUIShell vsUIShell, CopilotUI? copilotUI)
     {
         Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
 
@@ -289,7 +404,7 @@ internal sealed class SemanticSearchToolWindowImpl(
 
         ErrorHandler.ThrowOnFailure(windowFrame.SetProperty((int)__VSFPROPID.VSFPROPID_ViewHelper, textViewAdapter));
 
-        _ = new CommandFilter(this, textViewAdapter);
+        _ = new CommandFilter(this, textViewAdapter, copilotUI);
 
         return textViewHost;
     }
@@ -313,6 +428,74 @@ internal sealed class SemanticSearchToolWindowImpl(
 
         _executeButton.IsEnabled = !isExecuting;
         _cancelButton.IsEnabled = isExecuting;
+    }
+
+    private void SubmitCopilotQuery(string input, string model)
+    {
+        Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
+        Contract.ThrowIfNull(_textBuffer);
+        Contract.ThrowIfNull(copilotService);
+
+        // TODO: hook up cancel button for copilot queries
+        var cancellationSource = new CancellationTokenSource();
+
+        // TODO: fade out current content and show overlay spinner
+
+        var completionToken = _asyncListener.BeginAsyncOperation(nameof(SemanticSearchToolWindow) + "." + nameof(SubmitCopilotQuery));
+        _ = ExecuteAsync(cancellationSource.Token).ReportNonFatalErrorAsync().CompletesAsyncOperation(completionToken);
+
+        async Task ExecuteAsync(CancellationToken cancellationToken)
+        {
+            await TaskScheduler.Default;
+
+            SemanticSearchCopilotGeneratedQuery query;
+
+            // TODO: generate list from SemanticSearch.ReferenceAssemblies:
+            var codeAnalysisVersion = new Version(4, 14, 0);
+            var sdkVersion = new Version(9, 0, 0);
+
+            var context = new SemanticSearchCopilotContext()
+            {
+                ModelName = model,
+                AvailablePackages =
+                [
+                    ("Microsoft.CodeAnalysis", codeAnalysisVersion),
+                    ("Microsoft.CodeAnalysis.CSharp", codeAnalysisVersion),
+                    ("System.Collections.Immutable", sdkVersion),
+                    ("System.Collections", sdkVersion),
+                    ("System.Linq", sdkVersion),
+                    ("System.Runtime", sdkVersion),
+                ]
+            };
+
+            try
+            {
+                query = await copilotService.TryGetQueryAsync(input, context, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+            {
+                return;
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            // Replace text buffer content. Allow using Ctrl+Z to revert to the previous content.
+
+            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+
+            Contract.ThrowIfFalse(undoHistoryRegistry.TryGetHistory(_textBuffer, out var undoHistory));
+            using var undoTransaction = undoHistory.CreateTransaction(FeaturesResources.SemanticSearch);
+
+            using (var edit = _textBuffer.CreateEdit())
+            {
+                edit.Replace(0, _textBuffer.CurrentSnapshot.Length, query.Text);
+                edit.Apply();
+            }
+
+            undoTransaction.Complete();
+        }
     }
 
     private void CancelQuery()
@@ -485,7 +668,14 @@ internal sealed class SemanticSearchToolWindowImpl(
     public ValueTask<ClassificationOptions> GetOptionsAsync(Microsoft.CodeAnalysis.Host.LanguageServices languageServices, CancellationToken cancellationToken)
         => new(globalOptions.GetClassificationOptions(languageServices.Language));
 
-    internal sealed class ResultsObserver(Document queryDocument, IFindUsagesContext presenterContext) : ISemanticSearchResultsObserver
+    private sealed class CopilotUI
+    {
+        public required FrameworkElement Control { get; init; }
+        public required ITextBoxControl Input { get; init; }
+        public required ComboBox ModelPicker { get; init; }
+    }
+
+    private sealed class ResultsObserver(Document queryDocument, IFindUsagesContext presenterContext) : ISemanticSearchResultsObserver
     {
         public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             => presenterContext.OnDefinitionFoundAsync(definition, cancellationToken);
@@ -509,19 +699,29 @@ internal sealed class SemanticSearchToolWindowImpl(
         }
     }
 
-    internal sealed class CommandFilter : IOleCommandTarget
+    private sealed class CommandFilter : IOleCommandTarget
     {
         private readonly SemanticSearchToolWindowImpl _window;
         private readonly IOleCommandTarget _editorCommandTarget;
+        private readonly CopilotUI? _copilotUI;
 
-        public CommandFilter(SemanticSearchToolWindowImpl window, IVsTextView textView)
+        public CommandFilter(SemanticSearchToolWindowImpl window, IVsTextView textView, CopilotUI? copilotUI)
         {
             _window = window;
+            _copilotUI = copilotUI;
             ErrorHandler.ThrowOnFailure(textView.AddCommandFilter(this, out _editorCommandTarget));
         }
 
+        [MemberNotNullWhen(true, nameof(_copilotUI))]
+        private bool HasCopilotInputFocus
+            => _copilotUI?.Input.View.HasAggregateFocus == true;
+
         public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
-            => _editorCommandTarget.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+        {
+            var target = HasCopilotInputFocus ? _copilotUI.Input.CommandTarget : _editorCommandTarget;
+
+            return target.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
+        }
 
         public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
@@ -530,6 +730,12 @@ internal sealed class SemanticSearchToolWindowImpl(
                 switch ((VSConstants.VSStd2KCmdID)nCmdID)
                 {
                     case VSConstants.VSStd2KCmdID.OPENLINEABOVE:
+                        if (HasCopilotInputFocus)
+                        {
+                            _window.SubmitCopilotQuery(_copilotUI.Input.Text, _copilotUI.ModelPicker.Text);
+                            return VSConstants.S_OK;
+                        }
+
                         if (!_window.IsExecutingUIState())
                         {
                             _window.RunQuery();
@@ -549,7 +755,8 @@ internal sealed class SemanticSearchToolWindowImpl(
                 }
             }
 
-            return _editorCommandTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
+            var target = HasCopilotInputFocus ? _copilotUI.Input.CommandTarget : _editorCommandTarget;
+            return target.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
         }
     }
 }

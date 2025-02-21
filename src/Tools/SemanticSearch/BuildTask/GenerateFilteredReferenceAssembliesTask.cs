@@ -146,8 +146,8 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         // Doc ids start with "X:" prefix, where X is member kind ('T', 'M' or 'F'):
         apis.Sort(static (x, y) => x.AsSpan()[2..].CompareTo(y.AsSpan()[2..], StringComparison.Ordinal));
 
-        var newContent = "# Generated, do not update manually\r\n" +
-            string.Join("\r\n", apis);
+        var newContent = $"# Generated, do not update manually{Environment.NewLine}" +
+            string.Join(Environment.NewLine, apis);
 
         try
         {
