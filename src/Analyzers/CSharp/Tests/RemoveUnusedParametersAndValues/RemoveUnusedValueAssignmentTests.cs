@@ -10182,6 +10182,11 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
         }.RunAsync();
     }
 }
