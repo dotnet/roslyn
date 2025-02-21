@@ -38,7 +38,6 @@ internal abstract class ImportAdderService : ILanguageService
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
-        var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
         var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
         // Create a simple interval tree for simplification spans.
@@ -53,13 +52,20 @@ internal abstract class ImportAdderService : ILanguageService
         //
         // We'll dive under the parent because it overlaps with the span.  But we only want to include (and dive
         // into) B and C not A and D.
-        var nodes = root.DescendantNodesAndSelf(OverlapsWithSpan).Where(OverlapsWithSpan);
-
         if (strategy == Strategy.AddImportsFromSymbolAnnotations)
-            return await AddImportDirectivesFromSymbolAnnotationsAsync(document, nodes, addImportsService, generator, options, cancellationToken).ConfigureAwait(false);
+        {
+            var nodes = root.DescendantNodesAndSelf(n => OverlapsWithSpan(n) && n.ContainsAnnotations).Where(OverlapsWithSpan);
+            var annotatedNodes = nodes.Where(x => x.HasAnnotations(SymbolAnnotation.Kind));
+
+            return await AddImportDirectivesFromSymbolAnnotationsAsync(document, annotatedNodes, addImportsService, generator, options, cancellationToken).ConfigureAwait(false);
+        }
 
         if (strategy == Strategy.AddImportsFromSyntaxes)
+        {
+            var nodes = root.DescendantNodesAndSelf(OverlapsWithSpan).Where(OverlapsWithSpan);
+
             return await AddImportDirectivesFromSyntaxesAsync(document, nodes, addImportsService, generator, options, cancellationToken).ConfigureAwait(false);
+        }
 
         throw ExceptionUtilities.UnexpectedValue(strategy);
 
@@ -165,7 +171,7 @@ internal abstract class ImportAdderService : ILanguageService
 
     private async Task<Document> AddImportDirectivesFromSymbolAnnotationsAsync(
         Document document,
-        IEnumerable<SyntaxNode> syntaxNodes,
+        IEnumerable<SyntaxNode> annotatedNodes,
         IAddImportsService addImportsService,
         SyntaxGenerator generator,
         AddImportPlacementOptions options,
@@ -182,7 +188,6 @@ internal abstract class ImportAdderService : ILanguageService
 #endif
 
         SyntaxNode? first = null, last = null;
-        var annotatedNodes = syntaxNodes.Where(x => x.HasAnnotations(SymbolAnnotation.Kind));
 
         foreach (var annotatedNode in annotatedNodes)
         {
