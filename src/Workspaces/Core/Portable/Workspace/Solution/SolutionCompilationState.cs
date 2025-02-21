@@ -1110,9 +1110,6 @@ internal sealed partial class SolutionCompilationState
     public Task<VersionStamp> GetDependentSemanticVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
         => this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(this, cancellationToken);
 
-    public Task<Checksum> GetDependentChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
-        => this.GetCompilationTracker(projectId).GetDependentChecksumAsync(this, cancellationToken);
-
     public bool TryGetCompilation(ProjectId projectId, [NotNullWhen(returnValue: true)] out Compilation? compilation)
     {
         this.SolutionState.CheckContainsProject(projectId);
