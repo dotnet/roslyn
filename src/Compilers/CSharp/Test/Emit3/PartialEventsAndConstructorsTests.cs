@@ -528,6 +528,46 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void DuplicateDeclarations_04()
+    {
+        var source = """
+            using System;
+            partial class C
+            {
+                partial event Action E;
+                partial event Action E { add { } }
+                partial event Action E { remove { } }
+            }
+            """;
+        var comp = CreateCompilation(source).VerifyDiagnostics(
+            // (5,26): error CS0065: 'C.E': event property must have both add and remove accessors
+            //     partial event Action E { add { } }
+            Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E").WithLocation(5, 26),
+            // (6,26): error CS0065: 'C.E': event property must have both add and remove accessors
+            //     partial event Action E { remove { } }
+            Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E").WithLocation(6, 26),
+            // (6,26): error CS9403: Partial member 'C.E' may not have multiple implementing declarations.
+            //     partial event Action E { remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "E").WithArguments("C.E").WithLocation(6, 26),
+            // (6,26): error CS0102: The type 'C' already contains a definition for 'E'
+            //     partial event Action E { remove { } }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(6, 26));
+
+        var events = comp.GetMembers("C.E");
+        Assert.Equal(2, events.Length);
+
+        var e1 = (SourceEventSymbol)events[0];
+        Assert.True(e1.IsPartialDefinition);
+        AssertEx.Equal("event System.Action C.E", e1.ToTestDisplayString());
+        AssertEx.Equal("event System.Action C.E", e1.PartialImplementationPart.ToTestDisplayString());
+
+        var e2 = (SourceEventSymbol)events[1];
+        Assert.True(e2.IsPartialImplementation);
+        AssertEx.Equal("event System.Action C.E", e2.ToTestDisplayString());
+        Assert.Null(e2.PartialDefinitionPart);
+    }
+
+    [Fact]
     public void EventInitializer_Single()
     {
         var source = """
@@ -613,7 +653,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void StaticPartialConstructor()
+    public void StaticPartialConstructor_01()
     {
         var source = """
             partial class C
@@ -632,6 +672,199 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (4,20): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
             //     static partial C() { }
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 20));
+    }
+
+    [Fact]
+    public void StaticPartialConstructor_02()
+    {
+        var source = """
+            partial class C
+            {
+                partial static C();
+                partial static C() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     partial static C();
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     partial static C();
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     partial static C() { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     partial static C() { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+            // (4,20): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial static C() { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 20));
+    }
+
+    [Fact]
+    public void Finalizer()
+    {
+        var source = """
+            partial class C
+            {
+                partial ~C();
+                partial ~C() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS1519: Invalid token '~' in class, record, struct, or interface member declaration
+            //     partial ~C();
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "~").WithArguments("~").WithLocation(3, 13),
+            // (4,13): error CS1519: Invalid token '~' in class, record, struct, or interface member declaration
+            //     partial ~C() { }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "~").WithArguments("~").WithLocation(4, 13),
+            // (3,14): error CS0501: 'C.~C()' must declare a body because it is not marked abstract, extern, or partial
+            //     partial ~C();
+            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.~C()").WithLocation(3, 14),
+            // (4,14): error CS0111: Type 'C' already defines a member called '~C' with the same parameter types
+            //     partial ~C() { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("~C", "C").WithLocation(4, 14));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_Duplicate_WithoutInitializer()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C();
+                partial C() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(3, 13),
+            // (4,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 13));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_Duplicate_WithInitializer()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C();
+                partial C() : this() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(3, 13),
+            // (4,19): error CS0121: The call is ambiguous between the following methods or properties: 'C.C()' and 'C.C()'
+            //     partial C() : this() { }
+            Diagnostic(ErrorCode.ERR_AmbigCall, "this").WithArguments("C.C()", "C.C()").WithLocation(4, 19));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_DefinitionOnly()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C();
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS9400: Partial member 'C.C()' must have an implementation part.
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C").WithArguments("C.C()").WithLocation(3, 13),
+            // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(3, 13));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_ImplementationOnly_WithoutInitializer()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS9401: Partial member 'C.C()' must have a definition part.
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C").WithArguments("C.C()").WithLocation(3, 13),
+            // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(3, 13),
+            // (3,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(3, 13));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_ImplementationOnly_WithInitializer()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C() : this() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS9401: Partial member 'C.C()' must have a definition part.
+            //     partial C() : this() { }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C").WithArguments("C.C()").WithLocation(3, 13),
+            // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial C() : this() { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(3, 13),
+            // (3,19): error CS0121: The call is ambiguous between the following methods or properties: 'C.C()' and 'C.C()'
+            //     partial C() : this() { }
+            Diagnostic(ErrorCode.ERR_AmbigCall, "this").WithArguments("C.C()", "C.C()").WithLocation(3, 19));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_Different_WithoutInitializer()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C(int x);
+                partial C(int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
+            //     partial C(int x) { }
+            Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 13));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_Different_WithInitializer()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C(int x);
+                partial C(int x) : this() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PrimaryConstructor_Twice()
+    {
+        var source = """
+            partial class C();
+            partial class C() { }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,16): error CS8863: Only a single partial type declaration may have a parameter list
+            // partial class C() { }
+            Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(2, 16));
     }
 
     [Fact]
@@ -695,6 +928,21 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (4,45): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "8.0").WithLocation(4, 45));
+    }
+
+    [Fact]
+    public void InInterface_DefinitionOnly()
+    {
+        var source = """
+            partial interface I
+            {
+                partial event System.Action E;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,33): error CS9400: Partial member 'I.E' must have an implementation part.
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("I.E").WithLocation(3, 33));
     }
 
     [Fact]
@@ -1078,6 +1326,83 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void WinRtEvent()
+    {
+        var source = """
+            partial class C
+            {
+                public partial event System.Action E;
+                public partial event System.Action E { add { return default; } remove { } }
+            }
+            """;
+        CompileAndVerifyWithWinRt(source,
+            sourceSymbolValidator: validate,
+            symbolValidator: validate,
+            options: TestOptions.ReleaseWinMD)
+            .VerifyDiagnostics()
+            .VerifyTypeIL("C", """
+                .class private auto ansi beforefieldinit C
+                    extends [mscorlib]System.Object
+                {
+                    // Methods
+                    .method public hidebysig specialname 
+                        instance valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken add_E (
+                            class [mscorlib]System.Action 'value'
+                        ) cil managed 
+                    {
+                        // Method begins at RVA 0x2068
+                        // Code size 10 (0xa)
+                        .maxstack 1
+                        .locals init (
+                            [0] valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken
+                        )
+                        IL_0000: ldloca.s 0
+                        IL_0002: initobj [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken
+                        IL_0008: ldloc.0
+                        IL_0009: ret
+                    } // end of method C::add_E
+                    .method public hidebysig specialname 
+                        instance void remove_E (
+                            valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken 'value'
+                        ) cil managed 
+                    {
+                        // Method begins at RVA 0x207e
+                        // Code size 1 (0x1)
+                        .maxstack 8
+                        IL_0000: ret
+                    } // end of method C::remove_E
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor () cil managed 
+                    {
+                        // Method begins at RVA 0x2080
+                        // Code size 7 (0x7)
+                        .maxstack 8
+                        IL_0000: ldarg.0
+                        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+                        IL_0006: ret
+                    } // end of method C::.ctor
+                    // Events
+                    .event [mscorlib]System.Action E
+                    {
+                        .addon instance valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken C::add_E(class [mscorlib]System.Action)
+                        .removeon instance void C::remove_E(valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)
+                    }
+                } // end of class C
+                """);
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("C.E");
+            Assert.True(e.IsWindowsRuntimeEvent);
+
+            if (module is SourceModuleSymbol)
+            {
+                Assert.True(((SourceEventSymbol)e).PartialImplementationPart!.IsWindowsRuntimeEvent);
+            }
+        }
+    }
+
+    [Fact]
     public void Extern_MissingCompareExchange()
     {
         var source = """
@@ -1135,10 +1460,12 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Assert.True(e.IsPartialDefinition);
             Assert.False(e.IsPartialImplementation);
             Assert.False(e.HasAssociatedField);
+            Assert.False(e.IsWindowsRuntimeEvent);
             Assert.Null(e.PartialDefinitionPart);
             Assert.True(e.SourcePartialImplementationPart!.IsPartialImplementation);
             Assert.False(e.SourcePartialImplementationPart.IsPartialDefinition);
             Assert.False(e.SourcePartialImplementationPart.HasAssociatedField);
+            Assert.False(e.SourcePartialImplementationPart.IsWindowsRuntimeEvent);
 
             var addMethod = e.AddMethod!;
             Assert.Equal("add_E", addMethod.Name);
@@ -2069,16 +2396,79 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     public void Difference_ParameterNames()
     {
         var source = """
+            var c = new C(x: 123);
+
             partial class C
             {
-                partial C(int x);
-                partial C(int y) { }
+                public partial C(int x);
+                public partial C(int y) { System.Console.Write(y); }
+            }
+            """;
+        CompileAndVerify(source,
+            sourceSymbolValidator: validate,
+            symbolValidator: validate,
+            expectedOutput: "123")
+            .VerifyDiagnostics(
+                // (6,20): warning CS9256: Partial member declarations 'C.C(int x)' and 'C.C(int y)' have signature differences.
+                //     public partial C(int y) { System.Console.Write(y); }
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(int x)", "C.C(int y)").WithLocation(6, 20));
+
+        static void validate(ModuleSymbol module)
+        {
+            var indexer = module.GlobalNamespace.GetMember<MethodSymbol>("C..ctor");
+            AssertEx.Equal("x", indexer.Parameters.Single().Name);
+        }
+    }
+
+    [Fact]
+    public void Difference_ParameterNames_NameOf()
+    {
+        var source = """
+            using System;
+
+            [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+            class A : Attribute { public A(string s) { } }
+
+            partial class C
+            {
+                [A(nameof(p1))]
+                [A(nameof(p2))] // 1
+                partial C(
+                    [A(nameof(p1))] // 2
+                    [A(nameof(p2))]
+                    int p1);
+
+                [A(nameof(p1))]
+                [A(nameof(p2))] // 3
+                partial C(
+                    [A(nameof(p1))] // 4
+                    [A(nameof(p2))]
+                    int p2)
+                {
+                    Console.WriteLine(nameof(p1)); // 5
+                    Console.WriteLine(nameof(p2));
+                }
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (4,13): warning CS9256: Partial member declarations 'C.C(int x)' and 'C.C(int y)' have signature differences.
-            //     partial C(int y) { }
-            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(int x)", "C.C(int y)").WithLocation(4, 13));
+            // (17,13): warning CS9256: Partial member declarations 'C.C(int p1)' and 'C.C(int p2)' have signature differences.
+            //     partial C(
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(int p1)", "C.C(int p2)").WithLocation(17, 13),
+            // (18,19): error CS0103: The name 'p1' does not exist in the current context
+            //         [A(nameof(p1))] // 4
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(18, 19),
+            // (11,19): error CS0103: The name 'p1' does not exist in the current context
+            //         [A(nameof(p1))] // 2
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(11, 19),
+            // (9,15): error CS0103: The name 'p2' does not exist in the current context
+            //     [A(nameof(p2))] // 1
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(9, 15),
+            // (16,15): error CS0103: The name 'p2' does not exist in the current context
+            //     [A(nameof(p2))] // 3
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(16, 15),
+            // (22,34): error CS0103: The name 'p1' does not exist in the current context
+            //         Console.WriteLine(nameof(p1)); // 5
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(22, 34));
     }
 
     [Fact]
