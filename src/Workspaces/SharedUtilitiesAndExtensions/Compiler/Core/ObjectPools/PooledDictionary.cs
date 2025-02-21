@@ -11,4 +11,8 @@ internal sealed partial class PooledDictionary<K, V> : IPooled
         instance = GetInstance();
         return new PooledDisposer<PooledDictionary<K, V>>(instance);
     }
+
+    // Nothing special to do here.
+    void IPooled.Free(bool discardLargeInstance)
+        => this.Free();
 }

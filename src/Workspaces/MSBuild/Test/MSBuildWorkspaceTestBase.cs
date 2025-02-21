@@ -12,16 +12,27 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
+using Microsoft.Extensions.Logging;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
-    public class MSBuildWorkspaceTestBase : WorkspaceTestBase
+    public abstract class MSBuildWorkspaceTestBase : WorkspaceTestBase
     {
+        protected readonly ITestOutputHelper TestOutput;
+        protected readonly ILoggerFactory LoggerFactory;
+
+        protected MSBuildWorkspaceTestBase(ITestOutputHelper testOutput)
+        {
+            TestOutput = testOutput;
+            LoggerFactory = new LoggerFactory([new TestOutputLoggerProvider(testOutput)]);
+        }
+
         protected const string MSBuildNamespace = "http://schemas.microsoft.com/developer/msbuild/2003";
 
         protected static void AssertFailures(MSBuildWorkspace workspace, params string[] expectedFailures)
@@ -139,16 +150,18 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             return await workspace.OpenSolutionAsync(solutionFileName);
         }
 
-        protected static MSBuildWorkspace CreateMSBuildWorkspace(params (string key, string value)[] additionalProperties)
+        protected MSBuildWorkspace CreateMSBuildWorkspace(params (string key, string value)[] additionalProperties)
             => CreateMSBuildWorkspace(throwOnWorkspaceFailed: true, skipUnrecognizedProjects: false, additionalProperties: additionalProperties);
 
-        protected static MSBuildWorkspace CreateMSBuildWorkspace(
+        protected MSBuildWorkspace CreateMSBuildWorkspace(
             bool throwOnWorkspaceFailed = true,
             bool skipUnrecognizedProjects = false,
             (string key, string value)[] additionalProperties = null)
         {
             additionalProperties ??= [];
             var workspace = MSBuildWorkspace.Create(CreateProperties(additionalProperties));
+            workspace.AddLoggerProvider(new TestOutputLoggerProvider(TestOutput));
+
             if (throwOnWorkspaceFailed)
             {
                 workspace.WorkspaceFailed += (s, e) => throw new Exception($"Workspace failure {e.Diagnostic.Kind}:{e.Diagnostic.Message}");
@@ -164,7 +177,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         protected static MSBuildWorkspace CreateMSBuildWorkspace(HostServices hostServices, params (string key, string value)[] additionalProperties)
         {
-
             return MSBuildWorkspace.Create(CreateProperties(additionalProperties), hostServices);
         }
 
