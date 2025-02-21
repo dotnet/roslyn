@@ -39,14 +39,10 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     {
         _razorWorkspaceService = razorWorkspaceService;
         _dynamicFileInfoProvider = dynamicFileInfoProvider;
+        _dynamicFileInfoProvider.Updated += (s, filePath) => _updateWorkQueue.AddWork(filePath);
     }
 
     public event EventHandler<string>? Updated;
-
-    public void Update(string filePath)
-    {
-        _updateWorkQueue.AddWork(filePath);
-    }
 
     public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
