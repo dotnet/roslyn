@@ -328,6 +328,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsIndexedProperty, node);
                 }
+                else if (hasDefaultArgument(arguments, defaultArguments))
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, node);
+                }
+                else if (!argumentNamesOpt.IsDefaultOrEmpty)
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, node);
+                }
                 else if (IsComCallWithRefOmitted(method, arguments, argumentRefKindsOpt))
                 {
                     Error(ErrorCode.ERR_ComRefCallInExpressionTree, node);
