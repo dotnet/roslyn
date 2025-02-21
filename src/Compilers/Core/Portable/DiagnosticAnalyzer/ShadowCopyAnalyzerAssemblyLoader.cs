@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis
         /// subdirectory under this directory. This is also the starting point
         /// for scavenge operations.
         /// </summary>
-        private string BaseDirectory { get; }
+        internal string BaseDirectory { get; }
 
-        private string ShadowDirectory { get; }
+        internal string ShadowDirectory { get; }
 
         /// <summary>
         /// As long as this mutex is alive, other instances of this type will not try to clean

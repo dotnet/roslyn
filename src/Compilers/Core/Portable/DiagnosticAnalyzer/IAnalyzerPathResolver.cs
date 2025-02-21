@@ -16,13 +16,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// This interface allows hosts to control where an analyzer is loaded from. It can redirect the path 
-    /// originally passed to the compiler to a new path. Or it can take ownership of a path to prevent 
-    /// other instances of <see cref="IAnalyzerPathResolver"/> from redirecting it.
-    ///
     /// Instances of these types are considered in the order they are added to the <see cref="AnalyzerAssemblyLoader"/>.
     /// The first instance to return true from <see cref="IsAnalyzerPathHandled(string)"/> will be considered to 
-    /// be the owner of that path. 
+    /// be the owner of that path. From then on only that instance will be called for the other methods on this
+    /// interface.
+    /// 
+    /// For example in a typical session: the <see cref="ProgramFilesAnalyzerPathResolver"/> will return true for 
+    /// analyzer paths under C:\Program Files\dotnet. That means the <see cref="ShadowCopyAnalyzerPathResolver"/>,
+    /// which appears last on windows, will never see these paths and hence won't shadow copy them.
     /// </summary>
     /// <remarks>
     /// Instances of this type will be accessed from multiple threads. All method implementations are expected 
