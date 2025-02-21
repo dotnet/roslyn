@@ -270,7 +270,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                 {
                     _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion(analyzers, items);
 
-                    var projectItems = items.Select(i => i.ToProjectWorkItem(EmptyAsyncToken.Instance));
+                    var projectItems = items.Select(i => i.ToProjectWorkItem(NullAsynchronousOperationListenerProvider.Token));
                     _incrementalAnalyzerProcessor._lowPriorityProcessor.GetTestAccessor().WaitUntilCompletion(analyzers, items);
                 }
 
