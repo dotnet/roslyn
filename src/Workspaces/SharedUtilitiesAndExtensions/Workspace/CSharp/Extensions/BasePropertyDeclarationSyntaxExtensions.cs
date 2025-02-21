@@ -48,17 +48,11 @@ internal static class BasePropertyDeclarationSyntaxExtensions
     /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
     /// </summary>
     [return: NotNullIfNotNull(nameof(node))]
-    public static BasePropertyDeclarationSyntax? TryWithExpressionBody(this BasePropertyDeclarationSyntax? node, ArrowExpressionClauseSyntax expressionBody)
-    {
-        if (node != null)
+    public static BasePropertyDeclarationSyntax? TryWithExpressionBody(this BasePropertyDeclarationSyntax? node, ArrowExpressionClauseSyntax? expressionBody)
+        => node switch
         {
-            switch (node.Kind())
-            {
-                case SyntaxKind.PropertyDeclaration: return ((PropertyDeclarationSyntax)node).WithExpressionBody(expressionBody);
-                case SyntaxKind.IndexerDeclaration: return ((IndexerDeclarationSyntax)node).WithExpressionBody(expressionBody);
-            }
-        }
-
-        return node;
-    }
+            PropertyDeclarationSyntax property => property.WithExpressionBody(expressionBody),
+            IndexerDeclarationSyntax indexer => indexer.WithExpressionBody(expressionBody),
+            _ => node,
+        };
 }

@@ -123,7 +123,7 @@ internal abstract partial class TextDocumentState
         return textAndVersion.Version;
     }
 
-    public async Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
+    public async ValueTask<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
     {
         // try fast path first
         if (TryGetTextVersion(out var version))

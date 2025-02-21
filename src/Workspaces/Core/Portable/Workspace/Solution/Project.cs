@@ -568,6 +568,8 @@ public partial class Project
     ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> changes as the project is removed, then added resulting in a version change.</item>
     /// </list>   
     /// </para>
+    /// This checksum is also affected by the <see cref="SourceGeneratorExecutionVersion"/> for this project.
+    /// As such, it is not usable across different sessions of a particular host.
     /// </remarks>
     internal Task<Checksum> GetDependentChecksumAsync(CancellationToken cancellationToken)
         => Solution.CompilationState.GetDependentChecksumAsync(this.Id, cancellationToken);

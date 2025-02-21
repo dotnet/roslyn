@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>
     where TDiagnosticsParams : IPartialResultParams<TReport>
 {
-    internal record struct DiagnosticsRequestState(Project Project, int GlobalStateVersion, RequestContext Context, IDiagnosticSource DiagnosticSource);
+    internal readonly record struct DiagnosticsRequestState(Project Project, int GlobalStateVersion, RequestContext Context, IDiagnosticSource DiagnosticSource);
 
     /// <summary>
     /// Cache where we store the data produced by prior requests so that they can be returned if nothing of significance 
