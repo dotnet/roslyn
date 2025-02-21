@@ -16,14 +16,19 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     public class RemoteAnalyzerAssemblyLoaderTests
     {
+        private static AnalyzerAssemblyLoader Create(string baseDirectory) => new(
+            [new RemoteAnalyzerPathResolver(baseDirectory)],
+            [AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver],
+            compilerLoadContext: null);
+
         [Fact]
         public void NonIdeAnalyzerAssemblyShouldBeLoadedInSeparateALC()
         {
             using var testFixture = new AssemblyLoadTestFixture();
-            var remoteAssemblyInCurrentAlc = typeof(RemoteAnalyzerAssemblyLoader).GetTypeInfo().Assembly;
+            var remoteAssemblyInCurrentAlc = typeof(RemoteAnalyzerPathResolver).GetTypeInfo().Assembly;
             var remoteAssemblyLocation = remoteAssemblyInCurrentAlc.Location;
 
-            var loader = new RemoteAnalyzerAssemblyLoader(Path.GetDirectoryName(remoteAssemblyLocation)!);
+            var loader = Create(Path.GetDirectoryName(remoteAssemblyLocation)!);
 
             // Try to load MS.CA.Remote.ServiceHub.dll as an analyzer assembly via RemoteAnalyzerAssemblyLoader
             // since it's not one of the special assemblies listed in RemoteAnalyzerAssemblyLoader,
@@ -45,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             // Try to load MS.CA.Features.dll as an analyzer assembly via RemoteAnalyzerAssemblyLoader
             // since it's listed as one of the special assemblies in RemoteAnalyzerAssemblyLoader,
             // RemoteAnalyzerAssemblyLoader should loaded in its own ALC. 
-            var loader = new RemoteAnalyzerAssemblyLoader(Path.GetDirectoryName(featuresAssemblyLocation)!);
+            var loader = Create(Path.GetDirectoryName(featuresAssemblyLocation)!);
             loader.AddDependencyLocation(featuresAssemblyLocation);
 
             var featuresAssemblyLoadedViaRemoteLoader = loader.LoadFromPath(featuresAssemblyLocation);
@@ -61,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var compilerAssemblyInCurrentAlc = typeof(SyntaxNode).GetTypeInfo().Assembly;
             var compilerAssemblyLocation = compilerAssemblyInCurrentAlc.Location;
 
-            var loader = new RemoteAnalyzerAssemblyLoader(Path.GetDirectoryName(compilerAssemblyLocation)!);
+            var loader = Create(Path.GetDirectoryName(compilerAssemblyLocation)!);
             loader.AddDependencyLocation(compilerAssemblyLocation);
 
             var compilerAssemblyLoadedViaRemoteLoader = loader.LoadFromPath(compilerAssemblyLocation);
