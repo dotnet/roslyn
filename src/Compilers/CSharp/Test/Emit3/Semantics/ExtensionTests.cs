@@ -140,13 +140,13 @@ public static class Extensions
         Assert.Equal("Extensions.<>E__0", member.ToTestDisplayString());
 
         var format = new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
-        Assert.Equal("Extensions.extension", symbol.ToDisplayString(format)); // PROTOTYPE display string should include the receiver parameter
+        Assert.Equal("Extensions.extension(System.Object)", symbol.ToDisplayString(format));
 
         format = new SymbolDisplayFormat(kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
-        Assert.Equal("extension", symbol.ToDisplayString(format)); // PROTOTYPE display string should include the receiver parameter
+        Assert.Equal("extension(Object)", symbol.ToDisplayString(format));
 
         format = new SymbolDisplayFormat();
-        Assert.Equal("extension", symbol.ToDisplayString(format)); // PROTOTYPE display string should include the receiver parameter
+        Assert.Equal("extension(Object)", symbol.ToDisplayString(format));
 
         format = new SymbolDisplayFormat(compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames);
         Assert.Equal("<>E__0", symbol.ToDisplayString(format));
@@ -258,7 +258,7 @@ public static class Extensions
         Assert.Empty(symbol.TypeParameters.Single().ConstraintTypes);
 
         var format = new SymbolDisplayFormat(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints);
-        Assert.Equal("extension<T> where T : struct", symbol.ToDisplayString(format)); // PROTOTYPE display string should include the receiver parameter
+        Assert.Equal("extension<T>(Object) where T : struct", symbol.ToDisplayString(format));
     }
 
     [Fact]
@@ -438,9 +438,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,14): error CS0102: The type 'Extensions.extension<T>' already contains a definition for 'T'
+            // (5,14): error CS0102: The type 'Extensions.extension<T>(object)' already contains a definition for 'T'
             //         void T() { }
-            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "T").WithArguments("Extensions.extension<T>", "T").WithLocation(5, 14));
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "T").WithArguments("Extensions.extension<T>(object)", "T").WithLocation(5, 14));
     }
 
     [Fact]
@@ -1121,9 +1121,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (10,16): error CS0541: 'Extensions.extension.M()': explicit interface declaration can only be declared in a class, record, struct or interface
+            // (10,16): error CS0541: 'Extensions.extension(object).M()': explicit interface declaration can only be declared in a class, record, struct or interface
             //         void I.M() { }
-            Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("Extensions.extension.M()").WithLocation(10, 16));
+            Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("Extensions.extension(object).M()").WithLocation(10, 16));
     }
 
     [Fact]
@@ -1141,9 +1141,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,16): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Extensions.extension<T>'
+            // (5,16): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Extensions.extension<T>(object)'
             //         void M<T>() { }
-            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Extensions.extension<T>").WithLocation(5, 16));
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Extensions.extension<T>(object)").WithLocation(5, 16));
     }
 
     [Fact]
@@ -1292,9 +1292,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (9,15): error CS0541: 'Extensions.extension.Property': explicit interface declaration can only be declared in a class, record, struct or interface
+            // (9,15): error CS0541: 'Extensions.extension(object).Property': explicit interface declaration can only be declared in a class, record, struct or interface
             //         int I.Property { get => 42; set { } }
-            Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "Property").WithArguments("Extensions.extension.Property").WithLocation(9, 15));
+            Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "Property").WithArguments("Extensions.extension(object).Property").WithLocation(9, 15));
     }
 
     [Fact]
@@ -1644,9 +1644,9 @@ public static class Extensions
             // (5,31): error CS9501: Extension declarations can include only methods or properties
             //     extension(object o) { int field = 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "field").WithLocation(5, 31),
-            // (5,31): warning CS0169: The field 'Extensions.extension.field' is never used
+            // (5,31): warning CS0169: The field 'Extensions.extension(object).field' is never used
             //     extension(object o) { int field = 0; }
-            Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("Extensions.extension.field").WithLocation(5, 31));
+            Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("Extensions.extension(object).field").WithLocation(5, 31));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -1703,9 +1703,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (9,31): error CS0541: 'Extensions.extension.E': explicit interface declaration can only be declared in a class, record, struct or interface
+            // (9,31): error CS0541: 'Extensions.extension(object).E': explicit interface declaration can only be declared in a class, record, struct or interface
             //         event System.Action I.E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "E").WithArguments("Extensions.extension.E").WithLocation(9, 31),
+            Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "E").WithArguments("Extensions.extension(object).E").WithLocation(9, 31),
             // (9,31): error CS9501: Extension declarations can include only methods or properties
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "E").WithLocation(9, 31),
@@ -6058,16 +6058,16 @@ new object().Method();
         if (!e1BeforeE2)
         {
             comp.VerifyEmitDiagnostics(
-                // (1,14): error CS0121: The call is ambiguous between the following methods or properties: 'E2.extension.Method()' and 'E1.extension.Method()'
+                // (1,14): error CS0121: The call is ambiguous between the following methods or properties: 'E2.extension(object).Method()' and 'E1.extension(object).Method()'
                 // new object().Method();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E2.extension.Method()", "E1.extension.Method()").WithLocation(1, 14));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E2.extension(object).Method()", "E1.extension(object).Method()").WithLocation(1, 14));
         }
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (1,14): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension.Method()' and 'E2.extension.Method()'
+                // (1,14): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(object).Method()' and 'E2.extension(object).Method()'
                 // new object().Method();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E1.extension.Method()", "E2.extension.Method()").WithLocation(1, 14));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E1.extension(object).Method()", "E2.extension(object).Method()").WithLocation(1, 14));
         }
     }
 
@@ -6554,9 +6554,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'E.extension<int>.M<U>()'
+            // (1,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'E.extension<int>(C<int>).M<U>()'
             // new C<int>().M<string>();
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M<string>").WithArguments("E.extension<int>.M<U>()", "U", "string").WithLocation(1, 14));
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M<string>").WithArguments("E.extension<int>(C<int>).M<U>()", "U", "string").WithLocation(1, 14));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -6613,7 +6613,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.Method");
         // PROTOTYPE Nullability is undone
-        Assert.Equal("void E.extension<System.Object>.Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString(includeNonNullable: true));
+        Assert.Equal("void E.extension<System.Object>(System.Object!).Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString(includeNonNullable: true));
     }
 
     [Fact]
@@ -7407,9 +7407,9 @@ static class E2
         // PROTOTYPE we should prefer extension members that apply to a more specific type
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,30): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension.M(int)' and 'E2.extension.M(int)'
+            // (1,30): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(Base).M(int)' and 'E2.extension(C).M(int)'
             // System.Console.Write(new C().M(42));
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension.M(int)", "E2.extension.M(int)").WithLocation(1, 30));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(Base).M(int)", "E2.extension(C).M(int)").WithLocation(1, 30));
 
         source = """
 System.Console.Write(new C().M(42));
@@ -7576,9 +7576,9 @@ static class E
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0120: An object reference is required for the non-static field, method, or property 'E.extension.M()'
+            // (1,1): error CS0120: An object reference is required for the non-static field, method, or property 'E.extension(C).M()'
             // C.M();
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.extension.M()").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "C.M").WithArguments("E.extension(C).M()").WithLocation(1, 1));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -7622,9 +7622,9 @@ static class E
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0176: Member 'E.extension.M()' cannot be accessed with an instance reference; qualify it with a type name instead
+            // (1,1): error CS0176: Member 'E.extension(C).M()' cannot be accessed with an instance reference; qualify it with a type name instead
             // new C().M();
-            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new C().M").WithArguments("E.extension.M()").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new C().M").WithArguments("E.extension(C).M()").WithLocation(1, 1));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -8139,9 +8139,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0619: 'E.extension.Method()' is obsolete: 'Method is obsolete'
+            // (1,1): error CS0619: 'E.extension(object).Method()' is obsolete: 'Method is obsolete'
             // new object().Method();
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Method()").WithArguments("E.extension.Method()", "Method is obsolete").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Method()").WithArguments("E.extension(object).Method()", "Method is obsolete").WithLocation(1, 1));
     }
 
     [Fact]
@@ -8185,6 +8185,37 @@ namespace Inner
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
     }
 
+    [Fact]
+    public void InstanceMethodInvocation_MultipleSubstitutions()
+    {
+        var src = """
+new C().M<int>();
+
+interface I<T> { }
+class C : I<int>, I<string> { }
+
+static class E
+{
+    extension<T>(I<T> i)
+    {
+        public void M<U>() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // new C().M<int>();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<int>").WithArguments("C", "M").WithLocation(1, 9));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<int>");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
+    }
+
     [Theory, CombinatorialData]
     public void InstanceMethodInvocation_MultipleExtensions(bool e1BeforeE2)
     {
@@ -8217,16 +8248,16 @@ new object().M();
         if (!e1BeforeE2)
         {
             comp.VerifyEmitDiagnostics(
-                // (1,14): error CS0121: The call is ambiguous between the following methods or properties: 'E2.extension.M()' and 'E1.extension.M()'
+                // (1,14): error CS0121: The call is ambiguous between the following methods or properties: 'E2.extension(object).M()' and 'E1.extension(object).M()'
                 // new object().M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E2.extension.M()", "E1.extension.M()").WithLocation(1, 14));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E2.extension(object).M()", "E1.extension(object).M()").WithLocation(1, 14));
         }
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (1,14): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension.M()' and 'E2.extension.M()'
+                // (1,14): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(object).M()' and 'E2.extension(object).M()'
                 // new object().M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension.M()", "E2.extension.M()").WithLocation(1, 14));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(object).M()", "E2.extension(object).M()").WithLocation(1, 14));
         }
 
         var tree = comp.SyntaxTrees.Single();
@@ -8977,9 +9008,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS0176: Member 'Extensions.extension.P' cannot be accessed with an instance reference; qualify it with a type name instead
+            // (1,22): error CS0176: Member 'Extensions.extension(object).P' cannot be accessed with an instance reference; qualify it with a type name instead
             // System.Console.Write(new object().P);
-            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object().P").WithArguments("Extensions.extension.P").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object().P").WithArguments("Extensions.extension(object).P").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -9129,16 +9160,16 @@ object.Method();
         if (!e1BeforeE2)
         {
             comp.VerifyEmitDiagnostics(
-                // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E2.extension.Method()' and 'E1.extension.Method()'
+                // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E2.extension(object).Method()' and 'E1.extension(object).Method()'
                 // object.Method();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E2.extension.Method()", "E1.extension.Method()").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E2.extension(object).Method()", "E1.extension(object).Method()").WithLocation(1, 8));
         }
         else
         {
             comp.VerifyEmitDiagnostics(
-                // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension.Method()' and 'E2.extension.Method()'
+                // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(object).Method()' and 'E2.extension(object).Method()'
                 // object.Method();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E1.extension.Method()", "E2.extension.Method()").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("E1.extension(object).Method()", "E2.extension(object).Method()").WithLocation(1, 8));
         }
     }
 
@@ -9158,9 +9189,9 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS0176: Member 'Extensions.extension.P' cannot be accessed with an instance reference; qualify it with a type name instead
+            // (1,22): error CS0176: Member 'Extensions.extension(object).P' cannot be accessed with an instance reference; qualify it with a type name instead
             // System.Console.Write(new object().P);
-            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object().P").WithArguments("Extensions.extension.P").WithLocation(1, 22));
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new object().P").WithArguments("Extensions.extension(object).P").WithLocation(1, 22));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -9323,12 +9354,12 @@ static class E2
         // PROTOTYPE we should prefer extension members that apply to a more specific type
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (2,18): error CS0229: Ambiguity between 'E2.extension.f()' and 'E1.extension.f'
+            // (2,18): error CS0229: Ambiguity between 'E2.extension(object).f()' and 'E1.extension(D).f'
             // string x = b ? D.f : D.f;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension.f()", "E1.extension.f").WithLocation(2, 18),
-            // (2,24): error CS0229: Ambiguity between 'E2.extension.f()' and 'E1.extension.f'
+            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(2, 18),
+            // (2,24): error CS0229: Ambiguity between 'E2.extension(object).f()' and 'E1.extension(D).f'
             // string x = b ? D.f : D.f;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension.f()", "E1.extension.f").WithLocation(2, 24));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(2, 24));
         // PROTOTYPE metadata is undone
         //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
@@ -9374,12 +9405,12 @@ static class E2
         // PROTOTYPE we should prefer extension members that apply to a more specific type
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (2,25): error CS0229: Ambiguity between 'E2.extension.f()' and 'E.extension.f'
+            // (2,25): error CS0229: Ambiguity between 'E2.extension(object).f()' and 'E.extension(D).f'
             // System.Action x = b ? D.f : D.f;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension.f()", "E.extension.f").WithLocation(2, 25),
-            // (2,31): error CS0229: Ambiguity between 'E2.extension.f()' and 'E.extension.f'
+            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension(object).f()", "E.extension(D).f").WithLocation(2, 25),
+            // (2,31): error CS0229: Ambiguity between 'E2.extension(object).f()' and 'E.extension(D).f'
             // System.Action x = b ? D.f : D.f;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension.f()", "E.extension.f").WithLocation(2, 31)
+            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension(object).f()", "E.extension(D).f").WithLocation(2, 31)
             //// (2,19): error CS0029: Cannot implicitly convert type 'string' to 'System.Action'
             //// System.Action x = b ? D.f : D.f;
             //Diagnostic(ErrorCode.ERR_NoImplicitConv, "b ? D.f : D.f").WithArguments("string", "System.Action").WithLocation(2, 19)
@@ -9455,9 +9486,9 @@ static class E2
         // PROTOTYPE we should prefer extension members that apply to a more specific type
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,19): error CS0229: Ambiguity between 'E2.extension.f()' and 'E1.extension.f'
+            // (1,19): error CS0229: Ambiguity between 'E2.extension(object).f()' and 'E1.extension(D).f'
             // var x = (string)D.f;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension.f()", "E1.extension.f").WithLocation(1, 19));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 19));
         // PROTOTYPE metadata is undone
         //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
@@ -9495,12 +9526,12 @@ static class E2
         // PROTOTYPE we should prefer extension members that apply to a more specific type
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,26): error CS0229: Ambiguity between 'E2.extension.f()' and 'E1.extension.f'
+            // (1,26): error CS0229: Ambiguity between 'E2.extension(object).f()' and 'E1.extension(D).f'
             // var x = (System.Action)D.f;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension.f()", "E1.extension.f").WithLocation(1, 26),
-            // (2,21): error CS0229: Ambiguity between 'E2.extension.f()' and 'E1.extension.f'
+            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 26),
+            // (2,21): error CS0229: Ambiguity between 'E2.extension(object).f()' and 'E1.extension(D).f'
             // System.Action a = D.f;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension.f()", "E1.extension.f").WithLocation(2, 21));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(2, 21));
 
         //var tree = comp.SyntaxTrees.First();
         //var model = comp.GetSemanticModel(tree);
@@ -10693,12 +10724,12 @@ static class E2
         // PROTOTYPE we should prefer extension members that apply to a more specific type
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,12): error CS0229: Ambiguity between 'E2.extension.f()' and 'E1.extension.f'
+            // (1,12): error CS0229: Ambiguity between 'E2.extension(object).f()' and 'E1.extension(D).f'
             // bool b = D.f + D.f;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension.f()", "E1.extension.f").WithLocation(1, 12),
-            // (1,18): error CS0229: Ambiguity between 'E2.extension.f()' and 'E1.extension.f'
+            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 12),
+            // (1,18): error CS0229: Ambiguity between 'E2.extension(object).f()' and 'E1.extension(D).f'
             // bool b = D.f + D.f;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension.f()", "E1.extension.f").WithLocation(1, 18)
+            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 18)
             //// (1,10): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'C'
             //// bool b = D.f + D.f;
             //Diagnostic(ErrorCode.ERR_BadBinaryOps, "D.f + D.f").WithArguments("+", "C", "C").WithLocation(1, 10)
@@ -10735,9 +10766,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,45): error CS0229: Ambiguity between 'E2.extension.f()' and 'E1.extension.f'
+            // (1,45): error CS0229: Ambiguity between 'E2.extension(object).f()' and 'E1.extension(object).f'
             // System.Func<System.Action> l = () => object.f;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension.f()", "E1.extension.f").WithLocation(1, 45));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension(object).f()", "E1.extension(object).f").WithLocation(1, 45));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -10832,9 +10863,9 @@ static class E2
         // PROTOTYPE we should prefer extension members that apply to a more specific type
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,31): error CS0229: Ambiguity between 'E2.extension.f()' and 'E1.extension.f'
+            // (1,31): error CS0229: Ambiguity between 'E2.extension(object).f()' and 'E1.extension(object).f'
             // var l = System.Action () => D.f;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension.f()", "E1.extension.f").WithLocation(1, 31)
+            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension(object).f()", "E1.extension(object).f").WithLocation(1, 31)
             //// (1,29): error CS0029: Cannot implicitly convert type 'string' to 'System.Action'
             //// var l = System.Action () => D.f;
             //Diagnostic(ErrorCode.ERR_NoImplicitConv, "D.f").WithArguments("string", "System.Action").WithLocation(1, 29),
@@ -10876,9 +10907,9 @@ static class E2
         // PROTOTYPE we should prefer extension members that apply to a more specific type
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,40): error CS0229: Ambiguity between 'E2.extension.f()' and 'E1.extension.f'
+            // (1,40): error CS0229: Ambiguity between 'E2.extension(object).f()' and 'E1.extension(D).f'
             // System.Func<System.Action> l = () => D.f;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension.f()", "E1.extension.f").WithLocation(1, 40)
+            Diagnostic(ErrorCode.ERR_AmbigMember, "f").WithArguments("E2.extension(object).f()", "E1.extension(D).f").WithLocation(1, 40)
             //// (1,38): error CS0029: Cannot implicitly convert type 'string' to 'System.Action'
             //// System.Func<System.Action> l = () => D.f;
             //Diagnostic(ErrorCode.ERR_NoImplicitConv, "D.f").WithArguments("string", "System.Action").WithLocation(1, 38),
@@ -10994,9 +11025,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,33): error CS0119: 'E.extension.M()' is a method, which is not valid in the given context
+            // (1,33): error CS0119: 'E.extension(object).M()' is a method, which is not valid in the given context
             // string query = from x in object.M select x;
-            Diagnostic(ErrorCode.ERR_BadSKunknown, "M").WithArguments("E.extension.M()", "method").WithLocation(1, 33));
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "M").WithArguments("E.extension(object).M()", "method").WithLocation(1, 33));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -11441,12 +11472,12 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (2,20): error CS0229: Ambiguity between 'E1.extension.StaticProperty' and 'E2.extension.StaticProperty'
+            // (2,20): error CS0229: Ambiguity between 'E1.extension(object).StaticProperty' and 'E2.extension(object).StaticProperty'
             // var x = b ? object.StaticProperty : object.StaticProperty;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "StaticProperty").WithArguments("E1.extension.StaticProperty", "E2.extension.StaticProperty").WithLocation(2, 20),
-            // (2,44): error CS0229: Ambiguity between 'E1.extension.StaticProperty' and 'E2.extension.StaticProperty'
+            Diagnostic(ErrorCode.ERR_AmbigMember, "StaticProperty").WithArguments("E1.extension(object).StaticProperty", "E2.extension(object).StaticProperty").WithLocation(2, 20),
+            // (2,44): error CS0229: Ambiguity between 'E1.extension(object).StaticProperty' and 'E2.extension(object).StaticProperty'
             // var x = b ? object.StaticProperty : object.StaticProperty;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "StaticProperty").WithArguments("E1.extension.StaticProperty", "E2.extension.StaticProperty").WithLocation(2, 44));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "StaticProperty").WithArguments("E1.extension(object).StaticProperty", "E2.extension(object).StaticProperty").WithLocation(2, 44));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -11851,12 +11882,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS0619: 'E.extension.Property' is obsolete: 'Property is obsolete'
+            // (1,5): error CS0619: 'E.extension(object).Property' is obsolete: 'Property is obsolete'
             // _ = new object().Property;
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Property").WithArguments("E.extension.Property", "Property is obsolete").WithLocation(1, 5),
-            // (2,1): error CS0619: 'E.extension.Property' is obsolete: 'Property is obsolete'
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Property").WithArguments("E.extension(object).Property", "Property is obsolete").WithLocation(1, 5),
+            // (2,1): error CS0619: 'E.extension(object).Property' is obsolete: 'Property is obsolete'
             // new object().Property = 43;
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Property").WithArguments("E.extension.Property", "Property is obsolete").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Property").WithArguments("E.extension(object).Property", "Property is obsolete").WithLocation(2, 1));
     }
 
     [Fact]
@@ -11877,12 +11908,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS0619: 'E.extension.Property' is obsolete: 'Property is obsolete'
+            // (1,5): error CS0619: 'E.extension(object).Property' is obsolete: 'Property is obsolete'
             // _ = object.Property;
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Property").WithArguments("E.extension.Property", "Property is obsolete").WithLocation(1, 5),
-            // (2,1): error CS0619: 'E.extension.Property' is obsolete: 'Property is obsolete'
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Property").WithArguments("E.extension(object).Property", "Property is obsolete").WithLocation(1, 5),
+            // (2,1): error CS0619: 'E.extension(object).Property' is obsolete: 'Property is obsolete'
             // object.Property = 43;
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Property").WithArguments("E.extension.Property", "Property is obsolete").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.Property").WithArguments("E.extension(object).Property", "Property is obsolete").WithLocation(2, 1));
     }
 
     [Fact]
@@ -11902,9 +11933,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0619: 'E.extension.Property' is obsolete: 'Property is obsolete'
+            // (1,1): error CS0619: 'E.extension(object).Property' is obsolete: 'Property is obsolete'
             // new object().Property();
-            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Property").WithArguments("E.extension.Property", "Property is obsolete").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new object().Property").WithArguments("E.extension(object).Property", "Property is obsolete").WithLocation(1, 1));
     }
 
     [Fact]
@@ -12017,9 +12048,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS1612: Cannot modify the return value of 'E.extension.Property' because it is not a variable
+            // (1,1): error CS1612: Cannot modify the return value of 'E.extension(object).Property' because it is not a variable
             // object.Property.field = 1;
-            Diagnostic(ErrorCode.ERR_ReturnNotLValue, "object.Property").WithArguments("E.extension.Property").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_ReturnNotLValue, "object.Property").WithArguments("E.extension(object).Property").WithLocation(1, 1));
     }
 
     [Fact]
@@ -12108,9 +12139,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0200: Property or indexer 'E.extension.Property' cannot be assigned to -- it is read only
+            // (1,1): error CS0200: Property or indexer 'E.extension(object).Property' cannot be assigned to -- it is read only
             // object.Property = 1;
-            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "object.Property").WithArguments("E.extension.Property").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "object.Property").WithArguments("E.extension(object).Property").WithLocation(1, 1));
     }
 
     [Fact]
@@ -12151,9 +12182,9 @@ static class E
         // PROTOTYPE(instance) confirm whether init-only accessors should be allowed in extensions
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS8852: Init-only property or indexer 'E.extension.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+            // (1,1): error CS8852: Init-only property or indexer 'E.extension(object).Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
             // new object().Property = 1;
-            Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "new object().Property").WithArguments("E.extension.Property").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "new object().Property").WithArguments("E.extension(object).Property").WithLocation(1, 1));
     }
 
     [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE metadata is undone
@@ -12196,9 +12227,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0272: The property or indexer 'E.extension.Property' cannot be used in this context because the set accessor is inaccessible
+            // (1,1): error CS0272: The property or indexer 'E.extension(object).Property' cannot be used in this context because the set accessor is inaccessible
             // object.Property = 1;
-            Diagnostic(ErrorCode.ERR_InaccessibleSetter, "object.Property").WithArguments("E.extension.Property").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_InaccessibleSetter, "object.Property").WithArguments("E.extension(object).Property").WithLocation(1, 1));
     }
 
     [Fact]
@@ -12280,9 +12311,9 @@ static class E2
 """;
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
-            // (5,19): error CS0229: Ambiguity between 'E1.extension.P1' and 'E2.extension.P1'
+            // (5,19): error CS0229: Ambiguity between 'E1.extension(Color).P1' and 'E2.extension(Color).P1'
             //         _ = Color.P1;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "P1").WithArguments("E1.extension.P1", "E2.extension.P1").WithLocation(5, 19));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "P1").WithArguments("E1.extension(Color).P1", "E2.extension(Color).P1").WithLocation(5, 19));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -12355,9 +12386,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,14): error CS0119: 'E.extension.M()' is a method, which is not valid in the given context
+            // (1,14): error CS0119: 'E.extension(object).M()' is a method, which is not valid in the given context
             // new object().M.ToString();
-            Diagnostic(ErrorCode.ERR_BadSKunknown, "M").WithArguments("E.extension.M()", "method").WithLocation(1, 14));
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "M").WithArguments("E.extension(object).M()", "method").WithLocation(1, 14));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -13076,9 +13107,9 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,29): error CS0229: Ambiguity between 'E1.extension.M()' and 'E2.extension.M'
+            // (1,29): error CS0229: Ambiguity between 'E1.extension(object).M()' and 'E2.extension(object).M'
             // System.Console.Write(object.M);
-            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E1.extension.M()", "E2.extension.M").WithLocation(1, 29));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E1.extension(object).M()", "E2.extension(object).M").WithLocation(1, 29));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -13214,9 +13245,9 @@ class C { }
 
         // PROTOTYPE we should prefer extension members that apply to a more specific type (ie. no error)
         comp.VerifyEmitDiagnostics(
-            // (1,24): error CS0229: Ambiguity between 'E1.extension.M()' and 'E3.extension.M()'
+            // (1,24): error CS0229: Ambiguity between 'E1.extension(object).M()' and 'E3.extension(C).M()'
             // System.Console.Write(C.M());
-            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E1.extension.M()", "E3.extension.M()").WithLocation(1, 24));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E1.extension(object).M()", "E3.extension(C).M()").WithLocation(1, 24));
 
         //var tree = comp.SyntaxTrees.Single();
         //var model = comp.GetSemanticModel(tree);
@@ -13403,9 +13434,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,19): error CS0411: The type arguments for method 'E.extension.GetEnumerator<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            // (3,19): error CS0411: The type arguments for method 'E.extension(C).GetEnumerator<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             // foreach (var x in new C()) { }
-            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C()").WithArguments("E.extension.GetEnumerator<T>()").WithLocation(3, 19),
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "new C()").WithArguments("E.extension(C).GetEnumerator<T>()").WithLocation(3, 19),
             // (3,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
             // foreach (var x in new C()) { }
             Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(3, 19));
@@ -13880,9 +13911,9 @@ static class E
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
         // PROTOTYPE confirm when spec'ing pattern-based fixed
         comp.VerifyEmitDiagnostics(
-            // (6,25): error CS0176: Member 'E.extension.GetPinnableReference()' cannot be accessed with an instance reference; qualify it with a type name instead
+            // (6,25): error CS0176: Member 'E.extension(Fixable).GetPinnableReference()' cannot be accessed with an instance reference; qualify it with a type name instead
             //         fixed (int* p = new Fixable())
-            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new Fixable()").WithArguments("E.extension.GetPinnableReference()").WithLocation(6, 25),
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "new Fixable()").WithArguments("E.extension(Fixable).GetPinnableReference()").WithLocation(6, 25),
             // (6,25): error CS8385: The given expression cannot be used in a fixed statement
             //         fixed (int* p = new Fixable())
             Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable()").WithLocation(6, 25));
@@ -14551,9 +14582,9 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS0229: Ambiguity between 'E2.extension.P<T>()' and 'E1.extension.P'
+            // (1,16): error CS0229: Ambiguity between 'E2.extension(object).P<T>()' and 'E1.extension(object).P'
             // int i = object.P;
-            Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("E2.extension.P<T>()", "E1.extension.P").WithLocation(1, 16));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("E2.extension(object).P<T>()", "E1.extension(object).P").WithLocation(1, 16));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -14678,9 +14709,9 @@ static class E
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyEmitDiagnostics(
-            // (5,48): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension.M(string, object)' and 'E.extension.M(object, string)'
+            // (5,48): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension(C).M(string, object)' and 'E.extension(C).M(object, string)'
             //         delegate*<string, string, void> ptr = &C.M;
-            Diagnostic(ErrorCode.ERR_AmbigCall, "C.M").WithArguments("E.extension.M(string, object)", "E.extension.M(object, string)").WithLocation(5, 48));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "C.M").WithArguments("E.extension(C).M(string, object)", "E.extension(C).M(object, string)").WithLocation(5, 48));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -14714,9 +14745,9 @@ static class E2
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (1,29): error CS0229: Ambiguity between 'E1.extension.M()' and 'E2.extension.M'
+            // (1,29): error CS0229: Ambiguity between 'E1.extension(object).M()' and 'E2.extension(object).M'
             // System.Console.Write(object.M());
-            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E1.extension.M()", "E2.extension.M").WithLocation(1, 29));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "M").WithArguments("E1.extension(object).M()", "E2.extension(object).M").WithLocation(1, 29));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -15119,5 +15150,51 @@ dynamic.M();
             // (1,1): error CS0103: The name 'dynamic' does not exist in the current context
             // dynamic.M();
             Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void DisplayString_Constraint()
+    {
+        var source = """
+static class E
+{
+    extension<T>(T) where T : struct
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var symbol = model.GetDeclaredSymbol(extension);
+
+        var format = new SymbolDisplayFormat(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints);
+        Assert.Equal("extension<T>(T) where T : struct", symbol.ToDisplayString(format));
+    }
+
+    [Fact]
+    public void DisplayString_Modifier()
+    {
+        var source = """
+static class E
+{
+    extension(ref readonly int)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var symbol = model.GetDeclaredSymbol(extension);
+
+        var format = new SymbolDisplayFormat(parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeModifiers);
+        Assert.Equal("extension(ref readonly Int32)", symbol.ToDisplayString(format));
     }
 }

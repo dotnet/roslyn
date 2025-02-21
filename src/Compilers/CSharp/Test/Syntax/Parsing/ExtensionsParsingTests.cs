@@ -2316,9 +2316,9 @@ static class C
             // (5,35): error CS9501: Extension declarations can include only methods or properties
             //         event System.EventHandler eventField;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "eventField").WithLocation(5, 35),
-            // (5,35): warning CS0067: The event 'C.extension.eventField' is never used
+            // (5,35): warning CS0067: The event 'C.extension(object).eventField' is never used
             //         event System.EventHandler eventField;
-            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "eventField").WithArguments("C.extension.eventField").WithLocation(5, 35)); // PROTOTYPE the symbol display should include receiver parameter
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "eventField").WithArguments("C.extension(object).eventField").WithLocation(5, 35));
 
         UsingTree(src, TestOptions.RegularPreview);
 
@@ -2856,9 +2856,9 @@ static class C
             // (5,13): error CS9501: Extension declarations can include only methods or properties
             //         int field;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "field").WithLocation(5, 13),
-            // (5,13): warning CS0169: The field 'C.extension.field' is never used
+            // (5,13): warning CS0169: The field 'C.extension(object).field' is never used
             //         int field;
-            Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C.extension.field").WithLocation(5, 13)); // PROTOTYPE the symbol display should include receiver parameter
+            Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C.extension(object).field").WithLocation(5, 13));
 
         UsingTree(src, TestOptions.RegularPreview);
 

@@ -343,7 +343,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     AddKeyword(SyntaxKind.ExtensionKeyword);
-                    // PROTOTYPE revisit how to display extensions outside of test display strings
                 }
             }
             else
@@ -426,9 +425,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddTypeArguments(symbol, GetTypeArgumentsModifiers(underlyingTypeSymbol));
                     AddDelegateParameters(symbol);
 
+                    if (symbol.IsExtension)
+                    {
+                        addExtensionParameter(underlyingTypeSymbol);
+                    }
+
                     // TODO: do we want to skip these if we're being visited as a containing type?
                     AddTypeParameterConstraints(symbol.TypeArguments);
                 }
+            }
+            else if (symbol.IsExtension)
+            {
+                addExtensionParameter(underlyingTypeSymbol);
             }
             else
             {
@@ -443,6 +451,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.OpenBracketToken);
                 Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Other, symbol, "missing"));
                 AddPunctuation(SyntaxKind.CloseBracketToken);
+            }
+
+            return;
+
+            void addExtensionParameter(NamedTypeSymbol? underlyingTypeSymbol) // PROTOTYPE use public API once it's available
+            {
+                if (!Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)
+                    && underlyingTypeSymbol!.ExtensionParameter is { } extensionParameter)
+                {
+                    AddPunctuation(SyntaxKind.OpenParenToken);
+                    AddParameterModifiersAndType(extensionParameter.GetPublicSymbol());
+                    AddPunctuation(SyntaxKind.CloseParenToken);
+                }
             }
         }
 
