@@ -31,6 +31,22 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateDocu
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateDocumentationService.GetDocumentationCommentAsync(Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper! proposal, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<(System.Collections.Generic.Dictionary<string!, string!>? responseDictionary, bool isQuotaExceeded)>!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.RelatedDocuments.ICopilotRelatedDocumentsService
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.RelatedDocuments.ICopilotRelatedDocumentsService.GetRelatedDocumentIdsAsync(Microsoft.CodeAnalysis.Document! document, int position, System.Func<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId!>, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! callbackAsync, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotServiceImpl
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotServiceImpl.TryGetQueryAsync(string! text, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotContextImpl! context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotGeneratedQueryImpl>
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotContextImpl
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotContextImpl.AvailablePackages.get -> System.Collections.Generic.IEnumerable<(string! name, System.Version! version)>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotContextImpl.AvailablePackages.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotContextImpl.ModelName.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotContextImpl.ModelName.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotContextImpl.SemanticSearchCopilotContextImpl() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotGeneratedQueryImpl
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotGeneratedQueryImpl.IsError.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotGeneratedQueryImpl.IsError.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotGeneratedQueryImpl.SemanticSearchCopilotGeneratedQueryImpl() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotGeneratedQueryImpl.Text.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotGeneratedQueryImpl.Text.init -> void
+Microsoft.CodeAnalysis.SemanticSearch.SemanticSearchCopilotServiceWrapper
+Microsoft.CodeAnalysis.SemanticSearch.SemanticSearchCopilotServiceWrapper.SemanticSearchCopilotServiceWrapper(System.Lazy<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotServiceImpl!>? impl) -> void
 override Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.GetHashCode() -> int
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Create(System.Collections.Immutable.ImmutableArray<string!> values) -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper!
