@@ -30,6 +30,8 @@ internal static class FeatureAttribute
     public const string ExtractMethod = nameof(ExtractMethod);
     public const string FindReferences = nameof(FindReferences);
     public const string SemanticSearch = nameof(SemanticSearch);
+    public const string GenerateDocumentation = nameof(GenerateDocumentation);
+    public const string GenerateMethod = nameof(GenerateMethod);
     public const string GlobalOperation = nameof(GlobalOperation);
     public const string GoToBase = nameof(GoToBase);
     public const string GoToDefinition = nameof(GoToDefinition);

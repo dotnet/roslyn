@@ -45,6 +45,8 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     private readonly CopilotOption _copilotCodeAnalysisOption = new("EnableCSharpCodeAnalysis", false);
     private readonly CopilotOption _copilotRefineOption = new("EnableCSharpRefineQuickActionSuggestion", false);
     private readonly CopilotOption _copilotOnTheFlyDocsOption = new("EnableOnTheFlyDocs", true);
+    private readonly CopilotOption _copilotGenerateDocumentationCommentOption = new("EnableCSharpGenerateDocumentationComment", true);
+    private readonly CopilotOption _copilotGenerateMethodImplementationOption = new("EnableCSharpGenerateMethodImplementation", true);
 
     private static readonly UIContext s_copilotHasLoadedUIContext = UIContext.FromUIContextGuid(new Guid(CopilotHasLoadedGuid));
     private static readonly UIContext s_gitHubAccountStatusDeterminedContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusDetermined));
@@ -91,6 +93,12 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
 
     public Task<bool> IsOnTheFlyDocsOptionEnabledAsync()
         => IsCopilotOptionEnabledAsync(_copilotOnTheFlyDocsOption);
+
+    public Task<bool> IsGenerateDocumentationCommentOptionEnabledAsync()
+        => IsCopilotOptionEnabledAsync(_copilotGenerateDocumentationCommentOption);
+
+    public Task<bool> IsGenerateMethodImplementationOptionEnabledAsync()
+        => IsCopilotOptionEnabledAsync(_copilotGenerateMethodImplementationOption);
 
     private record struct CopilotOption(string Name, bool DefaultValue);
 }
