@@ -557,6 +557,7 @@ public sealed class NavigateToSearcherTests
         public bool DisplayFileLocation => throw new NotImplementedException();
         public bool IsImplicitlyDeclared => throw new NotImplementedException();
         public bool IsStale => throw new NotImplementedException();
+        public bool IsActiveDocument => false;
         public ImmutableArray<INavigableItem> ChildItems => throw new NotImplementedException();
         public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
     }

@@ -128,6 +128,8 @@ internal sealed class VSTypeScriptNavigateToSearchService(
 
         public INavigableItem NavigableItem => new VSTypeScriptNavigableItemWrapper(_result.NavigableItem);
 
+        public bool IsActiveDocument => false;
+
         public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
     }
 }

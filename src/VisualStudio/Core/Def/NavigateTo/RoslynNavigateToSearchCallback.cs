@@ -80,7 +80,8 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                     matches,
                     result.NavigableItem.Document.FilePath,
                     perProviderItemPriority,
-                    project.Language));
+                    project.Language,
+                    result.IsActiveDocument));
             }
 
             return Task.CompletedTask;
