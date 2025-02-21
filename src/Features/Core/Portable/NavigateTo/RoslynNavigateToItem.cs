@@ -276,14 +276,7 @@ internal readonly struct RoslynNavigateToItem(
 
         INavigableItem INavigateToSearchResult.NavigableItem => this;
 
-        bool INavigateToSearchResult.IsActiveDocument
-        {
-            get
-            {
-                return _activeDocument is { } activeDocument &&
-                    activeDocument.id == _itemDocument.Id;
-            }
-        }
+        bool INavigateToSearchResult.IsActiveDocument => _activeDocument?.id == _itemDocument.Id;
 
         ImmutableArray<PatternMatch> INavigateToSearchResult.Matches => _item.Matches;
 
