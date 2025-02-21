@@ -26,7 +26,7 @@
     <SystemDataSqlClientVersion>4.9.0</SystemDataSqlClientVersion>
     <SystemMemoryVersion>4.6.0</SystemMemoryVersion>
     <SystemNumericsVectorsVersion>4.6.0</SystemNumericsVectorsVersion>
-    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.0</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>6.1.1</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemThreadingTasksExtensionsVersion>4.6.0</SystemThreadingTasksExtensionsVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
