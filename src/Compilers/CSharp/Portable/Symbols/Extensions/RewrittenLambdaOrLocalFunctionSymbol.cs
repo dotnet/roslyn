@@ -12,17 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly RewrittenMethodSymbol _containingMethod;
 
-        public RewrittenLambdaOrLocalFunctionSymbol(MethodSymbol lambdaOrLocalFunctionSymbol, RewrittenMethodSymbol containingMethod) : base(lambdaOrLocalFunctionSymbol, containingMethod.TypeMap)
+        public RewrittenLambdaOrLocalFunctionSymbol(MethodSymbol lambdaOrLocalFunctionSymbol, RewrittenMethodSymbol containingMethod)
+            : base(lambdaOrLocalFunctionSymbol, containingMethod.TypeMap, lambdaOrLocalFunctionSymbol.TypeParameters)
         {
             Debug.Assert(lambdaOrLocalFunctionSymbol.AssociatedSymbol is null);
             Debug.Assert(lambdaOrLocalFunctionSymbol.TryGetThisParameter(out var thisParameter) && thisParameter is null);
             _containingMethod = containingMethod;
-        }
-
-        protected override void CreateTypeParameters(MethodSymbol originalMethod, ref TypeMap typeMap, out ImmutableArray<TypeParameterSymbol> typeParameters)
-        {
-            // PROTOTYPE: Are we creating type parameters with the right emit behavior? Attributes, etc.
-            typeMap = typeMap.WithAlphaRename(originalMethod, this, out typeParameters);
         }
 
         public override Symbol? AssociatedSymbol => null;

@@ -15,17 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
-        protected RewrittenMethodSymbol(MethodSymbol originalMethod, TypeMap typeMap)
+        protected RewrittenMethodSymbol(MethodSymbol originalMethod, TypeMap typeMap, ImmutableArray<TypeParameterSymbol> typeParametersToAlphaRename)
         {
             Debug.Assert(originalMethod.IsDefinition);
             Debug.Assert(originalMethod.ExplicitInterfaceImplementations.IsEmpty);
 
             _originalMethod = originalMethod;
-            CreateTypeParameters(originalMethod, ref typeMap, out _typeParameters);
-            _typeMap = typeMap;
+            // PROTOTYPE: Are we creating type parameters with the right emit behavior? Attributes, etc.
+            _typeMap = typeMap.WithAlphaRename(typeParametersToAlphaRename, this, out _typeParameters);
         }
-
-        protected abstract void CreateTypeParameters(MethodSymbol originalMethod, ref TypeMap typeMap, out ImmutableArray<TypeParameterSymbol> typeParameters);
 
         public TypeMap TypeMap => _typeMap;
 
