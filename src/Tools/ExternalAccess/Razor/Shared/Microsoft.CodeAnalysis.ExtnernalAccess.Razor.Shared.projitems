@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.ExtnernalAccess.Razor.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRazorClientLanguageServerManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentExcerptService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentOperationService.cs" />

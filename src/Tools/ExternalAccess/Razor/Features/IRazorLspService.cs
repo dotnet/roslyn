@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 
-internal interface IRazorLspDynamicFileInfoProvider : IRazorDynamicFileInfoProvider, ILspService
+internal interface IRazorLspService : ILspService
 {
-    void Update(Uri razorUri);
 }

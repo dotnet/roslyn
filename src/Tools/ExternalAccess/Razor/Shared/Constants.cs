@@ -4,9 +4,9 @@
 
 using Microsoft.CodeAnalysis.LanguageServer;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-internal interface IRazorLspDynamicFileInfoProvider : IRazorDynamicFileInfoProvider, ILspService
+internal static class Constants
 {
-    void Update(Uri razorUri);
+    public const string RazorLanguageName = LanguageInfoProvider.RazorLanguageName;
 }
