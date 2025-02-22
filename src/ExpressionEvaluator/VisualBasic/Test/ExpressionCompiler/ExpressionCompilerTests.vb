@@ -42,11 +42,11 @@ End Class
                 Sub(runtime)
 
                     Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-                    Dim moduleVersionId As Guid = Nothing
+                    Dim moduleId As ModuleId = Nothing
                     Dim symReader As ISymUnmanagedReader = Nothing
                     Dim methodToken = 0
                     Dim localSignatureToken = 0
-                    GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                    GetContextState(runtime, "C.M", blocks, moduleId, symReader, methodToken, localSignatureToken)
                     Const methodVersion = 1
 
                     Dim appDomain = New AppDomain()
@@ -56,7 +56,7 @@ End Class
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
-                        moduleVersionId,
+                        moduleId,
                         methodToken,
                         methodVersion,
                         ilOffset,
@@ -74,7 +74,7 @@ End Class
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
-                        moduleVersionId,
+                        moduleId,
                         methodToken,
                         methodVersion,
                         ilOffset,
@@ -317,13 +317,13 @@ End Class"
 
             Dim typeBlocks As ImmutableArray(Of MetadataBlock) = Nothing
             Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim moduleVersionId As Guid = Nothing
+            Dim moduleId As ModuleId = Nothing
             Dim symReader As ISymUnmanagedReader = Nothing
             Dim typeToken = 0
             Dim methodToken = 0
             Dim localSignatureToken = 0
-            GetContextState(runtime, "C", typeBlocks, moduleVersionId, symReader, typeToken, localSignatureToken)
-            GetContextState(runtime, "C.F", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            GetContextState(runtime, "C", typeBlocks, moduleId, symReader, typeToken, localSignatureToken)
+            GetContextState(runtime, "C.F", methodBlocks, moduleId, symReader, methodToken, localSignatureToken)
 
             ' Get non-empty scopes.
             Dim scopes = symReader.GetScopes(methodToken, methodVersion, isEndInclusive:=True).WhereAsArray(Function(s) s.Locals.Length > 0)
@@ -334,15 +334,15 @@ End Class"
             endOffset = outerScope.EndOffset
 
             ' At start of outer scope.
-            Dim context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(startOffset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
+            Dim context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleId, methodToken, methodVersion, CType(startOffset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
 
             ' At end of outer scope - not reused because of the nested scope.
             Dim previous = appDomain.GetMetadataContext()
-            context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
+            context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleId, methodToken, methodVersion, CType(endOffset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
             Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext) ' Not required, just documentary.
 
             ' At type context.
-            context = CreateTypeContext(appDomain, typeBlocks, moduleVersionId, typeToken, MakeAssemblyReferencesKind.AllAssemblies)
+            context = CreateTypeContext(appDomain, typeBlocks, moduleId, typeToken, MakeAssemblyReferencesKind.AllAssemblies)
             Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext)
             Assert.Null(context.MethodContextReuseConstraints)
             Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation)
@@ -354,10 +354,10 @@ End Class"
                 Dim scope = scopes.GetInnermostScope(offset)
                 Dim constraints = GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints
                 If constraints.HasValue Then
-                    Assert.Equal(scope Is previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset))
+                    Assert.Equal(scope Is previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleId, methodToken, methodVersion, offset))
                 End If
 
-                context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(offset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
+                context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleId, methodToken, methodVersion, CType(offset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
                 If scope Is previousScope Then
                     Assert.Equal(context, GetMetadataContext(previous).EvaluationContext)
                 Else
@@ -376,24 +376,24 @@ End Class"
             Dim fewerReferences = {MscorlibRef}
             runtime = CreateRuntimeInstance(moduleB, fewerReferences)
             methodBlocks = Nothing
-            moduleVersionId = Nothing
+            moduleId = Nothing
             symReader = Nothing
             methodToken = 0
             localSignatureToken = 0
-            GetContextState(runtime, "C.F", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            GetContextState(runtime, "C.F", methodBlocks, moduleId, symReader, methodToken, localSignatureToken)
 
             ' Different references. No reuse.
-            context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset - 1, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
+            context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleId, methodToken, methodVersion, CType(endOffset - 1, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
             Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext)
-            Assert.True(GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
+            Assert.True(GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleId, methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, GetMetadataContext(previous).Compilation)
             previous = appDomain.GetMetadataContext()
 
             ' Different method. Should reuse Compilation.
-            GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-            context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
+            GetContextState(runtime, "C.G", methodBlocks, moduleId, symReader, methodToken, localSignatureToken)
+            context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
             Assert.NotEqual(context, GetMetadataContext(previous).EvaluationContext)
-            Assert.False(GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, 0))
+            Assert.False(GetMetadataContext(previous).EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleId, methodToken, methodVersion, 0))
             Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation)
 
             ' No EvaluationContext. Should reuse Compilation
@@ -401,7 +401,7 @@ End Class"
             previous = appDomain.GetMetadataContext()
             Assert.Null(GetMetadataContext(previous).EvaluationContext)
             Assert.NotNull(GetMetadataContext(previous).Compilation)
-            context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
+            context = CreateMethodContext(appDomain, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
             Assert.Null(GetMetadataContext(previous).EvaluationContext)
             Assert.NotNull(context)
             Assert.Equal(context.Compilation, GetMetadataContext(previous).Compilation)
@@ -3690,7 +3690,7 @@ End Class"
             Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
 
             Using pinnedMetadata = New PinnedBlob(TestResources.ExpressionCompiler.NoValidTables)
-                Dim corruptMetadata = ModuleInstance.Create(pinnedMetadata.Pointer, pinnedMetadata.Size, moduleVersionId:=Nothing)
+                Dim corruptMetadata = ModuleInstance.Create(pinnedMetadata.Pointer, pinnedMetadata.Size, id:=Nothing)
                 Dim runtime = CreateRuntimeInstance({corruptMetadata, comp.ToModuleInstance(), MscorlibRef.ToModuleInstance()})
 
                 Dim context = CreateMethodContext(runtime, "C.M")
@@ -4126,11 +4126,11 @@ End Class
                 Dim runtime = CreateRuntimeInstance(module2, {MscorlibRef, ExpressionCompilerTestHelpers.IntrinsicAssemblyReference})
 
                 Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-                Dim moduleVersionId As Guid = Nothing
+                Dim moduleId As ModuleId = Nothing
                 Dim symReader2 As ISymUnmanagedReader = Nothing
                 Dim methodToken As Integer = Nothing
                 Dim localSignatureToken As Integer = Nothing
-                GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader2, methodToken, localSignatureToken)
+                GetContextState(runtime, "C.M", blocks, moduleId, symReader2, methodToken, localSignatureToken)
 
                 Assert.Same(symReader, symReader2)
 
@@ -4142,7 +4142,7 @@ End Class
                     blocks,
                     MakeDummyLazyAssemblyReaders(),
                     symReader,
-                    moduleVersionId,
+                    moduleId,
                     methodToken:=methodToken,
                     methodVersion:=1,
                     ilOffset:=0,
@@ -4163,7 +4163,7 @@ End Class
                     blocks,
                     MakeDummyLazyAssemblyReaders(),
                     symReader,
-                    moduleVersionId,
+                    moduleId,
                     methodToken:=methodToken,
                     methodVersion:=2,
                     ilOffset:=0,
@@ -4538,11 +4538,11 @@ End Class"
                 Sub(runtime)
 
                     Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-                    Dim moduleVersionId As Guid = Nothing
+                    Dim moduleId As ModuleId = Nothing
                     Dim symReader As ISymUnmanagedReader = Nothing
                     Dim methodToken = 0
                     Dim localSignatureToken = 0
-                    GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+                    GetContextState(runtime, "C.M", blocks, moduleId, symReader, methodToken, localSignatureToken)
 
                     Dim appDomain = New AppDomain()
                     Dim context = CreateMethodContext(
@@ -4550,7 +4550,7 @@ End Class"
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
-                        moduleVersionId,
+                        moduleId,
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=ExpressionCompilerTestHelpers.NoILOffset,
@@ -4578,7 +4578,7 @@ End Class"
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
-                        moduleVersionId,
+                        moduleId,
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
@@ -4593,7 +4593,7 @@ End Class"
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
-                        moduleVersionId,
+                        moduleId,
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=ExpressionCompilerTestHelpers.NoILOffset,

@@ -98,7 +98,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             RoslynDebug.AssertNotNull(frame.InstructionAddress);
             var instructionAddress = (DkmClrInstructionAddress)frame.InstructionAddress;
             var compilation = _instructionDecoder.GetCompilation(instructionAddress.ModuleInstance);
-            var method = _instructionDecoder.GetMethod(compilation, instructionAddress);
+
+            TMethodSymbol? method;
+            try
+            {
+                method = _instructionDecoder.GetMethod(compilation, instructionAddress);
+            }
+            catch (BadMetadataModuleException e)
+            {
+                onFailure(e);
+                return;
+            }
+
             var typeParameters = _instructionDecoder.GetAllTypeParameters(method);
             if (!typeParameters.IsEmpty)
             {

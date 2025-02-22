@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return _instructionDecoder.GetName(method, includeParameterTypes, includeParameterNames);
                 }
             }
-            catch (NotImplementedMetadataException)
+            catch (Exception e) when (e is NotImplementedMetadataException or BadMetadataModuleException)
             {
                 return languageInstructionAddress.GetMethodName(argumentFlags);
             }
