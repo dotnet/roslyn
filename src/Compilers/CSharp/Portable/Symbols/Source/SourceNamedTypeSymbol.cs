@@ -1222,6 +1222,10 @@ next:;
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasCompilerLoweringPreserveAttribute = true;
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.ExtendedLayoutAttribute))
+            {
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasExtendedLayoutAttribute = true;
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -1511,7 +1515,10 @@ next:;
                     // 
                     // Dev11 compiler sets the value to 1 for structs with no instance fields and no size specified.
                     // It does not change the size value if it was explicitly specified to be 0, nor does it report an error.
-                    return new TypeLayout(LayoutKind.Sequential, this.HasInstanceFields() ? 0 : 1, alignment: 0);
+
+                    bool hasExtendedLayout = data is { HasExtendedLayoutAttribute: true };
+
+                    return new TypeLayout(hasExtendedLayout ? MetadataHelpers.LayoutKindExtended : LayoutKind.Sequential, this.HasInstanceFields() ? 0 : 1, alignment: 0);
                 }
 
                 return default(TypeLayout);
@@ -1533,6 +1540,15 @@ next:;
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return (data != null && data.HasStructLayoutAttribute) ? data.MarshallingCharSet : DefaultMarshallingCharSet;
+            }
+        }
+
+        internal bool HasExtendedLayoutAttribute
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data is { HasExtendedLayoutAttribute: true };
             }
         }
 

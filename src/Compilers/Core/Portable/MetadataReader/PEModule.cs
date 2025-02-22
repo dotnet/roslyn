@@ -944,6 +944,9 @@ namespace Microsoft.CodeAnalysis
                         kind = LayoutKind.Explicit;
                         break;
 
+                    case MetadataHelpers.TypeAttributesExtendedLayout:
+                        return new TypeLayout(MetadataHelpers.LayoutKindExtended, 0, 0);
+
                     case TypeAttributes.AutoLayout:
                         return default(TypeLayout);
 

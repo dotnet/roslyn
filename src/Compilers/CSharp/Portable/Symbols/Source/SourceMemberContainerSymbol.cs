@@ -551,6 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case CompletionPart.Attributes:
                         GetAttributes();
+                        // TODO-ExtendedLayout: Check for a StructLayoutAttribute and ExtendedLayoutAttribute and error if both are present.
                         break;
 
                     case CompletionPart.StartBaseType:
@@ -2765,7 +2766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckSequentialOnPartialType(BindingDiagnosticBag diagnostics)
         {
-            if (!IsPartial || this.Layout.Kind != LayoutKind.Sequential)
+            if (!IsPartial || this.Layout.Kind is not (LayoutKind.Sequential or MetadataHelpers.LayoutKindExtended))
             {
                 return;
             }

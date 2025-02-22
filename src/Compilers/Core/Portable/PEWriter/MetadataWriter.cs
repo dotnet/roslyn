@@ -1475,6 +1475,10 @@ namespace Microsoft.Cci
                 case LayoutKind.Explicit:
                     result |= TypeAttributes.ExplicitLayout;
                     break;
+
+                case MetadataHelpers.LayoutKindExtended:
+                    result |= MetadataHelpers.TypeAttributesExtendedLayout;
+                    break;
             }
 
             if (typeDef.IsInterface)
