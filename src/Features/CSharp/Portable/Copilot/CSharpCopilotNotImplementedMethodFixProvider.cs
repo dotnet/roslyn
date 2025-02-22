@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -67,25 +68,23 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         // I use it to replace the throw statement
 
         // I don't need SyntaxEditorBasedCodeFixProvider - ok for now
-        var flowControl = await CleanupLaterAsync(editor, document, diagnostic, cancellationToken).ConfigureAwait(false);
-        if (!flowControl)
-            return;
+        await CleanupLaterAsync(editor, document, diagnostic, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<bool> CleanupLaterAsync(SyntaxEditor editor, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+    private static async Task CleanupLaterAsync(SyntaxEditor editor, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
         // Find the throw statement node
         var throwStatement = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken).AncestorsAndSelf().OfType<StatementSyntax>().FirstOrDefault();
         if (throwStatement == null)
         {
-            return false;
+            return;
         }
 
         // Find the containing method
         var containingMethod = throwStatement.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault();
         if (containingMethod == null)
         {
-            return false;
+            return;
         }
 
         var containingClass = containingMethod.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().FirstOrDefault();
@@ -93,7 +92,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
 
         if (containingClass == null)
         {
-            return false;
+            return;
         }
 
         var containingMethodName = containingMethod.Identifier.Text;
@@ -132,7 +131,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         if (semanticModel == null)
         {
-            return false;
+            return;
         }
 
         // Determine the logging mechanism
@@ -314,16 +313,8 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
         if (copilotService is null)
         {
-            // Replace the throw statement with the new leading trivia
-            editor.ReplaceNode(throwStatement, (currentNode, generator) =>
-            {
-                return currentNode.WithLeadingTrivia(newLeadingTrivia);
-            });
-
-            // Remove the throw statement but keep its leading trivia
-            editor.RemoveNode(throwStatement, SyntaxRemoveOptions.KeepLeadingTrivia);
-
-            return false;
+            //ReplaceThrowStatement(editor, throwStatement, newLeadingTrivia);
+            return;
         }
 
         var proposedEdits = new List<MethodImplementationProposedEdit>();
@@ -342,28 +333,21 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
             MethodImplementationTagType.BusinessLogic
             ));
 
+        var methodBodyPlaceholder = BuildTempTextWithComments(containingMethod.ToFullString(), newLeadingTrivia);
+
         var proposal = new MethodImplementationProposal(
             string.Empty,
-            newLeadingTrivia.ToFullString(),
-            containingMethodName,
+            methodBodyPlaceholder,
+            string.Empty,
             proposedEdits.ToImmutableArray());
 
         var (dictionary, isQuotaExceeded) = await copilotService.GetMethodImplementationAsync(proposal, cancellationToken).ConfigureAwait(false);
 
         // Quietly fail if the quota has been exceeded.
         if (isQuotaExceeded || dictionary is null || dictionary.Count == 0)
-
         {
-            // Replace the throw statement with the new leading trivia
-            editor.ReplaceNode(throwStatement, (currentNode, generator) =>
-            {
-                return currentNode.WithLeadingTrivia(newLeadingTrivia);
-            });
-
-            // Remove the throw statement but keep its leading trivia
-            editor.RemoveNode(throwStatement, SyntaxRemoveOptions.KeepLeadingTrivia);
-
-            return false;
+            //ReplaceThrowStatement(editor, throwStatement, newLeadingTrivia);
+            return;
         }
 
         // Replace the throw statement with the implementation rather than the comment
@@ -371,13 +355,6 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         {
             string? copilotStatement = null;
             var textSpan = edit.SpanToReplace;
-
-            //string? symbolKey = null;
-
-            if (edit.SymbolName is not null)
-            {
-                //symbolKey = edit.TagType.ToString() + "- " + edit.SymbolName;
-            }
 
             if (edit.TagType == MethodImplementationTagType.InputValidation && dictionary.TryGetValue(MethodImplementationTagType.InputValidation.ToString(), out var inputValidation) && !string.IsNullOrEmpty(inputValidation))
             {
@@ -387,6 +364,11 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
             {
                 copilotStatement = businessLogic;
             }
+            else if (edit.TagType == MethodImplementationTagType.BusinessLogic && copilotStatement is null)
+            {
+                // probably copilot sent back an arbitrary tag name I will deal with later
+                copilotStatement = dictionary.First().Value; // because I know it has at least one item
+            }
 
             if (copilotStatement != null)
             {
@@ -395,38 +377,32 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
             }
         }
 
+        ReplaceThrowStatement(editor, throwStatement, newLeadingTrivia);
+        return;
+    }
 
-        /*
-         
-         
-        public static void SayHello()
+    private static string BuildTempTextWithComments(string methodSignature, SyntaxTriviaList newLeadingTrivia)
+    {
+        var commentLines = newLeadingTrivia
+            .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+            .Select(trivia => trivia.ToFullString().Trim());
+
+        var tempText = new StringBuilder();
+        tempText.AppendLine(methodSignature);
+        tempText.AppendLine("{");
+
+        foreach (var line in commentLines)
         {
-            blob of text
+            tempText.AppendLine($"    {line}");
         }
 
-        // case 1: I get "Console.WriteLine("Hello");"
+        tempText.AppendLine("}");
 
-        public static void SayHello()
-        {
-            Console.WriteLine("Hello");
-        }
+        return tempText.ToString();
+    }
 
-        for whatever text copilot gives me call it copilotStatement
-                I replace text with text
-                    // throw new NotImplementedException();
-         
-         instead of 
-                var newTrivia = SyntaxFactory.ParseLeadingTrivia(copilotStatement);
-
-        what I do
-                I would get document instead 
-                    and say replace text with text
-
-                replace the 
-         
-         */
-
-
+    private static bool ReplaceThrowStatement(SyntaxEditor editor, StatementSyntax throwStatement, SyntaxTriviaList newLeadingTrivia)
+    {
 
         // Replace the throw statement with the new leading trivia
         editor.ReplaceNode(throwStatement, (currentNode, generator) =>
@@ -436,17 +412,8 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
 
         // Remove the throw statement but keep its leading trivia
         editor.RemoveNode(throwStatement, SyntaxRemoveOptions.KeepLeadingTrivia);
-        return true;
-    }
 
-    private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken token)
-    {
-        var newLine = document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
-
-        var sourceText = await document.GetTextAsync(token).ConfigureAwait(false);
-        var textChange = new TextChange(diagnostic.Location.SourceSpan, newLine);
-
-        return document.WithText(sourceText.WithChanges(textChange));
+        return false;
     }
 
     private static bool IsLoggerType(TypeSyntax typeSyntax, SemanticModel semanticModel, CancellationToken cancellationToken, out string fullyQualifiedName)
@@ -720,5 +687,45 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         var usingDirectives = root.DescendantNodes().OfType<UsingDirectiveSyntax>()
             .Select(usingDirective => usingDirective.Name?.ToString() ?? string.Empty);
         return usingDirectives;
+    }
+
+    /*
+
+
+    public static void SayHello()
+    {
+        blob of text
+    }
+
+    // case 1: I get "Console.WriteLine("Hello");"
+
+    public static void SayHello()
+    {
+        Console.WriteLine("Hello");
+    }
+
+    for whatever text copilot gives me call it copilotStatement
+            I replace text with text
+                // throw new NotImplementedException();
+
+     instead of 
+            var newTrivia = SyntaxFactory.ParseLeadingTrivia(copilotStatement);
+
+    what I do
+            I would get document instead 
+                and say replace text with text
+
+            replace the 
+
+     */
+
+    private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken token)
+    {
+        var newLine = document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
+
+        var sourceText = await document.GetTextAsync(token).ConfigureAwait(false);
+        var textChange = new TextChange(diagnostic.Location.SourceSpan, newLine);
+
+        return document.WithText(sourceText.WithChanges(textChange));
     }
 }
