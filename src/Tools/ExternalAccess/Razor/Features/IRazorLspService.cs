@@ -6,6 +6,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 
-internal interface IRazorLspService : ILspService
+internal abstract class AbstractRazorLspService : ILspService
 {
 }
