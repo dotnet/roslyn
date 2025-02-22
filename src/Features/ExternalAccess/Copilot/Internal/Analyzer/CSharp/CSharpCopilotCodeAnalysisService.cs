@@ -11,26 +11,23 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.MethodImplementation;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp;
 
 [ExportLanguageService(typeof(ICopilotCodeAnalysisService), LanguageNames.CSharp), Shared]
 internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnalysisService
 {
-    private IExternalCSharpCopilotCodeAnalysisService AnalysisService { get; }
-    private IExternalCSharpCopilotGenerateDocumentationService GenerateDocumentationService { get; }
-    private IExternalCSharpCopilotGenerateImplementationService GenerateImplementationService { get; }
+    private IExternalCSharpCopilotCodeAnalysisService? AnalysisService { get; }
+    private IExternalCSharpCopilotGenerateDocumentationService? GenerateDocumentationService { get; }
+    private IExternalCSharpCopilotGenerateImplementationService? GenerateImplementationService { get; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
