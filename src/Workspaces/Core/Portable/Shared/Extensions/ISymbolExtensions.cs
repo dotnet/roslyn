@@ -645,7 +645,7 @@ internal static partial class ISymbolExtensions
     public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(
         this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
     {
-        var overriddenSymbols = MetadataUnifyingSymbolHashSet.AllocateFromPool();
+        using var _ = MetadataUnifyingSymbolHashSet.GetInstance(out var overriddenSymbols);
 
         foreach (var symbol in symbols)
         {
@@ -671,8 +671,6 @@ internal static partial class ISymbolExtensions
                 arg.editorBrowsableInfo.Compilation,
                 arg.editorBrowsableInfo),
             arg: (hideAdvancedMembers, editorBrowsableInfo, overriddenSymbols));
-
-        MetadataUnifyingSymbolHashSet.ClearAndFree(overriddenSymbols);
 
         return filteredSymbols;
     }
