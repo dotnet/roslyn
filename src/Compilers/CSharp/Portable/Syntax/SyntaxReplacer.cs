@@ -6,7 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Syntax;
+using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -192,6 +195,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     {
                         rewritten = _computeReplacementNode((TNode)node, (TNode)rewritten!);
                     }
+                }
+
+                return rewritten;
+            }
+
+            public override SyntaxList<TSyntaxNode> VisitList<TSyntaxNode>(SyntaxList<TSyntaxNode> list)
+            {
+                SyntaxList<TSyntaxNode> rewritten = list;
+
+                if (this.ShouldVisit(list.FullSpan))
+                {
+                    rewritten = base.VisitList(list);
                 }
 
                 return rewritten;
