@@ -6,24 +6,38 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.MethodImplementation;
 
-/// <summary>
-/// Represents the set of all edits that will be needed to fill in the method implementation for a symbol.
-/// </summary>
 internal sealed record MethodImplementationProposal
 {
-    public string SymbolToAnalyze { get; }
-
-    public string LeadingTrivia { get; }
-
     public string MethodName { get; }
-
+    public string ReturnType { get; }
+    public string ContainingType { get; }
+    public string Accessibility { get; }
+    public ImmutableArray<string> Modifiers { get; }
+    public ImmutableArray<MethodImplementationParameterInfo> Parameters { get; }
+    public string PreviousTokenText { get; }
+    public string NextTokenText { get; }
     public ImmutableArray<MethodImplementationProposedEdit> ProposedEdits { get; }
 
-    public MethodImplementationProposal(string symbolToAnalyze, string leadingTrivia, string methodName, ImmutableArray<MethodImplementationProposedEdit> proposedEdits)
+    public MethodImplementationProposal(
+        string methodName,
+        string returnType,
+        string containingType,
+        string accessibility,
+        ImmutableArray<string> modifiers,
+        ImmutableArray<MethodImplementationParameterInfo> parameters,
+        string previousTokenText,
+        string nextTokenText,
+        ImmutableArray<MethodImplementationProposedEdit> proposedEdits
+        )
     {
-        SymbolToAnalyze = symbolToAnalyze;
-        LeadingTrivia = leadingTrivia;
         MethodName = methodName;
+        ReturnType = returnType;
+        ContainingType = containingType;
+        Accessibility = accessibility;
+        Modifiers = modifiers;
+        Parameters = parameters;
+        PreviousTokenText = previousTokenText;
+        NextTokenText = nextTokenText;
         ProposedEdits = proposedEdits;
     }
 }

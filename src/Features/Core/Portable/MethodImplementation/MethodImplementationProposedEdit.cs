@@ -15,8 +15,6 @@ internal sealed record MethodImplementationProposedEdit
 {
     public TextSpan SpanToReplace { get; }
 
-    // May be null if the piece of the comment to document does not have an
-    // associated name.
     public string? SymbolName { get; }
 
     public MethodImplementationTagType TagType { get; }

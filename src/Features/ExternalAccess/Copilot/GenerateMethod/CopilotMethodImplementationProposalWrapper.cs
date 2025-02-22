@@ -18,9 +18,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
             _wrappedProposedEdits = _methodImplementationProposal.ProposedEdits.SelectAsArray(e => new CopilotMethodImplementationProposedEditWrapper(e));
         }
 
-        public string SymbolToAnalyze => _methodImplementationProposal.SymbolToAnalyze;
         public string MethodName => _methodImplementationProposal.MethodName;
+        public string ReturnType => _methodImplementationProposal.ReturnType;
+        public string ContainingType => _methodImplementationProposal.ContainingType;
+        public string Accessibility => _methodImplementationProposal.Accessibility;
+        public ImmutableArray<string> Modifiers => _methodImplementationProposal.Modifiers;
+        public ImmutableArray<MethodImplementationParameterInfo> Parameters => _methodImplementationProposal.Parameters;
+        public string PreviousTokenText => _methodImplementationProposal.PreviousTokenText;
+        public string NextTokenText => _methodImplementationProposal.NextTokenText;
         public ImmutableArray<CopilotMethodImplementationProposedEditWrapper> ProposedEdits => _wrappedProposedEdits;
-        public string LeadingTrivia => _methodImplementationProposal.LeadingTrivia;
     }
 }
