@@ -7,16 +7,22 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MethodImplementation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 
@@ -30,7 +36,14 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, CSharpAnalyzersResources.Implement_with_Copilot, nameof(CSharpAnalyzersResources.Implement_with_Copilot));
+        var x = DualChangeAction.New(CSharpAnalyzersResources.Implement_with_Copilot,
+            // for the non preview
+            (_, c) => GetDocumentUpdater(context, null)(c),
+            // no-op for the preview
+            (_, _) => Task.FromResult(context.Document),
+            nameof(CSharpAnalyzersResources.Implement_with_Copilot));
+
+        context.RegisterCodeFix(x, context.Diagnostics);
         return Task.CompletedTask;
     }
 
@@ -42,21 +55,37 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
             await FixOneAsync(editor, document, diagnostic, cancellationToken).ConfigureAwait(false);
     }
 
+
+
     private static async Task FixOneAsync(
     SyntaxEditor editor, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+    {
+        // I take document
+        // I analyze it
+        // I give the analysis as text to copilot
+        // I receive some answer
+        // I use it to replace the throw statement
+
+        // I don't need SyntaxEditorBasedCodeFixProvider - ok for now
+        var flowControl = await CleanupLaterAsync(editor, document, diagnostic, cancellationToken).ConfigureAwait(false);
+        if (!flowControl)
+            return;
+    }
+
+    private static async Task<bool> CleanupLaterAsync(SyntaxEditor editor, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
         // Find the throw statement node
         var throwStatement = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken).AncestorsAndSelf().OfType<StatementSyntax>().FirstOrDefault();
         if (throwStatement == null)
         {
-            return;
+            return false;
         }
 
         // Find the containing method
         var containingMethod = throwStatement.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault();
         if (containingMethod == null)
         {
-            return;
+            return false;
         }
 
         var containingClass = containingMethod.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().FirstOrDefault();
@@ -64,7 +93,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
 
         if (containingClass == null)
         {
-            return;
+            return false;
         }
 
         var containingMethodName = containingMethod.Identifier.Text;
@@ -103,7 +132,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         if (semanticModel == null)
         {
-            return;
+            return false;
         }
 
         // Determine the logging mechanism
@@ -294,7 +323,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
             // Remove the throw statement but keep its leading trivia
             editor.RemoveNode(throwStatement, SyntaxRemoveOptions.KeepLeadingTrivia);
 
-            return;
+            return false;
         }
 
         var proposedEdits = new List<MethodImplementationProposedEdit>();
@@ -334,7 +363,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
             // Remove the throw statement but keep its leading trivia
             editor.RemoveNode(throwStatement, SyntaxRemoveOptions.KeepLeadingTrivia);
 
-            return;
+            return false;
         }
 
         // Replace the throw statement with the implementation rather than the comment
@@ -366,6 +395,39 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
             }
         }
 
+
+        /*
+         
+         
+        public static void SayHello()
+        {
+            blob of text
+        }
+
+        // case 1: I get "Console.WriteLine("Hello");"
+
+        public static void SayHello()
+        {
+            Console.WriteLine("Hello");
+        }
+
+        for whatever text copilot gives me call it copilotStatement
+                I replace text with text
+                    // throw new NotImplementedException();
+         
+         instead of 
+                var newTrivia = SyntaxFactory.ParseLeadingTrivia(copilotStatement);
+
+        what I do
+                I would get document instead 
+                    and say replace text with text
+
+                replace the 
+         
+         */
+
+
+
         // Replace the throw statement with the new leading trivia
         editor.ReplaceNode(throwStatement, (currentNode, generator) =>
         {
@@ -374,6 +436,17 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
 
         // Remove the throw statement but keep its leading trivia
         editor.RemoveNode(throwStatement, SyntaxRemoveOptions.KeepLeadingTrivia);
+        return true;
+    }
+
+    private static async Task<Document> GetTransformedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken token)
+    {
+        var newLine = document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
+
+        var sourceText = await document.GetTextAsync(token).ConfigureAwait(false);
+        var textChange = new TextChange(diagnostic.Location.SourceSpan, newLine);
+
+        return document.WithText(sourceText.WithChanges(textChange));
     }
 
     private static bool IsLoggerType(TypeSyntax typeSyntax, SemanticModel semanticModel, CancellationToken cancellationToken, out string fullyQualifiedName)
