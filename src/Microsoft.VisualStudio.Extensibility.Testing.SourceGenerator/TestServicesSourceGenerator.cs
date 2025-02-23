@@ -1414,7 +1414,7 @@ namespace Microsoft.VisualStudio
                     if (hasEditorConstants)
                     {
                         if (compilation.GetTypeByMetadataName("Microsoft.VisualStudio.Editor.EditorConstants+EditorCommandID") is { } editorConstantsEditorCommandID
-                            && editorConstantsEditorCommandID.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(GuidAttribute)))
+                            && editorConstantsEditorCommandID.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(GuidAttribute)))
                         {
                             editorConstantsCommandIDMissingGuid = false;
                         }
