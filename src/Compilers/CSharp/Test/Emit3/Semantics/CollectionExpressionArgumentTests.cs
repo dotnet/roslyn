@@ -1431,8 +1431,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
-            // PROTOTYPE: Update the params-collection spec so it's clear that we require "... a factory method callable with no additional
-            // arguments, and with the type arguments from the params parameter declaration", and provide an example such as this case.
             comp.VerifyEmitDiagnostics(
                 // (3,58): error CS0452: The type 'T' must be a reference type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>)'
                 //     static MyCollection<T> NoConstraints<T>(T x, T y) => NoConstraintsParams(x, y);
@@ -3695,7 +3693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void EvaluationOrder_CollectionBuilder()
+        public void EvaluationOrder_CollectionBuilder_NamedArguments()
         {
             string sourceA = """
                 using System;
@@ -3725,7 +3723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 class MyBuilder
                 {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, A x = null, A y = null) => new(items, x, y);
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, A x, A y) => new(items, x, y);
                 }
                 """;
             string sourceC = """
@@ -3799,6 +3797,365 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0056:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void EvaluationOrder_CollectionBuilder_Params()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                using System.Text;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public MyCollection(ReadOnlySpan<T> items, object[] args)
+                    {
+                        var builder = new StringBuilder("MyCollection(");
+                        for (int i = 0; i < args.Length; i++)
+                        {
+                            if (i > 0) builder.Append(", ");
+                            builder.Append(args[i].ToString());
+                        }
+                        builder.Append(")");
+                        Console.WriteLine(builder.ToString());
+                    }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, params object[] args) => new(items, args);
+                }
+                """;
+            string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = [with(Identity(1), Identity(2)), Identity(3)];
+                    }
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                // PROTOTYPE: 1, 2 should be evaluated before 3.
+                expectedOutput: IncludeExpectedOutput("""
+                    3
+                    1
+                    2
+                    MyCollection(1, 2)
+                    """));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  5
+                  .locals init (int V_0)
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  call       "int Program.Identity<int>(int)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloca.s   V_0
+                  IL_0009:  newobj     "System.ReadOnlySpan<int>..ctor(ref readonly int)"
+                  IL_000e:  ldc.i4.2
+                  IL_000f:  newarr     "object"
+                  IL_0014:  dup
+                  IL_0015:  ldc.i4.0
+                  IL_0016:  ldc.i4.1
+                  IL_0017:  call       "int Program.Identity<int>(int)"
+                  IL_001c:  box        "int"
+                  IL_0021:  stelem.ref
+                  IL_0022:  dup
+                  IL_0023:  ldc.i4.1
+                  IL_0024:  ldc.i4.2
+                  IL_0025:  call       "int Program.Identity<int>(int)"
+                  IL_002a:  box        "int"
+                  IL_002f:  stelem.ref
+                  IL_0030:  call       "MyCollection<int> MyBuilder.Create<int>(System.ReadOnlySpan<int>, params object[])"
+                  IL_0035:  pop
+                  IL_0036:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void EvaluationOrder_CollectionBuilder_OverloadResolution_DifferentParameterNames()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public MyCollection(ReadOnlySpan<T> items, int index, object arg) { Console.WriteLine("MyCollection({0}, {1})", index, arg); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> a, T b) => new(a, 1, b);
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> x, int y) => new(x, 2, y);
+                }
+                """;
+
+            string sourceB1 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        ToCollection1(-1, 1);
+                        ToCollection2(-2, 2);
+                        ToCollection3(-3, 3);
+                        ToCollection4(-4, 4);
+                    }
+                    static MyCollection<T> ToCollection1<T>(T arg, T item) => [with(Identity(arg)), Identity(item)];
+                    static MyCollection<T> ToCollection2<T>(T arg, T item) => [with(b: Identity(arg)), Identity(item)];
+                    static MyCollection<T> ToCollection3<T>(int arg, T item) => [with(Identity(arg)), Identity(item)];
+                    static MyCollection<T> ToCollection4<T>(int arg, T item) => [with(y: Identity(arg)), Identity(item)];
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+            // PROTOTYPE: Arg should be evaluated before item in each case.
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB1],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("""
+                    1
+                    -1
+                    MyCollection(1, -1)
+                    2
+                    -2
+                    MyCollection(1, -2)
+                    3
+                    -3
+                    MyCollection(2, -3)
+                    4
+                    -4
+                    MyCollection(2, -4)
+                    """));
+            verifier.VerifyDiagnostics();
+            string expectedIL = """
+                {
+                  // Code size       26 (0x1a)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  ldarg.1
+                  IL_0001:  call       "T Program.Identity<T>(T)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloca.s   V_0
+                  IL_0009:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "T Program.Identity<T>(T)"
+                  IL_0014:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)"
+                  IL_0019:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.ToCollection1<T>", expectedIL);
+            verifier.VerifyIL("Program.ToCollection2<T>", expectedIL);
+            expectedIL = """
+                {
+                  // Code size       26 (0x1a)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  ldarg.1
+                  IL_0001:  call       "T Program.Identity<T>(T)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloca.s   V_0
+                  IL_0009:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "int Program.Identity<int>(int)"
+                  IL_0014:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, int)"
+                  IL_0019:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.ToCollection3<T>", expectedIL);
+            verifier.VerifyIL("Program.ToCollection4<T>", expectedIL);
+
+            string sourceB2 = """
+                class Program
+                {
+                    static MyCollection<T> ToCollection5<T>(T arg, T item) => [with(y: arg), item];
+                    static MyCollection<T> ToCollection6<T>(int arg, T item) => [with(b: arg), item];
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, sourceB2],
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,72): error CS1503: Argument 2: cannot convert from 'T' to 'int'
+                //     static MyCollection<T> ToCollection5<T>(T arg, T item) => [with(y: arg), item];
+                Diagnostic(ErrorCode.ERR_BadArgType, "arg").WithArguments("2", "T", "int").WithLocation(3, 72),
+                // (4,74): error CS1503: Argument 2: cannot convert from 'int' to 'T'
+                //     static MyCollection<T> ToCollection6<T>(int arg, T item) => [with(b: arg), item];
+                Diagnostic(ErrorCode.ERR_BadArgType, "arg").WithArguments("2", "int", "T").WithLocation(4, 74));
+        }
+
+        [Fact]
+        public void EvaluationOrder_CollectionBuilder_OverloadResolution_SwappedParameterNames()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public MyCollection(ReadOnlySpan<T> items, int index) { Console.WriteLine("MyCollection({0})", index); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> a, ReadOnlySpan<T> b) => new(a, 1);
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> b, ReadOnlySpan<object> a) => new(b, 2);
+                }
+                """;
+            string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        ToCollection1(-1, 1);
+                        ToCollection2(-2, 2);
+                        ToCollection3(-3, 3);
+                        ToCollection4(-4, 4);
+                        ToCollection5(-5, 5);
+                    }
+                    static MyCollection<T> ToCollection1<T>(T arg, T item) => [with([Identity(arg)]), Identity(item)];
+                    static MyCollection<T> ToCollection2<T>(T arg, T item) => [with(b: [Identity(arg)]), Identity(item)];
+                    static MyCollection<T> ToCollection3<T>(object arg, T item) => [with([Identity(arg)]), Identity(item)];
+                    static MyCollection<T> ToCollection4<T>(object arg, T item) => [with(a: [Identity(arg)]), Identity(item)];
+                    static MyCollection<T> ToCollection5<T>(T arg, T item) => [with(a: [Identity(arg)]), Identity(item)];
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+            // PROTOTYPE: Arg should be evaluated before item in each case.
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("""
+                    1
+                    -1
+                    MyCollection(1)
+                    2
+                    -2
+                    MyCollection(1)
+                    3
+                    -3
+                    MyCollection(2)
+                    4
+                    -4
+                    MyCollection(2)
+                    5
+                    -5
+                    MyCollection(2)
+                    """));
+            verifier.VerifyDiagnostics();
+            string expectedIL = """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  2
+                  .locals init (T V_0,
+                                T V_1)
+                  IL_0000:  ldarg.1
+                  IL_0001:  call       "T Program.Identity<T>(T)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloca.s   V_0
+                  IL_0009:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "T Program.Identity<T>(T)"
+                  IL_0014:  stloc.1
+                  IL_0015:  ldloca.s   V_1
+                  IL_0017:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
+                  IL_001c:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, System.ReadOnlySpan<T>)"
+                  IL_0021:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.ToCollection1<T>", expectedIL);
+            verifier.VerifyIL("Program.ToCollection2<T>", expectedIL);
+            expectedIL = """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  2
+                  .locals init (T V_0,
+                                object V_1)
+                  IL_0000:  ldarg.1
+                  IL_0001:  call       "T Program.Identity<T>(T)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloca.s   V_0
+                  IL_0009:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "object Program.Identity<object>(object)"
+                  IL_0014:  stloc.1
+                  IL_0015:  ldloca.s   V_1
+                  IL_0017:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
+                  IL_001c:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, System.ReadOnlySpan<object>)"
+                  IL_0021:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.ToCollection3<T>", expectedIL);
+            verifier.VerifyIL("Program.ToCollection4<T>", expectedIL);
+            verifier.VerifyIL("Program.ToCollection5<T>", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  2
+                  .locals init (T V_0,
+                                object V_1)
+                  IL_0000:  ldarg.1
+                  IL_0001:  call       "T Program.Identity<T>(T)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloca.s   V_0
+                  IL_0009:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "T Program.Identity<T>(T)"
+                  IL_0014:  box        "T"
+                  IL_0019:  stloc.1
+                  IL_001a:  ldloca.s   V_1
+                  IL_001c:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
+                  IL_0021:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, System.ReadOnlySpan<object>)"
+                  IL_0026:  ret
+                }
+                """);
+
+            string sourceB2 = """
+                class Program
+                {
+                    static MyCollection<T> ToCollection6<T>(object arg, T item) => [with(b: [arg]), item];
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, sourceB2],
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,78): error CS0029: Cannot implicitly convert type 'object' to 'T'
+                //     static MyCollection<T> ToCollection6<T>(object arg, T item) => [with(b: [arg]), item];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("object", "T").WithLocation(3, 78));
         }
 
         [Fact]
