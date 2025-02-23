@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -198,14 +199,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             public override SyntaxList<TSyntaxNode> VisitList<TSyntaxNode>(SyntaxList<TSyntaxNode> list)
             {
-                SyntaxList<TSyntaxNode> rewritten = list;
-
-                if (this.ShouldVisit(list.FullSpan))
+                if (!this.ShouldVisit(list.FullSpan) || list.Count == 0)
                 {
-                    rewritten = base.VisitList(list);
+                    return list;
                 }
 
-                return rewritten;
+                if (!list.Node!.IsList)
+                {
+                    var rewritten = this.VisitListElement(list.Node);
+                    return rewritten == list.Node || rewritten == null
+                        ? list
+                        : new SyntaxList<TSyntaxNode>(rewritten);
+                }
+
+                var redListBuilder = new SyntaxListBuilder(list.Count);
+                var greenList = new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<GreenNode>(list.Node.Green);
+                int start = list.FullSpan.Start;
+                var index = 0;
+
+                foreach (var green in greenList)
+                {
+                    var greenSpan = new TextSpan(start, green.FullWidth);
+                    if (!this.ShouldVisit(greenSpan))
+                    {
+                        redListBuilder.AddInternal(green);
+                    }
+                    else
+                    {
+                        var item = list[index];
+                        var rewritten = this.VisitListElement(item);
+                        if (rewritten != null)
+                        {
+                            redListBuilder.Add(rewritten);
+                        }
+                    }
+
+                    start += green.FullWidth;
+                    index++;
+                }
+
+                return (SyntaxList<TSyntaxNode>)redListBuilder.ToList();
             }
 
             public override SyntaxToken VisitToken(SyntaxToken token)
