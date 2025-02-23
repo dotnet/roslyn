@@ -6,7 +6,6 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -372,7 +371,7 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
 
         IOUtilities.PerformIO(() =>
         {
-            using var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding ?? Encoding.UTF8);
+            using var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding);
             // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
             formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
         });
