@@ -27,18 +27,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int Arity => TypeParameters.Length;
 
+        public override bool IsGenericMethod => Arity != 0;
+
         public override string Name
         {
             get
             {
-                return (_originalMethod.IsStatic ? StaticExtensionNamePrefix : InstanceExtensionNamePrefix) + _originalMethod.Name;
+                return GetImplementationName(_originalMethod);
             }
+        }
+
+        public static string GetImplementationName(MethodSymbol originalMethod)
+        {
+            return (originalMethod.IsStatic ? StaticExtensionNamePrefix : InstanceExtensionNamePrefix) + originalMethod.Name;
         }
 
         public override MethodKind MethodKind => MethodKind.Ordinary;
         public override bool IsImplicitlyDeclared => true;
 
-        internal override bool HasSpecialName => true;
+        internal override bool HasSpecialName => true; // PROTOTYPE: reconcile with spec
 
         internal override int ParameterCount
         {

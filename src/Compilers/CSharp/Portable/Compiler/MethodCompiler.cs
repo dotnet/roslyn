@@ -488,6 +488,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (compilationState.Emitting)
                 {
+                    if (containingType is { IsExtension: true, ExtensionParameter: not null })
+                    {
+                        // PROTOTYPE the extension marker should also be added in metadata-only emit scenario (see SynthesizedMetadataCompiler)
+                        CompileSynthesizedExtensionMarker(containingType, compilationState);
+                    }
+
                     CompileSynthesizedExplicitImplementations(sourceTypeSymbol, compilationState);
                 }
             }
@@ -659,6 +665,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             compilationState.Free();
+        }
+
+        private void CompileSynthesizedExtensionMarker(NamedTypeSymbol sourceExtension, TypeCompilationState compilationState)
+        {
+            if (!_globalHasErrors)
+            {
+                var extensionMarker = new SynthesizedExtensionMarker(sourceExtension, _diagnostics);
+
+#if DEBUG
+                var discardedDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+#else
+                var discardedDiagnostics = BindingDiagnosticBag.Discarded;
+#endif
+                extensionMarker.GenerateMethodBody(compilationState, discardedDiagnostics);
+                Debug.Assert(!discardedDiagnostics.HasAnyErrors());
+
+                _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceExtension, extensionMarker.GetCciAdapter());
+            }
         }
 
         internal static MethodSymbol GetMethodToCompile(MethodSymbol method)
@@ -1436,18 +1460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return methodSymbol.PartialDefinitionPart ?? methodSymbol;
         }
 
-        internal static SourceExtensionImplementationMethodSymbol TryGetCorrespondingExtensionImplementationMethod(MethodSymbol methodSymbol)
-        {
-            if (methodSymbol.ContainingType.IsExtension)
-            {
-                return methodSymbol.ContainingType.ContainingType.
-                    GetMembers((methodSymbol.IsStatic ? SourceExtensionImplementationMethodSymbol.StaticExtensionNamePrefix : SourceExtensionImplementationMethodSymbol.InstanceExtensionNamePrefix) + methodSymbol.Name).
-                    OfType<SourceExtensionImplementationMethodSymbol>().Where(m => (object)m.UnderlyingMethod == methodSymbol).SingleOrDefault();
-            }
-
-            return null;
-        }
-
         // internal for testing
         internal static BoundStatement LowerBodyOrInitializer(
             MethodSymbol method,
@@ -1500,6 +1512,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return loweredBody;
                 }
 
+                if (extensionImplementationMethod is not null)
+                {
+                    var extensionRewriter = new ExtensionMethodBodyRewriter(method, extensionImplementationMethod);
+                    loweredBody = (BoundStatement)extensionRewriter.Visit(loweredBody);
+                    method = extensionImplementationMethod;
+                }
+                else
+                {
+                    loweredBody = ExtensionMethodReferenceRewriter.Rewrite(loweredBody);
+                }
+
                 if (sawAwaitInExceptionHandler)
                 {
                     // If we have awaits in handlers, we need to
@@ -1518,13 +1541,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (loweredBody.HasErrors)
                 {
                     return loweredBody;
-                }
-
-                if (extensionImplementationMethod is not null)
-                {
-                    var extensionRewriter = new ExtensionMethodBodyRewriter(method, extensionImplementationMethod);
-                    loweredBody = (BoundStatement)extensionRewriter.Visit(loweredBody);
-                    method = extensionImplementationMethod;
                 }
 
                 lazyVariableSlotAllocator ??= compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method, diagnostics.DiagnosticBag);

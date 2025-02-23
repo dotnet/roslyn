@@ -90,7 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal sealed override ParameterSymbol ExtensionParameter => throw new System.NotImplementedException(); // PROTOTYPE undone
+        internal sealed override ParameterSymbol ExtensionParameter => throw new System.NotImplementedException(); // PROTOTYPE: undone
+
+        public override MethodSymbol TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method) => throw new System.NotImplementedException(); // PROTOTYPE: undone
 
         public override NamedTypeSymbol ConstructedFrom
         {

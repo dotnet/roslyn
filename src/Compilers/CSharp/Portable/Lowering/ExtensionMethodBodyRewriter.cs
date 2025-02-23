@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable();
         }
 
-        protected override ParameterSymbol VisitParameterSymbol(ParameterSymbol symbol)
+        public override ParameterSymbol VisitParameterSymbol(ParameterSymbol symbol)
         {
             return (ParameterSymbol)_symbolMap[symbol];
         }
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [return: NotNullIfNotNull(nameof(symbol))]
-        protected override MethodSymbol? VisitMethodSymbol(MethodSymbol? symbol)
+        public override MethodSymbol? VisitMethodSymbol(MethodSymbol? symbol)
         {
             switch (symbol?.MethodKind)
             {
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [return: NotNullIfNotNull(nameof(symbol))]
-        protected override FieldSymbol? VisitFieldSymbol(FieldSymbol? symbol)
+        public override FieldSymbol? VisitFieldSymbol(FieldSymbol? symbol)
         {
             if (symbol is null)
             {
@@ -173,6 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(symbol.ContainingType).AsTypeSymbolOnly());
         }
 
-        // PROTOTYPE: Handle deep recursion on long chain of binary operators, calls, etc.
+        public override BoundNode? VisitCall(BoundCall node)
+        {
+            return ExtensionMethodReferenceRewriter.VisitCall(this, node);
+        }
+
+        // PROTOTYPE: Handle deep recursion on long chain of binary operators, etc.
     }
 }

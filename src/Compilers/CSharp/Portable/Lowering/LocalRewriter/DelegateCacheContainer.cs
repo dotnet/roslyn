@@ -19,7 +19,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
 
     /// <summary>Creates a type-scope concrete delegate cache container.</summary>
     internal DelegateCacheContainer(NamedTypeSymbol containingType, int generationOrdinal)
-        : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal), [])
+        : base(GeneratedNames.DelegateCacheContainerType(generationOrdinal))
     {
         Debug.Assert(containingType.IsDefinition);
 
