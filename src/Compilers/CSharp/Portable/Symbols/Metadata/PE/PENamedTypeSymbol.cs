@@ -529,7 +529,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             continue; // PROTOTYPE: Test this code path
                         }
 
-
                         if (MemberSignatureComparer.HaveSameConstraints(
                                 candidate.TypeParameters,
                                 typeMap1: null,
