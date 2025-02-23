@@ -199,46 +199,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             public override SyntaxList<TSyntaxNode> VisitList<TSyntaxNode>(SyntaxList<TSyntaxNode> list)
             {
-                if (!this.ShouldVisit(list.FullSpan) || list.Count == 0)
+                // This method is a performance optimized version of CSharpSyntaxRewriter.VisitList.
+                // Optimizations include:
+                // 1: Usage of ShouldVisit to minimize nodes on which to invoke VisitListElement
+                // 2: Avoids creation of SyntaxListBuilder if no nodes are replaced
+                // 3: Avoids realization of red nodes unless VisitListElement needs to be invoked
+                // 4: Avoids creation of SyntaxList result if no nodes are replaced
+                // 5: Avoids call to SyntaxList.FullSpan in list scenario as it realizes first and last nodes in list.
+                var listCount = list.Count;
+                if (listCount == 0)
                 {
                     return list;
                 }
 
-                if (!list.Node!.IsList)
+                var listNode = list.Node!;
+                if (!listNode.IsList)
                 {
-                    var rewritten = this.VisitListElement(list.Node);
-                    return rewritten == list.Node || rewritten == null
-                        ? list
-                        : new SyntaxList<TSyntaxNode>(rewritten);
+                    if (!this.ShouldVisit(listNode.FullSpan))
+                    {
+                        return list;
+                    }
+
+                    var visited = this.VisitListElement(listNode);
+
+                    return visited != listNode && visited != null && !visited.IsKind(SyntaxKind.None)
+                        ? new SyntaxList<TSyntaxNode>(visited)
+                        : list;
                 }
 
-                var redListBuilder = new SyntaxListBuilder(list.Count);
-                var greenList = new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<GreenNode>(list.Node.Green);
-                int start = list.FullSpan.Start;
-                var index = 0;
+                SyntaxListBuilder? alternate = null;
+                var greenList = new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<GreenNode>(listNode.Green);
+                var start = list[0].FullSpan.Start;
 
-                foreach (var green in greenList)
+                for (var i = 0; i < listCount; i++)
                 {
+                    var green = greenList[i]!;
                     var greenSpan = new TextSpan(start, green.FullWidth);
+
                     if (!this.ShouldVisit(greenSpan))
                     {
-                        redListBuilder.AddInternal(green);
+                        alternate?.AddInternal(green);
                     }
                     else
                     {
-                        var item = list[index];
-                        var rewritten = this.VisitListElement(item);
-                        if (rewritten != null)
+                        var item = list[i];
+                        var visited = this.VisitListElement(item);
+
+                        if (visited != item && alternate == null)
                         {
-                            redListBuilder.Add(rewritten);
+                            alternate = new SyntaxListBuilder(list.Count);
+                            for (int j = 0; j < i; j++)
+                            {
+                                alternate.AddInternal(greenList[j]!);
+                            }
+                        }
+
+                        if (alternate != null && visited != null && !visited.IsKind(SyntaxKind.None))
+                        {
+                            alternate.Add(visited);
                         }
                     }
 
                     start += green.FullWidth;
-                    index++;
                 }
 
-                return (SyntaxList<TSyntaxNode>)redListBuilder.ToList();
+                if (alternate != null)
+                {
+                    return (SyntaxList<TSyntaxNode>)alternate.ToList();
+                }
+
+                return list;
             }
 
             public override SyntaxToken VisitToken(SyntaxToken token)
