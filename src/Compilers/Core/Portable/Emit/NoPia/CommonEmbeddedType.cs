@@ -179,6 +179,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                             builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
+                    else if (IsTargetAttribute(attrData, AttributeDescription.ExtendedLayoutAttribute, out signatureIndex))
+                    {
+                        if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
+                        {
+                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                        }
+                    }
                 }
 
                 // We must emit a TypeIdentifier attribute which connects this local type with the canonical type. 

@@ -646,6 +646,8 @@ namespace System
                     case WellKnownType.System_Runtime_InteropServices_MemoryMarshal:
                     case WellKnownType.System_Runtime_CompilerServices_Unsafe:
                     case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
+                    case WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute:
+                    case WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -1022,6 +1024,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T:
                     case WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor:
+                    case WellKnownMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

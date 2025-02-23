@@ -357,6 +357,9 @@ namespace Microsoft.CodeAnalysis
 
         System_Text_Encoding,
 
+        System_Runtime_InteropServices_ExtendedLayoutAttribute,
+        System_Runtime_InteropServices_ExtendedLayoutKind,
+
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -699,6 +702,9 @@ namespace Microsoft.CodeAnalysis
             "System.Linq.Expressions.DefaultExpression",
 
             "System.Text.Encoding",
+
+            "System.Runtime.InteropServices.ExtendedLayoutAttribute",
+            "System.Runtime.InteropServices.ExtendedLayoutKind",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

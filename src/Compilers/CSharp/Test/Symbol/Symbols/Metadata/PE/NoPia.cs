@@ -1420,5 +1420,90 @@ public class Derived : Base, I2
                 compilationDerived.VerifyDiagnostics();
             }
         }
+
+        [Fact]
+        public void ExtendedLayoutAttribute()
+        {
+            var sourceExtendedLayout = """
+            namespace System.Runtime.InteropServices;
+
+            [AttributeUsage(AttributeTargets.Struct)]
+            #pragma warning disable CS9113
+            public sealed class ExtendedLayoutAttribute(ExtendedLayoutKind kind): Attribute
+            #pragma warning restore CS9113
+            {
+            }
+
+            public enum ExtendedLayoutKind
+            {
+                CStruct,
+                CUnion
+            }
+            """;
+
+            var extendedLayout = CreateCompilation(sourceExtendedLayout, options: TestOptions.DebugDll);
+            extendedLayout.VerifyDiagnostics();
+
+            var extendedLayoutReference = extendedLayout.ToMetadataReference();
+
+
+            var sourcePIA =
+@"using System.Runtime.InteropServices;
+[assembly: PrimaryInteropAssembly(0, 0)]
+[assembly: Guid(""863D5BC0-46A1-49AC-97AA-A5F0D441A9DA"")]
+
+[ExtendedLayout(ExtendedLayoutKind.CStruct)]
+public struct S
+{
+    public int i;
+}
+";
+            var sourceBase =
+@"
+public class C
+{
+    public virtual int F1(S s) => s.i;
+}
+";
+            var compilationPIA = CreateCompilation(sourcePIA, [extendedLayoutReference], TestOptions.DebugDll);
+            compilationPIA.VerifyDiagnostics();
+
+            var referencePIAImage = compilationPIA.EmitToImageReference(embedInteropTypes: true);
+            var referencePIASource = compilationPIA.ToMetadataReference(embedInteropTypes: true);
+
+            var compilationBase = CreateCompilation(sourceBase, [referencePIASource, extendedLayoutReference], TestOptions.DebugDll);
+            compilationBase.VerifyDiagnostics();
+
+            var referenceBaseImage = compilationBase.EmitToImageReference();
+            var referenceBaseSource = compilationBase.ToMetadataReference();
+
+            var sourceDerived =
+@"
+public class Derived : C
+{
+    public override int F1(S s) => s.i * 2;
+}
+";
+            var compilationDerived1 = CreateCompilation(sourceDerived, [referencePIASource, referenceBaseSource, extendedLayoutReference], TestOptions.DebugDll);
+            verify(compilationDerived1);
+
+            var compilationDerived2 = CreateCompilation(sourceDerived, [referencePIAImage, referenceBaseSource, extendedLayoutReference], TestOptions.DebugDll);
+            verify(compilationDerived2);
+
+            var compilationDerived3 = CreateCompilation(sourceDerived, [referencePIASource, referenceBaseImage, extendedLayoutReference], TestOptions.DebugDll);
+            verify(compilationDerived3);
+
+            var compilationDerived4 = CreateCompilation(sourceDerived, [referencePIAImage, referenceBaseImage, extendedLayoutReference], TestOptions.DebugDll);
+            verify(compilationDerived4);
+
+            static void verify(CSharpCompilation compilationDerived)
+            {
+                var s = compilationDerived.GetTypeByMetadataName("S");
+                var baseF1 = compilationDerived.GetTypeByMetadataName("C").GetMember<MethodSymbol>("F1");
+                Assert.Same(s, baseF1.Parameters[0].Type);
+                Assert.Equal(MetadataHelpers.LayoutKindExtended, s.Layout.Kind);
+                compilationDerived.VerifyDiagnostics();
+            }
+        }
     }
 }
