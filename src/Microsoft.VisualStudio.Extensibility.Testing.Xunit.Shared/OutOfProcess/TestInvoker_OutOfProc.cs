@@ -26,49 +26,9 @@ namespace Xunit.OutOfProcess
             get;
         }
 
-        public void LoadAssembly(string codeBase)
-        {
-            TestInvokerInProc.LoadAssembly(codeBase);
-        }
-
         public InProcessIdeTestAssemblyRunner CreateTestAssemblyRunner(ITestAssembly testAssembly, IXunitTestCase[] testCases, IMessageSink diagnosticMessageSink, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
         {
             return TestInvokerInProc.CreateTestAssemblyRunner(testAssembly, testCases, diagnosticMessageSink, executionMessageSink, executionOptions);
-        }
-
-        public Tuple<decimal, Exception> InvokeTest(
-            ITest test,
-            IMessageBus messageBus,
-            Type testClass,
-            object?[]? constructorArguments,
-            MethodInfo testMethod,
-            object?[]? testMethodArguments)
-        {
-            using var marshalledObjects = new MarshalledObjects();
-            if (constructorArguments != null)
-            {
-                if (constructorArguments.OfType<ITestOutputHelper>().Any())
-                {
-                    constructorArguments = (object?[])constructorArguments.Clone();
-                    for (int i = 0; i < constructorArguments.Length; i++)
-                    {
-                        if (constructorArguments[i] is ITestOutputHelper testOutputHelper)
-                        {
-                            var wrapper = new TestOutputHelperWrapper(testOutputHelper);
-                            constructorArguments[i] = wrapper;
-                            marshalledObjects.Add(wrapper);
-                        }
-                    }
-                }
-            }
-
-            return TestInvokerInProc.InvokeTest(
-                test,
-                messageBus,
-                testClass,
-                constructorArguments,
-                testMethod,
-                testMethodArguments);
         }
 
         private class TestOutputHelperWrapper : MarshalByRefObject, ITestOutputHelper
