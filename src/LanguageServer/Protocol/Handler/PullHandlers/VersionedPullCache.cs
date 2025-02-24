@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// that existing results can be reused, or if new results need to be computed.  Multiple keys can be used,
 /// with different computation costs to determine if the previous cached data is still valid.
 /// </summary>
-internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVersion, TState, TComputedData>(
-     string uniqueKey)
+internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVersion, TState, TComputedData>(string uniqueKey)
 {
     /// <summary>
     /// Map of workspace and diagnostic source to the data used to make the last pull report.
