@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1127,7 +1128,41 @@ internal sealed partial class ProjectSystemProject
             return GetMappedRazorSourceGenerator(fullPath);
         }
 
+        if (TryRedirectAnalyzerAssembly(fullPath) is { } redirectedPath)
+        {
+            return OneOrMany.Create(redirectedPath);
+        }
+
         return OneOrMany.Create(fullPath);
+    }
+
+    private string? TryRedirectAnalyzerAssembly(string fullPath)
+    {
+        string? redirectedPath = null;
+
+        foreach (var redirector in _hostInfo.AnalyzerAssemblyRedirectors)
+        {
+            try
+            {
+                if (redirector.RedirectPath(fullPath) is { } currentlyRedirectedPath)
+                {
+                    if (redirectedPath == null)
+                    {
+                        redirectedPath = currentlyRedirectedPath;
+                    }
+                    else if (redirectedPath != currentlyRedirectedPath)
+                    {
+                        throw new InvalidOperationException($"Multiple redirectors disagree on the path to redirect '{fullPath}' to ('{redirectedPath}' vs '{currentlyRedirectedPath}').");
+                    }
+                }
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
+            {
+                // Ignore if the external redirector throws.
+            }
+        }
+
+        return redirectedPath;
     }
 
     private static readonly string s_csharpCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "cs");

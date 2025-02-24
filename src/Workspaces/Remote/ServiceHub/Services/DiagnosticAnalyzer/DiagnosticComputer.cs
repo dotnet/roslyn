@@ -356,7 +356,8 @@ internal class DiagnosticComputer
             }
         }
 
-        var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
+        var skippedAnalyzersInfo = _project.Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(
+            _project.State, _analyzerInfoCache);
 
         return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo,
             logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
@@ -401,8 +402,7 @@ internal class DiagnosticComputer
         {
             builderMap = builderMap.AddRange(await analysisResult.ToResultBuilderMapAsync(
                 additionalPragmaSuppressionDiagnostics, documentAnalysisScope,
-                _project, VersionStamp.Default,
-                projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, cancellationToken).ConfigureAwait(false));
+                _project, projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, cancellationToken).ConfigureAwait(false));
         }
 
         var telemetry = getTelemetryInfo

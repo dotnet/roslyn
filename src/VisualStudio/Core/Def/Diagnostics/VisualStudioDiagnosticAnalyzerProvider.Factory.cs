@@ -47,7 +47,7 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider
             // this will allow us to build once and deploy on different versions of VS SxS.
             var vsDteVersion = Version.Parse(dte.Version.Split(' ')[0]); // DTE.Version is in the format of D[D[.D[D]]][ (?+)], so we need to split out the version part and check for uninitialized Major/Minor below
 
-            var assembly = Assembly.Load($"Microsoft.VisualStudio.ExtensionManager, Version={(vsDteVersion.Major == -1 ? 0 : vsDteVersion.Major)}.{(vsDteVersion.Minor == -1 ? 0 : vsDteVersion.Minor)}.0.0, PublicKeyToken=b03f5f7f11d50a3a");
+            var assembly = Assembly.Load($"Microsoft.VisualStudio.ExtensionManager, Version={(vsDteVersion.Major == -1 ? 0 : vsDteVersion.Major)}.{(vsDteVersion.Minor == -1 ? 0 : vsDteVersion.Minor)}.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
             var typeIExtensionContent = assembly.GetType("Microsoft.VisualStudio.ExtensionManager.IExtensionContent");
             var type = assembly.GetType("Microsoft.VisualStudio.ExtensionManager.SVsExtensionManager");
             var extensionManager = _serviceProvider.GetService(type);

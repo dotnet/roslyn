@@ -16,11 +16,11 @@ internal static class Program
 {
     internal static async Task Main(string[] args)
     {
-        var pipeOption = new Option<string>("--pipe") { Required = true };
-        var propertyOption = new Option<string[]>("--property") { Arity = ArgumentArity.ZeroOrMore };
-        var binaryLogOption = new Option<string?>("--binlog") { Required = false };
-        var localeOption = new Option<string>("--locale") { Required = true };
-        var command = new RootCommand { pipeOption, binaryLogOption, propertyOption, localeOption };
+        var pipeOption = new CliOption<string>("--pipe") { Required = true };
+        var propertyOption = new CliOption<string[]>("--property") { Arity = ArgumentArity.ZeroOrMore };
+        var binaryLogOption = new CliOption<string?>("--binlog") { Required = false };
+        var localeOption = new CliOption<string>("--locale") { Required = true };
+        var command = new CliRootCommand { pipeOption, binaryLogOption, propertyOption, localeOption };
         var parsedArguments = command.Parse(args);
         var pipeName = parsedArguments.GetValue(pipeOption)!;
         var properties = parsedArguments.GetValue(propertyOption)!;
@@ -52,7 +52,7 @@ internal static class Program
         var pipeServer = NamedPipeUtil.CreateServer(pipeName, PipeDirection.InOut);
         await pipeServer.WaitForConnectionAsync().ConfigureAwait(false);
 
-        var server = new RpcServer(sendingStream: pipeServer, receivingStream: pipeServer);
+        var server = new RpcServer(pipeServer);
 
         var targetObject = server.AddTarget(new BuildHost(logger, propertiesBuilder.ToImmutable(), binaryLogPath, server));
         Contract.ThrowIfFalse(targetObject == 0, "The first object registered should have target 0, which is assumed by the client.");
