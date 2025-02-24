@@ -674,7 +674,9 @@ namespace Microsoft.CodeAnalysis
 
             Dictionary<string, ArrayBuilder<TypeDefinitionHandle>?> namespaces = new Dictionary<string, ArrayBuilder<TypeDefinitionHandle>?>();
 
-            GetTypeNamespaceNamesOrThrow(namespaces);
+            // Note: the ! assertion here is for the ArrayBuilder<TypeDefinitionHandle> values being non-null in this 
+            // method. The dictionary is empty so this is trivially true.
+            GetTypeNamespaceNamesOrThrow(namespaces!);
             GetForwardedTypeNamespaceNamesOrThrow(namespaces);
 
             var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>(namespaces.Count);
@@ -709,7 +711,11 @@ namespace Microsoft.CodeAnalysis
                     return -1;
                 }
 
-                Debug.Assert(right is not null);
+                if (right is null)
+                {
+                    return 1;
+                }
+
                 int result = _nameComparer.Compare(left.Key, right.Key);
 
                 if (result == 0)
@@ -744,7 +750,7 @@ namespace Microsoft.CodeAnalysis
         /// those defined in this module.
         /// </summary>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private void GetTypeNamespaceNamesOrThrow(Dictionary<string, ArrayBuilder<TypeDefinitionHandle>?> namespaces)
+        private void GetTypeNamespaceNamesOrThrow(Dictionary<string, ArrayBuilder<TypeDefinitionHandle>> namespaces)
         {
             // PERF: Group by namespace handle so we only have to allocate one string for every namespace
             var namespaceHandles = new Dictionary<NamespaceDefinitionHandle, ArrayBuilder<TypeDefinitionHandle>>(NamespaceHandleEqualityComparer.Singleton);
@@ -773,12 +779,6 @@ namespace Microsoft.CodeAnalysis
 
                 if (namespaces.TryGetValue(@namespace, out builder))
                 {
-                    if (builder is null)
-                    {
-                        builder = new ArrayBuilder<TypeDefinitionHandle>(kvp.Value.Count);
-                        namespaces[@namespace] = builder;
-                    }
-
                     builder.AddRange(kvp.Value);
                 }
                 else
