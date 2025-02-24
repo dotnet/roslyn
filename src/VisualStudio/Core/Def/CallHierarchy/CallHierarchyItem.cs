@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 
-internal class CallHierarchyItem : ICallHierarchyMemberItem
+internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
 {
     private readonly Workspace _workspace;
     private readonly INavigableLocation _navigableLocation;

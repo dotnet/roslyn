@@ -4,21 +4,26 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolMapping;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -58,53 +63,43 @@ internal class CallHierarchyCommandHandler : ICommandHandler<ViewCallHierarchyCo
 
     public bool ExecuteCommand(ViewCallHierarchyCommandArgs args, CommandExecutionContext context)
     {
+        var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (document == null)
+            return false;
+
+        var point = args.TextView.Caret.Position.Point.GetPoint(args.SubjectBuffer, PositionAffinity.Predecessor);
+        if (point is null)
+            return false;
+
         // We're showing our own UI, ensure the editor doesn't show anything itself.
         context.OperationContext.TakeOwnership();
         var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-        ExecuteCommandAsync(args, context)
+        ExecuteCommandAsync(document, point.Value.Position)
             .ReportNonFatalErrorAsync()
             .CompletesAsyncOperation(token);
 
         return true;
     }
 
-    private async Task ExecuteCommandAsync(ViewCallHierarchyCommandArgs args, CommandExecutionContext commandExecutionContext)
+    private async Task ExecuteCommandAsync(Document document, int caretPosition)
     {
-        Document document;
-
         using (var context = _threadOperationExecutor.BeginExecute(
             EditorFeaturesResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false))
         {
-            document = await args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                commandExecutionContext.OperationContext).ConfigureAwait(true);
-            if (document == null)
-            {
-                return;
-            }
-
-            var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
             var cancellationToken = context.UserCancellationToken;
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbolUnderCaret = await SymbolFinder.FindSymbolAtPositionAsync(
-                semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
+            var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+                document, caretPosition, preferPrimaryConstructor: true, cancellationToken).ConfigureAwait(false);
 
-            if (symbolUnderCaret != null)
+            if (symbolAndProject is (var symbol, var project))
             {
-                // Map symbols so that Call Hierarchy works from metadata-as-source
-                var mappingService = document.Project.Solution.Services.GetService<ISymbolMappingService>();
-                var mapping = await mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).ConfigureAwait(false);
+                var node = await _provider.CreateItemAsync(symbol, project, callsites: [], cancellationToken).ConfigureAwait(false);
 
-                if (mapping.Symbol != null)
+                if (node != null)
                 {
-                    var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, [], cancellationToken).ConfigureAwait(false);
-
-                    if (node != null)
-                    {
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        _presenter.PresentRoot((CallHierarchyItem)node);
-                        return;
-                    }
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    _presenter.PresentRoot(node);
+                    return;
                 }
             }
 

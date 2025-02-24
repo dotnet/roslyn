@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
 
@@ -17,6 +18,10 @@ internal static class FindUsagesHelpers
 {
     public static string GetDisplayName(ISymbol symbol)
         => symbol.IsConstructor() ? symbol.ContainingType.Name : symbol.Name;
+
+    public static Task<(ISymbol symbol, Project project)?> GetRelevantSymbolAndProjectAtPositionAsync(
+        Document document, int position, CancellationToken cancellationToken)
+        => GetRelevantSymbolAndProjectAtPositionAsync(document, position, preferPrimaryConstructor: false, cancellationToken);
 
     /// <summary>
     /// Common helper for both the synchronous and streaming versions of FAR. 
@@ -29,13 +34,25 @@ internal static class FindUsagesHelpers
     /// scenarios).
     /// </summary>
     public static async Task<(ISymbol symbol, Project project)?> GetRelevantSymbolAndProjectAtPositionAsync(
-        Document document, int position, CancellationToken cancellationToken)
+        Document document, int position, bool preferPrimaryConstructor, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
         if (symbol == null)
             return null;
+
+        if (preferPrimaryConstructor && symbol is INamedTypeSymbol namedType)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var headerFacts = document.GetRequiredLanguageService<IHeaderFactsService>();
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            if (headerFacts.IsOnTypeHeader(root, position, out _) &&
+                semanticFacts.TryGetPrimaryConstructor(namedType, out var primaryConstructor))
+            {
+                symbol = primaryConstructor;
+            }
+        }
 
         // If this document is not in the primary workspace, we may want to search for results
         // in a solution different from the one we started in. Use the starting workspace's

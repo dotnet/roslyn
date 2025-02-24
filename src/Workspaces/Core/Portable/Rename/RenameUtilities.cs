@@ -345,37 +345,16 @@ internal static class RenameUtilities
         }
 
         // if we are renaming a compiler generated delegate for an event, cascade to the event
-        if (symbol.Kind == SymbolKind.NamedType)
-        {
-            var typeSymbol = (INamedTypeSymbol)symbol;
-            if (typeSymbol.IsImplicitlyDeclared && typeSymbol.IsDelegateType() && typeSymbol.AssociatedSymbol != null)
-            {
-                return typeSymbol.AssociatedSymbol;
-            }
-        }
+        if (symbol is INamedTypeSymbol { IsImplicitlyDeclared: true, TypeKind: TypeKind.Delegate, AssociatedSymbol: not null } typeSymbol)
+            return typeSymbol.AssociatedSymbol;
 
         // If we are renaming a constructor or destructor, we wish to rename the whole type
-        if (symbol.Kind == SymbolKind.Method)
-        {
-            var methodSymbol = (IMethodSymbol)symbol;
-            if (methodSymbol.MethodKind is MethodKind.Constructor or
-                MethodKind.StaticConstructor or
-                MethodKind.Destructor)
-            {
-                return methodSymbol.ContainingType;
-            }
-        }
+        if (symbol is IMethodSymbol { MethodKind: MethodKind.Constructor | MethodKind.StaticConstructor | MethodKind.Destructor })
+            return symbol.ContainingType;
 
         // If we are renaming a backing field for a property, cascade to the property
-        if (symbol.Kind == SymbolKind.Field)
-        {
-            var fieldSymbol = (IFieldSymbol)symbol;
-            if (fieldSymbol.IsImplicitlyDeclared &&
-                fieldSymbol.AssociatedSymbol.IsKind(SymbolKind.Property))
-            {
-                return fieldSymbol.AssociatedSymbol;
-            }
-        }
+        if (symbol is IFieldSymbol { IsImplicitlyDeclared: true, AssociatedSymbol: IPropertySymbol associatedProperty })
+            return associatedProperty;
 
         // in case this is e.g. an overridden property accessor, we'll treat the property itself as the definition symbol
         var property = await TryGetPropertyFromAccessorOrAnOverrideAsync(bestSymbol, solution, cancellationToken).ConfigureAwait(false);
