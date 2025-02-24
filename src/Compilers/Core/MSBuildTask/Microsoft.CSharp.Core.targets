@@ -32,6 +32,16 @@
     <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- Default to excluding generated files from compilation if not explicitly set -->
+    <ExcludeGeneratedFilesFromCompilation Condition="'$(ExcludeGeneratedFilesFromCompilation)' == ''">true</ExcludeGeneratedFilesFromCompilation>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Exclude all .cs files in the generated output directory to prevent duplicate type definitions -->
+    <Compile Remove="$(CompilerGeneratedFilesOutputPath)\**\*.cs" Condition="'$(ExcludeGeneratedFilesFromCompilation)' == 'true'" />
+  </ItemGroup>
+
   <Target Name="CoreCompile"
           Inputs="$(MSBuildAllProjects);
                   @(Compile);
