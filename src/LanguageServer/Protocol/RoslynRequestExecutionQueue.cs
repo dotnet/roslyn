@@ -5,55 +5,36 @@
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
     {
         private readonly IInitializeManager _initializeManager;
-        private readonly IAsynchronousOperationListener _listener;
 
         /// <summary>
         /// Serial access is guaranteed by the queue.
         /// </summary>
         private CultureInfo? _cultureInfo;
 
-        public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider, IAsynchronousOperationListenerProvider provider)
+        public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
             : base(languageServer, logger, handlerProvider)
         {
             _initializeManager = languageServer.GetLspServices().GetRequiredService<IInitializeManager>();
-            _listener = provider.GetListener(FeatureAttribute.LanguageServer);
         }
 
-        public override async Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
+        public override async Task WrapStartRequestTaskAsync(Task requestTask, bool rethrowExceptions)
         {
-            using var token = _listener.BeginAsyncOperation(nameof(WrapStartRequestTaskAsync));
-            if (rethrowExceptions)
+            try
             {
-                try
-                {
-                    await nonMutatingRequestTask.ConfigureAwait(false);
-                }
-                catch (StreamJsonRpc.LocalRpcException localRpcException) when (localRpcException.ErrorCode == LspErrorCodes.ContentModified)
-                {
-                    // Content modified exceptions are expected and should not be reported as NFWs.
-                    throw;
-                }
-                // If we had an exception, we want to record a NFW for it AND propogate it out to the queue so it can be handled appropriately.
-                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Critical))
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
+                await requestTask.ConfigureAwait(false);
             }
-            else
+            catch (Exception) when (!rethrowExceptions)
             {
-                // The caller has asked us to not rethrow, so record a NFW and swallow.
-                await nonMutatingRequestTask.ReportNonFatalErrorAsync().ConfigureAwait(false);
+                // The caller has asked us to not rethrow, so swallow the exception to avoid bringing down the queue.
+                // The queue item task itself already handles reporting the exception (if any).
             }
         }
 
