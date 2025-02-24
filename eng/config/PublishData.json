@@ -161,9 +161,9 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d17.14",
+      "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.14 P1]",
+      "insertionTitlePrefix": "[d17.14 P2]",
       "insertionCreateDraftPR": false
     },
     "release/dev18.0": {
@@ -184,7 +184,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.14 P2]"
+      "insertionTitlePrefix": "[d17.14 P3]"
     }
   }
 }
