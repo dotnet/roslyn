@@ -36,7 +36,7 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
     private readonly IComponentModel _componentModel;
     private OLE.Interop.IServiceProvider? _oleServiceProvider;
     private bool _encoding;
-    private Guid WinFormsDesignerEditorFactoryGuid = new("{8b39ef50-558d-4077-a40b-128adddd2880}");
+    private static readonly Guid WinFormsDesignerEditorFactoryGuid = new("{8b39ef50-558d-4077-a40b-128adddd2880}");
     private bool _isWinFormsDesignerPackageLoaded;
     private bool? _isWinFormsDesignerAsyncLoadFeatureEnabled;
 
@@ -426,7 +426,7 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
         out Guid pguidLogicalViewActual)
     {
         // Use WinForms Editor Factory directly if view type is Designer.
-        if (IsWinFormsDesignerAsyncLoadFeatureEnabled() && VSConstants.LOGVIEWID_Designer.CompareTo(rguidLogicalView) == 0)
+        if (IsWinFormsDesignerAsyncLoadFeatureEnabled() && rguidLogicalView == VSConstants.LOGVIEWID_Designer)
         {
             EnsureWinFormsDesignerPackageLoaded();
 
