@@ -7483,7 +7483,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>file types</value>
   </data>
   <data name="ERR_CannotMatchOnINumberBase" xml:space="preserve">
-    <value>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</value>
+    <value>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</value>
   </data>
   <data name="IDS_ArrayAccess" xml:space="preserve">
     <value>array access</value>
