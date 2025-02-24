@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             private readonly HashSet<SyntaxTrivia> _triviaSet;
             private readonly HashSet<TextSpan> _spanSet;
 
-            private readonly TextSpan _totalSpan;
-            private readonly bool _visitIntoStructuredTrivia;
-            private readonly bool _shouldVisitTrivia;
+            private TextSpan _totalSpan;
+            private bool _visitIntoStructuredTrivia;
+            private bool _shouldVisitTrivia;
 
             public Replacer(
                 IEnumerable<TNode>? nodes,
@@ -94,19 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 _tokenSet = tokens != null ? new HashSet<SyntaxToken>(tokens) : s_noTokens;
                 _triviaSet = trivia != null ? new HashSet<SyntaxTrivia>(trivia) : s_noTrivia;
 
-                _spanSet = new HashSet<TextSpan>(
-                    _nodeSet.Select(n => n.FullSpan).Concat(
-                    _tokenSet.Select(t => t.FullSpan).Concat(
-                    _triviaSet.Select(t => t.FullSpan))));
+                _spanSet = new HashSet<TextSpan>();
 
-                _totalSpan = ComputeTotalSpan(_spanSet);
-
-                _visitIntoStructuredTrivia =
-                    _nodeSet.Any(n => n.IsPartOfStructuredTrivia()) ||
-                    _tokenSet.Any(t => t.IsPartOfStructuredTrivia()) ||
-                    _triviaSet.Any(t => t.IsPartOfStructuredTrivia());
-
-                _shouldVisitTrivia = _triviaSet.Count > 0 || _visitIntoStructuredTrivia;
+                CalculateVisitationCriteria();
             }
 
             private static readonly HashSet<SyntaxNode> s_noNodes = new HashSet<SyntaxNode>();
@@ -129,13 +119,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
-            private static TextSpan ComputeTotalSpan(IEnumerable<TextSpan> spans)
+            [MemberNotNull(nameof(_totalSpan))]
+            private void CalculateVisitationCriteria()
             {
+                _spanSet.Clear();
+                _spanSet.UnionWith(
+                    _nodeSet.Select(n => n.FullSpan).Concat(
+                    _tokenSet.Select(t => t.FullSpan).Concat(
+                    _triviaSet.Select(t => t.FullSpan))));
+
                 bool first = true;
                 int start = 0;
                 int end = 0;
 
-                foreach (var span in spans)
+                foreach (var span in _spanSet)
                 {
                     if (first)
                     {
@@ -150,7 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                 }
 
-                return new TextSpan(start, end - start);
+                _totalSpan = new TextSpan(start, end - start);
+
+                _visitIntoStructuredTrivia =
+                    _nodeSet.Any(n => n.IsPartOfStructuredTrivia()) ||
+                    _tokenSet.Any(t => t.IsPartOfStructuredTrivia()) ||
+                    _triviaSet.Any(t => t.IsPartOfStructuredTrivia());
+
+                _shouldVisitTrivia = _triviaSet.Count > 0 || _visitIntoStructuredTrivia;
             }
 
             private bool ShouldVisit(TextSpan span)
@@ -179,16 +183,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             [return: NotNullIfNotNull(nameof(node))]
             public override SyntaxNode? Visit(SyntaxNode? node)
             {
-                SyntaxNode? rewritten = node;
+                var rewritten = node;
 
                 if (node != null)
                 {
+                    var isReplacedNode = _nodeSet.Remove(node);
+
+                    if (isReplacedNode)
+                    {
+                        CalculateVisitationCriteria();
+                    }
+
                     if (this.ShouldVisit(node.FullSpan))
                     {
                         rewritten = base.Visit(node);
                     }
 
-                    if (_nodeSet.Contains(node) && _computeReplacementNode != null)
+                    if (isReplacedNode && _computeReplacementNode != null)
                     {
                         rewritten = _computeReplacementNode((TNode)node, (TNode)rewritten!);
                     }
@@ -197,90 +208,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return rewritten;
             }
 
-            public override SyntaxList<TSyntaxNode> VisitList<TSyntaxNode>(SyntaxList<TSyntaxNode> list)
-            {
-                // This method is a performance optimized version of CSharpSyntaxRewriter.VisitList.
-                // Optimizations include:
-                // 1: Usage of ShouldVisit to minimize nodes on which to invoke VisitListElement
-                // 2: Avoids creation of SyntaxListBuilder if no nodes are replaced
-                // 3: Avoids realization of red nodes unless VisitListElement needs to be invoked
-                // 4: Avoids creation of SyntaxList result if no nodes are replaced
-                // 5: Avoids call to SyntaxList.FullSpan in list scenario as it realizes first and last nodes in list.
-                var listCount = list.Count;
-                if (listCount == 0)
-                {
-                    return list;
-                }
-
-                var listNode = list.Node!;
-                if (!listNode.IsList)
-                {
-                    if (!this.ShouldVisit(listNode.FullSpan))
-                    {
-                        return list;
-                    }
-
-                    var visited = this.VisitListElement(listNode);
-
-                    return visited != listNode && visited != null && !visited.IsKind(SyntaxKind.None)
-                        ? new SyntaxList<TSyntaxNode>(visited)
-                        : list;
-                }
-
-                SyntaxListBuilder? alternate = null;
-                var greenList = new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<GreenNode>(listNode.Green);
-                var start = list[0].FullSpan.Start;
-
-                for (var i = 0; i < listCount; i++)
-                {
-                    var green = greenList[i]!;
-                    var greenSpan = new TextSpan(start, green.FullWidth);
-
-                    if (!this.ShouldVisit(greenSpan))
-                    {
-                        alternate?.AddInternal(green);
-                    }
-                    else
-                    {
-                        var item = list[i];
-                        var visited = this.VisitListElement(item);
-
-                        if (visited != item && alternate == null)
-                        {
-                            alternate = new SyntaxListBuilder(list.Count);
-                            for (int j = 0; j < i; j++)
-                            {
-                                alternate.AddInternal(greenList[j]!);
-                            }
-                        }
-
-                        if (alternate != null && visited != null && !visited.IsKind(SyntaxKind.None))
-                        {
-                            alternate.Add(visited);
-                        }
-                    }
-
-                    start += green.FullWidth;
-                }
-
-                if (alternate != null)
-                {
-                    return (SyntaxList<TSyntaxNode>)alternate.ToList();
-                }
-
-                return list;
-            }
-
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
                 var rewritten = token;
+                var isReplacedToken = _tokenSet.Remove(token);
+
+                if (isReplacedToken)
+                {
+                    CalculateVisitationCriteria();
+                }
 
                 if (_shouldVisitTrivia && this.ShouldVisit(token.FullSpan))
                 {
                     rewritten = base.VisitToken(token);
                 }
 
-                if (_tokenSet.Contains(token) && _computeReplacementToken != null)
+                if (isReplacedToken && _computeReplacementToken != null)
                 {
                     rewritten = _computeReplacementToken(token, rewritten);
                 }
@@ -291,13 +234,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             public override SyntaxTrivia VisitListElement(SyntaxTrivia trivia)
             {
                 var rewritten = trivia;
+                var isReplacedTrivia = _triviaSet.Remove(trivia);
+
+                if (isReplacedTrivia)
+                {
+                    CalculateVisitationCriteria();
+                }
 
                 if (this.VisitIntoStructuredTrivia && trivia.HasStructure && this.ShouldVisit(trivia.FullSpan))
                 {
                     rewritten = this.VisitTrivia(trivia);
                 }
 
-                if (_triviaSet.Contains(trivia) && _computeReplacementTrivia != null)
+                if (isReplacedTrivia && _computeReplacementTrivia != null)
                 {
                     rewritten = _computeReplacementTrivia(trivia, rewritten);
                 }
