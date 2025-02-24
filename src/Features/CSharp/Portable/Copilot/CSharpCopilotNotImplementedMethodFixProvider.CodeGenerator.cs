@@ -33,19 +33,20 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider
                     .LastOrDefault()
                     .ToString() ?? "    ";
 
-                // Parse the provided code block
+                // Parse the provided code block and get only top-level statements
+                var parsedBlock = SyntaxFactory.ParseStatement($"{{\n{codeBlockSuggestion}\n}}") as BlockSyntax;
+                if (parsedBlock == null)
+                    return;
+
                 var newMethodBody = SyntaxFactory.Block(
                         SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
-                        SyntaxFactory.List(SyntaxFactory
-                            .ParseStatement($"{{\n{codeBlockSuggestion}\n}}")
-                            .DescendantNodes()
-                            .OfType<StatementSyntax>()
+                        SyntaxFactory.List(parsedBlock.Statements
                             .Select(s => s.WithLeadingTrivia(
                                 s.GetLeadingTrivia()
                                     .Select(t => t.IsKind(SyntaxKind.WhitespaceTrivia)
                                         ? SyntaxFactory.Whitespace(baseIndentation)
                                         : t))
-                                .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation)) ?? Enumerable.Empty<StatementSyntax>()),
+                                .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation))),
                         SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
