@@ -27,31 +27,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 [ContentType(ContentTypeNames.VisualBasicContentType)]
 [Name("CallHierarchy")]
 [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
-internal class CallHierarchyCommandHandler : ICommandHandler<ViewCallHierarchyCommandArgs>
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CallHierarchyCommandHandler(
+    IThreadingContext threadingContext,
+    IUIThreadOperationExecutor threadOperationExecutor,
+    IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+    [ImportMany] IEnumerable<ICallHierarchyPresenter> presenters,
+    CallHierarchyProvider provider) : ICommandHandler<ViewCallHierarchyCommandArgs>
 {
-    private readonly IThreadingContext _threadingContext;
-    private readonly IUIThreadOperationExecutor _threadOperationExecutor;
-    private readonly IAsynchronousOperationListener _listener;
-    private readonly ICallHierarchyPresenter _presenter;
-    private readonly CallHierarchyProvider _provider;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IUIThreadOperationExecutor _threadOperationExecutor = threadOperationExecutor;
+    private readonly IAsynchronousOperationListener _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.CallHierarchy);
+    private readonly ICallHierarchyPresenter _presenter = presenters.FirstOrDefault();
+    private readonly CallHierarchyProvider _provider = provider;
 
-    public string DisplayName => EditorFeaturesResources.Call_Hierarchy;
+    public string DisplayName
+        => EditorFeaturesResources.Call_Hierarchy;
 
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CallHierarchyCommandHandler(
-        IThreadingContext threadingContext,
-        IUIThreadOperationExecutor threadOperationExecutor,
-        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-        [ImportMany] IEnumerable<ICallHierarchyPresenter> presenters,
-        CallHierarchyProvider provider)
-    {
-        _threadingContext = threadingContext;
-        _threadOperationExecutor = threadOperationExecutor;
-        _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.CallHierarchy);
-        _presenter = presenters.FirstOrDefault();
-        _provider = provider;
-    }
+    public CommandState GetCommandState(ViewCallHierarchyCommandArgs args)
+        => CommandState.Available;
 
     public bool ExecuteCommand(ViewCallHierarchyCommandArgs args, CommandExecutionContext context)
     {
@@ -102,7 +97,4 @@ internal class CallHierarchyCommandHandler : ICommandHandler<ViewCallHierarchyCo
         var notificationService = document.Project.Solution.Services.GetRequiredService<INotificationService>();
         notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
     }
-
-    public CommandState GetCommandState(ViewCallHierarchyCommandArgs args)
-        => CommandState.Available;
 }
