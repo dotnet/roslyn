@@ -528,4 +528,26 @@ public sealed class CSharpCallHierarchyTests
         testState.VerifyRoot(root, "N.C.Property.set", [string.Format(EditorFeaturesResources.Calls_To_0, "set_Property")]);
         testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "set_Property"), ["N.C.M()"]);
     }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77327")]
+    public async Task PrimaryConstructor()
+    {
+        var code = """
+            public class $$Class1(string test)
+            {
+            }
+
+            class D
+            {
+                public void M()
+                {
+                    var c = new Class1("test");
+                }
+            }
+            """;
+        using var testState = CallHierarchyTestState.Create(code);
+        var root = await testState.GetRootAsync();
+        testState.VerifyRoot(root, "Class1.Class1(string)", [string.Format(EditorFeaturesResources.Calls_To_0, ".ctor")]);
+        testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, ".ctor"), ["D.M()"]);
+    }
 }
