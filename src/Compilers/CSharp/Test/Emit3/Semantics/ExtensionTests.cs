@@ -3076,7 +3076,7 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         // PROTOTYPE: A similar warning is expected for 'GetInt().M1()';
-        comp.VerifyDiagnostics(
+        comp.VerifyEmitDiagnostics(
             // (6,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
             //         GetInt().M2();
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetInt()").WithArguments("0").WithLocation(6, 9)
@@ -3114,7 +3114,7 @@ static class Extensions
 """;
         var comp = CreateCompilation(src);
 
-        comp.VerifyDiagnostics(); // PROTOTYPE: Test emit and execution for a scenario like this
+        comp.VerifyEmitDiagnostics(); // PROTOTYPE: Test emit and execution for a scenario like this
     }
 
     [Fact]

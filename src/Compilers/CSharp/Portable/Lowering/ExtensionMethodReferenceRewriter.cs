@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -108,12 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (receiverRefKind != RefKind.None)
                             {
-                                argumentRefKinds = SyntheticBoundNodeFactory.ArgumentRefKindsFromParameterRefKinds(method, useStrictArgumentRefKinds: true);
+                                var builder = ArrayBuilder<RefKind>.GetInstance(method.ParameterCount, RefKind.None);
+                                builder[0] = SyntheticBoundNodeFactory.ArgumentRefKindFromParameterRefKind(receiverRefKind, useStrictArgumentRefKinds: false);
+                                argumentRefKinds = builder.ToImmutableAndFree();
                             }
                         }
                         else
                         {
-                            argumentRefKinds = argumentRefKinds.Insert(0, SyntheticBoundNodeFactory.ArgumentRefKindFromParameterRefKind(receiverRefKind, useStrictArgumentRefKinds: true));
+                            argumentRefKinds = argumentRefKinds.Insert(0, SyntheticBoundNodeFactory.ArgumentRefKindFromParameterRefKind(receiverRefKind, useStrictArgumentRefKinds: false));
                         }
 
                         invokedAsExtensionMethod = true;
