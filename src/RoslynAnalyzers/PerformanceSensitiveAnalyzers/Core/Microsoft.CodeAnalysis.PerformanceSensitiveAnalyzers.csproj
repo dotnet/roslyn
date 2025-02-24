@@ -10,6 +10,12 @@
     <MicrosoftCodeAnalysisPackageVersion>$(MicrosoftCodeAnalysisPackageVersionForPerfSensitiveAnalyzers)</MicrosoftCodeAnalysisPackageVersion>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="PerformanceSensitiveAnalyzersResources.resx" GenerateSource="true" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests" />

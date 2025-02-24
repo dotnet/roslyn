@@ -16,6 +16,9 @@
     <NoWarn>$(NoWarn);RS0026</NoWarn>
     <MicrosoftCodeAnalysisPackageVersion>$(MicrosoftCodeAnalysisPackageVersionForCodeAnalysisAnalyzers)</MicrosoftCodeAnalysisPackageVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+  </ItemGroup>
   <Import Project="..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\Utilities\FlowAnalysis\FlowAnalysis.Utilities.projitems" Label="Shared" />
   <ItemGroup>

@@ -13,7 +13,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualBasic" />
-    <PackageReference Include="Microsoft.CodeAnalysis" OverrideVersion="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" />
@@ -24,7 +28,7 @@
     <PackageReference Include="Humanizer.Core" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" OverrideVersion="$(MicrosoftCodeAnalysisTestResourcesProprietaryVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" VersionOverride="$(MicrosoftCodeAnalysisTestResourcesProprietaryVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TestReferenceAssembly\TestReferenceAssembly.csproj" />

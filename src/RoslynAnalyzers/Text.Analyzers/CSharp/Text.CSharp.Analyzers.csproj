@@ -8,6 +8,6 @@
     <ProjectReference Include="..\Core\Text.Analyzers.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" OverrideVersion="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
   </ItemGroup>
 </Project>

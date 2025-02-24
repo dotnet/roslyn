@@ -14,16 +14,16 @@
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Locator" OverrideVersion="$(MicrosoftBuildLocatorVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" OverrideVersion="$(MicrosoftCodeAnalysisPackageVersion)" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" OverrideVersion="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.core" OverrideVersion="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.linux" OverrideVersion="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.osx" OverrideVersion="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" OverrideVersion="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3.net45" OverrideVersion="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" OverrideVersion="$(MicrosoftCodeAnalysisPackageVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Features" OverrideVersion="$(MicrosoftCodeAnalysisPackageVersion)" />
-    <PackageReference Include="System.Memory" OverrideVersion="$(SystemMemoryVersion)" />
+    <PackageReference Include="Microsoft.Build.Locator" VersionOverride="$(MicrosoftBuildLocatorVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.core" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.linux" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.osx" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3.net45" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Features" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="System.Memory" VersionOverride="$(SystemMemoryVersion)" />
   </ItemGroup>
 </Project>

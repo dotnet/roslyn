@@ -31,6 +31,7 @@
       <Aliases>vbcscompiler</Aliases>
     </ProjectReference>
 
+    <PackageReference Include="Microsoft.CodeAnalysis" VersionOverride="4.8.0" />
     <PackageReference Include="Mono.Options" />
     <PackageReference Include="MSBuild.StructuredLogger" />
     <PackageReference Include="Basic.CompilerLog.Util" />

@@ -2026,6 +2026,9 @@ Global
 		src\RoslynAnalyzers\Utilities\Refactoring.CSharp\Refactoring.CSharp.Utilities.projitems*{3055f932-0d1e-4823-a03a-7b62c7639bda}*SharedItemsImports = 13
 		src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.projitems*{3140fe61-0856-4367-9aa3-8081b9a80e35}*SharedItemsImports = 13
 		src\ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{3140fe61-0856-4367-9aa3-8081b9a80e36}*SharedItemsImports = 13
+		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{34a07d0c-32e6-e19b-337e-4e6cb722c606}*SharedItemsImports = 5
+		src\RoslynAnalyzers\Utilities\FlowAnalysis\FlowAnalysis.Utilities.projitems*{34a07d0c-32e6-e19b-337e-4e6cb722c606}*SharedItemsImports = 5
+		src\RoslynAnalyzers\Utilities\Workspaces\Workspaces.Utilities.projitems*{34a07d0c-32e6-e19b-337e-4e6cb722c606}*SharedItemsImports = 5
 		src\Analyzers\CSharp\Analyzers\CSharpAnalyzers.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 5
 		src\Analyzers\CSharp\CodeFixes\CSharpCodeFixes.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 5
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 5

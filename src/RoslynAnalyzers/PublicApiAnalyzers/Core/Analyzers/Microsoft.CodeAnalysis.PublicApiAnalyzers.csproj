@@ -9,16 +9,19 @@
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
     <MicrosoftCodeAnalysisPackageVersion>$(MicrosoftCodeAnalysisPackageVersionForPublicApiAnalyzers)</MicrosoftCodeAnalysisPackageVersion>
   </PropertyGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="System.ValueTuple" VersionOverride="4.5.0" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Roslyn.Diagnostics.Analyzers\Core\RoslynDiagnosticIds.cs" Link="RoslynDiagnosticIds.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests" />
+    <EmbeddedResource Update="PublicApiAnalyzerResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.ValueTuple" OverrideVersion="4.5.0" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
 </Project>

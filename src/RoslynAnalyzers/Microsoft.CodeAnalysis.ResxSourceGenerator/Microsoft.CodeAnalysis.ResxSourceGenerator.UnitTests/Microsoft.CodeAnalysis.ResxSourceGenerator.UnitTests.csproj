@@ -9,15 +9,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" OverrideVersion="$(MicrosoftCodeAnalysisPackageVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" OverrideVersion="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" OverrideVersion="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing" OverrideVersion="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" OverrideVersion="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing" OverrideVersion="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" OverrideVersion="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" OverrideVersion="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing" OverrideVersion="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" VersionOverride="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" VersionOverride="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing" VersionOverride="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" VersionOverride="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing" VersionOverride="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" VersionOverride="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" VersionOverride="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing" VersionOverride="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 

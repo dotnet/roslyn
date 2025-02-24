@@ -3,6 +3,6 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
-    <DefineConstants>$(DefineConstants),MICROSOFT_CODEANALYSIS_ANALYZERS</DefineConstants>
+    <RoslynAnalyzersProject>true</RoslynAnalyzersProject>
   </PropertyGroup>
 </Project>

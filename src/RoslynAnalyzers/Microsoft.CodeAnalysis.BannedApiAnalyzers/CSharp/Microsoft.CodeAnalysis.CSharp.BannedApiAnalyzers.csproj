@@ -5,7 +5,8 @@
     <MicrosoftCodeAnalysisPackageVersion>$(MicrosoftCodeAnalysisPackageVersionForBannedApiAnalyzers)</MicrosoftCodeAnalysisPackageVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" OverrideVersion="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.BannedApiAnalyzers.csproj" />

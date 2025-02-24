@@ -7,6 +7,6 @@
   <PropertyGroup>
     <NonShipping>true</NonShipping>
   </PropertyGroup>
-  
-  <Import Project="..\Directory.Build.props"/>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 </Project>

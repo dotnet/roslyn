@@ -140,7 +140,4 @@
     <None Include="$(MSBuildThisFileDirectory)DiagnosticCategoryAndIdRanges.txt" />
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)DiagnosticCategoryAndIdRanges.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" OverrideVersion="$(MicrosoftCodeAnalysisPackageVersion)" />
-  </ItemGroup>
 </Project>
