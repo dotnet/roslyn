@@ -525,7 +525,7 @@ public struct C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75833")]
-        public void GetSymbolInfo_ImplicitUserDefinedConversionOnMethodGroup_InAssignemnt()
+        public void GetSymbolInfo_ImplicitUserDefinedConversionOnMethodGroup_InAssignment()
         {
             var src = """
 public class C

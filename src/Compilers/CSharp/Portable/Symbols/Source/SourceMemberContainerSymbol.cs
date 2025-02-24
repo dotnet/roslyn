@@ -3439,9 +3439,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var membersAndInituializers = GetMembersAndInitializers();
-                nonTypeMembersToCheck = membersAndInituializers.NonTypeMembers;
-                primaryConstructor = membersAndInituializers.PrimaryConstructor;
+                var membersAndInitializers = GetMembersAndInitializers();
+                nonTypeMembersToCheck = membersAndInitializers.NonTypeMembers;
+                primaryConstructor = membersAndInitializers.PrimaryConstructor;
             }
 
             Debug.Assert(primaryConstructor is not null);
@@ -3484,9 +3484,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var membersAndInituializers = GetMembersAndInitializers();
-                Debug.Assert(membersAndInituializers.PrimaryConstructor is not null);
-                return membersAndInituializers.NonTypeMembers;
+                var membersAndInitializers = GetMembersAndInitializers();
+                Debug.Assert(membersAndInitializers.PrimaryConstructor is not null);
+                return membersAndInitializers.NonTypeMembers;
             }
         }
 
@@ -3509,9 +3509,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var membersAndInituializers = GetMembersAndInitializers();
-                nonTypeMembersToCheck = membersAndInituializers.NonTypeMembers;
-                primaryConstructor = membersAndInituializers.PrimaryConstructor;
+                var membersAndInitializers = GetMembersAndInitializers();
+                nonTypeMembersToCheck = membersAndInitializers.NonTypeMembers;
+                primaryConstructor = membersAndInitializers.PrimaryConstructor;
             }
 
             Debug.Assert(primaryConstructor is not null);

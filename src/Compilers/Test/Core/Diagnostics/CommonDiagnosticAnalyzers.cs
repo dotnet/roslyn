@@ -1556,7 +1556,7 @@ namespace Microsoft.CodeAnalysis
                 var sortedCallbackCodeBlockNames = new SortedSet<string>();
                 if (_testIsGeneratedCodeInCallbacks)
                 {
-                    // Test all remaining analysis contexts that expose "IsGeneratdCode" flag
+                    // Test all remaining analysis contexts that expose "IsGeneratedCode" flag
                     context.RegisterSyntaxNodeAction(context =>
                         sortedCallbackSyntaxNodeNames.Add($"{context.ContainingSymbol.Name}(IsGeneratedCode:{context.IsGeneratedCode})"),
                         ImmutableArray.Create(ClassDeclarationSyntaxKind));

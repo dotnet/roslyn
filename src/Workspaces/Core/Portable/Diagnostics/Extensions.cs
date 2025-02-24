@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal static partial class Extensions
 {
+    private static readonly ConditionalWeakTable<Project, AsyncLazy<Checksum>> s_projectToDiagnosticChecksum = new();
+
     public static async Task<ImmutableArray<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)
     {
         var result = ArrayBuilder<Diagnostic>.GetInstance();
@@ -427,6 +430,78 @@ internal static partial class Extensions
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             await suppressionAnalyzer.AnalyzeAsync(
                 semanticModel, span, hostCompilationWithAnalyzers, analyzerInfoCache.GetDiagnosticDescriptors, reportDiagnostic, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Calculates a checksum that contains a project's checksum along with a checksum for each of the project's 
+    /// transitive dependencies.
+    /// </summary>
+    /// <remarks>
+    /// This checksum calculation can be used for cases where a feature needs to know if the semantics in this project
+    /// changed.  For example, for diagnostics or caching computed semantic data. The goal is to ensure that changes to
+    /// <list type="bullet">
+    ///    <item>Files inside the current project</item>
+    ///    <item>Project properties of the current project</item>
+    ///    <item>Visible files in referenced projects</item>
+    ///    <item>Project properties in referenced projects</item>
+    /// </list>
+    /// are reflected in the metadata we keep so that comparing solutions accurately tells us when we need to recompute
+    /// semantic work.   
+    /// 
+    /// <para>This method of checking for changes has a few important properties that differentiate it from other methods of determining project version.
+    /// <list type="bullet">
+    ///    <item>Changes to methods inside the current project will be reflected to compute updated diagnostics.
+    ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> does not change as it only returns top level changes.</item>
+    ///    <item>Reloading a project without making any changes will re-use cached diagnostics.
+    ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> changes as the project is removed, then added resulting in a version change.</item>
+    /// </list>   
+    /// </para>
+    /// This checksum is also affected by the <see cref="SourceGeneratorExecutionVersion"/> for this project.
+    /// As such, it is not usable across different sessions of a particular host.
+    /// </remarks>
+    public static Task<Checksum> GetDiagnosticChecksumAsync(this Project? project, CancellationToken cancellationToken)
+    {
+        if (project is null)
+            return SpecializedTasks.Default<Checksum>();
+
+        var lazyChecksum = s_projectToDiagnosticChecksum.GetValue(
+            project,
+            static project => AsyncLazy.Create(
+                static (project, cancellationToken) => ComputeDiagnosticChecksumAsync(project, cancellationToken),
+                project));
+
+        return lazyChecksum.GetValueAsync(cancellationToken);
+
+        static async Task<Checksum> ComputeDiagnosticChecksumAsync(Project project, CancellationToken cancellationToken)
+        {
+            var solution = project.Solution;
+
+            using var _ = ArrayBuilder<Checksum>.GetInstance(out var tempChecksumArray);
+
+            // Mix in the SG information for this project.  That way if it changes, we will have a different
+            // checksum (since semantics could have changed because of this).
+            if (solution.CompilationState.SourceGeneratorExecutionVersionMap.Map.TryGetValue(project.Id, out var executionVersion))
+                tempChecksumArray.Add(executionVersion.Checksum);
+
+            // Get the checksum for the project itself.  Note: this will normally be cached.  As such, even if we
+            // have a different Project instance (due to a change in an unrelated project), this will be fast to
+            // compute and return.
+            var projectChecksum = await project.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            tempChecksumArray.Add(projectChecksum);
+
+            // Calculate a checksum this project and for each dependent project that could affect semantics for this
+            // project. We order the projects guid so that we are resilient to the underlying in-memory graph structure
+            // changing this arbitrarily.
+            foreach (var projectRef in project.ProjectReferences.OrderBy(r => r.ProjectId.Id))
+            {
+                // Note that these checksums should only actually be calculated once, if the project is unchanged
+                // the same checksum will be returned.
+                tempChecksumArray.Add(await GetDiagnosticChecksumAsync(
+                    solution.GetProject(projectRef.ProjectId), cancellationToken).ConfigureAwait(false));
+            }
+
+            return Checksum.Create(tempChecksumArray);
         }
     }
 }

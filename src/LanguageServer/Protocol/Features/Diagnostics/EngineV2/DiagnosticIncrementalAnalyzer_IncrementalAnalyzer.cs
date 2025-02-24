@@ -37,7 +37,7 @@ internal partial class DiagnosticAnalyzerService
         public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
             var projectState = project.State;
-            var checksum = await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
+            var checksum = await project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {

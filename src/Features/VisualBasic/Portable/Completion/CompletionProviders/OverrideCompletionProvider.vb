@@ -197,20 +197,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return False
         End Function
 
-        Protected Overrides Function GetTargetCaretPosition(caretTarget As SyntaxNode) As Integer
+        Protected Overrides Function GetTargetSelectionSpan(caretTarget As SyntaxNode) As TextSpan
             Dim node = DirectCast(caretTarget, SyntaxNode)
 
             ' MustOverride Sub | MustOverride Function: move to end of line
             Dim methodStatement = TryCast(node, MethodStatementSyntax)
             If methodStatement IsNot Nothing Then
-                Return methodStatement.GetLocation().SourceSpan.End
+                Return New TextSpan(methodStatement.GetLocation().SourceSpan.End, 0)
             End If
 
             Dim methodBlock = TryCast(node, MethodBlockBaseSyntax)
             If methodBlock IsNot Nothing Then
                 Dim lastStatement = methodBlock.Statements.LastOrDefault()
                 If lastStatement IsNot Nothing Then
-                    Return lastStatement.GetLocation().SourceSpan.End
+                    Return New TextSpan(lastStatement.GetLocation().SourceSpan.End, 0)
                 End If
             End If
 
@@ -220,12 +220,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 If firstAccessor IsNot Nothing Then
                     Dim lastAccessorStatement = firstAccessor.Statements.LastOrDefault()
                     If lastAccessorStatement IsNot Nothing Then
-                        Return lastAccessorStatement.GetLocation().SourceSpan.End
+                        Return New TextSpan(lastAccessorStatement.GetLocation().SourceSpan.End, 0)
                     End If
                 End If
             End If
 
-            Return -1
+            Return New TextSpan(0, 0)
         End Function
     End Class
 End Namespace

@@ -1994,7 +1994,7 @@ class C
         [InlineData("-")]
         [InlineData("*")]
         [InlineData("/")]
-        public void BinarOperator_Supported_CRef_TwoParameters_03(string op)
+        public void BinaryOperator_Supported_CRef_TwoParameters_03(string op)
         {
             var source = @"
 /// <summary>

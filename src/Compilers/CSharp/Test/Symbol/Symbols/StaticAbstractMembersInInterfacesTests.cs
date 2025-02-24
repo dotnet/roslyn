@@ -6476,7 +6476,7 @@ class C6 : C5<I1>
             else
             {
                 compilation2.VerifyEmitDiagnostics(
-                    // (43,7): error CS8920: The interface 'I1' cannot be used as type argumen. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (43,7): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     // class C6 : C5<I1>
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "C6").WithArguments("I1", "I1.M01()").WithLocation(43, 7)
                     );
@@ -6494,7 +6494,7 @@ class C6 : C5<I1>
             else
             {
                 compilation2.VerifyEmitDiagnostics(
-                    // (43,7): error CS8920: The interface 'I1' cannot be used as type argumen. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (43,7): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     // class C6 : C5<I1>
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "C6").WithArguments("I1", "I1.M01()").WithLocation(43, 7)
                     );

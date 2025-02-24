@@ -31078,7 +31078,7 @@ Position set for item '-2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeExpression_Class()
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Class()
         {
             var source = @"
 using System;
@@ -31219,7 +31219,7 @@ Position Slice for item '2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeExpression_Struct()
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Struct()
         {
             var source = @"
 using System;
@@ -31319,7 +31319,7 @@ Position Slice for item '-2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeExpression_Class_Ref()
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Class_Ref()
         {
             var source = @"
 using System;
@@ -31461,7 +31461,7 @@ Position Slice for item '2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeExpression_Struct_Ref()
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Struct_Ref()
         {
             var source = @"
 using System;
@@ -31561,7 +31561,7 @@ Position Slice for item '-2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeExpression_Class_Async_01()
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Class_Async_01()
         {
             var source = @"
 using System;
@@ -31856,7 +31856,7 @@ Position Slice for item '2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeExpression_Struct_Async_01()
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Struct_Async_01()
         {
             var source = @"
 using System;
@@ -32026,7 +32026,7 @@ Position Slice for item '-2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeValue_Class()
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeValue_Class()
         {
             var source = @"
 using System;
@@ -32201,7 +32201,7 @@ Position Slice for item '2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeValue_Struct()
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeValue_Struct()
         {
             var source = @"
 using System;
@@ -32318,7 +32318,7 @@ Position Slice for item '-2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeValue_Class_Ref()
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeValue_Class_Ref()
         {
             var source = @"
 using System;
@@ -32494,7 +32494,7 @@ Position Slice for item '2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeValue_Struct_Ref()
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeValue_Struct_Ref()
         {
             var source = @"
 using System;
@@ -32611,7 +32611,7 @@ Position Slice for item '-2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeValue_Class_Async_01()
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeValue_Class_Async_01()
         {
             var source = @"
 using System;
@@ -32946,7 +32946,7 @@ Position Slice for item '2'
 
         [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
-        public void GenericTypeParameterAsReceiver_ImpicitRangeIndexer_RangeValue_Struct_Async_01()
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeValue_Struct_Async_01()
         {
             var source = @"
 using System;

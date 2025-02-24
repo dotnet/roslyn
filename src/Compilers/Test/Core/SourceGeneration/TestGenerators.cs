@@ -46,7 +46,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
     }
 
     /// <summary>
-    /// A generator that produces diagnostics against existng source trees, rather than generating new content.
+    /// A generator that produces diagnostics against existing source trees, rather than generating new content.
     /// </summary>
     internal class DiagnosticProducingGenerator : ISourceGenerator
     {
@@ -77,7 +77,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
-#pragma warning disable RS0062 // Do not implicitly capture primary constructor paramters
+#pragma warning disable RS0062 // Do not implicitly capture primary constructor parameters
     internal class CallbackGenerator(
         Action<GeneratorInitializationContext> onInit,
         Action<GeneratorExecutionContext> onExecute,
@@ -125,7 +125,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
             }
         }
     }
-#pragma warning restore RS0062 // Do not implicitly capture primary constructor paramters
+#pragma warning restore RS0062 // Do not implicitly capture primary constructor parameters
 
     internal class CallbackGenerator2 : CallbackGenerator
     {

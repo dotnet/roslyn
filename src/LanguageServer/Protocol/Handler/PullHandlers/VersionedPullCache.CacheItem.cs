@@ -57,6 +57,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
             PreviousPullResult? previousPullResult,
             bool isFullyLoaded,
             TState state,
+            string language,
             CancellationToken cancellationToken)
         {
             // Ensure that we only update the cache item one at a time.
@@ -99,7 +100,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
 
                 // Compute the new result for the request.
                 var data = await cache.ComputeDataAsync(state, cancellationToken).ConfigureAwait(false);
-                var dataChecksum = cache.ComputeChecksum(data);
+                var dataChecksum = cache.ComputeChecksum(data, language);
 
                 string newResultId;
                 if (_lastResult is not null && _lastResult?.resultId == previousPullResult?.PreviousResultId && _lastResult?.dataChecksum == dataChecksum)

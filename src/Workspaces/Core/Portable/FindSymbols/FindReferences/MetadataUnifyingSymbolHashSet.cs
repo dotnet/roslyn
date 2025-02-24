@@ -3,11 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal sealed class MetadataUnifyingSymbolHashSet : HashSet<ISymbol>
+internal sealed class MetadataUnifyingSymbolHashSet : HashSet<ISymbol>, IPooled
 {
     private static readonly ObjectPool<MetadataUnifyingSymbolHashSet> s_metadataUnifyingSymbolHashSetPool = new(() => []);
 
@@ -15,12 +16,19 @@ internal sealed class MetadataUnifyingSymbolHashSet : HashSet<ISymbol>
     {
     }
 
-    public static MetadataUnifyingSymbolHashSet AllocateFromPool()
-        => s_metadataUnifyingSymbolHashSetPool.Allocate();
-
-    public static void ClearAndFree(MetadataUnifyingSymbolHashSet set)
+    public static PooledDisposer<MetadataUnifyingSymbolHashSet> GetInstance(out MetadataUnifyingSymbolHashSet instance)
     {
-        set.Clear();
-        s_metadataUnifyingSymbolHashSetPool.Free(set);
+        instance = s_metadataUnifyingSymbolHashSetPool.Allocate();
+        Debug.Assert(instance.Count == 0);
+
+        return new PooledDisposer<MetadataUnifyingSymbolHashSet>(instance);
+    }
+
+    public void Free(bool discardLargeInstances)
+    {
+        // ignore discardLargeInstances as we don't limit our pooled hashset capacities
+        Clear();
+
+        s_metadataUnifyingSymbolHashSetPool.Free(this);
     }
 }

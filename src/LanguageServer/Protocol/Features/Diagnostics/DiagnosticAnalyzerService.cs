@@ -68,7 +68,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
                option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
                option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption ||
-               option == s_crashOnAnalyzerException;
+               option == s_crashOnAnalyzerException ||
+               // Fading is controlled by reporting diagnostics for the faded region.  So if a fading option changes we
+               // want to recompute and rereport up to date diagnostics.
+               option == FadingOptions.FadeOutUnusedImports ||
+               option == FadingOptions.FadeOutUnusedMembers ||
+               option == FadingOptions.FadeOutUnreachableCode;
 
         public void RequestDiagnosticRefresh()
             => _diagnosticsRefresher.RequestWorkspaceRefresh();

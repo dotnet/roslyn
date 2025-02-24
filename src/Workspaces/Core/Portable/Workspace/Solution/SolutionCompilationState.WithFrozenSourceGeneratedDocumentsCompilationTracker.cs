@@ -28,8 +28,6 @@ internal sealed partial class SolutionCompilationState
     {
         private readonly TextDocumentStates<SourceGeneratedDocumentState> _replacementDocumentStates;
 
-        private AsyncLazy<Checksum>? _lazyDependentChecksum;
-
         /// <summary>
         /// The lazily-produced compilation that has the generated document updated. This is initialized by call to
         /// <see cref="GetCompilationAsync"/>.
@@ -144,28 +142,6 @@ internal sealed partial class SolutionCompilationState
 
         public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             => UnderlyingTracker.GetDependentSemanticVersionAsync(compilationState, cancellationToken);
-
-        public Task<Checksum> GetDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
-        {
-            if (_lazyDependentChecksum == null)
-            {
-                var tmp = compilationState; // temp. local to avoid a closure allocation for the fast path
-                // note: solution is captured here, but it will go away once GetValueAsync executes.
-                Interlocked.CompareExchange(
-                    ref _lazyDependentChecksum,
-                    AsyncLazy.Create(static (arg, c) =>
-                        arg.self.ComputeDependentChecksumAsync(arg.tmp, c),
-                        arg: (self: this, tmp)),
-                    null);
-            }
-
-            return _lazyDependentChecksum.GetValueAsync(cancellationToken);
-        }
-
-        private async Task<Checksum> ComputeDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
-            => Checksum.Create(
-                await UnderlyingTracker.GetDependentChecksumAsync(compilationState, cancellationToken).ConfigureAwait(false),
-                (await _replacementDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
 
         public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
             SolutionCompilationState compilationState, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)

@@ -59,7 +59,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
     /// </summary>
     public abstract Task<TComputedData> ComputeDataAsync(TState state, CancellationToken cancellationToken);
 
-    public abstract Checksum ComputeChecksum(TComputedData data);
+    public abstract Checksum ComputeChecksum(TComputedData data, string language);
 
     /// <summary>
     /// If results have changed since the last request this calculates and returns a new
@@ -75,14 +75,16 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
         TState state,
         CancellationToken cancellationToken)
     {
-        var workspace = project.Solution.Workspace;
-
         // We have to make sure we've been fully loaded before using cached results as the previous results may not be complete.
         var isFullyLoaded = await IsFullyLoadedAsync(project.Solution, cancellationToken).ConfigureAwait(false);
         var previousResult = IDictionaryExtensions.GetValueOrDefault(idToClientLastResult, projectOrDocumentId);
 
-        var cacheEntry = _idToLastReportedResult.GetOrAdd((project.Solution.Workspace, projectOrDocumentId), (_) => new CacheItem(uniqueKey));
-        return await cacheEntry.UpdateCacheItemAsync(this, previousResult, isFullyLoaded, state, cancellationToken).ConfigureAwait(false);
+        var cacheEntry = _idToLastReportedResult.GetOrAdd(
+            (project.Solution.Workspace, projectOrDocumentId),
+            static (_, uniqueKey) => new CacheItem(uniqueKey),
+            uniqueKey);
+        return await cacheEntry.UpdateCacheItemAsync(
+            this, previousResult, isFullyLoaded, state, project.Language, cancellationToken).ConfigureAwait(false);
     }
 
     private long GetNextResultId()

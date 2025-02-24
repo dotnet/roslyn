@@ -1177,6 +1177,7 @@ Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_GetEnumeratorMethod
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_IsAsynchronous
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_MoveNextMethod
 Microsoft.CodeAnalysis.CSharp.InterceptableLocation
+Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Equals(Microsoft.CodeAnalysis.CSharp.InterceptableLocation)
 Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Equals(System.Object)
 Microsoft.CodeAnalysis.CSharp.InterceptableLocation.GetDisplayLocation
 Microsoft.CodeAnalysis.CSharp.InterceptableLocation.GetHashCode
