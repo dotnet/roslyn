@@ -16,43 +16,47 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider
 {
     private static class CodeGenerator
     {
-        public static void GenerateCode(SyntaxEditor editor, StatementSyntax throwStatement, string copilotSuggestedCodeBlock)
+        public static void GenerateCode(SyntaxEditor editor, SyntaxNode throwNode, string codeBlockSuggestion)
         {
-            // Use it to replace the throw statement
-            if (!string.IsNullOrWhiteSpace(copilotSuggestedCodeBlock))
+            if (string.IsNullOrWhiteSpace(codeBlockSuggestion))
+                return;
+
+            try
             {
-                try
-                {
-                    // Get the base indentation from the throw statement
-                    var baseIndentation = throwStatement.GetLeadingTrivia()
-                        .Where(t => t.IsKind(SyntaxKind.WhitespaceTrivia))
-                        .LastOrDefault()
-                        .ToString() ?? "    ";
+                // Find the containing method declaration
+                var methodDeclaration = throwNode.Ancestors().OfType<MethodDeclarationSyntax>().First();
 
-                    // Parse the text as a code block to preserve comments
-                    var blockText = $"{{\n{copilotSuggestedCodeBlock}\n}}";
-                    var parsedBlock = SyntaxFactory.ParseStatement(blockText) as BlockSyntax;
-                    if (parsedBlock == null)
-                    {
-                        return;
-                    }
+                // Replace the line with the error
+                var baseIndentation = methodDeclaration.Body?.OpenBraceToken
+                    .LeadingTrivia
+                    .Where(t => t.IsKind(SyntaxKind.WhitespaceTrivia))
+                    .LastOrDefault()
+                    .ToString() ?? "    ";
 
-                    // Get the statements with their original trivia
-                    var statements = parsedBlock.Statements
-                        .Select(s => s.WithLeadingTrivia(
-                            s.GetLeadingTrivia()
-                                .Select(t => t.IsKind(SyntaxKind.WhitespaceTrivia)
-                                    ? SyntaxFactory.Whitespace(baseIndentation)
-                                    : t))
-                            .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation));
+                // Parse the provided code block
+                var newMethodBody = SyntaxFactory.Block(
+                        SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
+                        SyntaxFactory.List(SyntaxFactory
+                            .ParseStatement($"{{\n{codeBlockSuggestion}\n}}")
+                            .DescendantNodes()
+                            .OfType<StatementSyntax>()
+                            .Select(s => s.WithLeadingTrivia(
+                                s.GetLeadingTrivia()
+                                    .Select(t => t.IsKind(SyntaxKind.WhitespaceTrivia)
+                                        ? SyntaxFactory.Whitespace(baseIndentation)
+                                        : t))
+                                .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation)) ?? Enumerable.Empty<StatementSyntax>()),
+                        SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
+                    .WithAdditionalAnnotations(Formatter.Annotation);
 
-                    // Replace the throw statement with the properly formatted statements
-                    editor.ReplaceNode(throwStatement, (node, generator) => statements);
-                }
-                catch (Exception)
-                {
-                    // Handle any exceptions that occur during the replacement
-                }
+                // Replace the entire method body
+                editor.ReplaceNode(
+                    methodDeclaration.Body ?? (SyntaxNode)methodDeclaration.ExpressionBody!,
+                    newMethodBody);
+            }
+            catch (Exception)
+            {
+                // Handle any exceptions that occur during the replacement
             }
         }
     }

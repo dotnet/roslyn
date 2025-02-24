@@ -45,6 +45,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.MethodImplementationProposalWrappe
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.MethodImplementationProposalWrapper.Accessibility.get -> string!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.MethodImplementationProposalWrapper.ContainingType.get -> string!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.MethodImplementationProposalWrapper.LanguageVersion.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.MethodImplementationProposalWrapper.MethodBody.get -> string!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.MethodImplementationProposalWrapper.MethodImplementationProposalWrapper(Microsoft.CodeAnalysis.MethodImplementation.MethodImplementationProposal! methodImplementationProposal) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.MethodImplementationProposalWrapper.MethodName.get -> string!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.MethodImplementationProposalWrapper.Modifiers.get -> System.Collections.Immutable.ImmutableArray<string!>

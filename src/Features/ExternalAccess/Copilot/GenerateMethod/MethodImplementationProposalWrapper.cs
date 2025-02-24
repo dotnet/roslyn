@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
         }
 
         public string MethodName => _methodImplementationProposal.MethodName;
+        public string MethodBody => _methodImplementationProposal.MethodBody;
         public string ReturnType => _methodImplementationProposal.ReturnType;
         public string ContainingType => _methodImplementationProposal.ContainingType;
         public string Accessibility => _methodImplementationProposal.Accessibility;

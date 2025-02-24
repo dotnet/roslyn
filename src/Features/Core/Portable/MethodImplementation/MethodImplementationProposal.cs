@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.MethodImplementation;
 internal sealed record MethodImplementationProposal
 {
     public required string MethodName { get; init; }
+    public required string MethodBody { get; init; }
     public required string ReturnType { get; init; }
     public required string ContainingType { get; init; }
     public required string Accessibility { get; init; }

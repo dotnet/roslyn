@@ -11,23 +11,25 @@ using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.MethodImplementation;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
-
-internal static class CopilotCodeProvider
+internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider
 {
-    public static async Task<string> GetCopilotSuggestedCodeBlockAsync(ICopilotCodeAnalysisService copilotService, MethodImplementationProposal analysisRecord, CancellationToken cancellationToken)
+    internal static class CodeProvider
     {
-        // Get the Copilot service and fetch the method implementation
-        var (dictionary, isQuotaExceeded) = await copilotService.GetMethodImplementationAsync(analysisRecord, cancellationToken).ConfigureAwait(false);
-
-        // Quietly fail if the quota has been exceeded.
-        if (isQuotaExceeded ||
-            dictionary is null ||
-            dictionary.Count() == 0 ||
-            !dictionary.ContainsKey("Method Body"))
+        public static async Task<string> SuggestCodeBlockAsync(ICopilotCodeAnalysisService copilotService, MethodImplementationProposal analysisRecord, CancellationToken cancellationToken)
         {
-            return string.Empty;
-        }
+            // Get the Copilot service and fetch the method implementation
+            var (dictionary, isQuotaExceeded) = await copilotService.GetMethodImplementationAsync(analysisRecord, cancellationToken).ConfigureAwait(false);
 
-        return dictionary["Method Body"];
+            // Quietly fail if the quota has been exceeded.
+            if (isQuotaExceeded ||
+                dictionary is null ||
+                dictionary.Count() == 0 ||
+                !dictionary.ContainsKey("Implementation"))
+            {
+                return string.Empty;
+            }
+
+            return dictionary["Implementation"];
+        }
     }
 }
