@@ -81,6 +81,11 @@ internal static class Completion
         return InlineCompletionsHandler.GetInlineCompletionItemsAsync(logger, document, position, options, xmlSnippetParser, cancellationToken);
     }
 
+    public static Document ApplyProvisionalEdit(SourceGeneratedDocument generatedDocument, SourceText updatedDocumentText)
+    {
+        return generatedDocument.Project.Solution.WithFrozenSourceGeneratedDocument(generatedDocument.Identity, DateTime.Now, updatedDocumentText);
+    }
+
     private sealed class EmptyLogger : ILspLogger
     {
         public void LogStartContext(string message, params object[] @params)
