@@ -472,7 +472,7 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
             try
             {
                 var featureFlags = (IVsFeatureFlags)PackageUtilities.QueryService<SVsFeatureFlags>(_oleServiceProvider);
-                return featureFlags.IsFeatureEnabled("Winforms.AsyncDesignerLoad", defaultValue: true);
+                return featureFlags.IsFeatureEnabled("Winforms.AsyncDesignerLoad", defaultValue: false);
             }
             catch (Exception)
             {
