@@ -8,36 +8,15 @@ namespace Microsoft.CodeAnalysis.MethodImplementation;
 
 internal sealed record MethodImplementationProposal
 {
-    public string MethodName { get; }
-    public string ReturnType { get; }
-    public string ContainingType { get; }
-    public string Accessibility { get; }
-    public ImmutableArray<string> Modifiers { get; }
-    public ImmutableArray<MethodImplementationParameterInfo> Parameters { get; }
-    public string PreviousTokenText { get; }
-    public string NextTokenText { get; }
-    public ImmutableArray<MethodImplementationProposedEdit> ProposedEdits { get; }
-
-    public MethodImplementationProposal(
-        string methodName,
-        string returnType,
-        string containingType,
-        string accessibility,
-        ImmutableArray<string> modifiers,
-        ImmutableArray<MethodImplementationParameterInfo> parameters,
-        string previousTokenText,
-        string nextTokenText,
-        ImmutableArray<MethodImplementationProposedEdit> proposedEdits
-        )
-    {
-        MethodName = methodName;
-        ReturnType = returnType;
-        ContainingType = containingType;
-        Accessibility = accessibility;
-        Modifiers = modifiers;
-        Parameters = parameters;
-        PreviousTokenText = previousTokenText;
-        NextTokenText = nextTokenText;
-        ProposedEdits = proposedEdits;
-    }
+    public required string MethodName { get; init; }
+    public required string ReturnType { get; init; }
+    public required string ContainingType { get; init; }
+    public required string Accessibility { get; init; }
+    public required ImmutableArray<string> Modifiers { get; init; }
+    public required ImmutableArray<MethodImplementationParameterContext> Parameters { get; init; }
+    public required ImmutableArray<MethodImplementationReferenceContext> TopReferences { get; init; }
+    public required int ReferenceCount { get; init; }
+    public required string PreviousTokenText { get; init; }
+    public required string NextTokenText { get; init; }
+    public required string LanguageVersion { get; init; }
 }

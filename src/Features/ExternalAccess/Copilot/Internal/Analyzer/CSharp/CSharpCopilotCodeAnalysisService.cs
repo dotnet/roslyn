@@ -139,7 +139,7 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
     protected override Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetMethodImplementationCoreAsync(MethodImplementationProposal proposal, CancellationToken cancellationToken)
     {
         if (GenerateImplementationService is not null)
-            return GenerateImplementationService.GetMethodImplementationAsync(new CopilotMethodImplementationProposalWrapper(proposal), cancellationToken);
+            return GenerateImplementationService.GetMethodImplementationAsync(new MethodImplementationProposalWrapper(proposal), cancellationToken);
 
         return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
     }

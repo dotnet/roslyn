@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
 {
     internal interface IExternalCSharpCopilotGenerateImplementationService
     {
-        Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetMethodImplementationAsync(CopilotMethodImplementationProposalWrapper proposal, CancellationToken cancellationToken);
+        Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetMethodImplementationAsync(MethodImplementationProposalWrapper proposal, CancellationToken cancellationToken);
     }
 }

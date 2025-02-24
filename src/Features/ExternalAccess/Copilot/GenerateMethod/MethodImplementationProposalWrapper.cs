@@ -3,19 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateMethod;
 using Microsoft.CodeAnalysis.MethodImplementation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
 {
-    internal sealed class CopilotMethodImplementationProposalWrapper
+    internal sealed class MethodImplementationProposalWrapper
     {
         private readonly MethodImplementationProposal _methodImplementationProposal;
-        private readonly ImmutableArray<CopilotMethodImplementationProposedEditWrapper> _wrappedProposedEdits;
 
-        public CopilotMethodImplementationProposalWrapper(MethodImplementationProposal methodImplementationProposal)
+        public MethodImplementationProposalWrapper(MethodImplementationProposal methodImplementationProposal)
         {
             _methodImplementationProposal = methodImplementationProposal;
-            _wrappedProposedEdits = _methodImplementationProposal.ProposedEdits.SelectAsArray(e => new CopilotMethodImplementationProposedEditWrapper(e));
         }
 
         public string MethodName => _methodImplementationProposal.MethodName;
@@ -23,9 +23,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
         public string ContainingType => _methodImplementationProposal.ContainingType;
         public string Accessibility => _methodImplementationProposal.Accessibility;
         public ImmutableArray<string> Modifiers => _methodImplementationProposal.Modifiers;
-        public ImmutableArray<MethodImplementationParameterInfo> Parameters => _methodImplementationProposal.Parameters;
+        public int ReferenceCount => _methodImplementationProposal.ReferenceCount;
         public string PreviousTokenText => _methodImplementationProposal.PreviousTokenText;
         public string NextTokenText => _methodImplementationProposal.NextTokenText;
-        public ImmutableArray<CopilotMethodImplementationProposedEditWrapper> ProposedEdits => _wrappedProposedEdits;
+        public string LanguageVersion => _methodImplementationProposal.LanguageVersion;
+        public ImmutableArray<MethodImplementationParameterContextWrapper> Parameters
+            => _methodImplementationProposal.Parameters.Select(p => new MethodImplementationParameterContextWrapper(p)).ToImmutableArray();
+        public ImmutableArray<MethodImplementationReferenceContextWrapper> ReferenceContexts
+            => _methodImplementationProposal.TopReferences.Select(r => new MethodImplementationReferenceContextWrapper(r)).ToImmutableArray();
     }
 }
