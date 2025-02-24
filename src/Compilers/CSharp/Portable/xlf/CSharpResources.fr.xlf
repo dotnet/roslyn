@@ -368,8 +368,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
-        <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
-        <target state="translated">Nous n’avons pas pu utiliser une constante numérique ou un modèle relationnel sur '{0}', car il hérite ou étend 'INumberBase&lt;T&gt;'. Utilisez un modèle de type pour vous limiter à un type numérique spécifié.</target>
+        <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
+        <target state="needs-review-translation">Nous n’avons pas pu utiliser une constante numérique ou un modèle relationnel sur '{0}', car il hérite ou étend 'INumberBase&lt;T&gt;'. Utilisez un modèle de type pour vous limiter à un type numérique spécifié.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">

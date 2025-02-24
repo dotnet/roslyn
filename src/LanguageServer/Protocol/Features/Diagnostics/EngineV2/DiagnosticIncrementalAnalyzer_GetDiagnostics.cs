@@ -121,7 +121,7 @@ internal partial class DiagnosticAnalyzerService
                 if (s_projectToForceAnalysisData.TryGetValue(project.State, out var box) &&
                     analyzers.IsSubsetOf(box.Value.analyzers))
                 {
-                    var checksum = await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
+                    var checksum = await project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false);
                     if (box.Value.checksum == checksum)
                         return box.Value.diagnosticAnalysisResults;
                 }
