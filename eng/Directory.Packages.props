@@ -315,5 +315,6 @@
       the generators we build would load on the command line but not load in IDEs.
     -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.VisualStudio.SolutionPersistence" Version="1.0.28" />
   </ItemGroup>
 </Project>

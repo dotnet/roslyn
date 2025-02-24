@@ -3290,6 +3290,33 @@ class C { }";
             Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
         }
 
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestValidXmlSolutionSupport()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .WithFile(@"CSharpXmlSolution.slnx", Resources.XmlSolutions.CSharp)); 
+            var solutionFilePath = GetSolutionFileName(@"CSharpXmlSolution.slnx");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+            var csharpProject = solution.Projects.Single();
+
+            Assert.Equal(LanguageNames.CSharp, csharpProject.Language);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestInValidXmlSolutionSupport()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .WithFile(@"InvalidXmlSolution.slnx", Resources.XmlSolutions.Invalid)); 
+            var solutionFilePath = GetSolutionFileName(@"InvalidXmlSolution.slnx");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var exception = await Assert.ThrowsAsync<Exception>(() => workspace.OpenSolutionAsync(solutionFilePath));
+
+            Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
+        }
+
         // On .NET Core this tests fails with "CodePage Not Found"
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DesktopClrOnly))]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]

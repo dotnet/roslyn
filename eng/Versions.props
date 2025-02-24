@@ -106,4 +106,8 @@
     <!-- Prohibit the usage of .NET Standard 1.x dependencies. -->
     <FlagNetStandard1XDependencies Condition="'$(DotNetBuildSourceOnly)' == 'true'">true</FlagNetStandard1XDependencies>
   </PropertyGroup>
+  <!-- SolutionPersistence -->
+  <PropertyGroup>
+    <MicrosoftVisualStudioSolutionPersistenceVersion>1.0.28</MicrosoftVisualStudioSolutionPersistenceVersion>
+  </PropertyGroup>
 </Project>
