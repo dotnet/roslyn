@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Simple names are not case sensitive
         /// </summary>
-        private static readonly (StringComparer Comparer, StringComparison Comparison) SimpleNameComparer = (StringComparer.OrdinalIgnoreCase, StringComparison.OrdinalIgnoreCase);
+        internal static readonly (StringComparer Comparer, StringComparison Comparison) SimpleNameComparer = (StringComparer.OrdinalIgnoreCase, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// This is a map between the original full path and how it is represented in this loader. Specifically
@@ -177,6 +178,10 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     _ = set.Add(originalPath);
+                }
+                else
+                {
+                    Debug.Assert(GeneratedPathComparer.Equals(_originalPathInfoMap[originalPath].ResolvedPath, resolvedPath));
                 }
             }
 
