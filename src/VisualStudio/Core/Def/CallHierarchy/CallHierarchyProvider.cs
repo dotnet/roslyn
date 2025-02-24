@@ -73,8 +73,6 @@ internal partial class CallHierarchyProvider
                 () => symbol.GetGlyph().GetImageSource(GlyphService),
                 callsites,
                 project);
-
-            return item;
         }
 
         return null;
