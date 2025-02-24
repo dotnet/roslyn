@@ -390,15 +390,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (uncommon.LazyExtensionParameter is null)
                 {
-                    var extensionParameter = makeExtensionParameter();
+                    var extensionParameter = makeExtensionParameter(this, uncommon);
                     Interlocked.CompareExchange(ref uncommon.LazyExtensionParameter, new StrongBox<ParameterSymbol>(extensionParameter), null);
                 }
 
                 return uncommon.LazyExtensionParameter.Value;
 
-                ParameterSymbol makeExtensionParameter()
+                static ParameterSymbol makeExtensionParameter(PENamedTypeSymbol @this, ExtensionInfo uncommon)
                 {
-                    var methodSymbol = getMarkerMethodSymbol();
+                    var methodSymbol = getMarkerMethodSymbol(@this, uncommon);
 
                     // PROTOTYPE: do we want to tighten the flags check further? (require that type be sealed?)
                     if (methodSymbol.DeclaredAccessibility != Accessibility.Public ||
@@ -410,14 +410,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         return null; // PROTOTYPE: Test this code path
                     }
 
-                    return new ReceiverParameterSymbol(this, methodSymbol.Parameters[0]);
+                    return new ReceiverParameterSymbol(@this, methodSymbol.Parameters[0]);
                 }
 
-                MethodSymbol getMarkerMethodSymbol()
+                static MethodSymbol getMarkerMethodSymbol(PENamedTypeSymbol @this, ExtensionInfo uncommon)
                 {
                     Debug.Assert(!uncommon.MarkerMethod.IsNil);
 
-                    foreach (var member in GetMembers(WellKnownMemberNames.ExtensionMarkerMethodName))
+                    foreach (var member in @this.GetMembers(WellKnownMemberNames.ExtensionMarkerMethodName))
                     {
                         if (member is PEMethodSymbol candidate && candidate.Handle == uncommon.MarkerMethod)
                         {
@@ -469,81 +469,82 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Interlocked.CompareExchange(ref uncommon.LazyImplementationMap, new ConcurrentDictionary<MethodSymbol, MethodSymbol>(Roslyn.Utilities.ReferenceEqualityComparer.Instance), null);
             }
 
-            return uncommon.LazyImplementationMap.GetOrAdd(
-                method,
-                static (method, @this) =>
+            return uncommon.LazyImplementationMap.GetOrAdd(method, findCorrespondingExtensionImplementationMethod, this);
+
+            static MethodSymbol findCorrespondingExtensionImplementationMethod(MethodSymbol method, PENamedTypeSymbol @this)
+            {
+                foreach (var member in @this.ContainingType.GetMembers(SourceExtensionImplementationMethodSymbol.GetImplementationName(method)))
                 {
-                    foreach (var member in @this.ContainingType.GetMembers(SourceExtensionImplementationMethodSymbol.GetImplementationName(method)))
+                    if (member is not MethodSymbol { HasSpecialName: true, IsStatic: true } candidate)
                     {
-                        if (member is not MethodSymbol { HasSpecialName: true, IsStatic: true } candidate)
-                        {
-                            continue; // PROTOTYPE: Test this code path
-                        }
-
-                        if (candidate.Arity != @this.Arity + method.Arity)
-                        {
-                            continue; // PROTOTYPE: Test this code path
-                        }
-
-                        int additionalParameterCount = method.IsStatic ? 0 : 1;
-                        if (additionalParameterCount + method.ParameterCount != candidate.ParameterCount)
-                        {
-                            continue; // PROTOTYPE: Test this code path
-                        }
-
-                        ImmutableArray<TypeParameterSymbol> combinedTypeParameters = @this.TypeParameters.Concat(method.TypeParameters);
-                        var typeMap = combinedTypeParameters.IsEmpty ? null : new TypeMap(combinedTypeParameters, candidate.TypeParameters);
-
-                        if (!MemberSignatureComparer.HaveSameReturnTypes(
-                                candidate,
-                                typeMap1: null,
-                                method,
-                                typeMap,
-                                TypeCompareKind.CLRSignatureCompareOptions))
-                        {
-                            continue; // PROTOTYPE: Test this code path
-                        }
-
-                        if (!method.IsStatic &&
-                            !MemberSignatureComparer.HaveSameParameterType(
-                                candidate.Parameters[0],
-                                typeMap1: null,
-                                @this.ExtensionParameter,
-                                typeMap,
-                                MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
-                                considerDefaultValues: false,
-                                TypeCompareKind.CLRSignatureCompareOptions))
-                        {
-                            continue; // PROTOTYPE: Test this code path
-                        }
-
-                        if (!MemberSignatureComparer.HaveSameParameterTypes(
-                                candidate.Parameters.AsSpan(additionalParameterCount, candidate.ParameterCount - additionalParameterCount),
-                                typeMap1: null,
-                                method.Parameters.AsSpan(),
-                                typeMap,
-                                MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
-                                considerDefaultValues: false,
-                                TypeCompareKind.CLRSignatureCompareOptions))
-                        {
-                            continue; // PROTOTYPE: Test this code path
-                        }
-
-                        if (MemberSignatureComparer.HaveSameConstraints(
-                                candidate.TypeParameters,
-                                typeMap1: null,
-                                combinedTypeParameters,
-                                typeMap))
-                        {
-                            return candidate;
-                        }
-
-                        break; // PROTOTYPE: Test this code path
+                        continue; // PROTOTYPE: Test this code path
                     }
 
-                    return null; // PROTOTYPE: Test this code path
-                },
-                this);
+                    // PROTOTYPE: Consider comparing accessibility as well
+
+                    if (candidate.Arity != @this.Arity + method.Arity)
+                    {
+                        continue; // PROTOTYPE: Test this code path
+                    }
+
+                    int additionalParameterCount = method.IsStatic ? 0 : 1;
+                    if (additionalParameterCount + method.ParameterCount != candidate.ParameterCount)
+                    {
+                        continue; // PROTOTYPE: Test this code path
+                    }
+
+                    ImmutableArray<TypeParameterSymbol> combinedTypeParameters = @this.TypeParameters.Concat(method.TypeParameters);
+                    var typeMap = combinedTypeParameters.IsEmpty ? null : new TypeMap(combinedTypeParameters, candidate.TypeParameters);
+
+                    if (!MemberSignatureComparer.HaveSameReturnTypes(
+                            candidate,
+                            typeMap1: null,
+                            method,
+                            typeMap,
+                            TypeCompareKind.CLRSignatureCompareOptions))
+                    {
+                        continue; // PROTOTYPE: Test this code path
+                    }
+
+                    if (!method.IsStatic &&
+                        !MemberSignatureComparer.HaveSameParameterType(
+                            candidate.Parameters[0],
+                            typeMap1: null,
+                            @this.ExtensionParameter,
+                            typeMap,
+                            MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
+                            considerDefaultValues: false,
+                            TypeCompareKind.CLRSignatureCompareOptions))
+                    {
+                        continue; // PROTOTYPE: Test this code path
+                    }
+
+                    if (!MemberSignatureComparer.HaveSameParameterTypes(
+                            candidate.Parameters.AsSpan(additionalParameterCount, candidate.ParameterCount - additionalParameterCount),
+                            typeMap1: null,
+                            method.Parameters.AsSpan(),
+                            typeMap,
+                            MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
+                            considerDefaultValues: false,
+                            TypeCompareKind.CLRSignatureCompareOptions))
+                    {
+                        continue; // PROTOTYPE: Test this code path
+                    }
+
+                    if (MemberSignatureComparer.HaveSameConstraints(
+                            candidate.TypeParameters,
+                            typeMap1: null,
+                            combinedTypeParameters,
+                            typeMap))
+                    {
+                        return candidate;
+                    }
+
+                    break; // PROTOTYPE: Test this code path
+                }
+
+                return null; // PROTOTYPE: Test this code path
+            }
         }
 
         internal PEModuleSymbol ContainingPEModule

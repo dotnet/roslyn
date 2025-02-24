@@ -410,6 +410,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The name of marker method for an extension type.
         /// </summary>
-        internal const string ExtensionMarkerMethodName = "<Extension>$"; // PROTOTYPE confirm name with WG
+        internal const string ExtensionMarkerMethodName = "<Extension>$";
     }
 }

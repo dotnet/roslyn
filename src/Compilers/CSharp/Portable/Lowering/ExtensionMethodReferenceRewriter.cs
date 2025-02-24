@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 do
                 {
-                    rewrittenCall = visitArgumentsAndFinishRewrite(node, rewrittenReceiver);
+                    rewrittenCall = visitArgumentsAndFinishRewrite(rewriter, node, rewrittenReceiver);
                     rewrittenReceiver = rewrittenCall;
                 }
                 while (calls.TryPop(out node!));
@@ -65,12 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Rewrite the receiver
                 BoundExpression? rewrittenReceiver = (BoundExpression?)rewriter.Visit(node.ReceiverOpt);
-                rewrittenCall = visitArgumentsAndFinishRewrite(node, rewrittenReceiver);
+                rewrittenCall = visitArgumentsAndFinishRewrite(rewriter, node, rewrittenReceiver);
             }
 
             return rewrittenCall;
 
-            BoundExpression visitArgumentsAndFinishRewrite(BoundCall node, BoundExpression? rewrittenReceiver)
+            static BoundExpression visitArgumentsAndFinishRewrite(BoundTreeRewriter rewriter, BoundCall node, BoundExpression? rewrittenReceiver)
             {
                 return updateCall(
                     node,
@@ -108,13 +108,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (receiverRefKind != RefKind.None)
                             {
                                 var builder = ArrayBuilder<RefKind>.GetInstance(method.ParameterCount, RefKind.None);
-                                builder[0] = SyntheticBoundNodeFactory.ArgumentRefKindFromParameterRefKind(receiverRefKind, useStrictArgumentRefKinds: false);
+                                builder[0] = argumentRefKindFromReceiverRefKind(receiverRefKind);
                                 argumentRefKinds = builder.ToImmutableAndFree();
                             }
                         }
                         else
                         {
-                            argumentRefKinds = argumentRefKinds.Insert(0, SyntheticBoundNodeFactory.ArgumentRefKindFromParameterRefKind(receiverRefKind, useStrictArgumentRefKinds: false));
+                            argumentRefKinds = argumentRefKinds.Insert(0, argumentRefKindFromReceiverRefKind(receiverRefKind)); // PROTOTYPE: Test this code path
                         }
 
                         invokedAsExtensionMethod = true;
@@ -141,6 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundCall.ResultKind,
                     originalMethodsOpt,
                     type);
+
+                static RefKind argumentRefKindFromReceiverRefKind(RefKind receiverRefKind)
+                {
+                    return SyntheticBoundNodeFactory.ArgumentRefKindFromParameterRefKind(receiverRefKind, useStrictArgumentRefKinds: false);
+                }
             }
         }
 
