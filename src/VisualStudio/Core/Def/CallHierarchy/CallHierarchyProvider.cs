@@ -98,11 +98,11 @@ internal partial class CallHierarchyProvider
                                         details);
     }
 
-    public async Task<IEnumerable<AbstractCallFinder>> CreateFindersAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<AbstractCallFinder>> CreateFindersAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
     {
         if (symbol.Kind is SymbolKind.Property or
-                SymbolKind.Event or
-                SymbolKind.Method)
+                           SymbolKind.Event or
+                           SymbolKind.Method)
         {
             var finders = new List<AbstractCallFinder>
             {
@@ -136,14 +136,12 @@ internal partial class CallHierarchyProvider
                 finders.Add(new ImplementerFinder(symbol, project.Id, AsyncListener, this));
             }
 
-            return finders;
+            return finders.ToImmutableArray();
         }
 
         if (symbol.Kind == SymbolKind.Field)
-        {
             return [new FieldReferenceFinder(symbol, project.Id, AsyncListener, this)];
-        }
 
-        return null;
+        return [];
     }
 }

@@ -23,8 +23,8 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
 {
     private readonly Workspace _workspace;
     private readonly INavigableLocation _navigableLocation;
-    private readonly IEnumerable<CallHierarchyDetail> _callsites;
-    private readonly IEnumerable<AbstractCallFinder> _finders;
+    private readonly ImmutableArray<CallHierarchyDetail> _callsites;
+    private readonly ImmutableArray<AbstractCallFinder> _finders;
     private readonly Func<ImageSource> _glyphCreator;
     private readonly CallHierarchyProvider _provider;
 
@@ -32,7 +32,7 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
         CallHierarchyProvider provider,
         ISymbol symbol,
         INavigableLocation navigableLocation,
-        IEnumerable<AbstractCallFinder> finders,
+        ImmutableArray<AbstractCallFinder> finders,
         Func<ImageSource> glyphCreator,
         ImmutableArray<Location> callsites,
         Project project)
