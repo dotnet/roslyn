@@ -24,15 +24,14 @@ internal static class FindUsagesHelpers
         => GetRelevantSymbolAndProjectAtPositionAsync(document, position, preferPrimaryConstructor: false, cancellationToken);
 
     /// <summary>
-    /// Common helper for both the synchronous and streaming versions of FAR. 
-    /// It returns the symbol we want to search for and the solution we should
-    /// be searching.
-    /// 
-    /// Note that the <see cref="Solution"/> returned may absolutely *not* be
-    /// the same as <c>document.Project.Solution</c>.  This is because 
-    /// there may be symbol mapping involved (for example in Metadata-As-Source
-    /// scenarios).
+    /// Common helper for both the synchronous and streaming versions of FAR. It returns the symbol we want to search
+    /// for and the solution we should be searching.
+    /// <para/> Note that the <see cref="Solution"/> returned may absolutely *not* be the same as
+    /// <c>document.Project.Solution</c>.  This is because there may be symbol mapping involved (for example in
+    /// Metadata-As-Source scenarios).
     /// </summary>
+    /// <param name="preferPrimaryConstructor">Whether the named type or primary constructor should be preferred if the
+    /// position is on a type-header fof a type declaration that has primary constructor parameters.</param>
     public static async Task<(ISymbol symbol, Project project)?> GetRelevantSymbolAndProjectAtPositionAsync(
         Document document, int position, bool preferPrimaryConstructor, CancellationToken cancellationToken)
     {
