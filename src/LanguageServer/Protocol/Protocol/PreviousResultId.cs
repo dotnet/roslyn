@@ -21,7 +21,7 @@ internal class PreviousResultId
     /// </summary>
     [JsonPropertyName("uri")]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Uri
+    public DocumentUri Uri
     {
         get;
         set;

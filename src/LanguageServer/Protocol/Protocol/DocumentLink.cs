@@ -32,7 +32,7 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonPropertyName("target")]
         [JsonConverter(typeof(DocumentUriConverter))]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public Uri? Target
+        public DocumentUri? Target
         {
             get;
             set;

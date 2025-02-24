@@ -28,6 +28,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Nerdbank.Streams;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
@@ -67,7 +68,7 @@ namespace Roslyn.Test.Utilities
             internal static readonly LSP.Location MappedFileLocation = new LSP.Location
             {
                 Range = ProtocolConversions.LinePositionToRange(s_mappedLinePosition),
-                Uri = ProtocolConversions.CreateAbsoluteUri(s_mappedFilePath)
+                Uri = ProtocolConversions.CreateAbsoluteDocumentUri(s_mappedFilePath)
             };
 
             /// <summary>
@@ -152,7 +153,7 @@ namespace Roslyn.Test.Utilities
             if (l2 is null)
                 return 1;
 
-            var compareDocument = l1.Uri.AbsoluteUri.CompareTo(l2.Uri.AbsoluteUri);
+            var compareDocument = l1.Uri.UriString.CompareTo(l2.Uri.UriString);
             var compareRange = CompareRange(l1.Range, l2.Range);
             return compareDocument != 0 ? compareDocument : compareRange;
         }
@@ -190,7 +191,7 @@ namespace Roslyn.Test.Utilities
             return info;
         }
 
-        private protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
+        private protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(DocumentUri uri, ProjectId? projectContext = null)
         {
             var documentIdentifier = new LSP.VSTextDocumentIdentifier { Uri = uri };
 
@@ -467,7 +468,7 @@ namespace Roslyn.Test.Utilities
 
             return locations;
 
-            static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, Uri documentUri)
+            static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, DocumentUri documentUri)
             {
                 var location = new LSP.Location
                 {
@@ -493,7 +494,7 @@ namespace Roslyn.Test.Utilities
             => "C:\\" + documentName;
 
         private static LSP.DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(
-            Uri documentUri,
+            DocumentUri documentUri,
             ImmutableArray<(LSP.Range Range, string Text)> changes)
         {
             var changeEvents = changes.Select(change => new LSP.TextDocumentContentChangeEvent
@@ -512,7 +513,7 @@ namespace Roslyn.Test.Utilities
             };
         }
 
-        private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(Uri uri, string source, string languageId = "")
+        private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(DocumentUri uri, string source, string languageId = "")
             => new LSP.DidOpenTextDocumentParams
             {
                 TextDocument = new LSP.TextDocumentItem
@@ -523,7 +524,7 @@ namespace Roslyn.Test.Utilities
                 }
             };
 
-        private static LSP.DidCloseTextDocumentParams CreateDidCloseTextDocumentParams(Uri uri)
+        private static LSP.DidCloseTextDocumentParams CreateDidCloseTextDocumentParams(DocumentUri uri)
            => new LSP.DidCloseTextDocumentParams()
            {
                TextDocument = new LSP.TextDocumentIdentifier
@@ -653,14 +654,14 @@ namespace Roslyn.Test.Utilities
                 return languageServer;
             }
 
-            public async Task<Document> GetDocumentAsync(Uri uri)
+            public async Task<Document> GetDocumentAsync(DocumentUri uri)
             {
                 var document = await GetCurrentSolution().GetDocumentAsync(new LSP.TextDocumentIdentifier { Uri = uri }, CancellationToken.None).ConfigureAwait(false);
                 Contract.ThrowIfNull(document, $"Unable to find document with {uri} in solution");
                 return document;
             }
 
-            public async Task<SourceText> GetDocumentTextAsync(Uri uri)
+            public async Task<SourceText> GetDocumentTextAsync(DocumentUri uri)
             {
                 var document = await GetDocumentAsync(uri).ConfigureAwait(false);
                 return await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
@@ -695,7 +696,7 @@ namespace Roslyn.Test.Utilities
                 return _clientRpc.InvokeWithParameterObjectAsync(methodName, serializedRequest);
             }
 
-            public async Task OpenDocumentAsync(Uri documentUri, string? text = null, string languageId = "")
+            public async Task OpenDocumentAsync(DocumentUri documentUri, string? text = null, string languageId = "")
             {
                 if (text == null)
                 {
@@ -711,7 +712,7 @@ namespace Roslyn.Test.Utilities
 
             /// <summary>
             /// Opens a document in the workspace only, and waits for workspace operations.
-            /// Use <see cref="OpenDocumentAsync(Uri, string, string)"/> if the document should be opened in LSP"/>
+            /// Use <see cref="OpenDocumentAsync(DocumentUri, string, string)"/> if the document should be opened in LSP"/>
             /// </summary>
             public async Task OpenDocumentInWorkspaceAsync(DocumentId documentId, bool openAllLinkedDocuments, SourceText? text = null)
             {
@@ -736,7 +737,7 @@ namespace Roslyn.Test.Utilities
                 await WaitForWorkspaceOperationsAsync(TestWorkspace);
             }
 
-            public Task ReplaceTextAsync(Uri documentUri, params (LSP.Range Range, string Text)[] changes)
+            public Task ReplaceTextAsync(DocumentUri documentUri, params (LSP.Range Range, string Text)[] changes)
             {
                 var didChangeParams = CreateDidChangeTextDocumentParams(
                     documentUri,
@@ -744,7 +745,7 @@ namespace Roslyn.Test.Utilities
                 return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None);
             }
 
-            public Task InsertTextAsync(Uri documentUri, params (int Line, int Column, string Text)[] changes)
+            public Task InsertTextAsync(DocumentUri documentUri, params (int Line, int Column, string Text)[] changes)
             {
                 return ReplaceTextAsync(documentUri, [.. changes.Select(change => (new LSP.Range
                 {
@@ -753,7 +754,7 @@ namespace Roslyn.Test.Utilities
                 }, change.Text))]);
             }
 
-            public Task DeleteTextAsync(Uri documentUri, params (int StartLine, int StartColumn, int EndLine, int EndColumn)[] changes)
+            public Task DeleteTextAsync(DocumentUri documentUri, params (int StartLine, int StartColumn, int EndLine, int EndColumn)[] changes)
             {
                 return ReplaceTextAsync(documentUri, [.. changes.Select(change => (new LSP.Range
                 {
@@ -762,7 +763,7 @@ namespace Roslyn.Test.Utilities
                 }, string.Empty))]);
             }
 
-            public Task CloseDocumentAsync(Uri documentUri)
+            public Task CloseDocumentAsync(DocumentUri documentUri)
             {
                 var didCloseParams = CreateDidCloseTextDocumentParams(documentUri);
                 return ExecuteRequestAsync<LSP.DidCloseTextDocumentParams, object>(LSP.Methods.TextDocumentDidCloseName, didCloseParams, CancellationToken.None);
@@ -826,7 +827,7 @@ namespace Roslyn.Test.Utilities
 
             internal T GetRequiredLspService<T>() where T : class, ILspService => _languageServer.Value.GetTestAccessor().GetRequiredLspService<T>();
 
-            internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedLspText().Values.Select(v => v.Text)];
+            internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedLspText().Values.Select(v => v.SourceText)];
 
             internal Task RunCodeAnalysisAsync(ProjectId? projectId)
                 => _codeAnalysisService.RunAnalysisAsync(GetCurrentSolution(), projectId, onAfterProjectAnalyzed: _ => { }, CancellationToken.None);
