@@ -1668,7 +1668,7 @@ struct S
     private string str;
     public S(char chr) { this.str = chr.ToString(); }
     public S(string str) { this.str = str; }
-    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str); }
 }
 
 class C

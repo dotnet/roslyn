@@ -2820,7 +2820,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
 
             var solution = workspace.CurrentSolution
-                .AddProject(pm1, "goo", "goo.dll", LanguageNames.CSharp)
+                .AddProject(ProjectInfo.Create(pm1, VersionStamp.Create(), "goo", "goo.dll", LanguageNames.CSharp, compilationOptions: workspace.Services
+                    .GetLanguageService<ICompilationFactoryService>(LanguageNames.CSharp)
+                    .GetDefaultCompilationOptions()
+                    .WithOutputKind(OutputKind.DynamicallyLinkedLibrary)))
                 .AddMetadataReference(pm1, s_mscorlib)
                 .AddProject(pm2, "bar", "bar.dll", LanguageNames.VisualBasic)
                 .AddMetadataReference(pm2, s_mscorlib)
@@ -3968,6 +3971,13 @@ public class C : A {
                 .AddProjectReference(pid3, new ProjectReference(pid1))
                 .AddProjectReference(pid3, new ProjectReference(pid2));
 
+            var options = solution.Workspace.Services
+                .GetLanguageService<ICompilationFactoryService>(LanguageNames.VisualBasic)
+                .GetDefaultCompilationOptions()
+                .WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
+            solution = solution.WithProjectCompilationOptions(pid1, options)
+                .WithProjectCompilationOptions(pid2, options);
+
             var project3 = solution.GetProject(pid3);
             var comp3 = project3.GetCompilationAsync().Result;
             var classC = comp3.GetTypeByMetadataName("C");
@@ -4020,7 +4030,11 @@ public class C : A {
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
-                    metadataReferences: [MscorlibRef]));
+                    metadataReferences: [MscorlibRef],
+                    compilationOptions: workspace.Services
+                        .GetLanguageService<ICompilationFactoryService>(LanguageNames.CSharp)
+                        .GetDefaultCompilationOptions()
+                        .WithOutputKind(OutputKind.DynamicallyLinkedLibrary)));
             var project2 = workspace.AddProject(
                 ProjectInfo.Create(
                     ProjectId.CreateNewId(),
@@ -4221,7 +4235,11 @@ public class C : A {
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
-                    metadataReferences: [MscorlibRef]));
+                    metadataReferences: [MscorlibRef],
+                    compilationOptions: workspace.Services
+                        .GetLanguageService<ICompilationFactoryService>(LanguageNames.CSharp)
+                        .GetDefaultCompilationOptions()
+                        .WithOutputKind(OutputKind.DynamicallyLinkedLibrary)));
 
             var project2 = workspace.AddProject(
                 ProjectInfo.Create(
@@ -5326,7 +5344,12 @@ class C
                     "CSharpProject",
                     "CSharpProject",
                     LanguageNames.CSharp,
-                    metadataReferences: [MscorlibRef]).WithHasAllInformation(hasAllInformation: false));
+                    metadataReferences: [MscorlibRef],
+                    compilationOptions: workspace.Services
+                        .GetLanguageService<ICompilationFactoryService>(LanguageNames.CSharp)
+                        .GetDefaultCompilationOptions()
+                        .WithOutputKind(OutputKind.DynamicallyLinkedLibrary))
+                .WithHasAllInformation(hasAllInformation: false));
 
             vbNormalProject = workspace.AddProject(
                 ProjectInfo.Create(
@@ -5335,7 +5358,11 @@ class C
                     "VisualBasicProject",
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
-                    metadataReferences: [MscorlibRef]));
+                    metadataReferences: [MscorlibRef],
+                    compilationOptions: workspace.Services
+                        .GetLanguageService<ICompilationFactoryService>(LanguageNames.VisualBasic)
+                        .GetDefaultCompilationOptions()
+                        .WithOutputKind(OutputKind.DynamicallyLinkedLibrary)));
 
             dependsOnBrokenProject = workspace.AddProject(
                 ProjectInfo.Create(
@@ -5345,7 +5372,11 @@ class C
                     "VisualBasicProject",
                     LanguageNames.VisualBasic,
                     metadataReferences: [MscorlibRef],
-                    projectReferences: [new ProjectReference(csBrokenProject.Id), new ProjectReference(vbNormalProject.Id)]));
+                    projectReferences: [new ProjectReference(csBrokenProject.Id), new ProjectReference(vbNormalProject.Id)],
+                    compilationOptions: workspace.Services
+                        .GetLanguageService<ICompilationFactoryService>(LanguageNames.VisualBasic)
+                        .GetDefaultCompilationOptions()
+                        .WithOutputKind(OutputKind.DynamicallyLinkedLibrary)));
 
             dependsOnVbNormalProject = workspace.AddProject(
                 ProjectInfo.Create(
@@ -5355,7 +5386,11 @@ class C
                     "CSharpProject",
                     LanguageNames.CSharp,
                     metadataReferences: [MscorlibRef],
-                    projectReferences: [new ProjectReference(vbNormalProject.Id)]));
+                    projectReferences: [new ProjectReference(vbNormalProject.Id)],
+                    compilationOptions: workspace.Services
+                        .GetLanguageService<ICompilationFactoryService>(LanguageNames.CSharp)
+                        .GetDefaultCompilationOptions()
+                        .WithOutputKind(OutputKind.DynamicallyLinkedLibrary)));
 
             transitivelyDependsOnBrokenProjects = workspace.AddProject(
                 ProjectInfo.Create(

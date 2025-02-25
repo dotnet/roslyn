@@ -36,9 +36,6 @@
     <PackageReference Include="System.Diagnostics.DiagnosticSource" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
-  </ItemGroup>
-  <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />
