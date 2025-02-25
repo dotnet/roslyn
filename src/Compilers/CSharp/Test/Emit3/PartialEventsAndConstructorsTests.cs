@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1654,6 +1655,198 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             var removeMethod = e.RemoveMethod!;
             Assert.Equal("remove_E", removeMethod.Name);
         }
+    }
+
+    [Fact]
+    public void GetDeclaredSymbol()
+    {
+        var source = ("""
+            partial class C
+            {
+                public partial event System.Action E, F;
+                public partial event System.Action E { add { } remove { } }
+                public partial event System.Action F { add { } remove { } }
+
+                public partial C();
+                public partial C() { }
+            }
+            """, "Program.cs");
+
+        var comp = CreateCompilation(source).VerifyDiagnostics();
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var eventDefs = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToImmutableArray();
+        Assert.Equal(2, eventDefs.Length);
+
+        var eventImpls = tree.GetRoot().DescendantNodes().OfType<EventDeclarationSyntax>().ToImmutableArray();
+        Assert.Equal(2, eventImpls.Length);
+
+        {
+            var defSymbol = (IEventSymbol)model.GetDeclaredSymbol(eventDefs[0])!;
+            Assert.Equal("event System.Action C.E", defSymbol.ToTestDisplayString());
+
+            IEventSymbol implSymbol = model.GetDeclaredSymbol(eventImpls[0])!;
+            Assert.Equal("event System.Action C.E", implSymbol.ToTestDisplayString());
+
+            Assert.NotEqual(defSymbol, implSymbol);
+            Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
+            Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
+            Assert.Null(implSymbol.PartialImplementationPart);
+            Assert.Null(defSymbol.PartialDefinitionPart);
+            Assert.True(defSymbol.IsPartialDefinition);
+            Assert.False(implSymbol.IsPartialDefinition);
+
+            Assert.NotEqual(defSymbol.Locations.Single(), implSymbol.Locations.Single());
+        }
+
+        {
+            var defSymbol = (IEventSymbol)model.GetDeclaredSymbol(eventDefs[1])!;
+            Assert.Equal("event System.Action C.F", defSymbol.ToTestDisplayString());
+
+            IEventSymbol implSymbol = model.GetDeclaredSymbol(eventImpls[1])!;
+            Assert.Equal("event System.Action C.F", implSymbol.ToTestDisplayString());
+
+            Assert.NotEqual(defSymbol, implSymbol);
+            Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
+            Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
+            Assert.Null(implSymbol.PartialImplementationPart);
+            Assert.Null(defSymbol.PartialDefinitionPart);
+            Assert.True(defSymbol.IsPartialDefinition);
+            Assert.False(implSymbol.IsPartialDefinition);
+
+            Assert.NotEqual(defSymbol.Locations.Single(), implSymbol.Locations.Single());
+        }
+
+        {
+            var ctors = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().ToImmutableArray();
+            Assert.Equal(2, ctors.Length);
+
+            IMethodSymbol defSymbol = model.GetDeclaredSymbol(ctors[0])!;
+            Assert.Equal("C..ctor()", defSymbol.ToTestDisplayString());
+
+            IMethodSymbol implSymbol = model.GetDeclaredSymbol(ctors[1])!;
+            Assert.Equal("C..ctor()", implSymbol.ToTestDisplayString());
+
+            Assert.NotEqual(defSymbol, implSymbol);
+            Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
+            Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
+            Assert.Null(implSymbol.PartialImplementationPart);
+            Assert.Null(defSymbol.PartialDefinitionPart);
+            Assert.True(defSymbol.IsPartialDefinition);
+            Assert.False(implSymbol.IsPartialDefinition);
+
+            Assert.NotEqual(defSymbol.Locations.Single(), implSymbol.Locations.Single());
+        }
+    }
+
+    [Fact]
+    public void GetDeclaredSymbol_GenericContainer()
+    {
+        var source = ("""
+            partial class C<T>
+            {
+                public partial event System.Action E;
+                public partial event System.Action E { add { } remove { } }
+
+                public partial C();
+                public partial C() { }
+            }
+            """, "Program.cs");
+
+        var comp = CreateCompilation(source).VerifyDiagnostics();
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        {
+            var defSymbol = (IEventSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single())!;
+            Assert.Equal("event System.Action C<T>.E", defSymbol.ToTestDisplayString());
+
+            IEventSymbol implSymbol = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<EventDeclarationSyntax>().Single())!;
+            Assert.Equal("event System.Action C<T>.E", implSymbol.ToTestDisplayString());
+
+            Assert.NotEqual(defSymbol, implSymbol);
+            Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
+            Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
+            Assert.Null(implSymbol.PartialImplementationPart);
+            Assert.Null(defSymbol.PartialDefinitionPart);
+            Assert.True(defSymbol.IsPartialDefinition);
+            Assert.False(implSymbol.IsPartialDefinition);
+
+            Assert.NotEqual(defSymbol.Locations.Single(), implSymbol.Locations.Single());
+
+            var intSymbol = comp.GetSpecialType(SpecialType.System_Int32);
+            var cOfTSymbol = defSymbol.ContainingType!;
+            var cOfIntSymbol = cOfTSymbol.Construct([intSymbol]);
+
+            var defOfIntSymbol = (IEventSymbol)cOfIntSymbol.GetMember("E");
+            Assert.Equal("event System.Action C<System.Int32>.E", defOfIntSymbol.ToTestDisplayString());
+            Assert.Null(defOfIntSymbol.PartialImplementationPart);
+            Assert.Null(defOfIntSymbol.PartialDefinitionPart);
+            Assert.False(defOfIntSymbol.IsPartialDefinition);
+        }
+
+        {
+            var ctors = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().ToImmutableArray();
+            Assert.Equal(2, ctors.Length);
+
+            IMethodSymbol defSymbol = model.GetDeclaredSymbol(ctors[0])!;
+            Assert.Equal("C<T>..ctor()", defSymbol.ToTestDisplayString());
+
+            IMethodSymbol implSymbol = model.GetDeclaredSymbol(ctors[1])!;
+            Assert.Equal("C<T>..ctor()", implSymbol.ToTestDisplayString());
+
+            Assert.NotEqual(defSymbol, implSymbol);
+            Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
+            Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
+            Assert.Null(implSymbol.PartialImplementationPart);
+            Assert.Null(defSymbol.PartialDefinitionPart);
+            Assert.True(defSymbol.IsPartialDefinition);
+            Assert.False(implSymbol.IsPartialDefinition);
+
+            Assert.NotEqual(defSymbol.Locations.Single(), implSymbol.Locations.Single());
+
+            var intSymbol = comp.GetSpecialType(SpecialType.System_Int32);
+            var cOfTSymbol = defSymbol.ContainingType!;
+            var cOfIntSymbol = cOfTSymbol.Construct([intSymbol]);
+
+            var defOfIntSymbol = (IMethodSymbol)cOfIntSymbol.GetMember(".ctor");
+            Assert.Equal("C<System.Int32>..ctor()", defOfIntSymbol.ToTestDisplayString());
+            Assert.Null(defOfIntSymbol.PartialImplementationPart);
+            Assert.Null(defOfIntSymbol.PartialDefinitionPart);
+            Assert.False(defOfIntSymbol.IsPartialDefinition);
+        }
+    }
+
+    [Fact]
+    public void GetDeclaredSymbol_ConstructorParameter()
+    {
+        var source = ("""
+            partial class C
+            {
+                public partial C(int i);
+                public partial C(int i) { }
+            }
+            """, "Program.cs");
+
+        var comp = CreateCompilation(source).VerifyDiagnostics();
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var parameters = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+        Assert.Equal(2, parameters.Length);
+
+        IParameterSymbol defSymbol = model.GetDeclaredSymbol(parameters[0])!;
+        Assert.Equal("System.Int32 i", defSymbol.ToTestDisplayString());
+
+        IParameterSymbol implSymbol = model.GetDeclaredSymbol(parameters[1])!;
+        Assert.Equal("System.Int32 i", implSymbol.ToTestDisplayString());
+
+        Assert.NotEqual(defSymbol, implSymbol);
+        Assert.Same(implSymbol, ((IMethodSymbol)defSymbol.ContainingSymbol).PartialImplementationPart!.Parameters.Single());
+        Assert.Same(defSymbol, ((IMethodSymbol)implSymbol.ContainingSymbol).PartialDefinitionPart!.Parameters.Single());
+
+        Assert.NotEqual(defSymbol.Locations.Single(), implSymbol.Locations.Single());
     }
 
     [Fact]
