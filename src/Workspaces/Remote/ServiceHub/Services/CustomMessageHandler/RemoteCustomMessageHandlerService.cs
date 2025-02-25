@@ -70,16 +70,30 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
 #else
                 var directory = Path.GetDirectoryName(assemblyPath);
 
-                assemblyLoadContext = new(name: null, isCollectible: true);
+                var defaultLoadContext = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(typeof(RemoteCustomMessageHandlerService).Assembly);
 
+                assemblyLoadContext = new(name: null, isCollectible: true);
                 assemblyLoadContext.Resolving += (context, assemblyName) =>
                 {
-                    return assemblyName.Name switch
+                    var sharedAssembly = defaultLoadContext.Assemblies.Where(a => a.GetName().Name == assemblyName.Name).FirstOrDefault();
+
+                    if (sharedAssembly is not null)
                     {
-                        "Microsoft.CodeAnalysis" => typeof(AssemblyIdentity).Assembly,
-                        "Microsoft.CodeAnalysis.Workspaces" => typeof(Document).Assembly,
-                        _ => throw new InvalidOperationException()
-                    };
+                        if (sharedAssembly.GetName().Version < assemblyName.Version)
+                        {
+                            throw new InvalidOperationException();
+                        }
+
+                        return sharedAssembly;
+                    }
+
+                    var extensionAssemblyPath = Path.Combine(directory, $"{assemblyName.Name}.dll");
+                    if (File.Exists(extensionAssemblyPath))
+                    {
+                        return assemblyLoadContext.LoadFromAssemblyPath(extensionAssemblyPath);
+                    }
+
+                    return null;
                 };
 
                 var assembly = assemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
