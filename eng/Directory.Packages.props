@@ -327,7 +327,7 @@
       The version of Roslyn used in the RoslynAnalyzers varies. These are defaults that
       will be overridden in the RoslynAnalyzer project files.
     -->
-    <PackageVersion Include="Microsoft.CodeAnalysis" Version="4.1.0" />
+    <!--<PackageVersion Include="Microsoft.CodeAnalysis" Version="4.1.0" /> -->
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.1.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.1.0" />

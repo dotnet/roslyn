@@ -11,10 +11,16 @@
     <PublishWindowsPdb>false</PublishWindowsPdb>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.BannedApiAnalyzers.csproj" />
     <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.csproj" />
     <ProjectReference Include="..\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.vbproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
 </Project>

@@ -17,4 +17,10 @@
     <ProjectReference Include="..\CSharp\Analyzers\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.csproj" />
     <ProjectReference Include="..\CSharp\CodeFixes\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
 </Project>
