@@ -22,14 +22,13 @@ internal partial struct SymbolKey
         {
             var metadataName = reader.ReadString();
             var containingTypeResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingType, out var containingTypeFailureReason);
+            var isPartialImplementationPart = reader.ReadBoolean();
 
             if (containingTypeFailureReason != null)
             {
                 failureReason = $"({nameof(EventSymbolKey)} {nameof(containingTypeResolution)} failed -> {containingTypeFailureReason})";
                 return default;
             }
-
-            var isPartialImplementationPart = reader.ReadBoolean();
 
             using var events = GetMembersOfNamedType<IEventSymbol>(containingTypeResolution, metadataName);
 
