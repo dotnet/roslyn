@@ -203,7 +203,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
 
         Friend Sub FreeStatements()
-            _parser._pool.Free(_statements)
+            If Not _statements.IsNull Then
+                _parser._pool.Free(_statements)
+                _statements = Nothing
+            End If
         End Sub
 
         Friend Function Body() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
