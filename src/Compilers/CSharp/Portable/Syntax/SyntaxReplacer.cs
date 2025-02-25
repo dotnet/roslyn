@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
@@ -123,10 +122,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             private void CalculateVisitationCriteria()
             {
                 _spanSet.Clear();
-                _spanSet.UnionWith(
-                    _nodeSet.Select(n => n.FullSpan).Concat(
-                    _tokenSet.Select(t => t.FullSpan).Concat(
-                    _triviaSet.Select(t => t.FullSpan))));
+                foreach (var node in _nodeSet)
+                {
+                    _spanSet.Add(node.FullSpan);
+                }
+
+                foreach (var token in _tokenSet)
+                {
+                    _spanSet.Add(token.FullSpan);
+                }
+
+                foreach (var trivia in _triviaSet)
+                {
+                    _spanSet.Add(trivia.FullSpan);
+                }
 
                 bool first = true;
                 int start = 0;
@@ -150,9 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 _totalSpan = new TextSpan(start, end - start);
 
                 _visitIntoStructuredTrivia =
-                    _nodeSet.Any(n => n.IsPartOfStructuredTrivia()) ||
-                    _tokenSet.Any(t => t.IsPartOfStructuredTrivia()) ||
-                    _triviaSet.Any(t => t.IsPartOfStructuredTrivia());
+                    _nodeSet.Any(static n => n.IsPartOfStructuredTrivia()) ||
+                    _tokenSet.Any(static t => t.IsPartOfStructuredTrivia()) ||
+                    _triviaSet.Any(static t => t.IsPartOfStructuredTrivia());
 
                 _shouldVisitTrivia = _triviaSet.Count > 0 || _visitIntoStructuredTrivia;
             }
@@ -203,6 +212,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     {
                         rewritten = _computeReplacementNode((TNode)node, (TNode)rewritten!);
                     }
+                }
+
+                return rewritten;
+            }
+
+            public override SyntaxToken VisitToken(SyntaxToken token)
+            {
+                var rewritten = token;
+                var isReplacedToken = _tokenSet.Remove(token);
+
+                if (isReplacedToken)
+                {
+                    CalculateVisitationCriteria();
+                }
+
+                if (_shouldVisitTrivia && this.ShouldVisit(token.FullSpan))
+                {
+                    rewritten = base.VisitToken(token);
+                }
+
+                if (isReplacedToken && _computeReplacementToken != null)
+                {
+                    rewritten = _computeReplacementToken(token, rewritten);
+                }
+
+                return rewritten;
+            }
+
+            public override SyntaxTrivia VisitListElement(SyntaxTrivia trivia)
+            {
+                var rewritten = trivia;
+                var isReplacedTrivia = _triviaSet.Remove(trivia);
+
+                if (isReplacedTrivia)
+                {
+                    CalculateVisitationCriteria();
+                }
+
+                if (this.VisitIntoStructuredTrivia && trivia.HasStructure && this.ShouldVisit(trivia.FullSpan))
+                {
+                    rewritten = this.VisitTrivia(trivia);
+                }
+
+                if (isReplacedTrivia && _computeReplacementTrivia != null)
+                {
+                    rewritten = _computeReplacementTrivia(trivia, rewritten);
                 }
 
                 return rewritten;
@@ -280,52 +335,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
 
                 return list;
-            }
-
-            public override SyntaxToken VisitToken(SyntaxToken token)
-            {
-                var rewritten = token;
-                var isReplacedToken = _tokenSet.Remove(token);
-
-                if (isReplacedToken)
-                {
-                    CalculateVisitationCriteria();
-                }
-
-                if (_shouldVisitTrivia && this.ShouldVisit(token.FullSpan))
-                {
-                    rewritten = base.VisitToken(token);
-                }
-
-                if (isReplacedToken && _computeReplacementToken != null)
-                {
-                    rewritten = _computeReplacementToken(token, rewritten);
-                }
-
-                return rewritten;
-            }
-
-            public override SyntaxTrivia VisitListElement(SyntaxTrivia trivia)
-            {
-                var rewritten = trivia;
-                var isReplacedTrivia = _triviaSet.Remove(trivia);
-
-                if (isReplacedTrivia)
-                {
-                    CalculateVisitationCriteria();
-                }
-
-                if (this.VisitIntoStructuredTrivia && trivia.HasStructure && this.ShouldVisit(trivia.FullSpan))
-                {
-                    rewritten = this.VisitTrivia(trivia);
-                }
-
-                if (isReplacedTrivia && _computeReplacementTrivia != null)
-                {
-                    rewritten = _computeReplacementTrivia(trivia, rewritten);
-                }
-
-                return rewritten;
             }
         }
 
