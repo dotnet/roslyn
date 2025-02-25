@@ -2805,6 +2805,6 @@ public sealed class ModuleCancellationTests : CSharpTestBase
             """;
 
         // definite assignment flow pass doesn't fail
-        _ = CompileAndVerify(source);
+        CompileAndVerify(source).VerifyDiagnostics();
     }
 }
