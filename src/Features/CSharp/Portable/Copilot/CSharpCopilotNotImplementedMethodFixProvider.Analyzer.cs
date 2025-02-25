@@ -21,7 +21,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider
     private static class DocumentAnalyzer
     {
         private const int MaxMethodLength = 1024;
-        private const int ContextLineCount = 2;
+        private const int ContextLineCount = 10;
 
         public static async Task<MethodImplementationProposal?> AnalyzeDocumentAsync(Document document, SyntaxNode throwNode, CancellationToken cancellationToken)
         {

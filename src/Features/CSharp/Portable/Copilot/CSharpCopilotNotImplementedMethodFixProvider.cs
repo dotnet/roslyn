@@ -45,11 +45,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         }
 
         // Find the throw statement or throw expression node
-        var throwNode = context.Diagnostics[0].AdditionalLocations[0]
-            .FindNode(getInnermostNodeForTie: true, cancellationToken)
-            .AncestorsAndSelf()
-            .FirstOrDefault(node => node is ThrowStatementSyntax || node is ThrowExpressionSyntax);
-
+        var throwNode = FindThrowNode(context.Diagnostics[0], cancellationToken);
         if (throwNode is null)
             return;
 
@@ -87,11 +83,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         SyntaxEditor editor, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
         // Find the throw statement or throw expression node
-        var throwNode = diagnostic.AdditionalLocations[0]
-            .FindNode(getInnermostNodeForTie: true, cancellationToken)
-            .AncestorsAndSelf()
-            .FirstOrDefault(node => node is ThrowStatementSyntax || node is ThrowExpressionSyntax);
-
+        var throwNode = FindThrowNode(diagnostic, cancellationToken);
         if (throwNode is null)
         {
             return;
@@ -110,5 +102,13 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
 
         // Generate code
         CodeGenerator.GenerateCode(editor, throwNode, suggestedCodeBlock);
+    }
+
+    private static SyntaxNode? FindThrowNode(Diagnostic diagnostic, CancellationToken cancellationToken)
+    {
+        return diagnostic.AdditionalLocations[0]
+            .FindNode(getInnermostNodeForTie: true, cancellationToken)
+            .AncestorsAndSelf()
+            .FirstOrDefault(node => node is ThrowStatementSyntax || node is ThrowExpressionSyntax);
     }
 }

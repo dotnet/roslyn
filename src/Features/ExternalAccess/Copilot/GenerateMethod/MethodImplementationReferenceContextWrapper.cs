@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.MethodImplementation;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateMethod
+namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
 {
     internal class MethodImplementationReferenceContextWrapper
     {

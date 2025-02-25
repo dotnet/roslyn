@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateMethod;
 using Microsoft.CodeAnalysis.MethodImplementation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
