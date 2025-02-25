@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -527,6 +529,46 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void DuplicateDeclarations_04()
+    {
+        var source = """
+            using System;
+            partial class C
+            {
+                partial event Action E;
+                partial event Action E { add { } }
+                partial event Action E { remove { } }
+            }
+            """;
+        var comp = CreateCompilation(source).VerifyDiagnostics(
+            // (5,26): error CS0065: 'C.E': event property must have both add and remove accessors
+            //     partial event Action E { add { } }
+            Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E").WithLocation(5, 26),
+            // (6,26): error CS0065: 'C.E': event property must have both add and remove accessors
+            //     partial event Action E { remove { } }
+            Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E").WithLocation(6, 26),
+            // (6,26): error CS9403: Partial member 'C.E' may not have multiple implementing declarations.
+            //     partial event Action E { remove { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "E").WithArguments("C.E").WithLocation(6, 26),
+            // (6,26): error CS0102: The type 'C' already contains a definition for 'E'
+            //     partial event Action E { remove { } }
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(6, 26));
+
+        var events = comp.GetMembers("C.E");
+        Assert.Equal(2, events.Length);
+
+        var e1 = (SourceEventSymbol)events[0];
+        Assert.True(e1.IsPartialDefinition);
+        AssertEx.Equal("event System.Action C.E", e1.ToTestDisplayString());
+        AssertEx.Equal("event System.Action C.E", e1.PartialImplementationPart.ToTestDisplayString());
+
+        var e2 = (SourceEventSymbol)events[1];
+        Assert.True(e2.IsPartialImplementation);
+        AssertEx.Equal("event System.Action C.E", e2.ToTestDisplayString());
+        Assert.Null(e2.PartialDefinitionPart);
+    }
+
+    [Fact]
     public void EventInitializer_Single()
     {
         var source = """
@@ -612,7 +654,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
-    public void StaticPartialConstructor()
+    public void StaticPartialConstructor_01()
     {
         var source = """
             partial class C
@@ -631,6 +673,199 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (4,20): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
             //     static partial C() { }
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 20));
+    }
+
+    [Fact]
+    public void StaticPartialConstructor_02()
+    {
+        var source = """
+            partial class C
+            {
+                partial static C();
+                partial static C() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     partial static C();
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     partial static C();
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
+            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     partial static C() { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            //     partial static C() { }
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+            // (4,20): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial static C() { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(4, 20));
+    }
+
+    [Fact]
+    public void Finalizer()
+    {
+        var source = """
+            partial class C
+            {
+                partial ~C();
+                partial ~C() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS1519: Invalid token '~' in class, record, struct, or interface member declaration
+            //     partial ~C();
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "~").WithArguments("~").WithLocation(3, 13),
+            // (4,13): error CS1519: Invalid token '~' in class, record, struct, or interface member declaration
+            //     partial ~C() { }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "~").WithArguments("~").WithLocation(4, 13),
+            // (3,14): error CS0501: 'C.~C()' must declare a body because it is not marked abstract, extern, or partial
+            //     partial ~C();
+            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.~C()").WithLocation(3, 14),
+            // (4,14): error CS0111: Type 'C' already defines a member called '~C' with the same parameter types
+            //     partial ~C() { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("~C", "C").WithLocation(4, 14));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_Duplicate_WithoutInitializer()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C();
+                partial C() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(3, 13),
+            // (4,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 13));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_Duplicate_WithInitializer()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C();
+                partial C() : this() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(3, 13),
+            // (4,19): error CS0121: The call is ambiguous between the following methods or properties: 'C.C()' and 'C.C()'
+            //     partial C() : this() { }
+            Diagnostic(ErrorCode.ERR_AmbigCall, "this").WithArguments("C.C()", "C.C()").WithLocation(4, 19));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_DefinitionOnly()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C();
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS9400: Partial member 'C.C()' must have an implementation part.
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C").WithArguments("C.C()").WithLocation(3, 13),
+            // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(3, 13));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_ImplementationOnly_WithoutInitializer()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS9401: Partial member 'C.C()' must have a definition part.
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C").WithArguments("C.C()").WithLocation(3, 13),
+            // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(3, 13),
+            // (3,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(3, 13));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_ImplementationOnly_WithInitializer()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C() : this() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,13): error CS9401: Partial member 'C.C()' must have a definition part.
+            //     partial C() : this() { }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C").WithArguments("C.C()").WithLocation(3, 13),
+            // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+            //     partial C() : this() { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(3, 13),
+            // (3,19): error CS0121: The call is ambiguous between the following methods or properties: 'C.C()' and 'C.C()'
+            //     partial C() : this() { }
+            Diagnostic(ErrorCode.ERR_AmbigCall, "this").WithArguments("C.C()", "C.C()").WithLocation(3, 19));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_Different_WithoutInitializer()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C(int x);
+                partial C(int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,13): error CS8862: A constructor declared in a type with parameter list must have 'this' constructor initializer.
+            //     partial C(int x) { }
+            Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(4, 13));
+    }
+
+    [Fact]
+    public void PrimaryConstructor_Different_WithInitializer()
+    {
+        var source = """
+            partial class C()
+            {
+                partial C(int x);
+                partial C(int x) : this() { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PrimaryConstructor_Twice()
+    {
+        var source = """
+            partial class C();
+            partial class C() { }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,16): error CS8863: Only a single partial type declaration may have a parameter list
+            // partial class C() { }
+            Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(2, 16));
     }
 
     [Fact]
@@ -694,6 +929,21 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (4,45): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "8.0").WithLocation(4, 45));
+    }
+
+    [Fact]
+    public void InInterface_DefinitionOnly()
+    {
+        var source = """
+            partial interface I
+            {
+                partial event System.Action E;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,33): error CS9400: Partial member 'I.E' must have an implementation part.
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("I.E").WithLocation(3, 33));
     }
 
     [Fact]
@@ -781,6 +1031,163 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void ConstructorInitializers_This_Duplicate()
+    {
+        var source = """
+            partial class C
+            {
+                partial C() : this(1) { }
+                partial C() : this(2);
+
+                C(int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            //     partial C() : this(2);
+            Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": this(2)").WithArguments("C.C()").WithLocation(4, 17));
+    }
+
+    [Fact]
+    public void ConstructorInitializers_This_OnDefinition()
+    {
+        var source = """
+            partial class C
+            {
+                partial C() { }
+                partial C() : this(1);
+
+                C(int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            //     partial C() : this(1);
+            Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": this(1)").WithArguments("C.C()").WithLocation(4, 17));
+    }
+
+    [Fact]
+    public void ConstructorInitializers_This_OnImplementation()
+    {
+        var source = """
+            var c = new C();
+
+            partial class C
+            {
+                public partial C() : this(1) { }
+                public partial C();
+
+                C(int x) { System.Console.Write(x); }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructorInitializers_Base_Duplicate()
+    {
+        var source = """
+            abstract class B
+            {
+                protected B(int x) { }
+            }
+
+            partial class C : B
+            {
+                partial C() : base(1) { }
+                partial C() : base(2);
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (9,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            //     partial C() : base(2);
+            Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": base(2)").WithArguments("C.C()").WithLocation(9, 17));
+    }
+
+    [Fact]
+    public void ConstructorInitializers_Base_OnDefinition_01()
+    {
+        var source = """
+            abstract class B
+            {
+                protected B(int x) { }
+            }
+
+            partial class C : B
+            {
+                partial C() { }
+                partial C() : base(1);
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,13): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'B.B(int)'
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("x", "B.B(int)").WithLocation(8, 13),
+            // (9,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            //     partial C() : base(1);
+            Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": base(1)").WithArguments("C.C()").WithLocation(9, 17));
+    }
+
+    [Fact]
+    public void ConstructorInitializers_Base_OnDefinition_02()
+    {
+        var source = """
+            abstract class B
+            {
+                protected B(int x) { }
+                protected B() { }
+            }
+
+            partial class C : B
+            {
+                partial C() { }
+                partial C() : base(1);
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            //     partial C() : base(1);
+            Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": base(1)").WithArguments("C.C()").WithLocation(10, 17));
+    }
+
+    [Fact]
+    public void ConstructorInitializers_Base_OnImplementation()
+    {
+        var source = """
+            var c = new C();
+
+            abstract class B
+            {
+                protected B(int x) { System.Console.Write(x); }
+            }
+
+            partial class C : B
+            {
+                public partial C() : base(1) { }
+                public partial C();
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void VariableInitializer()
+    {
+        var source = """
+            var c = new C();
+
+            partial class C
+            {
+                int x = 5;
+
+                public partial C() { System.Console.Write(x); }
+                public partial C();
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "5").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void Extern_01()
     {
         var source = """
@@ -818,12 +1225,18 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                             class [mscorlib]System.Action 'value'
                         ) cil managed 
                     {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                            01 00 00 00
+                        )
                     } // end of method C::add_E
                     .method private hidebysig specialname 
                         instance void remove_E (
                             class [mscorlib]System.Action 'value'
                         ) cil managed 
                     {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                            01 00 00 00
+                        )
                     } // end of method C::remove_E
                     .method private hidebysig specialname rtspecialname 
                         instance void .ctor () cil managed 
@@ -954,7 +1367,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(7, 13));
     }
 
-    [Fact(Skip = "PROTOTYPE: needs attribute merging")]
+    [Fact]
     public void Extern_DllImport()
     {
         var source = """
@@ -994,6 +1407,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         {
             Assert.True(accessor.GetPublicSymbol().IsExtern);
             Assert.Equal(expectedMetadataName, accessor.MetadataName);
+            Assert.False(accessor.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
 
             var importData = accessor.GetDllImportData()!;
             Assert.Equal("something.dll", importData.ModuleName);
@@ -1008,7 +1422,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         }
     }
 
-    [Fact(Skip = "PROTOTYPE: needs attribute merging")]
+    [Fact]
     public void Extern_InternalCall()
     {
         var source = """
@@ -1027,15 +1441,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             """;
         CompileAndVerify(source,
             sourceSymbolValidator: verifySource,
-            symbolValidator: verifyMetadata,
-            // PEVerify fails when extern methods lack an implementation
-            verify: Verification.FailsPEVerify with
-            {
-                PEVerifyMessage = """
-                    Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
-                    Type load failed.
-                    """,
-            })
+            symbolValidator: verifyMetadata)
             .VerifyDiagnostics();
 
         static void verifySource(ModuleSymbol module)
@@ -1045,9 +1451,11 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Assert.True(ev.AddMethod!.GetPublicSymbol().IsExtern);
             Assert.Null(ev.AddMethod!.GetDllImportData());
             Assert.Equal(MethodImplAttributes.InternalCall, ev.AddMethod.ImplementationAttributes);
+            Assert.False(ev.AddMethod.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
             Assert.True(ev.RemoveMethod!.GetPublicSymbol().IsExtern);
             Assert.Null(ev.RemoveMethod!.GetDllImportData());
             Assert.Equal(MethodImplAttributes.InternalCall, ev.RemoveMethod.ImplementationAttributes);
+            Assert.False(ev.RemoveMethod.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
 
             var c = module.GlobalNamespace.GetMember<SourceConstructorSymbol>("C..ctor");
             Assert.True(c.GetPublicSymbol().IsExtern);
@@ -1062,14 +1470,128 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Assert.False(ev.AddMethod!.GetPublicSymbol().IsExtern);
             Assert.Null(ev.AddMethod!.GetDllImportData());
             Assert.Equal(MethodImplAttributes.InternalCall, ev.AddMethod.ImplementationAttributes);
+            Assert.False(ev.AddMethod.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
             Assert.False(ev.RemoveMethod!.GetPublicSymbol().IsExtern);
             Assert.Null(ev.RemoveMethod!.GetDllImportData());
             Assert.Equal(MethodImplAttributes.InternalCall, ev.RemoveMethod.ImplementationAttributes);
+            Assert.False(ev.RemoveMethod.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
 
             var c = module.GlobalNamespace.GetMember<MethodSymbol>("C..ctor");
             Assert.False(c.GetPublicSymbol().IsExtern);
             Assert.Null(c.GetDllImportData());
             Assert.Equal(MethodImplAttributes.InternalCall, c.ImplementationAttributes);
+        }
+    }
+
+    [Fact]
+    public void WinRtEvent()
+    {
+        var source = """
+            partial class C
+            {
+                public partial event System.Action E;
+                public partial event System.Action E { add { return default; } remove { } }
+            }
+            """;
+        CompileAndVerifyWithWinRt(source,
+            sourceSymbolValidator: validate,
+            symbolValidator: validate,
+            options: TestOptions.ReleaseWinMD)
+            .VerifyDiagnostics()
+            .VerifyTypeIL("C", """
+                .class private auto ansi beforefieldinit C
+                    extends [mscorlib]System.Object
+                {
+                    // Methods
+                    .method public hidebysig specialname 
+                        instance valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken add_E (
+                            class [mscorlib]System.Action 'value'
+                        ) cil managed 
+                    {
+                        // Method begins at RVA 0x2068
+                        // Code size 10 (0xa)
+                        .maxstack 1
+                        .locals init (
+                            [0] valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken
+                        )
+                        IL_0000: ldloca.s 0
+                        IL_0002: initobj [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken
+                        IL_0008: ldloc.0
+                        IL_0009: ret
+                    } // end of method C::add_E
+                    .method public hidebysig specialname 
+                        instance void remove_E (
+                            valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken 'value'
+                        ) cil managed 
+                    {
+                        // Method begins at RVA 0x207e
+                        // Code size 1 (0x1)
+                        .maxstack 8
+                        IL_0000: ret
+                    } // end of method C::remove_E
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor () cil managed 
+                    {
+                        // Method begins at RVA 0x2080
+                        // Code size 7 (0x7)
+                        .maxstack 8
+                        IL_0000: ldarg.0
+                        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+                        IL_0006: ret
+                    } // end of method C::.ctor
+                    // Events
+                    .event [mscorlib]System.Action E
+                    {
+                        .addon instance valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken C::add_E(class [mscorlib]System.Action)
+                        .removeon instance void C::remove_E(valuetype [mscorlib]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)
+                    }
+                } // end of class C
+                """);
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("C.E");
+            Assert.True(e.IsWindowsRuntimeEvent);
+
+            if (module is SourceModuleSymbol)
+            {
+                Assert.True(((SourceEventSymbol)e).PartialImplementationPart!.IsWindowsRuntimeEvent);
+            }
+        }
+    }
+
+    [Fact]
+    public void Extern_MissingCompareExchange()
+    {
+        var source = """
+            using System;
+            partial class C
+            {
+                partial event Action E;
+                extern partial event Action E;
+            }
+            """;
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+        comp.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
+        CompileAndVerify(comp,
+            sourceSymbolValidator: validate,
+            symbolValidator: validate,
+            // PEVerify fails when extern methods lack an implementation
+            verify: Verification.FailsPEVerify with
+            {
+                PEVerifyMessage = """
+                    Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+                    Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+                    Type load failed.
+                    """,
+            })
+            .VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("C.E");
+            Assert.True(e.AddMethod!.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
+            Assert.True(e.RemoveMethod!.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
         }
     }
 
@@ -1096,10 +1618,12 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Assert.True(e.IsPartialDefinition);
             Assert.False(e.IsPartialImplementation);
             Assert.False(e.HasAssociatedField);
+            Assert.False(e.IsWindowsRuntimeEvent);
             Assert.Null(e.PartialDefinitionPart);
             Assert.True(e.SourcePartialImplementationPart!.IsPartialImplementation);
             Assert.False(e.SourcePartialImplementationPart.IsPartialDefinition);
             Assert.False(e.SourcePartialImplementationPart.HasAssociatedField);
+            Assert.False(e.SourcePartialImplementationPart.IsWindowsRuntimeEvent);
 
             var addMethod = e.AddMethod!;
             Assert.Equal("add_E", addMethod.Name);
@@ -2222,16 +2746,79 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     public void Difference_ParameterNames()
     {
         var source = """
+            var c = new C(x: 123);
+
             partial class C
             {
-                partial C(int x);
-                partial C(int y) { }
+                public partial C(int x);
+                public partial C(int y) { System.Console.Write(y); }
+            }
+            """;
+        CompileAndVerify(source,
+            sourceSymbolValidator: validate,
+            symbolValidator: validate,
+            expectedOutput: "123")
+            .VerifyDiagnostics(
+                // (6,20): warning CS9256: Partial member declarations 'C.C(int x)' and 'C.C(int y)' have signature differences.
+                //     public partial C(int y) { System.Console.Write(y); }
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(int x)", "C.C(int y)").WithLocation(6, 20));
+
+        static void validate(ModuleSymbol module)
+        {
+            var indexer = module.GlobalNamespace.GetMember<MethodSymbol>("C..ctor");
+            AssertEx.Equal("x", indexer.Parameters.Single().Name);
+        }
+    }
+
+    [Fact]
+    public void Difference_ParameterNames_NameOf()
+    {
+        var source = """
+            using System;
+
+            [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+            class A : Attribute { public A(string s) { } }
+
+            partial class C
+            {
+                [A(nameof(p1))]
+                [A(nameof(p2))] // 1
+                partial C(
+                    [A(nameof(p1))] // 2
+                    [A(nameof(p2))]
+                    int p1);
+
+                [A(nameof(p1))]
+                [A(nameof(p2))] // 3
+                partial C(
+                    [A(nameof(p1))] // 4
+                    [A(nameof(p2))]
+                    int p2)
+                {
+                    Console.WriteLine(nameof(p1)); // 5
+                    Console.WriteLine(nameof(p2));
+                }
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (4,13): warning CS9256: Partial member declarations 'C.C(int x)' and 'C.C(int y)' have signature differences.
-            //     partial C(int y) { }
-            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(int x)", "C.C(int y)").WithLocation(4, 13));
+            // (17,13): warning CS9256: Partial member declarations 'C.C(int p1)' and 'C.C(int p2)' have signature differences.
+            //     partial C(
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(int p1)", "C.C(int p2)").WithLocation(17, 13),
+            // (18,19): error CS0103: The name 'p1' does not exist in the current context
+            //         [A(nameof(p1))] // 4
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(18, 19),
+            // (11,19): error CS0103: The name 'p1' does not exist in the current context
+            //         [A(nameof(p1))] // 2
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(11, 19),
+            // (9,15): error CS0103: The name 'p2' does not exist in the current context
+            //     [A(nameof(p2))] // 1
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(9, 15),
+            // (16,15): error CS0103: The name 'p2' does not exist in the current context
+            //     [A(nameof(p2))] // 3
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(16, 15),
+            // (22,34): error CS0103: The name 'p1' does not exist in the current context
+            //         Console.WriteLine(nameof(p1)); // 5
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(22, 34));
     }
 
     [Fact]
@@ -2312,5 +2899,536 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (10,13): error CS8988: The 'scoped' modifier of parameter 'x' doesn't match partial definition.
             //     partial C2(scoped ref int x) { }
             Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "C2").WithArguments("x").WithLocation(10, 13));
+    }
+
+    [Theory]
+    [InlineData("A(1)", "B(2)")]
+    [InlineData("B(2)", "A(1)")]
+    [InlineData("A(1), B(1)", "A(2), B(2)")]
+    public void Attributes(string declAttributes, string implAttributes)
+    {
+        var source1 = """
+            using System;
+
+            [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+            class A : Attribute { public A(int i) { } }
+
+            [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+            class B : Attribute { public B(int i) { } }
+            """;
+
+        var source2 = $$"""
+            public partial class C
+            {
+                [{{declAttributes}}] public partial C([{{declAttributes}}] int x);
+                [{{declAttributes}}] public partial event System.Action E;
+            }
+            """;
+
+        var source3 = $$"""
+            public partial class C
+            {
+                [{{implAttributes}}] public partial C([{{implAttributes}}] int x) { }
+                [{{implAttributes}}] public partial event System.Action E { add { } remove { } }
+            }
+            """;
+
+        CompileAndVerify([source1, source2, source3],
+            symbolValidator: validate,
+            sourceSymbolValidator: validate)
+            .VerifyDiagnostics();
+
+        CompileAndVerify([source1, source3, source2],
+            symbolValidator: validate,
+            sourceSymbolValidator: validate)
+            .VerifyDiagnostics();
+
+        void validate(ModuleSymbol module)
+        {
+            var ctor = module.GlobalNamespace.GetMember<MethodSymbol>("C..ctor");
+            assertEqual([declAttributes, implAttributes], ctor.GetAttributes());
+
+            var ctorParam = ctor.GetParameters().Single();
+            assertEqual([implAttributes, declAttributes], ctorParam.GetAttributes());
+
+            var ev = module.GlobalNamespace.GetMember<EventSymbol>("C.E");
+            assertEqual([declAttributes, implAttributes], ev.GetAttributes());
+
+            if (module is SourceModuleSymbol)
+            {
+                assertEqual([declAttributes, implAttributes], ((SourceConstructorSymbol)ctor).PartialImplementationPart!.GetAttributes());
+                assertEqual([declAttributes, implAttributes], ((SourceEventSymbol)ev).PartialImplementationPart!.GetAttributes());
+            }
+        }
+
+        static void assertEqual(IEnumerable<string> expected, ImmutableArray<CSharpAttributeData> actual)
+        {
+            AssertEx.Equal(string.Join(", ", expected), actual.ToStrings().Join(", "));
+        }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77254")]
+    public void Attributes_Locations()
+    {
+        // Note that [method:] is not allowed on partial events.
+        // Therefore users have no way to specify accessor attributes on the definition part.
+        // Ideally, this would be possible and we would join attributes from accessors with [method:] attributes from the event.
+        // However, current implementation of attribute matching is not strong enough to do that (there can be only one attribute owner symbol kind).
+
+        var source = """
+            using System;
+
+            [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+            public class A : Attribute { public A(int i) { } }
+
+            partial class C
+            {
+                [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action E;
+                [A(2)] [method: A(12)] [param: A(22)] [return: A(32)] [event: A(42)] [field: A(52)] public partial event Action E
+                {
+                    [A(3)] [method: A(13)] [param: A(23)] [return: A(33)] [event: A(43)] [field: A(53)] add { }
+                    [A(4)] [method: A(14)] [param: A(24)] [return: A(34)] [event: A(44)] [field: A(54)] remove { }
+                }
+
+                [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action F;
+                [A(2)] [method: A(12)] [param: A(22)] [return: A(32)] [event: A(42)] [field: A(52)] public extern partial event Action F;
+            }
+            """;
+        CompileAndVerify(source,
+            symbolValidator: validate,
+            sourceSymbolValidator: validate,
+            // PEVerify fails when extern methods lack an implementation
+            verify: Verification.FailsPEVerify with
+            {
+                PEVerifyMessage = """
+                    Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+                    Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+                    Type load failed.
+                    """,
+            })
+            .VerifyDiagnostics(
+                // (8,13): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
+                //     [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action E;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "event").WithLocation(8, 13),
+                // (8,29): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
+                //     [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action E;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "event").WithLocation(8, 29),
+                // (8,44): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
+                //     [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action E;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "event").WithLocation(8, 44),
+                // (8,75): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
+                //     [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action E;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "event").WithLocation(8, 75),
+                // (9,13): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
+                //     [A(2)] [method: A(12)] [param: A(22)] [return: A(32)] [event: A(42)] [field: A(52)] public partial event Action E
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "event").WithLocation(9, 13),
+                // (9,29): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
+                //     [A(2)] [method: A(12)] [param: A(22)] [return: A(32)] [event: A(42)] [field: A(52)] public partial event Action E
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "event").WithLocation(9, 29),
+                // (9,44): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
+                //     [A(2)] [method: A(12)] [param: A(22)] [return: A(32)] [event: A(42)] [field: A(52)] public partial event Action E
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "event").WithLocation(9, 44),
+                // (9,75): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
+                //     [A(2)] [method: A(12)] [param: A(22)] [return: A(32)] [event: A(42)] [field: A(52)] public partial event Action E
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "event").WithLocation(9, 75),
+                // (11,64): warning CS0657: 'event' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                //         [A(3)] [method: A(13)] [param: A(23)] [return: A(33)] [event: A(43)] [field: A(53)] add { }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "event").WithArguments("event", "method, param, return").WithLocation(11, 64),
+                // (11,79): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                //         [A(3)] [method: A(13)] [param: A(23)] [return: A(33)] [event: A(43)] [field: A(53)] add { }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(11, 79),
+                // (12,64): warning CS0657: 'event' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                //         [A(4)] [method: A(14)] [param: A(24)] [return: A(34)] [event: A(44)] [field: A(54)] remove { }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "event").WithArguments("event", "method, param, return").WithLocation(12, 64),
+                // (12,79): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                //         [A(4)] [method: A(14)] [param: A(24)] [return: A(34)] [event: A(44)] [field: A(54)] remove { }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(12, 79),
+                // (15,29): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                //     [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action F;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, event").WithLocation(15, 29),
+                // (15,44): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                //     [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action F;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "method, event").WithLocation(15, 44),
+                // (15,75): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                //     [A(1)] [method: A(11)] [param: A(21)] [return: A(31)] [event: A(41)] [field: A(51)] public partial event Action F;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, event").WithLocation(15, 75),
+                // (16,29): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                //     [A(2)] [method: A(12)] [param: A(22)] [return: A(32)] [event: A(42)] [field: A(52)] public extern partial event Action F;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, event").WithLocation(16, 29),
+                // (16,44): warning CS0657: 'return' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                //     [A(2)] [method: A(12)] [param: A(22)] [return: A(32)] [event: A(42)] [field: A(52)] public extern partial event Action F;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "return").WithArguments("return", "method, event").WithLocation(16, 44),
+                // (16,75): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+                //     [A(2)] [method: A(12)] [param: A(22)] [return: A(32)] [event: A(42)] [field: A(52)] public extern partial event Action F;
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, event").WithLocation(16, 75));
+
+        static void validate(ModuleSymbol module)
+        {
+            var isSource = module is SourceModuleSymbol;
+            ReadOnlySpan<string> compiledGeneratedAttr = isSource ? [] : ["System.Runtime.CompilerServices.CompilerGeneratedAttribute"];
+
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("C.E");
+            AssertEx.Equal(["A(1)", "A(41)", "A(2)", "A(42)"], e.GetAttributes().ToStrings());
+            AssertEx.Equal(["A(3)", "A(13)"], e.AddMethod!.GetAttributes().ToStrings());
+            AssertEx.Equal(["A(23)"], e.AddMethod.Parameters.Single().GetAttributes().ToStrings());
+            AssertEx.Equal(["A(33)"], e.AddMethod.GetReturnTypeAttributes().ToStrings());
+            AssertEx.Equal(["A(4)", "A(14)"], e.RemoveMethod!.GetAttributes().ToStrings());
+            AssertEx.Equal(["A(24)"], e.RemoveMethod.Parameters.Single().GetAttributes().ToStrings());
+            AssertEx.Equal(["A(34)"], e.RemoveMethod.GetReturnTypeAttributes().ToStrings());
+
+            if (isSource)
+            {
+                var eImpl = ((SourceEventSymbol)e).PartialImplementationPart!;
+                AssertEx.Equal(["A(1)", "A(41)", "A(2)", "A(42)"], eImpl.GetAttributes().ToStrings());
+                AssertEx.Equal(["A(3)", "A(13)"], eImpl.AddMethod!.GetAttributes().ToStrings());
+                AssertEx.Equal(["A(23)"], eImpl.AddMethod.Parameters.Single().GetAttributes().ToStrings());
+                AssertEx.Equal(["A(33)"], eImpl.AddMethod.GetReturnTypeAttributes().ToStrings());
+                AssertEx.Equal(["A(4)", "A(14)"], eImpl.RemoveMethod!.GetAttributes().ToStrings());
+                AssertEx.Equal(["A(24)"], eImpl.RemoveMethod.Parameters.Single().GetAttributes().ToStrings());
+                AssertEx.Equal(["A(34)"], eImpl.RemoveMethod.GetReturnTypeAttributes().ToStrings());
+            }
+
+            var f = module.GlobalNamespace.GetMember<EventSymbol>("C.F");
+            AssertEx.Equal(["A(1)", "A(41)", "A(2)", "A(42)"], f.GetAttributes().ToStrings());
+            AssertEx.Equal([.. compiledGeneratedAttr, "A(11)", "A(12)"], f.AddMethod!.GetAttributes().ToStrings());
+            AssertEx.Equal(["A(22)", "A(21)"], f.AddMethod.Parameters.Single().GetAttributes().ToStrings());
+            AssertEx.Equal([], f.AddMethod.GetReturnTypeAttributes().ToStrings());
+            AssertEx.Equal([.. compiledGeneratedAttr, "A(11)", "A(12)"], f.RemoveMethod!.GetAttributes().ToStrings());
+            AssertEx.Equal(["A(22)", "A(21)"], f.RemoveMethod.Parameters.Single().GetAttributes().ToStrings());
+            AssertEx.Equal([], f.RemoveMethod.GetReturnTypeAttributes().ToStrings());
+
+            if (isSource)
+            {
+                var fImpl = ((SourceEventSymbol)f).PartialImplementationPart!;
+                AssertEx.Equal(["A(1)", "A(41)", "A(2)", "A(42)"], fImpl.GetAttributes().ToStrings());
+                AssertEx.Equal([.. compiledGeneratedAttr, "A(11)", "A(12)"], fImpl.AddMethod!.GetAttributes().ToStrings());
+                AssertEx.Equal(["A(22)", "A(21)"], fImpl.AddMethod.Parameters.Single().GetAttributes().ToStrings());
+                AssertEx.Equal([], fImpl.AddMethod.GetReturnTypeAttributes().ToStrings());
+                AssertEx.Equal([.. compiledGeneratedAttr, "A(11)", "A(12)"], fImpl.RemoveMethod!.GetAttributes().ToStrings());
+                AssertEx.Equal(["A(22)", "A(21)"], fImpl.RemoveMethod.Parameters.Single().GetAttributes().ToStrings());
+                AssertEx.Equal([], fImpl.RemoveMethod.GetReturnTypeAttributes().ToStrings());
+            }
+        }
+    }
+
+    [Fact]
+    public void Attributes_Duplicates()
+    {
+        var source = """
+            using System;
+
+            class A1 : Attribute;
+            class A2 : Attribute;
+            class A3 : Attribute;
+
+            partial class C
+            {
+                [A1] [method: A2] partial C( // def
+                    [A1] [param: A2] int x);
+                [A1] [method: A2] partial C( // impl
+                    [A1] [param: A2] int x) { }
+
+                [A1] [method: A2] partial event Action E;
+                [A1] [method: A2] partial event Action E
+                {
+                    [A1] [method: A1] [param: A2] add { }
+                    [A1] [method: A1] [param: A2] remove { }
+                }
+            
+                [A1] [method: A2] [param: A3] partial event Action F;
+                [A1] [method: A2] [param: A3] extern partial event Action F;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,10): error CS0579: Duplicate 'A1' attribute
+            //         [A1] [param: A2] int x);
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A1").WithArguments("A1").WithLocation(10, 10),
+            // (10,22): error CS0579: Duplicate 'A2' attribute
+            //         [A1] [param: A2] int x);
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A2").WithArguments("A2").WithLocation(10, 22),
+            // (11,6): error CS0579: Duplicate 'A1' attribute
+            //     [A1] [method: A2] partial C( // impl
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A1").WithArguments("A1").WithLocation(11, 6),
+            // (11,19): error CS0579: Duplicate 'A2' attribute
+            //     [A1] [method: A2] partial C( // impl
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A2").WithArguments("A2").WithLocation(11, 19),
+            // (14,11): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
+            //     [A1] [method: A2] partial event Action E;
+            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "event").WithLocation(14, 11),
+            // (15,6): error CS0579: Duplicate 'A1' attribute
+            //     [A1] [method: A2] partial event Action E
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A1").WithArguments("A1").WithLocation(15, 6),
+            // (15,11): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'event'. All attributes in this block will be ignored.
+            //     [A1] [method: A2] partial event Action E
+            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "method").WithArguments("method", "event").WithLocation(15, 11),
+            // (17,23): error CS0579: Duplicate 'A1' attribute
+            //         [A1] [method: A1] [param: A2] add { }
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A1").WithArguments("A1").WithLocation(17, 23),
+            // (18,23): error CS0579: Duplicate 'A1' attribute
+            //         [A1] [method: A1] [param: A2] remove { }
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A1").WithArguments("A1").WithLocation(18, 23),
+            // (21,24): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+            //     [A1] [method: A2] [param: A3] partial event Action F;
+            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, event").WithLocation(21, 24),
+            // (21,31): error CS0579: Duplicate 'A3' attribute
+            //     [A1] [method: A2] [param: A3] partial event Action F;
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A3").WithArguments("A3").WithLocation(21, 31),
+            // (21,31): error CS0579: Duplicate 'A3' attribute
+            //     [A1] [method: A2] [param: A3] partial event Action F;
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A3").WithArguments("A3").WithLocation(21, 31),
+            // (22,6): error CS0579: Duplicate 'A1' attribute
+            //     [A1] [method: A2] [param: A3] extern partial event Action F;
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A1").WithArguments("A1").WithLocation(22, 6),
+            // (22,19): error CS0579: Duplicate 'A2' attribute
+            //     [A1] [method: A2] [param: A3] extern partial event Action F;
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "A2").WithArguments("A2").WithLocation(22, 19),
+            // (22,24): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, event'. All attributes in this block will be ignored.
+            //     [A1] [method: A2] [param: A3] extern partial event Action F;
+            Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, event").WithLocation(22, 24));
+    }
+
+    [Fact]
+    public void Attributes_CallerInfo()
+    {
+        var source1 = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            public partial class C
+            {
+                public partial C(int x,
+                    [CallerLineNumber] int a = -1,
+                    [CallerFilePath] string b = "f",
+                    [CallerMemberName] string c = "m",
+                    [CallerArgumentExpression(nameof(x))] string d = "e");
+                public partial C(int x, int a, string b, string c, string d)
+                {
+                    Console.WriteLine($"x='{x}' a='{a}' b='{b}' c='{c}' d='{d}'");
+                }
+
+                public partial C(string x,
+                    int a = -1,
+                    string b = "f",
+                    string c = "m",
+                    string d = "e");
+                public partial C(string x,
+                    [CallerLineNumber] int a,
+                    [CallerFilePath] string b,
+                    [CallerMemberName] string c,
+                    [CallerArgumentExpression(nameof(x))] string d)
+                {
+                    Console.WriteLine($"x='{x}' a='{a}' b='{b}' c='{c}' d='{d}'");
+                }
+            }
+            """;
+
+        var source2 = ("""
+            var c1 = new C(40 + 2);
+            var c2 = new C("s");
+            """, "file.cs");
+
+        var expectedDiagnostics = new[]
+        {
+            // (22,10): warning CS4024: The CallerLineNumberAttribute applied to parameter 'a' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //         [CallerLineNumber] int a,
+            Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("a").WithLocation(22, 10),
+            // (23,10): warning CS4025: The CallerFilePathAttribute applied to parameter 'b' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //         [CallerFilePath] string b,
+            Diagnostic(ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation, "CallerFilePath").WithArguments("b").WithLocation(23, 10),
+            // (24,10): warning CS4026: The CallerMemberNameAttribute applied to parameter 'c' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //         [CallerMemberName] string c,
+            Diagnostic(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, "CallerMemberName").WithArguments("c").WithLocation(24, 10),
+            // (25,10): warning CS8966: The CallerArgumentExpressionAttribute applied to parameter 'd' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //         [CallerArgumentExpression(nameof(x))] string d)
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation, "CallerArgumentExpression").WithArguments("d").WithLocation(25, 10)
+        };
+
+        CompileAndVerify([source1, source2, CallerArgumentExpressionAttributeDefinition],
+            expectedOutput: """
+                x='42' a='1' b='file.cs' c='<Main>$' d='40 + 2'
+                x='s' a='-1' b='f' c='m' d='e'
+                """)
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        // Although caller info attributes on the implementation part have no effect in source,
+        // they are written to metadata as is demonstrated below.
+        // See https://github.com/dotnet/roslyn/issues/73482.
+
+        var lib = CreateCompilation([source1, CallerArgumentExpressionAttributeDefinition])
+            .VerifyDiagnostics(expectedDiagnostics)
+            .EmitToPortableExecutableReference();
+
+        CompileAndVerify(CreateCompilation(source2, references: [lib]),
+            expectedOutput: """
+                x='42' a='1' b='file.cs' c='<Main>$' d='40 + 2'
+                x='s' a='2' b='file.cs' c='<Main>$' d='"s"'
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Attributes_Nullable()
+    {
+        var source = """
+            #nullable enable
+            using System.Diagnostics.CodeAnalysis;
+
+            new C(default(I1)!, null);
+            new C(default(I2)!, null);
+            new C(default(I3)!, null);
+            new C(default(I4)!, null);
+            new C(default(I5)!, null);
+            new C(default(I6)!, null);
+            new C(default(I7)!, null);
+            new C(default(I8)!, null);
+
+            interface I1;
+            interface I2;
+            interface I3;
+            interface I4;
+            interface I5;
+            interface I6;
+            interface I7;
+            interface I8;
+
+            partial class C
+            {
+                public partial C(I1 i, [AllowNull] object x);
+                public partial C(I1 i, object x) { x.ToString(); }
+
+                public partial C(I2 i, object x);
+                public partial C(I2 i, [AllowNull] object x) { x.ToString(); }
+
+                public partial C(I3 i, [AllowNull] object x);
+                public partial C(I3 i, object? x) { x.ToString(); }
+
+                public partial C(I4 i, object? x);
+                public partial C(I4 i, [AllowNull] object x) { x.ToString(); }
+
+                public partial C(I5 i, [DisallowNull] object? x);
+                public partial C(I5 i, object? x) { x.ToString(); }
+
+                public partial C(I6 i, object? x);
+                public partial C(I6 i, [DisallowNull] object? x) { x.ToString(); }
+
+                public partial C(I7 i, [DisallowNull] object? x);
+                public partial C(I7 i, object x) { x.ToString(); }
+
+                public partial C(I8 i, object x);
+                public partial C(I8 i, [DisallowNull] object? x) { x.ToString(); }
+            }
+            """;
+        CreateCompilation([source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition]).VerifyDiagnostics(
+            // (8,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new C(default(I5)!, null);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 21),
+            // (9,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new C(default(I6)!, null);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 21),
+            // (10,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new C(default(I7)!, null);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 21),
+            // (11,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new C(default(I8)!, null);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 21),
+            // (25,40): warning CS8602: Dereference of a possibly null reference.
+            //     public partial C(I1 i, object x) { x.ToString(); }
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(25, 40),
+            // (28,52): warning CS8602: Dereference of a possibly null reference.
+            //     public partial C(I2 i, [AllowNull] object x) { x.ToString(); }
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(28, 52),
+            // (31,20): warning CS9256: Partial member declarations 'C.C(I3 i, object x)' and 'C.C(I3 i, object? x)' have signature differences.
+            //     public partial C(I3 i, object? x) { x.ToString(); }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(I3 i, object x)", "C.C(I3 i, object? x)").WithLocation(31, 20),
+            // (31,41): warning CS8602: Dereference of a possibly null reference.
+            //     public partial C(I3 i, object? x) { x.ToString(); }
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(31, 41),
+            // (34,20): warning CS9256: Partial member declarations 'C.C(I4 i, object? x)' and 'C.C(I4 i, object x)' have signature differences.
+            //     public partial C(I4 i, [AllowNull] object x) { x.ToString(); }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(I4 i, object? x)", "C.C(I4 i, object x)").WithLocation(34, 20),
+            // (34,52): warning CS8602: Dereference of a possibly null reference.
+            //     public partial C(I4 i, [AllowNull] object x) { x.ToString(); }
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(34, 52),
+            // (43,20): warning CS9256: Partial member declarations 'C.C(I7 i, object? x)' and 'C.C(I7 i, object x)' have signature differences.
+            //     public partial C(I7 i, object x) { x.ToString(); }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(I7 i, object? x)", "C.C(I7 i, object x)").WithLocation(43, 20),
+            // (46,20): warning CS9256: Partial member declarations 'C.C(I8 i, object x)' and 'C.C(I8 i, object? x)' have signature differences.
+            //     public partial C(I8 i, [DisallowNull] object? x) { x.ToString(); }
+            Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "C").WithArguments("C.C(I8 i, object x)", "C.C(I8 i, object? x)").WithLocation(46, 20));
+    }
+
+    [Fact]
+    public void Attributes_Obsolete()
+    {
+        var source = """
+            using System;
+
+            var c = new C();
+            c = new C(2);
+            c.E += null;
+            c.E -= null;
+            c.F += null;
+            c.F -= null;
+            c.G += null;
+            c.G -= null;
+            c.H += null;
+            c.H -= null;
+
+            partial class C
+            {
+                [Obsolete] public partial C();
+                public partial C() { M(); }
+
+                public partial C(int x = X);
+                [Obsolete] public partial C(int x) { M(); }
+
+                [Obsolete] public partial event Action E;
+                public partial event Action E { add { M(); } remove { M(); } }
+
+                public partial event Action F;
+                public partial event Action F
+                {
+                    [Obsolete] add { M(); }
+                    remove { M(); }
+                }
+
+                [Obsolete] public partial event Action G;
+                public extern partial event Action G;
+
+                [method: Obsolete] public partial event Action H;
+                public extern partial event Action H;
+
+                [Obsolete] void M() { }
+                [Obsolete] const int X = 1;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,9): warning CS0612: 'C.C()' is obsolete
+            // var c = new C();
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.C()").WithLocation(3, 9),
+            // (4,5): warning CS0612: 'C.C(int)' is obsolete
+            // c = new C(2);
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C(2)").WithArguments("C.C(int)").WithLocation(4, 5),
+            // (5,1): warning CS0612: 'C.E' is obsolete
+            // c.E += null;
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c.E").WithArguments("C.E").WithLocation(5, 1),
+            // (6,1): warning CS0612: 'C.E' is obsolete
+            // c.E -= null;
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c.E").WithArguments("C.E").WithLocation(6, 1),
+            // (9,1): warning CS0612: 'C.G' is obsolete
+            // c.G += null;
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c.G").WithArguments("C.G").WithLocation(9, 1),
+            // (10,1): warning CS0612: 'C.G' is obsolete
+            // c.G -= null;
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c.G").WithArguments("C.G").WithLocation(10, 1),
+            // (28,10): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+            //         [Obsolete] add { M(); }
+            Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(28, 10),
+            // (29,18): warning CS0612: 'C.M()' is obsolete
+            //         remove { M(); }
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M()").WithArguments("C.M()").WithLocation(29, 18),
+            // (35,14): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+            //     [method: Obsolete] public partial event Action H;
+            Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(35, 14));
     }
 }

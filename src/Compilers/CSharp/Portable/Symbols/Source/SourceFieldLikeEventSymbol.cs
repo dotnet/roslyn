@@ -5,8 +5,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -175,9 +179,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (object?)AssociatedEventField != null ?
-                    AttributeLocation.Event | AttributeLocation.Method | AttributeLocation.Field :
-                    AttributeLocation.Event | AttributeLocation.Method;
+                var result = AttributeLocation.Event;
+
+                if (!IsPartial || IsExtern)
+                {
+                    result |= AttributeLocation.Method;
+                }
+
+                if (AssociatedEventField is not null)
+                {
+                    result |= AttributeLocation.Field;
+                }
+
+                return result;
             }
         }
 
@@ -238,6 +252,104 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false)
             {
                 return null;
+            }
+
+            protected override SourceMemberMethodSymbol? BoundAttributesSource
+            {
+                get
+                {
+                    return IsExtern && this.MethodKind == MethodKind.EventAdd
+                        ? (SourceMemberMethodSymbol?)this.AssociatedEvent.RemoveMethod
+                        : null;
+                }
+            }
+
+            protected override IAttributeTargetSymbol AttributeOwner
+            {
+                get
+                {
+                    Debug.Assert(IsPartialDefinition);
+
+                    switch (PartialImplementationPart)
+                    {
+                        case SourceCustomEventAccessorSymbol:
+                            return this;
+
+                        case SynthesizedEventAccessorSymbol:
+                            Debug.Assert(IsExtern);
+                            return AssociatedEvent;
+
+                        case null:
+                            // Might happen in error scenarios.
+                            return this;
+
+                        default:
+                            Debug.Assert(false);
+                            return this;
+                    }
+                }
+            }
+
+            internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+            {
+                Debug.Assert(IsPartialDefinition);
+
+                switch (PartialImplementationPart)
+                {
+                    case SourceCustomEventAccessorSymbol customImplementationPart:
+                        return OneOrMany.Create(customImplementationPart.AttributeDeclarationSyntaxList);
+
+                    case SynthesizedEventAccessorSymbol synthesizedImplementationPart:
+                        Debug.Assert(IsExtern);
+                        return OneOrMany.Create(
+                            AssociatedEvent.AttributeDeclarationSyntaxList,
+                            synthesizedImplementationPart.AssociatedEvent.AttributeDeclarationSyntaxList);
+
+                    case null:
+                        // Might happen in error scenarios.
+                        return OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
+
+                    default:
+                        Debug.Assert(false);
+                        return OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
+                }
+            }
+
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            {
+                Debug.Assert(IsPartialDefinition);
+
+                if (PartialImplementationPart is { } implementationPart)
+                {
+                    implementationPart.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+                }
+                else
+                {
+                    // This could happen in error scenarios (when the implementation part of a partial event is missing),
+                    // but then we should not get to the emit stage and call this method.
+                    Debug.Assert(false);
+
+                    base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+                }
+            }
+
+            internal override MethodImplAttributes ImplementationAttributes
+            {
+                get
+                {
+                    Debug.Assert(IsPartialDefinition);
+
+                    if (PartialImplementationPart is { } implementationPart)
+                    {
+                        return implementationPart.ImplementationAttributes;
+                    }
+
+                    // This could happen in error scenarios (when the implementation part of a partial event is missing),
+                    // but then we should not get to the emit stage and call this property.
+                    Debug.Assert(false);
+
+                    return base.ImplementationAttributes;
+                }
             }
         }
     }

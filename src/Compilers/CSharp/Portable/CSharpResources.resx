@@ -8065,4 +8065,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialEventInitializer" xml:space="preserve">
     <value>'{0}': partial event cannot have initializer</value>
   </data>
+  <data name="ERR_PartialConstructorInitializer" xml:space="preserve">
+    <value>'{0}': only the implementing declaration of a partial constructor can have an initializer</value>
+  </data>
 </root>
