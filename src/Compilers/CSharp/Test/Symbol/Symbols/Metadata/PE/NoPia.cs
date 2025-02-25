@@ -1502,6 +1502,7 @@ public class Derived : C
                 var baseF1 = compilationDerived.GetTypeByMetadataName("C").GetMember<MethodSymbol>("F1");
                 Assert.Same(s, baseF1.Parameters[0].Type);
                 Assert.Equal(MetadataHelpers.LayoutKindExtended, s.Layout.Kind);
+                Assert.NotNull(s.GetAttribute(compilationDerived.GetTypeByMetadataName("System.Runtime.InteropServices.ExtendedLayoutAttribute")).AttributeConstructor);
                 compilationDerived.VerifyDiagnostics();
             }
         }
