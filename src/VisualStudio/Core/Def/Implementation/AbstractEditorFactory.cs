@@ -451,6 +451,7 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
 
         // In ChooseEditorFactory workflow VS Shell is not automatically loading WinForms Designer Package if it's not loaded yet.
         // This issue is under investigation. For time being, we will load it ourselves.
+        // Tracking bug: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2397765
         var packageManager = (IVsPackageManagerPrivate)PackageUtilities.QueryService<SVsPackageManagerPrivate>(_oleServiceProvider);
 
         Guid WinFormsDesignerPackageGuid = new("{68939055-38E0-4d17-92CB-8909710D8178}");
