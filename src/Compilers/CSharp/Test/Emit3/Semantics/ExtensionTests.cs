@@ -109,6 +109,17 @@ public static class Extensions
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
+        // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object ''
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
 } // end of class Extensions
 """);
@@ -175,6 +186,17 @@ public static class Extensions
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [netstandard]System.Object
     {
+        // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object ''
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
 } // end of class Extensions
 """);
@@ -239,6 +261,17 @@ public static class Extensions
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<valuetype .ctor ([netstandard]System.ValueType) T>
         extends [netstandard]System.Object
     {
+        // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object ''
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
 } // end of class Extensions
 """);
@@ -470,6 +503,17 @@ public static class Extensions
         .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
             01 00 01 00 00
         )
+        // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object ''
+            ) cil managed 
+        {
+            // Method begins at RVA 0x209d
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
 } // end of class Extensions
 """);
@@ -698,6 +742,17 @@ public static partial class Extensions
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
+        // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object ''
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
 } // end of class Extensions
 """);
@@ -993,6 +1048,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     // Methods
     .method private hidebysig specialname static 
@@ -1080,6 +1145,16 @@ extends [netstandard]System.Object
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object ''
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     // Methods
     .method private hidebysig specialname static 
@@ -1192,6 +1267,16 @@ extends [netstandard]System.Object
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::set_Property
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x206b
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         // Properties
         .property instance int32 Property()
         {
@@ -1343,6 +1428,16 @@ extends [netstandard]System.Object
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::set_Property
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object ''
+            ) cil managed 
+        {
+            // Method begins at RVA 0x206b
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         // Properties
         .property int32 Property()
         {
@@ -1435,7 +1530,7 @@ public static class Extensions
 
         VerifyTypeIL(verifier, "Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-extends [netstandard]System.Object
+    extends [netstandard]System.Object
 {
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
@@ -1468,6 +1563,16 @@ extends [netstandard]System.Object
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::set_Item
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x206b
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         // Properties
         .property instance int32 Item(
             int32 i
@@ -2905,6 +3010,114 @@ public static class Extensions
     }
 
     [Fact]
+    public void PassingValueForARefReceiver_01()
+    {
+        var src = """
+public class C
+{
+    static void Main()
+    {
+        GetInt().M1();
+        GetInt().M2();
+    }
+
+    static int GetInt() => 0; 
+}
+
+static class Extensions
+{
+    extension(ref int receiver)
+    {
+        public void M1() {}
+    }
+
+    public static void M2 (this ref int receiver)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        // PROTOTYPE: A similar error is expected for 'GetInt().M1()';
+        comp.VerifyDiagnostics(
+            // (6,9): error CS1510: A ref or out value must be an assignable variable
+            //         GetInt().M2();
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetInt()").WithLocation(6, 9)
+            );
+    }
+
+    [Fact]
+    public void PassingValueForARefReceiver_02()
+    {
+        var src = """
+public class C
+{
+    static void Main()
+    {
+        GetInt().M1();
+        GetInt().M2();
+    }
+
+    static int GetInt() => 0; 
+}
+
+static class Extensions
+{
+    extension(ref readonly int receiver)
+    {
+        public void M1() {}
+    }
+
+    public static void M2 (this ref readonly int receiver)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        // PROTOTYPE: A similar warning is expected for 'GetInt().M1()';
+        comp.VerifyEmitDiagnostics(
+            // (6,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+            //         GetInt().M2();
+            Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetInt()").WithArguments("0").WithLocation(6, 9)
+            );
+
+        // PROTOTYPE: Test emit and execution for a scenario like this
+    }
+
+    [Fact]
+    public void PassingValueForARefReceiver_03()
+    {
+        var src = """
+public class C
+{
+    static void Main()
+    {
+        GetInt().M1();
+        GetInt().M2();
+    }
+
+    static int GetInt() => 0; 
+}
+
+static class Extensions
+{
+    extension(in int receiver)
+    {
+        public void M1() {}
+    }
+
+    public static void M2 (this in int receiver)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics(); // PROTOTYPE: Test emit and execution for a scenario like this
+    }
+
+    [Fact]
     public void Implementation_InstanceMethod_01()
     {
         var src = """
@@ -2921,7 +3134,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -2943,6 +3156,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x207a
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     // Methods
     .method private hidebysig specialname static 
@@ -2969,18 +3192,18 @@ public static class Extensions
     [Fact]
     public void Implementation_InstanceMethod_02()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension(object o)
     {
-        string M(string s) => o + s;
+        public string M(string s) => o + s;
     }
 }
 """;
-        var comp = CreateCompilation(src);
+        var comp1 = CreateCompilation(src1);
 
-        MethodSymbol implementation = comp.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+        MethodSymbol implementation = comp1.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
         Assert.True(implementation.IsStatic);
         Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
         Assert.Equal(2, implementation.ParameterCount);
@@ -2990,9 +3213,9 @@ public static class Extensions
         Assert.True(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -3001,7 +3224,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
+        .method public hidebysig 
             instance string M (
                 string s
             ) cil managed 
@@ -3012,9 +3235,19 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x207e
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         string '<Extension>M' (
             object o,
             string s
@@ -3035,17 +3268,81 @@ public static class Extensions
     } // end of method Extensions::'<Extension>M'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write("3".M2("4"));
+    }
+
+    static string Test(object o)
+    {
+        return o.M("2");
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public string M2(string s) => o.M(s);
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        var verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+
+        var testIL =
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldstr      ""2""
+  IL_0007:  call       ""string Extensions.<Extension>M(object, string)""
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_000f
+  IL_000f:  ldloc.0
+  IL_0010:  ret
+}
+";
+        verifier2.VerifyIL("Program.Test", testIL);
+
+        var m2IL =
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""string Extensions.<Extension>M(object, string)""
+  IL_0007:  ret
+}
+";
+        verifier2.VerifyIL("Extensions.<Extension>M2", m2IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+
+        verifier2.VerifyIL("Program.Test", testIL);
+        verifier2.VerifyIL("Extensions.<Extension>M2", m2IL);
     }
 
     [Fact]
     public void Implementation_InstanceMethod_03_WithLocalFunction()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension(object o)
     {
-        string M(string s)
+        public string M(string s)
         {
             string local() => o + s;
             return local();
@@ -3053,10 +3350,10 @@ public static class Extensions
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -3065,7 +3362,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
+        .method public hidebysig 
             instance string M (
                 string s
             ) cil managed 
@@ -3076,6 +3373,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x20ae
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.ValueType
@@ -3088,7 +3395,7 @@ public static class Extensions
         .field public string s
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         string '<Extension>M' (
             object o,
             string s
@@ -3161,17 +3468,52 @@ public static class Extensions
 """;
         var comp2 = CreateCompilation(src2);
         CompileAndVerify(comp2).VerifyDiagnostics();
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write("3".M2("4"));
+    }
+
+    static string Test(object o)
+    {
+        string local() => o.M("2");
+        return local();
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public string M2(string s)
+        {
+            string local() => o.M(s);
+            return local();
+        }
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
     }
 
     [Fact]
     public void Implementation_InstanceMethod_04_WithLambda()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension(object o)
     {
-        string M(string s)
+        public string M(string s)
         {
             System.Func<string> local = () => o + s;
             return local();
@@ -3179,10 +3521,10 @@ public static class Extensions
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -3191,7 +3533,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
+        .method public hidebysig 
             instance string M (
                 string s
             ) cil managed 
@@ -3202,6 +3544,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x208f
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.Object
@@ -3216,7 +3568,7 @@ public static class Extensions
         .method public hidebysig specialname rtspecialname 
             instance void .ctor () cil managed 
         {
-            // Method begins at RVA 0x208f
+            // Method begins at RVA 0x2091
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -3226,7 +3578,7 @@ public static class Extensions
         .method assembly hidebysig 
             instance string '<<Extension>M>b__0' () cil managed 
         {
-            // Method begins at RVA 0x2097
+            // Method begins at RVA 0x2099
             // Code size 30 (0x1e)
             .maxstack 8
             IL_0000: ldarg.0
@@ -3244,7 +3596,7 @@ public static class Extensions
         } // end of method '<>c__DisplayClass1_0'::'<<Extension>M>b__0'
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         string '<Extension>M' (
             object o,
             string s
@@ -3292,27 +3644,62 @@ public static class Extensions
 """;
         var comp2 = CreateCompilation(src2);
         CompileAndVerify(comp2).VerifyDiagnostics();
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write("3".M2("4"));
+    }
+
+    static string Test(object o)
+    {
+        System.Func<string> local = () => o.M("2");
+        return local();
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public string M2(string s)
+        {
+            System.Func<string> local = () => o.M(s);
+            return local();
+        }
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
     }
 
     [Fact]
     public void Implementation_InstanceMethod_05_Iterator()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension(object o)
     {
-        System.Collections.Generic.IEnumerable<string> M(string s)
+        public System.Collections.Generic.IEnumerable<string> M(string s)
         {
             yield return o + s;
         }
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", ("""
+        verifier1.VerifyTypeIL("Extensions", ("""
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -3321,7 +3708,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
+        .method public hidebysig 
             instance class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
                 string s
             ) cil managed 
@@ -3337,6 +3724,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2081
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<<Extension>M>d__1'
         extends [mscorlib]System.Object
@@ -3378,7 +3775,7 @@ public static class Extensions
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
             )
-            // Method begins at RVA 0x2081
+            // Method begins at RVA 0x2083
             // Code size 25 (0x19)
             .maxstack 8
             IL_0000: ldarg.0
@@ -3398,7 +3795,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.IDisposable::Dispose()
-            // Method begins at RVA 0x209b
+            // Method begins at RVA 0x209d
             // Code size 9 (0x9)
             .maxstack 8
             IL_0000: ldarg.0
@@ -3560,7 +3957,7 @@ public static class Extensions
         }
     } // end of class <<Extension>M>d__1
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         class [mscorlib]System.Collections.Generic.IEnumerable`1<string> '<Extension>M' (
             object o,
             string s
@@ -3609,17 +4006,83 @@ public static class Extensions
 """;
         var comp2 = CreateCompilation(src2);
         CompileAndVerify(comp2).VerifyDiagnostics();
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        foreach (var s in Test("1"))
+            System.Console.Write(s);
+        foreach (var s in "3".M2("4"))
+            System.Console.Write(s);
+    }
+
+    static System.Collections.Generic.IEnumerable<string> Test(object o)
+    {
+        return o.M("2");
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public System.Collections.Generic.IEnumerable<string> M2(string s) => o.M(s);
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "1234");
+
+        var testIL =
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (System.Collections.Generic.IEnumerable<string> V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldstr      ""2""
+  IL_0007:  call       ""System.Collections.Generic.IEnumerable<string> Extensions.<Extension>M(object, string)""
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_000f
+  IL_000f:  ldloc.0
+  IL_0010:  ret
+}
+";
+        verifier3.VerifyIL("Program.Test", testIL);
+
+        var m2IL =
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""System.Collections.Generic.IEnumerable<string> Extensions.<Extension>M(object, string)""
+  IL_0007:  ret
+}
+";
+        verifier3.VerifyIL("Extensions.<Extension>M2", m2IL);
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "1234");
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions.<Extension>M2", m2IL);
     }
 
     [Fact]
     public void Implementation_InstanceMethod_06_Async()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension(object o)
     {
-        async System.Threading.Tasks.Task<string> M(string s)
+        public async System.Threading.Tasks.Task<string> M(string s)
         {
             await System.Threading.Tasks.Task.Yield();
             return o + s;
@@ -3627,10 +4090,10 @@ public static class Extensions
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -3639,7 +4102,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
+        .method public hidebysig 
             instance class [mscorlib]System.Threading.Tasks.Task`1<string> M (
                 string s
             ) cil managed 
@@ -3655,6 +4118,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x20b6
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<<Extension>M>d__1'
         extends [mscorlib]System.ValueType
@@ -3781,7 +4254,7 @@ public static class Extensions
         } // end of method '<<Extension>M>d__1'::SetStateMachine
     } // end of class <<Extension>M>d__1
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         class [mscorlib]System.Threading.Tasks.Task`1<string> '<Extension>M' (
             object o,
             string s
@@ -3846,31 +4319,66 @@ public static class Extensions
 """;
         var comp2 = CreateCompilation(src2);
         CompileAndVerify(comp2).VerifyDiagnostics();
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1").Result);
+        System.Console.Write("3".M2("4").Result);
+    }
+
+    async static System.Threading.Tasks.Task<string> Test(object o)
+    {
+        await System.Threading.Tasks.Task.Yield();
+        return await o.M("2");
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        async public System.Threading.Tasks.Task<string> M2(string s)
+        {
+            await System.Threading.Tasks.Task.Yield();
+            return await o.M(s);
+        }
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
     }
 
     [Fact]
     public void Implementation_InstanceMethod_07_Generic()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension<T>(C<T> o)
     {
-        string M<U>(T t, U u)
+        public string M<U>(T t, U u)
         {
             return o.GetString() + u.ToString() + t.ToString();
         }
     }
 }
 
-public class C<T>
+public class C<T>(string v)
 {
-    public string GetString() => null;
+    public string GetString() => v;
 }
 """;
-        var comp = CreateCompilation(src);
+        var comp1 = CreateCompilation(src1);
 
-        MethodSymbol implementation = comp.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+        MethodSymbol implementation = comp1.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
         Assert.True(implementation.IsStatic);
         Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
         Assert.Equal(3, implementation.ParameterCount);
@@ -3880,9 +4388,9 @@ public class C<T>
         Assert.True(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -3891,21 +4399,31 @@ public class C<T>
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
+        .method public hidebysig 
             instance string M<U> (
                 !T t,
                 !!U u
             ) cil managed 
         {
-            // Method begins at RVA 0x2099
+            // Method begins at RVA 0x20a5
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                class C`1<!T> o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x20a8
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         string '<Extension>M'<T, U> (
             class C`1<!!T> o,
             !!T t,
@@ -3928,38 +4446,103 @@ public class C<T>
     } // end of method Extensions::'<Extension>M'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test(new C<string>("1"), "2", 3));
+        System.Console.Write(new C<string>("4").M2("5", 6));
+    }
+
+    static string Test<T, U>(C<T> o, T t, U u)
+    {
+        return o.M(t, u);
+    }
+}
+
+static class Extensions
+{
+    extension<T>(C<T> o)
+    {
+        public string M2<U>(T t, U u) => o.M(t, u);
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "132465");
+
+        var testIL =
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  3
+  .locals init (string V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.1
+  IL_0003:  ldarg.2
+  IL_0004:  call       ""string Extensions.<Extension>M<T, U>(C<T>, T, U)""
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  ret
+}
+";
+        verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
+
+        var m2IL =
+@"
+{
+  // Code size        9 (0x9)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldarg.2
+  IL_0003:  call       ""string Extensions.<Extension>M<T, U>(C<T>, T, U)""
+  IL_0008:  ret
+}
+";
+        verifier3.VerifyIL("Extensions.<Extension>M2<T, U>(C<T>, T, U)", m2IL);
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "132465");
+
+        verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
+        verifier3.VerifyIL("Extensions.<Extension>M2<T, U>(C<T>, T, U)", m2IL);
     }
 
     [Fact]
     public void Implementation_InstanceMethod_08_WithLocalFunction_Generic()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension<T>(C<T> o)
     {
-        string M<U>(T t1, U u1)
+        public C<U> M<U>(T t1, U u1)
         {
-            U local<X, Y, Z>(T t2, U u2, X x2, Y y2, Z z2)
+            C<U> local<X, Y, Z>(T t2, U u2, X x2, Y y2, Z z2)
             {
-                _ = o.GetString() + u1.ToString() + t1.ToString() + u2.ToString() + t2.ToString() + x2.ToString() + y2.ToString() + z2.ToString();
-                return u2;
+                return new C<U>(o.GetString() + u1.ToString() + t1.ToString() + u2.ToString() + t2.ToString() + x2.ToString() + y2.ToString() + z2.ToString());
             };
 
-            return local(t1, u1, 0, t1, u1).ToString();
+            return local(t1, u1, 0, t1, u1);
         }
     }
 }
 
-public class C<T>
+public class C<T>(string val)
 {
-    public string GetString() => null;
+    public string GetString() => val;
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -3968,18 +4551,28 @@ public class C<T>
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
-            instance string M<U> (
+        .method public hidebysig 
+            instance class C`1<!!U> M<U> (
                 !T t1,
                 !!U u1
             ) cil managed 
         {
-            // Method begins at RVA 0x216a
+            // Method begins at RVA 0x216d
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                class C`1<!T> o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2170
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0`2'<T, U>
         extends [mscorlib]System.ValueType
@@ -3993,19 +4586,18 @@ public class C<T>
         .field public !T t1
     } // end of class <>c__DisplayClass1_0`2
     // Methods
-    .method private hidebysig specialname static 
-        string '<Extension>M'<T, U> (
+    .method public hidebysig specialname static 
+        class C`1<!!U> '<Extension>M'<T, U> (
             class C`1<!!T> o,
             !!T t1,
             !!U u1
         ) cil managed 
     {
         // Method begins at RVA 0x2068
-        // Code size 71 (0x47)
+        // Code size 57 (0x39)
         .maxstack 6
         .locals init (
-            [0] valuetype Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>,
-            [1] !!U
+            [0] valuetype Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>
         )
         IL_0000: ldloca.s 0
         IL_0002: ldarg.0
@@ -4026,15 +4618,11 @@ public class C<T>
         IL_002b: ldloc.0
         IL_002c: ldfld !1 valuetype Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::u1
         IL_0031: ldloca.s 0
-        IL_0033: call !!1 Extensions::'<<Extension>M>b__1_0'<!!T, !!U, int32, !!T, !!U>(!!0, !!1, !!2, !!3, !!4, valuetype Extensions/'<>c__DisplayClass1_0`2'<!!0, !!1>&)
-        IL_0038: stloc.1
-        IL_0039: ldloca.s 1
-        IL_003b: constrained. !!U
-        IL_0041: callvirt instance string [mscorlib]System.Object::ToString()
-        IL_0046: ret
+        IL_0033: call class C`1<!!1> Extensions::'<<Extension>M>b__1_0'<!!T, !!U, int32, !!T, !!U>(!!0, !!1, !!2, !!3, !!4, valuetype Extensions/'<>c__DisplayClass1_0`2'<!!0, !!1>&)
+        IL_0038: ret
     } // end of method Extensions::'<Extension>M'
     .method assembly hidebysig static 
-        !!U '<<Extension>M>b__1_0'<T, U, X, Y, Z> (
+        class C`1<!!U> '<<Extension>M>b__1_0'<T, U, X, Y, Z> (
             !!T t2,
             !!U u2,
             !!X x2,
@@ -4046,8 +4634,8 @@ public class C<T>
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x20bc
-        // Code size 151 (0x97)
+        // Method begins at RVA 0x20b0
+        // Code size 154 (0x9a)
         .maxstack 4
         IL_0000: ldc.i4.8
         IL_0001: newarr [mscorlib]System.String
@@ -4102,9 +4690,8 @@ public class C<T>
         IL_0089: callvirt instance string [mscorlib]System.Object::ToString()
         IL_008e: stelem.ref
         IL_008f: call string [mscorlib]System.String::Concat(string[])
-        IL_0094: pop
-        IL_0095: ldarg.1
-        IL_0096: ret
+        IL_0094: newobj instance void class C`1<!!U>::.ctor(string)
+        IL_0099: ret
     } // end of method Extensions::'<<Extension>M>b__1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
@@ -4148,38 +4735,80 @@ public class C<T>
 """;
         var comp2 = CreateCompilation(src2);
         CompileAndVerify(comp2).VerifyDiagnostics();
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test(new C<long>("1"), 2, "3").GetString());
+        System.Console.Write(new C<long>("4").M2(5, "6").GetString());
+    }
+
+    static C<U> Test<T, U>(C<T> o, T t1, U u1)
+    {
+        C<X> local<X>(T t2, X x2)
+        {
+            return o.M(t2, x2);
+        };
+
+        return local(t1, u1);
+    }
+}
+
+static class Extensions
+{
+    extension<T>(C<T> o)
+    {
+        public C<U> M2<U>(T t1, U u1)
+        {
+            C<X> local<X>(T t2, X x2)
+            {
+                return o.M(t2, x2);
+            };
+
+            return local(t1, u1);
+        }
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1323202346565056");
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1323202346565056");
     }
 
     [Fact]
     public void Implementation_InstanceMethod_09_WithLambda_Generic()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension<T>(C<T> o)
     {
-        string M<U>(T t1, U u1)
+        public C<U> M<U>(T t1, U u1)
         {
-            System.Func<T, U, U> local = (T t2, U u2) =>
+            System.Func<T, U, C<U>> local = (T t2, U u2) =>
             {
-                _ = o.GetString() + u1.ToString() + t1.ToString() + u2.ToString() + t2.ToString();
-                return u2;
+                return new C<U>(o.GetString() + u1.ToString() + t1.ToString() + u2.ToString() + t2.ToString());
             };
 
-            return local(t1, u1).ToString();
+            return local(t1, u1);
         }
     }
 }
 
-public class C<T>
+public class C<T>(string val)
 {
-    public string GetString() => null;
+    public string GetString() => val;
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -4188,18 +4817,28 @@ public class C<T>
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
-            instance string M<U> (
+        .method public hidebysig 
+            instance class C`1<!!U> M<U> (
                 !T t1,
                 !!U u1
             ) cil managed 
         {
-            // Method begins at RVA 0x20c6
+            // Method begins at RVA 0x20c4
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                class C`1<!T> o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x20c7
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0`2'<T, U>
         extends [mscorlib]System.Object
@@ -4215,7 +4854,7 @@ public class C<T>
         .method public hidebysig specialname rtspecialname 
             instance void .ctor () cil managed 
         {
-            // Method begins at RVA 0x20be
+            // Method begins at RVA 0x20c9
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -4223,13 +4862,13 @@ public class C<T>
             IL_0006: ret
         } // end of method '<>c__DisplayClass1_0`2'::.ctor
         .method assembly hidebysig 
-            instance !U '<<Extension>M>b__0' (
+            instance class C`1<!U> '<<Extension>M>b__0' (
                 !T t2,
                 !U u2
             ) cil managed 
         {
-            // Method begins at RVA 0x20cc
-            // Code size 100 (0x64)
+            // Method begins at RVA 0x20d4
+            // Code size 103 (0x67)
             .maxstack 4
             IL_0000: ldc.i4.5
             IL_0001: newarr [mscorlib]System.String
@@ -4266,25 +4905,23 @@ public class C<T>
             IL_0056: callvirt instance string [mscorlib]System.Object::ToString()
             IL_005b: stelem.ref
             IL_005c: call string [mscorlib]System.String::Concat(string[])
-            IL_0061: pop
-            IL_0062: ldarg.2
-            IL_0063: ret
+            IL_0061: newobj instance void class C`1<!U>::.ctor(string)
+            IL_0066: ret
         } // end of method '<>c__DisplayClass1_0`2'::'<<Extension>M>b__0'
     } // end of class <>c__DisplayClass1_0`2
     // Methods
-    .method private hidebysig specialname static 
-        string '<Extension>M'<T, U> (
+    .method public hidebysig specialname static 
+        class C`1<!!U> '<Extension>M'<T, U> (
             class C`1<!!T> o,
             !!T t1,
             !!U u1
         ) cil managed 
     {
         // Method begins at RVA 0x2068
-        // Code size 71 (0x47)
+        // Code size 57 (0x39)
         .maxstack 3
         .locals init (
-            [0] class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>,
-            [1] !!U
+            [0] class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>
         )
         IL_0000: newobj instance void class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::.ctor()
         IL_0005: stloc.0
@@ -4298,18 +4935,14 @@ public class C<T>
         IL_0015: ldarg.1
         IL_0016: stfld !0 class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::t1
         IL_001b: ldloc.0
-        IL_001c: ldftn instance !1 class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::'<<Extension>M>b__0'(!0, !1)
-        IL_0022: newobj instance void class [mscorlib]System.Func`3<!!T, !!U, !!U>::.ctor(object, native int)
+        IL_001c: ldftn instance class C`1<!1> class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::'<<Extension>M>b__0'(!0, !1)
+        IL_0022: newobj instance void class [mscorlib]System.Func`3<!!T, !!U, class C`1<!!U>>::.ctor(object, native int)
         IL_0027: ldloc.0
         IL_0028: ldfld !0 class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::t1
         IL_002d: ldloc.0
         IL_002e: ldfld !1 class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::u1
-        IL_0033: callvirt instance !2 class [mscorlib]System.Func`3<!!T, !!U, !!U>::Invoke(!0, !1)
-        IL_0038: stloc.1
-        IL_0039: ldloca.s 1
-        IL_003b: constrained. !!U
-        IL_0041: callvirt instance string [mscorlib]System.Object::ToString()
-        IL_0046: ret
+        IL_0033: callvirt instance !2 class [mscorlib]System.Func`3<!!T, !!U, class C`1<!!U>>::Invoke(!0, !1)
+        IL_0038: ret
     } // end of method Extensions::'<Extension>M'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
@@ -4353,32 +4986,75 @@ public class C<T>
 """;
         var comp2 = CreateCompilation(src2);
         CompileAndVerify(comp2).VerifyDiagnostics();
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test(new C<long>("1"), 2, "3").GetString());
+        System.Console.Write(new C<long>("4").M2(5, "6").GetString());
+    }
+
+    static C<U> Test<T, U>(C<T> o, T t1, U u1)
+    {
+        System.Func<T, U, C<U>> local = (T t2, U u2) =>
+        {
+            return o.M(t2, u2);
+        };
+
+        return local(t1, u1);
+    }
+}
+
+static class Extensions
+{
+    extension<T>(C<T> o)
+    {
+        public C<U> M2<U>(T t1, U u1)
+        {
+            System.Func<T, U, C<U>> local = (T t2, U u2) =>
+            {
+                return o.M(t2, u2);
+            };
+
+            return local(t1, u1);
+        }
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1323246565");
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1323246565");
     }
 
     [Fact]
     public void Implementation_InstanceMethod_10_Iterator_Generic()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension<T>(C<T> o)
     {
-        System.Collections.Generic.IEnumerable<string> M<U>(T t1, U u1)
+        public System.Collections.Generic.IEnumerable<string> M<U>(T t1, U u1)
         {
             yield return o.GetString() + u1.ToString() + t1.ToString();
         }
     }
 }
 
-public class C<T>
+public class C<T>(string val)
 {
-    public string GetString() => null;
+    public string GetString() => val;
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", ("""
+        verifier1.VerifyTypeIL("Extensions", ("""
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -4387,7 +5063,7 @@ public class C<T>
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
+        .method public hidebysig 
             instance class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M<U> (
                 !T t1,
                 !!U u1
@@ -4398,12 +5074,22 @@ public class C<T>
                 45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
                 60 32 00 00
             )
-            // Method begins at RVA 0x2090
+            // Method begins at RVA 0x209c
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                class C`1<!T> o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x209f
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi sealed beforefieldinit '<<Extension>M>d__1`2'<T, U>
         extends [mscorlib]System.Object
@@ -4447,7 +5133,7 @@ public class C<T>
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
             )
-            // Method begins at RVA 0x2093
+            // Method begins at RVA 0x20a1
             // Code size 25 (0x19)
             .maxstack 8
             IL_0000: ldarg.0
@@ -4467,7 +5153,7 @@ public class C<T>
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.IDisposable::Dispose()
-            // Method begins at RVA 0x20ad
+            // Method begins at RVA 0x20bb
             // Code size 9 (0x9)
             .maxstack 8
             IL_0000: ldarg.0
@@ -4479,7 +5165,7 @@ public class C<T>
             instance bool MoveNext () cil managed 
         {
             .override method instance bool [mscorlib]System.Collections.IEnumerator::MoveNext()
-            // Method begins at RVA 0x20b8
+            // Method begins at RVA 0x20c8
             // Code size 97 (0x61)
             .maxstack 4
             .locals init (
@@ -4530,7 +5216,7 @@ public class C<T>
                 01 00 00 00
             )
             .override method instance !0 class [mscorlib]System.Collections.Generic.IEnumerator`1<string>::get_Current()
-            // Method begins at RVA 0x2125
+            // Method begins at RVA 0x2135
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -4544,7 +5230,7 @@ public class C<T>
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.Collections.IEnumerator::Reset()
-            // Method begins at RVA 0x212d
+            // Method begins at RVA 0x213d
             // Code size 6 (0x6)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
@@ -4557,7 +5243,7 @@ public class C<T>
                 01 00 00 00
             )
             .override method instance object [mscorlib]System.Collections.IEnumerator::get_Current()
-            // Method begins at RVA 0x2125
+            // Method begins at RVA 0x2135
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -4571,7 +5257,7 @@ public class C<T>
                 01 00 00 00
             )
             .override method instance class [mscorlib]System.Collections.Generic.IEnumerator`1<!0> class [mscorlib]System.Collections.Generic.IEnumerable`1<string>::GetEnumerator()
-            // Method begins at RVA 0x2134
+            // Method begins at RVA 0x2144
             // Code size 79 (0x4f)
             .maxstack 2
             .locals init (
@@ -4616,7 +5302,7 @@ public class C<T>
                 01 00 00 00
             )
             .override method instance class [mscorlib]System.Collections.IEnumerator [mscorlib]System.Collections.IEnumerable::GetEnumerator()
-            // Method begins at RVA 0x218f
+            // Method begins at RVA 0x219f
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -4634,7 +5320,7 @@ public class C<T>
         }
     } // end of class <<Extension>M>d__1`2
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         class [mscorlib]System.Collections.Generic.IEnumerable`1<string> '<Extension>M'<T, U> (
             class C`1<!!T> o,
             !!T t1,
@@ -4692,17 +5378,49 @@ public class C<T>
 """;
         var comp2 = CreateCompilation(src2);
         CompileAndVerify(comp2).VerifyDiagnostics();
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        foreach (var s in Test(new C<long>("1"), 2, "3"))
+            System.Console.Write(s);
+        foreach (var s in new C<long>("4").M2(5, "6"))
+            System.Console.Write(s);
+    }
+
+    static System.Collections.Generic.IEnumerable<string> Test<T, U>(C<T> o, T t1, U u1)
+    {
+        return o.M(t1, u1);
+    }
+}
+
+static class Extensions
+{
+    extension<T>(C<T> o)
+    {
+        public System.Collections.Generic.IEnumerable<string> M2<U>(T t1, U u1) => o.M(t1, u1);
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "132465");
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "132465");
     }
 
     [Fact]
     public void Implementation_InstanceMethod_11_Async_Generic()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension<T>(C<T> o)
     {
-        async System.Threading.Tasks.Task<string> M<U>(T t1, U u1)
+        public async System.Threading.Tasks.Task<string> M<U>(T t1, U u1)
         {
             await System.Threading.Tasks.Task.Yield();
             return o.GetString() + u1.ToString() + t1.ToString();
@@ -4710,15 +5428,15 @@ public static class Extensions
     }
 }
 
-public class C<T>
+public class C<T>(string val)
 {
-    public string GetString() => null;
+    public string GetString() => val;
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -4727,7 +5445,7 @@ public class C<T>
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
+        .method public hidebysig 
             instance class [mscorlib]System.Threading.Tasks.Task`1<string> M<U> (
                 !T t1,
                 !!U u1
@@ -4738,12 +5456,22 @@ public class C<T>
                 45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
                 60 32 00 00
             )
-            // Method begins at RVA 0x20c6
+            // Method begins at RVA 0x20d2
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                class C`1<!T> o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x20d5
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi sealed beforefieldinit '<<Extension>M>d__1`2'<T, U>
         extends [mscorlib]System.ValueType
@@ -4764,7 +5492,7 @@ public class C<T>
             instance void MoveNext () cil managed 
         {
             .override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
-            // Method begins at RVA 0x20cc
+            // Method begins at RVA 0x20d8
             // Code size 202 (0xca)
             .maxstack 3
             .locals init (
@@ -4861,7 +5589,7 @@ public class C<T>
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
-            // Method begins at RVA 0x21b4
+            // Method begins at RVA 0x21c0
             // Code size 13 (0xd)
             .maxstack 8
             IL_0000: ldarg.0
@@ -4872,7 +5600,7 @@ public class C<T>
         } // end of method '<<Extension>M>d__1`2'::SetStateMachine
     } // end of class <<Extension>M>d__1`2
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         class [mscorlib]System.Threading.Tasks.Task`1<string> '<Extension>M'<T, U> (
             class C`1<!!T> o,
             !!T t1,
@@ -4946,26 +5674,61 @@ public class C<T>
 """;
         var comp2 = CreateCompilation(src2);
         CompileAndVerify(comp2).VerifyDiagnostics();
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test(new C<long>("1"), 2, "3").Result);
+        System.Console.Write(new C<long>("4").M2(5, "6").Result);
+    }
+
+    async static System.Threading.Tasks.Task<string> Test<T, U>(C<T> o, T t1, U u1)
+    {
+        await System.Threading.Tasks.Task.Yield();
+        return await o.M(t1, u1);
+    }
+}
+
+static class Extensions
+{
+    extension<T>(C<T> o)
+    {
+        async public System.Threading.Tasks.Task<string> M2<U>(T t1, U u1)
+        {
+            await System.Threading.Tasks.Task.Yield();
+            return await o.M(t1, u1);
+        }
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "132465");
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "132465");
     }
 
     [Fact]
     public void Implementation_StaticMethod_01()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension(object _)
     {
-        static string M(object o, string s)
+        public static string M(object o, string s)
         {
             return o + s;
         }
     }
 }
 """;
-        var comp = CreateCompilation(src);
+        var comp1 = CreateCompilation(src1);
 
-        MethodSymbol implementation = comp.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+        MethodSymbol implementation = comp1.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
         Assert.True(implementation.IsStatic);
         Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
         Assert.Equal(2, implementation.ParameterCount);
@@ -4975,9 +5738,9 @@ public static class Extensions
         Assert.True(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -4986,7 +5749,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig static 
+        .method public hidebysig static 
             string M (
                 object o,
                 string s
@@ -4998,9 +5761,19 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object _
+            ) cil managed 
+        {
+            // Method begins at RVA 0x207e
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         string '<StaticExtension>M' (
             object o,
             string s
@@ -5021,17 +5794,85 @@ public static class Extensions
     } // end of method Extensions::'<StaticExtension>M'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write(object.M2("3", "4"));
+    }
+
+    static string Test(object o)
+    {
+        return object.M(o, "2");
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public static string M2(object o, string s)
+        {
+            return object.M(o, s);
+        }
+    }
+}
+""";
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        var verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+
+        var testIL =
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldstr      ""2""
+  IL_0007:  call       ""string Extensions.<StaticExtension>M(object, string)""
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_000f
+  IL_000f:  ldloc.0
+  IL_0010:  ret
+}
+";
+        verifier2.VerifyIL("Program.Test", testIL);
+
+        var m2IL =
+@"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.1
+  IL_0003:  call       ""string Extensions.<StaticExtension>M(object, string)""
+  IL_0008:  ret
+}
+";
+        verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+
+        verifier2.VerifyIL("Program.Test", testIL);
+        verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
     }
 
     [Fact]
     public void Implementation_StaticMethod_02_WithLocalFunction()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension(object _)
     {
-        static string M(object o, string s)
+        public static string M(object o, string s)
         {
             string local() => o + s;
             return local();
@@ -5039,10 +5880,10 @@ public static class Extensions
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -5051,7 +5892,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig static 
+        .method public hidebysig static 
             string M (
                 object o,
                 string s
@@ -5063,6 +5904,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object _
+            ) cil managed 
+        {
+            // Method begins at RVA 0x20ae
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.ValueType
@@ -5075,7 +5926,7 @@ public static class Extensions
         .field public string s
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         string '<StaticExtension>M' (
             object o,
             string s
@@ -5148,17 +5999,52 @@ public static class Extensions
 """;
         var comp2 = CreateCompilation(src2);
         CompileAndVerify(comp2).VerifyDiagnostics();
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write(object.M2("3","4"));
+    }
+
+    static string Test(object o)
+    {
+        string local() => object.M(o, "2");
+        return local();
+    }
+}
+
+static class Extensions
+{
+    extension(object _)
+    {
+        public static string M2(object o, string s)
+        {
+            string local() => object.M(o, s);
+            return local();
+        }
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
     }
 
     [Fact]
     public void Implementation_StaticMethod_03_WithLambda()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension(object _)
     {
-        static string M(object o, string s)
+        public static string M(object o, string s)
         {
             System.Func<string> local = () => o + s;
             return local();
@@ -5166,10 +6052,10 @@ public static class Extensions
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -5178,7 +6064,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig static 
+        .method public hidebysig static 
             string M (
                 object o,
                 string s
@@ -5190,6 +6076,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object _
+            ) cil managed 
+        {
+            // Method begins at RVA 0x208f
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.Object
@@ -5204,7 +6100,7 @@ public static class Extensions
         .method public hidebysig specialname rtspecialname 
             instance void .ctor () cil managed 
         {
-            // Method begins at RVA 0x208f
+            // Method begins at RVA 0x2091
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
@@ -5214,7 +6110,7 @@ public static class Extensions
         .method assembly hidebysig 
             instance string '<<StaticExtension>M>b__0' () cil managed 
         {
-            // Method begins at RVA 0x2097
+            // Method begins at RVA 0x2099
             // Code size 30 (0x1e)
             .maxstack 8
             IL_0000: ldarg.0
@@ -5232,7 +6128,7 @@ public static class Extensions
         } // end of method '<>c__DisplayClass1_0'::'<<StaticExtension>M>b__0'
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         string '<StaticExtension>M' (
             object o,
             string s
@@ -5280,27 +6176,62 @@ public static class Extensions
 """;
         var comp2 = CreateCompilation(src2);
         CompileAndVerify(comp2).VerifyDiagnostics();
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write(object.M2("3","4"));
+    }
+
+    static string Test(object o)
+    {
+        System.Func<string> local = () => object.M(o, "2");
+        return local();
+    }
+}
+
+static class Extensions
+{
+    extension(object _)
+    {
+        public static string M2(object o, string s)
+        {
+            System.Func<string> local = () => object.M(o, s);
+            return local();
+        }
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
     }
 
     [Fact]
     public void Implementation_StaticMethod_04_Iterator()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension(object _)
     {
-        static System.Collections.Generic.IEnumerable<string> M(object o, string s)
+        public static System.Collections.Generic.IEnumerable<string> M(object o, string s)
         {
             yield return o + s;
         }
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", ("""
+        verifier1.VerifyTypeIL("Extensions", ("""
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -5309,7 +6240,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig static 
+        .method public hidebysig static 
             class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
                 object o,
                 string s
@@ -5326,6 +6257,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object _
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2081
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<<StaticExtension>M>d__1'
         extends [mscorlib]System.Object
@@ -5367,7 +6308,7 @@ public static class Extensions
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
             )
-            // Method begins at RVA 0x2081
+            // Method begins at RVA 0x2083
             // Code size 25 (0x19)
             .maxstack 8
             IL_0000: ldarg.0
@@ -5387,7 +6328,7 @@ public static class Extensions
                 01 00 00 00
             )
             .override method instance void [mscorlib]System.IDisposable::Dispose()
-            // Method begins at RVA 0x209b
+            // Method begins at RVA 0x209d
             // Code size 9 (0x9)
             .maxstack 8
             IL_0000: ldarg.0
@@ -5549,7 +6490,7 @@ public static class Extensions
         }
     } // end of class <<StaticExtension>M>d__1
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         class [mscorlib]System.Collections.Generic.IEnumerable`1<string> '<StaticExtension>M' (
             object o,
             string s
@@ -5598,17 +6539,49 @@ public static class Extensions
 """;
         var comp2 = CreateCompilation(src2);
         CompileAndVerify(comp2).VerifyDiagnostics();
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        foreach (var s in Test("1"))
+            System.Console.Write(s);
+        foreach (var s in object.M2("3", "4"))
+            System.Console.Write(s);
+    }
+
+    static System.Collections.Generic.IEnumerable<string> Test(object o)
+    {
+        return object.M(o, "2");
+    }
+}
+
+static class Extensions
+{
+    extension(object _)
+    {
+        public static System.Collections.Generic.IEnumerable<string> M2(object o, string s) => object.M(o, s);
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
     }
 
     [Fact]
     public void Implementation_StaticMethod_05_Async()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension(object _)
     {
-        static async System.Threading.Tasks.Task<string> M(object o, string s)
+        public static async System.Threading.Tasks.Task<string> M(object o, string s)
         {
             await System.Threading.Tasks.Task.Yield();
             return o + s;
@@ -5616,10 +6589,10 @@ public static class Extensions
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -5628,7 +6601,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig static 
+        .method public hidebysig static 
             class [mscorlib]System.Threading.Tasks.Task`1<string> M (
                 object o,
                 string s
@@ -5645,6 +6618,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object _
+            ) cil managed 
+        {
+            // Method begins at RVA 0x20b6
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<<StaticExtension>M>d__1'
         extends [mscorlib]System.ValueType
@@ -5771,7 +6754,7 @@ public static class Extensions
         } // end of method '<<StaticExtension>M>d__1'::SetStateMachine
     } // end of class <<StaticExtension>M>d__1
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         class [mscorlib]System.Threading.Tasks.Task`1<string> '<StaticExtension>M' (
             object o,
             string s
@@ -5836,23 +6819,58 @@ public static class Extensions
 """;
         var comp2 = CreateCompilation(src2);
         CompileAndVerify(comp2).VerifyDiagnostics();
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1").Result);
+        System.Console.Write(object.M2("3", "4").Result);
+    }
+
+    async static System.Threading.Tasks.Task<string> Test(object o)
+    {
+        await System.Threading.Tasks.Task.Yield();
+        return await object.M(o, "2");
+    }
+}
+
+static class Extensions
+{
+    extension(object _)
+    {
+        async public static System.Threading.Tasks.Task<string> M2(object o, string s)
+        {
+            await System.Threading.Tasks.Task.Yield();
+            return await object.M(o, s);
+        }
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "1234");
     }
 
     [Fact]
     public void Implementation_InstanceProperty_01()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension(object o)
     {
-        string P => o.ToString();
+        public string P => o.ToString();
     }
 }
 """;
-        var comp = CreateCompilation(src);
+        var comp1 = CreateCompilation(src1);
 
-        MethodSymbol implementation = comp.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+        MethodSymbol implementation = comp1.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
         Assert.True(implementation.IsStatic);
         Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
         Assert.Equal(1, implementation.ParameterCount);
@@ -5862,9 +6880,9 @@ public static class Extensions
         Assert.True(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -5873,7 +6891,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname 
+        .method public hidebysig specialname 
             instance string get_P () cil managed 
         {
             // Method begins at RVA 0x206f
@@ -5882,6 +6900,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::get_P
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2072
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         // Properties
         .property instance string P()
         {
@@ -5889,7 +6917,7 @@ public static class Extensions
         }
     } // end of class <>E__0
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         string '<Extension>get_P' (
             object o
         ) cil managed 
@@ -5903,24 +6931,86 @@ public static class Extensions
     } // end of method Extensions::'<Extension>get_P'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write("2".P2);
+    }
+
+    static string Test(object o)
+    {
+        return o.P;
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public string P2 => o.P;
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "12");
+
+        var testIL =
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""string Extensions.<Extension>get_P(object)""
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.0
+  IL_000b:  ret
+}
+";
+        verifier3.VerifyIL("Program.Test", testIL);
+
+        var m2IL =
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""string Extensions.<Extension>get_P(object)""
+  IL_0006:  ret
+}
+";
+        verifier3.VerifyIL("Extensions.<Extension>get_P2(object)", m2IL);
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12");
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions.<Extension>get_P2(object)", m2IL);
     }
 
     [Fact]
     public void Implementation_InstanceProperty_02()
     {
-        var src = """
+        var src1 = """
 public static class Extensions
 {
     extension(object o)
     {
-        string P { get { return o.ToString(); } }
+        public string P { get { return o.ToString(); } }
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("Extensions", """
+        verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -5929,7 +7019,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname 
+        .method public hidebysig specialname 
             instance string get_P () cil managed 
         {
             // Method begins at RVA 0x206f
@@ -5938,6 +7028,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::get_P
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2072
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         // Properties
         .property instance string P()
         {
@@ -5945,7 +7045,7 @@ public static class Extensions
         }
     } // end of class <>E__0
     // Methods
-    .method private hidebysig specialname static 
+    .method public hidebysig specialname static 
         string '<Extension>get_P' (
             object o
         ) cil managed 
@@ -5959,6 +7059,68 @@ public static class Extensions
     } // end of method Extensions::'<Extension>get_P'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write("2".P2);
+    }
+
+    static string Test(object o)
+    {
+        return o.P;
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public string P2 => o.P;
+    }
+}
+""";
+
+        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "12");
+
+        var testIL =
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""string Extensions.<Extension>get_P(object)""
+  IL_0007:  stloc.0
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.0
+  IL_000b:  ret
+}
+";
+        verifier3.VerifyIL("Program.Test", testIL);
+
+        var m2IL =
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""string Extensions.<Extension>get_P(object)""
+  IL_0006:  ret
+}
+";
+        verifier3.VerifyIL("Extensions.<Extension>get_P2(object)", m2IL);
+
+        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12");
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions.<Extension>get_P2(object)", m2IL);
     }
 
     [Fact]
@@ -6006,6 +7168,16 @@ class C1
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M2
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                !T o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi abstract sealed beforefieldinit '<local>O__1_0`3'<T, U, V>
         extends [mscorlib]System.Object
@@ -6131,6 +7303,16 @@ class C1
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M2
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                !T o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>O__1_0`1'<T>
         extends [mscorlib]System.Object
@@ -6257,6 +7439,16 @@ class C1
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M2
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi abstract sealed beforefieldinit '<>O'
         extends [mscorlib]System.Object
@@ -6378,6 +7570,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M2
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                !T o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2099
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>O__1_0`1'<T>
         extends [mscorlib]System.Object
@@ -6501,6 +7703,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M2
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2099
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi abstract sealed beforefieldinit '<>O'
         extends [mscorlib]System.Object
@@ -6623,6 +7835,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M2
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                !T o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__0|1`3'<T, U, V>
         extends [mscorlib]System.Object
@@ -6783,6 +8005,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M2
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                !T o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__1`1'<T>
         extends [mscorlib]System.Object
@@ -6927,6 +8159,16 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M2
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__1'
         extends [mscorlib]System.Object

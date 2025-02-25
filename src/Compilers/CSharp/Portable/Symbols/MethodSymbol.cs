@@ -1288,5 +1288,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ));
             }
         }
+
+        public MethodSymbol? TryGetCorrespondingExtensionImplementationMethod()
+        {
+            Debug.Assert(this.IsDefinition);
+            Debug.Assert(this.ContainingType.IsExtension);
+            return this.ContainingType.TryGetCorrespondingExtensionImplementationMethod(this);
+        }
     }
 }

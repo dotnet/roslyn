@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return newLocals.ToImmutableAndFree();
         }
 
-        protected sealed override LocalSymbol VisitLocalSymbol(LocalSymbol local)
+        public sealed override LocalSymbol VisitLocalSymbol(LocalSymbol local)
         {
             if (!TryRewriteLocal(local, out var newLocal))
             {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [return: NotNullIfNotNull(nameof(method))]
-        protected override MethodSymbol? VisitMethodSymbol(MethodSymbol? method)
+        public override MethodSymbol? VisitMethodSymbol(MethodSymbol? method)
         {
             if (method is null)
             {

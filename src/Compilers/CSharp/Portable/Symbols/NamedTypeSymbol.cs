@@ -369,6 +369,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+
+        public virtual MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+#nullable disable
+
         // TODO: Probably should provide similar accessors for static constructor, destructor, 
         // TODO: operators, conversions.
 

@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,7 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal partial class SourceNamedTypeSymbol
     {
-        private StrongBox<ParameterSymbol?> _lazyExtensionParameter;
+        private ExtensionInfo _lazyExtensionInfo;
+
+        private class ExtensionInfo
+        {
+            public StrongBox<ParameterSymbol?>? LazyExtensionParameter;
+            public ImmutableDictionary<MethodSymbol, MethodSymbol>? LazyImplementationMap;
+        }
 
         internal override string ExtensionName
         {
@@ -42,18 +51,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyExtensionParameter == null)
+                if (!IsExtension)
+                {
+                    return null;
+                }
+
+                if (_lazyExtensionInfo is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
+                }
+
+                if (_lazyExtensionInfo.LazyExtensionParameter == null)
                 {
                     var diagnostics = BindingDiagnosticBag.GetInstance();
                     var extensionParameter = makeExtensionParameter(this, diagnostics);
-                    if (Interlocked.CompareExchange(ref _lazyExtensionParameter, new StrongBox<ParameterSymbol?>(extensionParameter), null) == null)
+                    if (Interlocked.CompareExchange(ref _lazyExtensionInfo.LazyExtensionParameter, new StrongBox<ParameterSymbol?>(extensionParameter), null) == null)
                     {
                         AddDeclarationDiagnostics(diagnostics);
                     }
                     diagnostics.Free();
                 }
 
-                return _lazyExtensionParameter.Value;
+                return _lazyExtensionInfo.LazyExtensionParameter.Value;
 
                 static ParameterSymbol? makeExtensionParameter(SourceNamedTypeSymbol symbol, BindingDiagnosticBag diagnostics)
                 {
@@ -82,6 +101,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return ParameterHelpers.MakeExtensionReceiverParameter(withTypeParametersBinder: signatureBinder, owner: symbol, parameterList, diagnostics);
                 }
+            }
+        }
+
+        public sealed override MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
+        {
+            Debug.Assert(this.IsExtension);
+            Debug.Assert(method.IsDefinition);
+            Debug.Assert(method.ContainingType == (object)this);
+
+            var containingType = this.ContainingType;
+
+            if (containingType is null)
+            {
+                return null; // PROTOTYPE: Test this code path
+            }
+
+            if (_lazyExtensionInfo is null)
+            {
+                Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null); // PROTOTYPE: Test this code path
+            }
+
+            if (_lazyExtensionInfo.LazyImplementationMap is null)
+            {
+                var builder = ImmutableDictionary.CreateBuilder<MethodSymbol, MethodSymbol>(Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+
+                builder.AddRange(
+                    containingType.GetMembersUnordered().OfType<SourceExtensionImplementationMethodSymbol>().
+                    Select(static m => new KeyValuePair<MethodSymbol, MethodSymbol>(m.UnderlyingMethod, m)));
+
+                Interlocked.CompareExchange(ref _lazyExtensionInfo.LazyImplementationMap, builder.ToImmutable(), null);
+            }
+
+            return _lazyExtensionInfo.LazyImplementationMap.GetValueOrDefault(method);
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            // PROTOTYPE: What other parameter related checks we should do here?
+
+            if (IsExtension && ExtensionParameter is { } parameter)
+            {
+                ParameterHelpers.EnsureRefKindAttributesExist(DeclaringCompilation, [parameter], diagnostics, modifyCompilation: true);
             }
         }
     }

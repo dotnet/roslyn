@@ -259,7 +259,7 @@ start:
         }
     }
 
-    internal sealed partial class SynthesizedSealedPropertyAccessor : SynthesizedInstanceMethodSymbol
+    internal sealed partial class SynthesizedSealedPropertyAccessor : SynthesizedMethodSymbol
     {
         internal override bool SynthesizesLoweredBoundBody
         {

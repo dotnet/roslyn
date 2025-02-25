@@ -62,55 +62,55 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [return: NotNullIfNotNull(nameof(symbol))]
-        protected virtual AliasSymbol? VisitAliasSymbol(AliasSymbol? symbol) => symbol;
+        public virtual AliasSymbol? VisitAliasSymbol(AliasSymbol? symbol) => symbol;
 
-        protected virtual DiscardSymbol VisitDiscardSymbol(DiscardSymbol symbol)
+        public virtual DiscardSymbol VisitDiscardSymbol(DiscardSymbol symbol)
         {
             Debug.Assert(symbol is not null);
             return symbol;
         }
 
-        protected virtual EventSymbol VisitEventSymbol(EventSymbol symbol)
-        {
-            Debug.Assert(symbol is not null);
-            return symbol;
-        }
-
-        [return: NotNullIfNotNull(nameof(symbol))]
-        protected virtual LabelSymbol? VisitLabelSymbol(LabelSymbol? symbol) => symbol;
-
-        protected virtual LocalSymbol VisitLocalSymbol(LocalSymbol symbol)
-        {
-            Debug.Assert(symbol is not null);
-            return symbol;
-        }
-
-        protected virtual NamespaceSymbol VisitNamespaceSymbol(NamespaceSymbol symbol)
+        public virtual EventSymbol VisitEventSymbol(EventSymbol symbol)
         {
             Debug.Assert(symbol is not null);
             return symbol;
         }
 
         [return: NotNullIfNotNull(nameof(symbol))]
-        protected virtual RangeVariableSymbol? VisitRangeVariableSymbol(RangeVariableSymbol? symbol) => symbol;
+        public virtual LabelSymbol? VisitLabelSymbol(LabelSymbol? symbol) => symbol;
 
-        [return: NotNullIfNotNull(nameof(symbol))]
-        protected virtual FieldSymbol? VisitFieldSymbol(FieldSymbol? symbol) => symbol;
+        public virtual LocalSymbol VisitLocalSymbol(LocalSymbol symbol)
+        {
+            Debug.Assert(symbol is not null);
+            return symbol;
+        }
 
-        protected virtual ParameterSymbol VisitParameterSymbol(ParameterSymbol symbol)
+        public virtual NamespaceSymbol VisitNamespaceSymbol(NamespaceSymbol symbol)
         {
             Debug.Assert(symbol is not null);
             return symbol;
         }
 
         [return: NotNullIfNotNull(nameof(symbol))]
-        protected virtual PropertySymbol? VisitPropertySymbol(PropertySymbol? symbol) => symbol;
+        public virtual RangeVariableSymbol? VisitRangeVariableSymbol(RangeVariableSymbol? symbol) => symbol;
 
         [return: NotNullIfNotNull(nameof(symbol))]
-        protected virtual MethodSymbol? VisitMethodSymbol(MethodSymbol? symbol) => symbol;
+        public virtual FieldSymbol? VisitFieldSymbol(FieldSymbol? symbol) => symbol;
+
+        public virtual ParameterSymbol VisitParameterSymbol(ParameterSymbol symbol)
+        {
+            Debug.Assert(symbol is not null);
+            return symbol;
+        }
 
         [return: NotNullIfNotNull(nameof(symbol))]
-        protected Symbol? VisitSymbol(Symbol? symbol)
+        public virtual PropertySymbol? VisitPropertySymbol(PropertySymbol? symbol) => symbol;
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        public virtual MethodSymbol? VisitMethodSymbol(MethodSymbol? symbol) => symbol;
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        public Symbol? VisitSymbol(Symbol? symbol)
         {
             if (symbol is null)
             {
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (FunctionTypeSymbol?)VisitType(symbol);
         }
 
-        protected ImmutableArray<T> VisitSymbols<T>(ImmutableArray<T> symbols) where T : Symbol?
+        public ImmutableArray<T> VisitSymbols<T>(ImmutableArray<T> symbols) where T : Symbol?
         {
             if (symbols.IsDefault)
             {

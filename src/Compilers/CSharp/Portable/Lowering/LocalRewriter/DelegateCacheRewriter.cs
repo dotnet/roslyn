@@ -90,7 +90,7 @@ internal sealed class DelegateCacheRewriter
         //
         // In the above case, only one cached delegate is necessary, and it could be assigned to the container 'owned' by LF1.
 
-        if (!TryGetOwnerFunction(_factory.CurrentFunction, boundDelegateCreation, out Symbol? owner))
+        if (!TryGetOwnerFunctionOrExtensionType(_factory.CurrentFunction, boundDelegateCreation, out Symbol? owner))
         {
             var typeCompilationState = _factory.CompilationState;
             container = typeCompilationState.ConcreteDelegateCacheContainer;
@@ -121,7 +121,7 @@ internal sealed class DelegateCacheRewriter
         return container;
     }
 
-    private static bool TryGetOwnerFunction(MethodSymbol currentFunction, BoundDelegateCreationExpression boundDelegateCreation, [NotNullWhen(true)] out Symbol? owner)
+    private static bool TryGetOwnerFunctionOrExtensionType(MethodSymbol currentFunction, BoundDelegateCreationExpression boundDelegateCreation, [NotNullWhen(true)] out Symbol? owner)
     {
         var targetMethod = boundDelegateCreation.MethodOpt;
         Debug.Assert(targetMethod is { });

@@ -1041,7 +1041,7 @@ done:
             // type will not have been created. In this case, omit the attribute.
 
             // PROTOTYPE: These attributes probably should be synthesized only on the extension implementation method
-            if (moduleBuilder.CompilationState.TryGetStateMachineType(MethodCompiler.TryGetCorrespondingExtensionImplementationMethod(this) ?? (MethodSymbol)this, out NamedTypeSymbol stateMachineType))
+            if (moduleBuilder.CompilationState.TryGetStateMachineType((this.ContainingType.IsExtension ? TryGetCorrespondingExtensionImplementationMethod() : null) ?? (MethodSymbol)this, out NamedTypeSymbol stateMachineType))
             {
                 var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
                     TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
