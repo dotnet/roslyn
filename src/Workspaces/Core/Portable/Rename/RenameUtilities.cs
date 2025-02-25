@@ -327,21 +327,11 @@ internal static class RenameUtilities
 
         // If we're renaming a property, it might be a synthesized property for a method
         // backing field.
-        if (symbol.Kind == SymbolKind.Parameter)
+        if (symbol is IParameterSymbol { ContainingSymbol: IMethodSymbol { AssociatedSymbol: IPropertySymbol associatedParameterProperty } containingMethod })
         {
-            if (symbol.ContainingSymbol.Kind == SymbolKind.Method)
-            {
-                var containingMethod = (IMethodSymbol)symbol.ContainingSymbol;
-                if (containingMethod.AssociatedSymbol is IPropertySymbol)
-                {
-                    var associatedPropertyOrEvent = (IPropertySymbol)containingMethod.AssociatedSymbol;
-                    var ordinal = containingMethod.Parameters.IndexOf((IParameterSymbol)symbol);
-                    if (ordinal < associatedPropertyOrEvent.Parameters.Length)
-                    {
-                        return associatedPropertyOrEvent.Parameters[ordinal];
-                    }
-                }
-            }
+            var ordinal = containingMethod.Parameters.IndexOf((IParameterSymbol)symbol);
+            if (ordinal < associatedParameterProperty.Parameters.Length)
+                return associatedParameterProperty.Parameters[ordinal];
         }
 
         // if we are renaming a compiler generated delegate for an event, cascade to the event
@@ -349,7 +339,7 @@ internal static class RenameUtilities
             return typeSymbol.AssociatedSymbol;
 
         // If we are renaming a constructor or destructor, we wish to rename the whole type
-        if (symbol is IMethodSymbol { MethodKind: MethodKind.Constructor | MethodKind.StaticConstructor | MethodKind.Destructor })
+        if (symbol is IMethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.StaticConstructor or MethodKind.Destructor })
             return symbol.ContainingType;
 
         // If we are renaming a backing field for a property, cascade to the property
