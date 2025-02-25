@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 
 internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider
 {
-    private static class CodeGenerator
+    internal static class CodeGenerator
     {
-        public static void GenerateCode(SyntaxEditor editor, SyntaxNode throwNode, string codeBlockSuggestion)
+        internal static void GenerateCode(SyntaxEditor editor, SyntaxNode throwNode, string codeBlockSuggestion)
         {
             if (string.IsNullOrWhiteSpace(codeBlockSuggestion))
                 return;
