@@ -236,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+
         /// <summary>
         /// Lookup a nested namespace.
         /// </summary>
@@ -246,9 +248,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Symbol for the most nested namespace, if found. Nothing 
         /// if namespace or any part of it can not be found.
         /// </returns>
-        internal NamespaceSymbol LookupNestedNamespace(ImmutableArray<ReadOnlyMemory<char>> names)
+        internal NamespaceSymbol? LookupNestedNamespace(ImmutableArray<ReadOnlyMemory<char>> names)
         {
-            NamespaceSymbol scope = this;
+            NamespaceSymbol? scope = this;
             foreach (ReadOnlyMemory<char> name in names)
             {
                 scope = scope.GetNestedNamespace(name);
@@ -259,10 +261,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return scope;
         }
 
-        internal NamespaceSymbol GetNestedNamespace(string name)
+        internal NamespaceSymbol? GetNestedNamespace(string name)
             => GetNestedNamespace(name.AsMemory());
 
-        internal virtual NamespaceSymbol GetNestedNamespace(ReadOnlyMemory<char> name)
+        internal virtual NamespaceSymbol? GetNestedNamespace(ReadOnlyMemory<char> name)
         {
             foreach (var sym in this.GetMembers(name))
             {
@@ -274,6 +276,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return null;
         }
+
+#nullable disable
 
         public abstract ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name);
 
