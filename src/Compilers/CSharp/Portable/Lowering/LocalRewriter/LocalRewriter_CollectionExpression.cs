@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
-            Debug.Assert(node.CollectionCreation is { });
+            Debug.Assert(node.CollectionCreation is BoundCall or BoundConversion { Operand: BoundCall });
             Debug.Assert(node.Placeholder is null);
             Debug.Assert(node.CollectionBuilderSpanPlaceholder is { Type: NamedTypeSymbol { } });
 
@@ -512,9 +512,96 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]);
 
             AddPlaceholderReplacement(spanPlaceholder, span);
-            var result = VisitExpression(node.CollectionCreation);
+            BoundExpression result;
+            switch (node.CollectionCreation)
+            {
+                case BoundCall call:
+                    result = RewriteCollectionBuilderCreate(call);
+                    break;
+                case BoundConversion { Operand: BoundCall call } conversion:
+                    result = MakeConversionNode(conversion, conversion.Syntax, RewriteCollectionBuilderCreate(call), conversion.Conversion, conversion.Checked, conversion.ExplicitCastInCode, conversion.ConstantValueOpt, conversion.Type);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.CollectionCreation);
+            }
             RemovePlaceholderReplacement(spanPlaceholder);
             return result;
+        }
+
+        private BoundExpression RewriteCollectionBuilderCreate(BoundCall call)
+        {
+            BoundExpression? rewrittenReceiver = null;
+            ArrayBuilder<LocalSymbol>? temps = null;
+            var method = call.Method;
+            var argsToParamsOpt = call.ArgsToParamsOpt;
+            var argRefKindsOpt = call.ArgumentRefKindsOpt;
+            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverMode: ReceiverCaptureMode.Default,
+                call.Arguments,
+                method,
+                argsToParamsOpt,
+                argRefKindsOpt,
+                storesOpt: null,
+                ref temps);
+            if (rewrittenArguments.Length > 1)
+            {
+                rotateLeftOne(ref rewrittenArguments);
+                if (argsToParamsOpt.IsDefaultOrEmpty)
+                {
+                    argsToParamsOpt = rotateIndicesLeftOne(rewrittenArguments.Length);
+                }
+                else
+                {
+                    rotateLeftOne(ref argsToParamsOpt);
+                }
+                if (!argRefKindsOpt.IsDefaultOrEmpty)
+                {
+                    rotateLeftOne(ref argRefKindsOpt);
+                }
+            }
+            rewrittenArguments = MakeArguments(
+                rewrittenArguments,
+                method,
+                expanded: call.Expanded,
+                argsToParamsOpt,
+                ref argRefKindsOpt,
+                ref temps,
+                invokedAsExtensionMethod: false);
+            // PROTOTYPE: visitArgumentsAndFinishRewrite() calls InterceptCallAndAdjustArguments() a couple of times. Do we need that here?
+            return MakeCall(
+                call,
+                call.Syntax,
+                rewrittenReceiver,
+                method,
+                rewrittenArguments,
+                argRefKindsOpt,
+                call.ResultKind,
+                temps.ToImmutableAndFree());
+
+            static void rotateLeftOne<T>(ref ImmutableArray<T> items)
+            {
+                Debug.Assert(!items.IsDefaultOrEmpty);
+                var builder = ArrayBuilder<T>.GetInstance(items.Length);
+                for (int i = 1; i < items.Length; i++)
+                {
+                    builder.Add(items[i]);
+                }
+                builder.Add(items[0]);
+                items = builder.ToImmutableAndFree();
+            }
+
+            static ImmutableArray<int> rotateIndicesLeftOne(int n)
+            {
+                Debug.Assert(n > 0);
+                var builder = ArrayBuilder<int>.GetInstance(n);
+                for (int i = 1; i < n; i++)
+                {
+                    builder.Add(i);
+                }
+                builder.Add(0);
+                return builder.ToImmutableAndFree();
+            }
         }
 
         internal static bool IsAllocatingRefStructCollectionExpression(BoundCollectionExpressionBase node, CollectionExpressionTypeKind collectionKind, TypeSymbol? elementType, CSharpCompilation compilation)
