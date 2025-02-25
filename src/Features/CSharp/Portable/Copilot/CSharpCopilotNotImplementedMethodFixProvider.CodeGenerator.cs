@@ -24,7 +24,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider
             try
             {
                 // Find the containing method declaration
-                var methodDeclaration = throwNode.Ancestors().OfType<MethodDeclarationSyntax>().First();
+                var methodDeclaration = throwNode.Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();
 
                 // Replace the line with the error
                 var baseIndentation = methodDeclaration.Body?.OpenBraceToken

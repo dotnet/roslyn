@@ -112,9 +112,11 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
 
     private static SyntaxNode? FindThrowNode(Diagnostic diagnostic, CancellationToken cancellationToken)
     {
-        return diagnostic.AdditionalLocations[0]
+        var throwNode = diagnostic.AdditionalLocations[0]
             .FindNode(getInnermostNodeForTie: true, cancellationToken)
             .AncestorsAndSelf()
             .FirstOrDefault(node => node is ThrowStatementSyntax || node is ThrowExpressionSyntax);
+
+        return throwNode?.Parent != null ? throwNode : null;
     }
 }

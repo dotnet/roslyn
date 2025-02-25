@@ -30,7 +30,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Find the containing method declaration
-            var methodDeclaration = throwNode.Ancestors().OfType<MethodDeclarationSyntax>().First();
+            var methodDeclaration = throwNode.Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();
 
             // Get symbol information
             var methodSymbol = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
