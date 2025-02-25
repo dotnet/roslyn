@@ -226,6 +226,10 @@
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.linux" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.osx" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3.net45" Version="$(SqliteVersion)" />
 
     <PackageVersion Include="Humanizer.Core" Version="2.14.1" />
     <PackageVersion Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
@@ -326,9 +330,9 @@
     -->
     <PackageVersion Include="Microsoft.CodeAnalysis" Version="4.1.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.1.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.1.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.1.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.1.0" />
  </ItemGroup>
 </Project>

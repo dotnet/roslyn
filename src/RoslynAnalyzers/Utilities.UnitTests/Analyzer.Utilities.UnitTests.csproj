@@ -5,11 +5,22 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <NonShipping>true</NonShipping>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <!-- Excluded from source build. Otherwise this should be conditionalized to only be set when DotNetBuildSourceOnly != true -->
+    <MicrosoftCodeAnalysisPackageVersion>$(MicrosoftCodeAnalysisPackageVersionForToolsAndUtilities)</MicrosoftCodeAnalysisPackageVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Test.Utilities\Test.Utilities.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
   </ItemGroup>
-  <Import Project="..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
-  <Import Project="..\Utilities\FlowAnalysis\FlowAnalysis.Utilities.projitems" Label="Shared" />
-  <Import Project="..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
+  <ItemGroup>
+    <ProjectReference Include="..\Test.Utilities\Test.Utilities.csproj" />
+
+     <!-- To get all the shared project code, like FlowAnalysis -->
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.AnalyzerUtilities\Microsoft.CodeAnalysis.AnalyzerUtilities.csproj" />
+  </ItemGroup>
 </Project>

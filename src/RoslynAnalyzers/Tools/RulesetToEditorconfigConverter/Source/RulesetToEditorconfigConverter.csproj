@@ -15,5 +15,11 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
   </ItemGroup>
 </Project>

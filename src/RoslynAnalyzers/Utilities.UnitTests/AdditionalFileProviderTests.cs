@@ -65,10 +65,12 @@ namespace Analyzers.Utilities.UnitTests
             var fileProvider = new AdditionalFileProvider(CreateAdditionalFiles(("a.txt", "1"), ("b.txt", "2"), ("a.txt", "3")));
 
             var file = fileProvider.GetFile("a.txt");
-
             Assert.NotNull(file);
             Assert.Equal("a.txt", file.Path);
-            Assert.Equal("1", file.GetText().ToString());
+
+            var text = file.GetText();
+            Assert.NotNull(text);
+            Assert.Equal("1", text.ToString());
         }
 
         [Theory]
