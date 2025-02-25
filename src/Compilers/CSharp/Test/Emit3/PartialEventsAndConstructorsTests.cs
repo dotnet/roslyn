@@ -1168,6 +1168,8 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Assert.NotEqual(defSymbol, implSymbol);
             Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
             Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
+            Assert.Null(implSymbol.PartialImplementationPart);
+            Assert.Null(defSymbol.PartialDefinitionPart);
             Assert.True(defSymbol.IsPartialDefinition);
             Assert.False(implSymbol.IsPartialDefinition);
 
@@ -1184,6 +1186,8 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Assert.NotEqual(defSymbol, implSymbol);
             Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
             Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
+            Assert.Null(implSymbol.PartialImplementationPart);
+            Assert.Null(defSymbol.PartialDefinitionPart);
             Assert.True(defSymbol.IsPartialDefinition);
             Assert.False(implSymbol.IsPartialDefinition);
 
@@ -1203,6 +1207,8 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Assert.NotEqual(defSymbol, implSymbol);
             Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
             Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
+            Assert.Null(implSymbol.PartialImplementationPart);
+            Assert.Null(defSymbol.PartialDefinitionPart);
             Assert.True(defSymbol.IsPartialDefinition);
             Assert.False(implSymbol.IsPartialDefinition);
 
@@ -1238,7 +1244,8 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Assert.NotEqual(defSymbol, implSymbol);
             Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
             Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
-
+            Assert.Null(implSymbol.PartialImplementationPart);
+            Assert.Null(defSymbol.PartialDefinitionPart);
             Assert.True(defSymbol.IsPartialDefinition);
             Assert.False(implSymbol.IsPartialDefinition);
 
@@ -1251,6 +1258,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             var defOfIntSymbol = (IEventSymbol)cOfIntSymbol.GetMember("E");
             Assert.Equal("event System.Action C<System.Int32>.E", defOfIntSymbol.ToTestDisplayString());
             Assert.Null(defOfIntSymbol.PartialImplementationPart);
+            Assert.Null(defOfIntSymbol.PartialDefinitionPart);
             Assert.False(defOfIntSymbol.IsPartialDefinition);
         }
 
@@ -1267,7 +1275,8 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Assert.NotEqual(defSymbol, implSymbol);
             Assert.Same(implSymbol, defSymbol.PartialImplementationPart);
             Assert.Same(defSymbol, implSymbol.PartialDefinitionPart);
-
+            Assert.Null(implSymbol.PartialImplementationPart);
+            Assert.Null(defSymbol.PartialDefinitionPart);
             Assert.True(defSymbol.IsPartialDefinition);
             Assert.False(implSymbol.IsPartialDefinition);
 
@@ -1280,6 +1289,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             var defOfIntSymbol = (IMethodSymbol)cOfIntSymbol.GetMember(".ctor");
             Assert.Equal("C<System.Int32>..ctor()", defOfIntSymbol.ToTestDisplayString());
             Assert.Null(defOfIntSymbol.PartialImplementationPart);
+            Assert.Null(defOfIntSymbol.PartialDefinitionPart);
             Assert.False(defOfIntSymbol.IsPartialDefinition);
         }
     }
