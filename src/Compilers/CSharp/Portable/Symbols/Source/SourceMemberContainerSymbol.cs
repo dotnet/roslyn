@@ -3622,7 +3622,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     foreach (var member in type.GetMembers())
                     {
-                        if (member is MethodSymbol { IsImplicitlyDeclared: false } method)
+                        if (member is MethodSymbol { IsImplicitlyDeclared: false } method &&
+                            (method.IsStatic || type.ExtensionParameter is not null))
                         {
                             builder.AddNonTypeMember(this, new SourceExtensionImplementationMethodSymbol(method), declaredMembersAndInitializers);
                         }

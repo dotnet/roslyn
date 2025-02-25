@@ -2691,9 +2691,7 @@ public static class Extensions
             //     extension(__arglist) { }
             Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(5, 15));
 
-        MethodSymbol implementation = comp.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
-        Assert.Equal(0, implementation.ParameterCount);
-        Assert.Equal("void Extensions.<Extension>M()", implementation.ToTestDisplayString());
+        Assert.Empty(comp.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>());
     }
 
     [Fact]
@@ -18169,5 +18167,31 @@ static class Extensions
 
         // PROTOTYPE: Should be complain about a conflict like this?
         CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SignatureConflict_07()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        public void M(){}
+    }
+
+    extension(__arglist)
+    {
+        public void M(object x){}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (8,15): error CS1669: __arglist is not valid in this context
+            //     extension(__arglist)
+            Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(8, 15)
+            );
     }
 }
