@@ -53,6 +53,12 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         var methodDeclaration = throwNode.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
         if (methodDeclaration != null)
         {
+            if (methodDeclaration.ExpressionBody != null)
+            {
+                // Arrow expression body not supported yet
+                return;
+            }
+
             if (context.Document.TryGetSemanticModel(out var semanticModel))
             {
                 var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken);
