@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     {
         private readonly TempDirectory _nugetCacheDir;
 
-        public NetCoreTests()
+        public NetCoreTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
             _nugetCacheDir = SolutionDirectory.CreateDirectory(".packages");
         }
@@ -276,7 +277,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             await AssertNetCoreMultiTFMProject(projectFilePath);
         }
 
-        private static async Task AssertNetCoreMultiTFMProject(string projectFilePath)
+        private async Task AssertNetCoreMultiTFMProject(string projectFilePath)
         {
             using var workspace = CreateMSBuildWorkspace();
             await workspace.OpenProjectAsync(projectFilePath);

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 
         public static string[] DefaultCommitCharactersArray { get; } = CreateCommitCharacterArrayFromRules(CompletionItemRules.Default);
 
-        public static async Task<LSP.CompletionList> ConvertToLspCompletionListAsync(
+        public static async Task<LSP.VSInternalCompletionList> ConvertToLspCompletionListAsync(
             Document document,
             CompletionCapabilityHelper capabilityHelper,
             CompletionList list,
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 ItemDefaults = new LSP.CompletionListItemDefaults
                 {
                     EditRange = capabilityHelper.SupportDefaultEditRange ? ProtocolConversions.TextSpanToRange(defaultSpan, documentText) : null,
-                    Data = capabilityHelper.SupportCompletionListData ? resolveData : null
+                    Data = capabilityHelper.SupportCompletionListData ? resolveData : null,
                 },
 
                 // VS internal
@@ -96,6 +96,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 SuggestionMode = isSuggestionMode,
                 Data = capabilityHelper.SupportVSInternalCompletionListData ? resolveData : null,
             };
+
+            if (capabilityHelper.SupportedInsertTextModes.Contains(LSP.InsertTextMode.AsIs))
+            {
+                // By default, all text edits we create include the appropriate whitespace, so tell the client to leave it as-is (if it supports the option).
+                completionList.ItemDefaults.InsertTextMode = LSP.InsertTextMode.AsIs;
+            }
 
             PromoteCommonCommitCharactersOntoList();
 

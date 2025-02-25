@@ -47,7 +47,7 @@ public class CommentStructureTests : AbstractSyntaxStructureProviderTests
             return CreateCommentBlockSpan(token.TrailingTrivia);
         }
 
-        throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+        throw ExceptionUtilities.Unreachable();
     }
 
     [Fact]
