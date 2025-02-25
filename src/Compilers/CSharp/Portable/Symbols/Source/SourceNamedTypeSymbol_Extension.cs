@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
+        public sealed override MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
         {
             Debug.Assert(this.IsExtension);
             Debug.Assert(method.IsDefinition);

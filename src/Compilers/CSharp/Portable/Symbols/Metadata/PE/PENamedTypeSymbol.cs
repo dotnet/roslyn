@@ -178,12 +178,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 #endif
         }
 
+#nullable enable
+
         private class ExtensionInfo(MethodDefinitionHandle markerMethod)
         {
             public readonly MethodDefinitionHandle MarkerMethod = markerMethod;
-            public StrongBox<ParameterSymbol> LazyExtensionParameter;
-            public ConcurrentDictionary<MethodSymbol, MethodSymbol> LazyImplementationMap;
+            public StrongBox<ParameterSymbol?>? LazyExtensionParameter;
+            public ConcurrentDictionary<MethodSymbol, MethodSymbol?>? LazyImplementationMap;
         }
+
+#nullable disable
 
         #endregion  // Uncommon properties
 
@@ -377,7 +381,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override ParameterSymbol ExtensionParameter
+#nullable enable
+
+        internal sealed override ParameterSymbol? ExtensionParameter
         {
             get
             {
@@ -391,12 +397,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (uncommon.LazyExtensionParameter is null)
                 {
                     var extensionParameter = makeExtensionParameter(this, uncommon);
-                    Interlocked.CompareExchange(ref uncommon.LazyExtensionParameter, new StrongBox<ParameterSymbol>(extensionParameter), null);
+                    Interlocked.CompareExchange(ref uncommon.LazyExtensionParameter, new StrongBox<ParameterSymbol?>(extensionParameter), null);
                 }
 
                 return uncommon.LazyExtensionParameter.Value;
 
-                static ParameterSymbol makeExtensionParameter(PENamedTypeSymbol @this, ExtensionInfo uncommon)
+                static ParameterSymbol? makeExtensionParameter(PENamedTypeSymbol @this, ExtensionInfo uncommon)
                 {
                     var methodSymbol = getMarkerMethodSymbol(@this, uncommon);
 
@@ -446,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override MethodSymbol TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
+        public sealed override MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
         {
             Debug.Assert(this.IsExtension);
             Debug.Assert(method.IsDefinition);
@@ -466,13 +472,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (uncommon.LazyImplementationMap is null)
             {
-                Interlocked.CompareExchange(ref uncommon.LazyImplementationMap, new ConcurrentDictionary<MethodSymbol, MethodSymbol>(Roslyn.Utilities.ReferenceEqualityComparer.Instance), null);
+                Interlocked.CompareExchange(ref uncommon.LazyImplementationMap, new ConcurrentDictionary<MethodSymbol, MethodSymbol?>(Roslyn.Utilities.ReferenceEqualityComparer.Instance), null);
             }
 
             return uncommon.LazyImplementationMap.GetOrAdd(method, findCorrespondingExtensionImplementationMethod, this);
 
-            static MethodSymbol findCorrespondingExtensionImplementationMethod(MethodSymbol method, PENamedTypeSymbol @this)
+            static MethodSymbol? findCorrespondingExtensionImplementationMethod(MethodSymbol method, PENamedTypeSymbol @this)
             {
+                Debug.Assert(@this.ExtensionParameter is not null);
+
                 foreach (var member in @this.ContainingType.GetMembers(SourceExtensionImplementationMethodSymbol.GetImplementationName(method)))
                 {
                     if (member is not MethodSymbol { HasSpecialName: true, IsStatic: true } candidate)
@@ -546,6 +554,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null; // PROTOTYPE: Test this code path
             }
         }
+
+#nullable disable
 
         internal PEModuleSymbol ContainingPEModule
         {

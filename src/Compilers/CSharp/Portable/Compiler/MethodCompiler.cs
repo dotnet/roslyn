@@ -1523,6 +1523,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredBody = ExtensionMethodReferenceRewriter.Rewrite(loweredBody);
                 }
 
+                if (loweredBody.HasErrors)
+                {
+                    return loweredBody;
+                }
+
                 if (sawAwaitInExceptionHandler)
                 {
                     // If we have awaits in handlers, we need to

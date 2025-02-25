@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Replaces references to extension methods with references to their implementation methods
     /// </summary>
-    internal class ExtensionMethodReferenceRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+    internal sealed class ExtensionMethodReferenceRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         private ExtensionMethodReferenceRewriter()
         {
