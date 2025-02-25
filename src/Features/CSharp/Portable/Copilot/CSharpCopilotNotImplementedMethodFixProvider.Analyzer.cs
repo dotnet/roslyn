@@ -36,7 +36,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider
             var methodSymbol = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
 
             // Find references
-            var references = await SymbolFinder.FindReferencesAsync(methodSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+            var references = await FindReferencesAsync(methodSymbol, document, cancellationToken).ConfigureAwait(false);
             var referenceCount = references.Sum(r => r.Locations.Count());
 
             // Get top 2 surrounding code snippets
@@ -105,6 +105,17 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider
             };
 
             return record;
+        }
+
+        private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol, Document document, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var progress = new StreamingProgressCollector();
+            await SymbolFinder.FindReferencesAsync(
+                symbol, document.Project.Solution, progress, documents: null,
+                FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+
+            return progress.GetReferencedSymbols();
         }
 
         private static TextSpan GetContextSpan(SourceText text, TextSpan referenceSpan, MethodDeclarationSyntax? containingMethod)
