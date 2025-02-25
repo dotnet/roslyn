@@ -207,7 +207,7 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
             }
             """;
 
-        var comp = CreateCompilation(src, assemblyName: "Test");
+        var comp = (Compilation)CreateCompilation(src, assemblyName: "Test");
 
         var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
         var type = ns.GetTypeMembers("C1").FirstOrDefault();
@@ -236,7 +236,7 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
             }
             """;
 
-        var comp = CreateCompilation(src, assemblyName: "Test");
+        var comp = (Compilation)CreateCompilation(src, assemblyName: "Test");
 
         var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
         var type = ns.GetTypeMembers("C1").FirstOrDefault();
