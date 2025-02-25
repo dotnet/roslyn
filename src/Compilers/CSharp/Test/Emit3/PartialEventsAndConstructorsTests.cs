@@ -1030,6 +1030,163 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
     }
 
     [Fact]
+    public void ConstructorInitializers_This_Duplicate()
+    {
+        var source = """
+            partial class C
+            {
+                partial C() : this(1) { }
+                partial C() : this(2);
+
+                C(int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            //     partial C() : this(2);
+            Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": this(2)").WithArguments("C.C()").WithLocation(4, 17));
+    }
+
+    [Fact]
+    public void ConstructorInitializers_This_OnDefinition()
+    {
+        var source = """
+            partial class C
+            {
+                partial C() { }
+                partial C() : this(1);
+
+                C(int x) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            //     partial C() : this(1);
+            Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": this(1)").WithArguments("C.C()").WithLocation(4, 17));
+    }
+
+    [Fact]
+    public void ConstructorInitializers_This_OnImplementation()
+    {
+        var source = """
+            var c = new C();
+
+            partial class C
+            {
+                public partial C() : this(1) { }
+                public partial C();
+
+                C(int x) { System.Console.Write(x); }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructorInitializers_Base_Duplicate()
+    {
+        var source = """
+            abstract class B
+            {
+                protected B(int x) { }
+            }
+
+            partial class C : B
+            {
+                partial C() : base(1) { }
+                partial C() : base(2);
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (9,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            //     partial C() : base(2);
+            Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": base(2)").WithArguments("C.C()").WithLocation(9, 17));
+    }
+
+    [Fact]
+    public void ConstructorInitializers_Base_OnDefinition_01()
+    {
+        var source = """
+            abstract class B
+            {
+                protected B(int x) { }
+            }
+
+            partial class C : B
+            {
+                partial C() { }
+                partial C() : base(1);
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,13): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'B.B(int)'
+            //     partial C() { }
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("x", "B.B(int)").WithLocation(8, 13),
+            // (9,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            //     partial C() : base(1);
+            Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": base(1)").WithArguments("C.C()").WithLocation(9, 17));
+    }
+
+    [Fact]
+    public void ConstructorInitializers_Base_OnDefinition_02()
+    {
+        var source = """
+            abstract class B
+            {
+                protected B(int x) { }
+                protected B() { }
+            }
+
+            partial class C : B
+            {
+                partial C() { }
+                partial C() : base(1);
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            //     partial C() : base(1);
+            Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": base(1)").WithArguments("C.C()").WithLocation(10, 17));
+    }
+
+    [Fact]
+    public void ConstructorInitializers_Base_OnImplementation()
+    {
+        var source = """
+            var c = new C();
+
+            abstract class B
+            {
+                protected B(int x) { System.Console.Write(x); }
+            }
+
+            partial class C : B
+            {
+                public partial C() : base(1) { }
+                public partial C();
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void VariableInitializer()
+    {
+        var source = """
+            var c = new C();
+
+            partial class C
+            {
+                int x = 5;
+
+                public partial C() { System.Console.Write(x); }
+                public partial C();
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "5").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void Extern_01()
     {
         var source = """
