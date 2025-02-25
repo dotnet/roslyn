@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelper testOutputHelper) : IDisposable
 {
-    protected TestOutputLogger TestOutputLogger => new(testOutputHelper);
+    protected ILoggerFactory LoggerFactory => new LoggerFactory([new TestOutputLoggerProvider(testOutputHelper)]);
     protected TempRoot TempRoot => new();
     protected TempDirectory ExtensionLogsDirectory => TempRoot.CreateDirectory();
 
@@ -69,7 +71,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
             ExtensionLogsDirectory.Path,
             includeDevKitComponents,
             debugLsp,
-            TestOutputLogger,
+            LoggerFactory,
             documents: files,
             locations: annotatedLocations);
 
