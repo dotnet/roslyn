@@ -68,6 +68,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             // the part of the imaginary buffer before the text in the view. 
             var tree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
             var token = tree.FindTokenOnLeftOfPosition(contextPoint, CancellationToken.None);
+
+            // Typically, the separator between the text before adjustedStart and debuggerMappedSpan is
+            // a semicolon (StatementTerminator), unless a specific condition outlined later in the
+            // method is encountered.
             var separatorBeforeDebuggerMappedSpan = StatementTerminator;
             var adjustedStart = token.FullSpan.End;
 
