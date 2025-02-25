@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
-        private AbstractDiagnosticsTaggerProvider<TTag>? _taggerProvider;
-
         public DiagnosticTaggerWrapper(
             EditorTestWorkspace workspace,
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null,
@@ -57,13 +55,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             get
             {
-                if (_taggerProvider == null)
+                if (field == null)
                 {
                     WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider, TTag>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
 
                     if (typeof(TProvider) == typeof(InlineDiagnosticsTaggerProvider))
                     {
-                        _taggerProvider = (AbstractDiagnosticsTaggerProvider<TTag>)(object)_workspace.ExportProvider.GetExportedValues<ITaggerProvider>()
+                        field = (AbstractDiagnosticsTaggerProvider<TTag>)(object)_workspace.ExportProvider.GetExportedValues<ITaggerProvider>()
                             .OfType<TProvider>()
                             .Single();
                     }
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     }
                 }
 
-                return _taggerProvider;
+                return field;
             }
         }
 

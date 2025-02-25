@@ -14,12 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     internal class Parameter : IParameter
     {
         private readonly SignatureHelpParameter _parameter;
-        private string _documentation;
         private readonly int _contentLength;
         private readonly int _index;
         private readonly int _prettyPrintedIndex;
 
-        public string Documentation => _documentation ??= _parameter.DocumentationFactory(CancellationToken.None).GetFullText();
+        public string Documentation => field ??= _parameter.DocumentationFactory(CancellationToken.None).GetFullText();
         public string Name => _parameter.Name;
         public Span Locus => new(_index, _contentLength);
         public Span PrettyPrintedLocus => new(_prettyPrintedIndex, _contentLength);
