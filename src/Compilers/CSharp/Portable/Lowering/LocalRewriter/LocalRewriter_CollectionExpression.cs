@@ -512,24 +512,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]);
 
             AddPlaceholderReplacement(spanPlaceholder, span);
-            BoundExpression result;
-            switch (node.CollectionCreation)
-            {
-                case BoundCall call:
-                    result = RewriteCollectionBuilderCreate(call);
-                    break;
-                case BoundConversion { Operand: BoundCall call } conversion:
-                    result = MakeConversionNode(conversion, conversion.Syntax, RewriteCollectionBuilderCreate(call), conversion.Conversion, conversion.Checked, conversion.ExplicitCastInCode, conversion.ConstantValueOpt, conversion.Type);
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node.CollectionCreation);
-            }
+            var result = RewriteCollectionBuilderCreate(node.CollectionCreation);
             RemovePlaceholderReplacement(spanPlaceholder);
             return result;
         }
 
-        private BoundExpression RewriteCollectionBuilderCreate(BoundCall call)
+        private BoundExpression RewriteCollectionBuilderCreate(BoundExpression collectionCreation)
         {
+            Debug.Assert(collectionCreation is BoundCall or BoundConversion { Operand: BoundCall });
+
+            if (collectionCreation is BoundConversion conversion)
+            {
+                return MakeConversionNode(
+                    conversion,
+                    conversion.Syntax,
+                    RewriteCollectionBuilderCreate(conversion.Operand),
+                    conversion.Conversion,
+                    conversion.Checked,
+                    conversion.ExplicitCastInCode,
+                    conversion.ConstantValueOpt,
+                    conversion.Type);
+            }
+
+            var call = (BoundCall)collectionCreation;
             BoundExpression? rewrittenReceiver = null;
             ArrayBuilder<LocalSymbol>? temps = null;
             var method = call.Method;
@@ -544,22 +549,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argRefKindsOpt,
                 storesOpt: null,
                 ref temps);
-            if (rewrittenArguments.Length > 1)
+
+            int nArgs = rewrittenArguments.Length;
+            if (nArgs > 1)
             {
-                rotateLeftOne(ref rewrittenArguments);
-                if (argsToParamsOpt.IsDefaultOrEmpty)
-                {
-                    argsToParamsOpt = rotateIndicesLeftOne(rewrittenArguments.Length);
-                }
-                else
-                {
-                    rotateLeftOne(ref argsToParamsOpt);
-                }
+                rewrittenArguments = reorderFirstItemLast(rewrittenArguments, nArgs, static (items, i) => items[i]);
+                argsToParamsOpt = reorderFirstItemLast(
+                    argsToParamsOpt,
+                    nArgs,
+                    static (items, i) => items.IsDefaultOrEmpty ? i : items[i]);
                 if (!argRefKindsOpt.IsDefaultOrEmpty)
                 {
-                    rotateLeftOne(ref argRefKindsOpt);
+                    argRefKindsOpt = reorderFirstItemLast(argRefKindsOpt, nArgs, static (items, i) => items[i]);
                 }
             }
+
             rewrittenArguments = MakeArguments(
                 rewrittenArguments,
                 method,
@@ -568,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref argRefKindsOpt,
                 ref temps,
                 invokedAsExtensionMethod: false);
-            // PROTOTYPE: visitArgumentsAndFinishRewrite() calls InterceptCallAndAdjustArguments() a couple of times. Do we need that here?
+
             return MakeCall(
                 call,
                 call.Syntax,
@@ -579,27 +583,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 call.ResultKind,
                 temps.ToImmutableAndFree());
 
-            static void rotateLeftOne<T>(ref ImmutableArray<T> items)
-            {
-                Debug.Assert(!items.IsDefaultOrEmpty);
-                var builder = ArrayBuilder<T>.GetInstance(items.Length);
-                for (int i = 1; i < items.Length; i++)
-                {
-                    builder.Add(items[i]);
-                }
-                builder.Add(items[0]);
-                items = builder.ToImmutableAndFree();
-            }
-
-            static ImmutableArray<int> rotateIndicesLeftOne(int n)
+            static ImmutableArray<T> reorderFirstItemLast<T>(ImmutableArray<T> items, int n, Func<ImmutableArray<T>, int, T> getValue)
             {
                 Debug.Assert(n > 0);
-                var builder = ArrayBuilder<int>.GetInstance(n);
+                Debug.Assert(items.IsDefaultOrEmpty || items.Length == n);
+                var builder = ArrayBuilder<T>.GetInstance(n);
                 for (int i = 1; i < n; i++)
                 {
-                    builder.Add(i);
+                    builder.Add(getValue(items, i));
                 }
-                builder.Add(0);
+                builder.Add(getValue(items, 0));
                 return builder.ToImmutableAndFree();
             }
         }
