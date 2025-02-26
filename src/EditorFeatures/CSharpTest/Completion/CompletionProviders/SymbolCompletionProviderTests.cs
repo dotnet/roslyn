@@ -15080,6 +15080,20 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         ]);
     }
 
+    [Fact]
+    public async Task PartialPropertyOrConstructor()
+    {
+        var markup = """
+            partial class C
+            {
+                partial $$
+            }
+            """;
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Exists("C"),
+        ]);
+    }
+
     private static string MakeMarkup([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source, string languageVersion = "Preview")
     {
         return $$"""

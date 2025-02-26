@@ -133,8 +133,8 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         var implementation = definition.PartialImplementationPart;
 
         // Assert that both the definition and implementation resolve back to themselves
-        Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
-        Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+        Assert.Same(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+        Assert.Same(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
     }
 
     [Fact]
@@ -160,8 +160,8 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         var implementation = definition.PartialImplementationPart;
 
         // Assert that both the definition and implementation resolve back to themselves
-        Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
-        Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+        Assert.Same(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+        Assert.Same(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
     }
 
     [Fact]
@@ -188,8 +188,66 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         var implementation = definition.PartialImplementationPart;
 
         // Assert that both the definition and implementation resolve back to themselves
-        Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
-        Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+        Assert.Same(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+        Assert.Same(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+    }
+
+    [Fact]
+    public void ExtendedPartialEventDefinitionAndImplementationResolveCorrectly()
+    {
+        var src = """
+            using System;
+            namespace NS
+            {
+                public partial class C1
+                {
+                    public partial event System.Action Event;
+                    public partial event System.Action Event { add { } remove { } }
+                }
+            }
+            """;
+
+        var comp = (Compilation)CreateCompilation(src, assemblyName: "Test");
+
+        var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
+        var type = ns.GetTypeMembers("C1").FirstOrDefault();
+        var definition = type.GetMembers("Event").First() as IEventSymbol;
+        var implementation = definition.PartialImplementationPart;
+        Assert.NotNull(implementation);
+        Assert.NotSame(implementation, definition);
+
+        // Assert that both the definition and implementation resolve back to themselves
+        Assert.Same(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+        Assert.Same(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+    }
+
+    [Fact]
+    public void ExtendedPartialConstructorDefinitionAndImplementationResolveCorrectly()
+    {
+        var src = """
+            using System;
+            namespace NS
+            {
+                public partial class C1
+                {
+                    public partial C1();
+                    public partial C1() { }
+                }
+            }
+            """;
+
+        var comp = (Compilation)CreateCompilation(src, assemblyName: "Test");
+
+        var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
+        var type = ns.GetTypeMembers("C1").FirstOrDefault();
+        var definition = type.GetMembers(".ctor").First() as IMethodSymbol;
+        var implementation = definition.PartialImplementationPart;
+        Assert.NotNull(implementation);
+        Assert.NotSame(implementation, definition);
+
+        // Assert that both the definition and implementation resolve back to themselves
+        Assert.Same(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+        Assert.Same(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]

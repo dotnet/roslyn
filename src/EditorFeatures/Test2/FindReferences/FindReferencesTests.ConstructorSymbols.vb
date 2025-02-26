@@ -1382,5 +1382,28 @@ class C
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PartialConstructor(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+using System;
+partial class Program
+{
+    public partial {|Definition:Program|}();
+    public partial {|Definition:P$$rogram|}() { }
+
+    static void Main(string[] args)
+    {
+        var p = new [|Program|]();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace
