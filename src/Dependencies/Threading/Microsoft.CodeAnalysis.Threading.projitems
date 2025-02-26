@@ -18,11 +18,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)TaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValueTaskExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VoidResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)YieldAwaitableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IAsyncToken.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IExpeditableDelaySource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IAsynchronousOperationListenerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestHooks\IAsynchronousOperationListener.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)YieldAwaitableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestHooks\NullAsynchronousOperationListenerProvider.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
