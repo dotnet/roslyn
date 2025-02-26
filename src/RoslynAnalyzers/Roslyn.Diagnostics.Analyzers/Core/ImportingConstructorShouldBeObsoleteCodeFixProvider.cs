@@ -22,7 +22,9 @@ namespace Roslyn.Diagnostics.Analyzers
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = nameof(ImportingConstructorShouldBeObsoleteCodeFixProvider))]
     [Shared]
-    public class ImportingConstructorShouldBeObsoleteCodeFixProvider : CodeFixProvider
+    [method: ImportingConstructor]
+    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    public class ImportingConstructorShouldBeObsoleteCodeFixProvider() : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(ImportingConstructorShouldBeObsolete.Rule.Id);
 

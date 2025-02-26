@@ -303,7 +303,7 @@ namespace Analyzer.Utilities.Extensions
             }
             else
             {
-                return default;
+                return null;
             }
         }
 

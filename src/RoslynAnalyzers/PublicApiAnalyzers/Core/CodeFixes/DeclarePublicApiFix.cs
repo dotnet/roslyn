@@ -22,7 +22,9 @@ using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicApiFix"), Shared]
-    public sealed class DeclarePublicApiFix : CodeFixProvider
+    [method: ImportingConstructor]
+    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    public sealed class DeclarePublicApiFix() : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(DiagnosticIds.DeclarePublicApiRuleId, DiagnosticIds.DeclareInternalApiRuleId);
 

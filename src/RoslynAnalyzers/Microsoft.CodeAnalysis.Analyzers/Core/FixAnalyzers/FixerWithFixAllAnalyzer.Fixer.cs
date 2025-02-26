@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -20,7 +21,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
     /// RS1016: Code fix providers should provide FixAll support.
     /// </summary>
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = nameof(FixerWithFixAllFix)), Shared]
-    public sealed class FixerWithFixAllFix : CodeFixProvider
+    [method: ImportingConstructor]
+    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    public sealed class FixerWithFixAllFix() : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(DiagnosticIds.OverrideGetFixAllProviderRuleId);
 

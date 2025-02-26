@@ -22,7 +22,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypeNames.SystemTextStringBuilder,
                 isInterface: false,
                 isConstructorSanitizing: false,
-                sanitizingMethods: null,
+                sanitizingMethods: (string[]?)null,
                 sanitizingInstanceMethods: new[] {
                     "Clear",
                 });

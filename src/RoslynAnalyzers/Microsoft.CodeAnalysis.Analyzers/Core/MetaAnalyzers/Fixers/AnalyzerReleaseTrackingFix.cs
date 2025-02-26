@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = nameof(AnalyzerReleaseTrackingFix))]
     [Shared]
-    public sealed partial class AnalyzerReleaseTrackingFix : CodeFixProvider
+    [method: ImportingConstructor]
+    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    public sealed partial class AnalyzerReleaseTrackingFix() : CodeFixProvider
     {
         private const string EntryFieldSeparator = "|";
         private static readonly string[] s_entryFieldSeparators = new[] { EntryFieldSeparator };
