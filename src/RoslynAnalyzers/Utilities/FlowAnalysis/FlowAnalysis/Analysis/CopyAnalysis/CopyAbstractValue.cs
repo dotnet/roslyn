@@ -78,14 +78,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
             hashCode.Add(HashUtilities.Combine(AnalysisEntities));
-            hashCode.Add(Kind.GetHashCode());
+            hashCode.Add(((int)Kind).GetHashCode());
         }
 
         protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<CopyAbstractValue> obj)
         {
             var other = (CopyAbstractValue)obj;
             return HashUtilities.Combine(AnalysisEntities) == HashUtilities.Combine(other.AnalysisEntities)
-                && Kind.GetHashCode() == other.Kind.GetHashCode();
+                && ((int)Kind).GetHashCode() == ((int)other.Kind).GetHashCode();
         }
     }
 }

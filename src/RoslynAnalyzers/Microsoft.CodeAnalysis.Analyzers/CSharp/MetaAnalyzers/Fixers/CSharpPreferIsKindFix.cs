@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers;
@@ -14,7 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpPreferIsKindFix))]
     [Shared]
-    public sealed class CSharpPreferIsKindFix : PreferIsKindFix
+    [method: ImportingConstructor]
+    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    public sealed class CSharpPreferIsKindFix() : PreferIsKindFix
     {
         protected override SyntaxNode? TryGetNodeToFix(SyntaxNode root, TextSpan span)
         {

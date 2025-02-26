@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)
         {
-            hashCode.Add(PointsToAnalysisKind.GetHashCode());
+            hashCode.Add(((int)PointsToAnalysisKind).GetHashCode());
         }
 
         protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToAbstractValue> obj)
         {
             var other = (PointsToAnalysisContext)obj;
-            return PointsToAnalysisKind.GetHashCode() == other.PointsToAnalysisKind.GetHashCode();
+            return ((int)PointsToAnalysisKind).GetHashCode() == ((int)other.PointsToAnalysisKind).GetHashCode();
         }
     }
 }

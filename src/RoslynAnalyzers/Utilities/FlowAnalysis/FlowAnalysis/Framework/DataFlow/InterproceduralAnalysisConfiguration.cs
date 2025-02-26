@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public override readonly int GetHashCode()
         {
             return RoslynHashCode.Combine(
-                InterproceduralAnalysisKind.GetHashCode(),
+                ((int)InterproceduralAnalysisKind).GetHashCode(),
                 MaxInterproceduralMethodCallChain.GetHashCode(),
                 MaxInterproceduralLambdaOrLocalFunctionCallChain.GetHashCode());
         }

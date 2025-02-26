@@ -19,7 +19,9 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    public sealed partial class DefineDiagnosticDescriptorArgumentsCorrectlyFix : CodeFixProvider
+    [method: ImportingConstructor]
+    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    public sealed partial class DefineDiagnosticDescriptorArgumentsCorrectlyFix() : CodeFixProvider
     {
         private const string SourceDocumentEquivalenceKeySuffix = nameof(SourceDocumentEquivalenceKeySuffix);
         private const string AdditionalDocumentEquivalenceKeySuffix = nameof(AdditionalDocumentEquivalenceKeySuffix);

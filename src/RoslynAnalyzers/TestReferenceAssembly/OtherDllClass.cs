@@ -30,7 +30,7 @@ namespace OtherDll
 
         public T? Default
         {
-            get => default;
+            get => null;
             set { }
         }
 
@@ -55,7 +55,7 @@ namespace OtherDll
 
         public T? ReturnsDefault()
         {
-            return default;
+            return null;
         }
 
         public T? ReturnsInput(T? input)
@@ -65,7 +65,7 @@ namespace OtherDll
 
         public T? ReturnsDefault(T? input)
         {
-            return default;
+            return null;
         }
 
         public string ReturnsRandom(string input)
@@ -84,7 +84,7 @@ namespace OtherDll
 
         public void SetsOutputToDefault(out T? output)
         {
-            output = default;
+            output = null;
         }
 
         public void SetsOutputToInput(T? input, out T? output)
@@ -94,7 +94,7 @@ namespace OtherDll
 
         public void SetsOutputToDefault(T? input, out T? output)
         {
-            output = default;
+            output = null;
         }
 
         public void SetsOutputToRandom(string input, out string output)
@@ -113,7 +113,7 @@ namespace OtherDll
 
         public void SetsReferenceToDefault(ref T? output)
         {
-            output = default;
+            output = null;
         }
 
         public void SetsReferenceToInput(T? input, ref T? output)
@@ -123,7 +123,7 @@ namespace OtherDll
 
         public void SetsReferenceToDefault(T? input, ref T? output)
         {
-            output = default;
+            output = null;
         }
 
         public void SetsReferenceToRandom(string input, ref string output)

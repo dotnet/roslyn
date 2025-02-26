@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -19,13 +20,15 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpDoNotUseDebugAssertForInterpolatedStringsFixer))]
     [Shared]
-    public sealed class CSharpDoNotUseDebugAssertForInterpolatedStringsFixer : CodeFixProvider
+    [method: ImportingConstructor]
+    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    public sealed class CSharpDoNotUseDebugAssertForInterpolatedStringsFixer() : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(RoslynDiagnosticIds.DoNotUseInterpolatedStringsWithDebugAssertRuleId);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var compilation = await context.Document.Project.GetCompilationAsync(context.CancellationToken);
+            var compilation = await context.Document.Project.GetCompilationAsync(context.CancellationToken).ConfigureAwait(false);
 
             if (compilation is null)
             {

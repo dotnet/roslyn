@@ -4,6 +4,7 @@
 
 #nullable disable warnings
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -18,7 +19,9 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 {
     [ExportCodeFixProvider(LanguageNames.CSharp)]
     [Shared]
-    public sealed class CSharpAvoidOptSuffixForNullableEnableCodeCodeFixProvider : CodeFixProvider
+    [method: ImportingConstructor]
+    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    public sealed class CSharpAvoidOptSuffixForNullableEnableCodeCodeFixProvider() : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(CSharpAvoidOptSuffixForNullableEnableCode.Rule.Id);
 

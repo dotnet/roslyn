@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -12,7 +13,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpConfigureGeneratedCodeAnalysisFix)), Shared]
-    public sealed class CSharpConfigureGeneratedCodeAnalysisFix : ConfigureGeneratedCodeAnalysisFix
+    [method: ImportingConstructor]
+    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    public sealed class CSharpConfigureGeneratedCodeAnalysisFix() : ConfigureGeneratedCodeAnalysisFix
     {
         protected override IEnumerable<SyntaxNode> GetStatements(SyntaxNode methodDeclaration)
         {

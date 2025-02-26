@@ -27,7 +27,9 @@ namespace Roslyn.Diagnostics.Analyzers
     /// Comments that don't look like numbered comments are left alone. For instance, any comment that contains alpha characters.
     /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(NumberCommentsRefactoring)), Shared]
-    internal sealed class NumberCommentsRefactoring : CodeRefactoringProvider
+    [method: ImportingConstructor]
+    [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    internal sealed class NumberCommentsRefactoring() : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

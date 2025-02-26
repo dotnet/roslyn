@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
             hashCode.Add(HashUtilities.Combine(DisposingOrEscapingOperations));
-            hashCode.Add(Kind.GetHashCode());
+            hashCode.Add(((int)Kind).GetHashCode());
         }
 
         protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<DisposeAbstractValue> obj)
         {
             var other = (DisposeAbstractValue)obj;
             return HashUtilities.Combine(DisposingOrEscapingOperations) == HashUtilities.Combine(other.DisposingOrEscapingOperations)
-                && Kind.GetHashCode() == other.Kind.GetHashCode();
+                && ((int)Kind).GetHashCode() == ((int)other.Kind).GetHashCode();
         }
     }
 }
