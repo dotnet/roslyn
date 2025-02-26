@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             _suggestionManager ??= await suggestionServiceBase.TryRegisterProviderAsync(this, textView, "AmbientAIDocumentationComments", cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task GenerateDocumentationProposalAsync(DocumentationCommentSnippet snippet, 
+        public async Task GenerateDocumentationProposalAsync(DocumentationCommentSnippet snippet,
             ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
         {
             await Task.Yield().ConfigureAwait(false);
