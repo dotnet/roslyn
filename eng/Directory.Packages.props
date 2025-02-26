@@ -21,6 +21,8 @@
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.10</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
     <SqliteVersion>2.1.0</SqliteVersion>
+    <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
+    <HumanizerVersion>2.14.1</HumanizerVersion>
   </PropertyGroup>
 
   <!--
@@ -230,7 +232,7 @@
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3.net45" Version="$(SqliteVersion)" />
 
-    <PackageVersion Include="Humanizer.Core" Version="2.14.1" />
+    <PackageVersion Include="Humanizer.Core" Version="$(HumanizerVersion)" />
     <PackageVersion Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Elfie" Version="1.0.0" />
 

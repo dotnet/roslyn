@@ -6,6 +6,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+if (args.Length != 22)
+{
+    for (var i = 0; i < args.Length; i++)
+    {
+        Console.WriteLine($"Arg {i}: {args[i]}");
+    }
+}
+
 string nuspecFile = args[0];
 string assetsDir = args[1];
 string projectDir = args[2];

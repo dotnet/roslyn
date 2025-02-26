@@ -11,8 +11,8 @@
     <Summary>PerformanceSensitive Analyzers</Summary>
     <ReleaseNotes>PerformanceSensitive Analyzers</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp Diagnostic Analyzers Syntax Semantics Performance</PackageTags>
-    <AnalyzerDocumentationFileDir>$(RepoRoot)src\PerformanceSensitiveAnalyzers</AnalyzerDocumentationFileDir>
-    <AnalyzerSarifFileDir>$(RepoRoot)src\PerformanceSensitiveAnalyzers</AnalyzerSarifFileDir>
+    <AnalyzerDocumentationFileDir>$(RepoRoot)src\RoslynAnalyzers\PerformanceSensitiveAnalyzers</AnalyzerDocumentationFileDir>
+    <AnalyzerSarifFileDir>$(RepoRoot)src\RoslynAnalyzers\PerformanceSensitiveAnalyzers</AnalyzerSarifFileDir>
     <IsShippingPackage>true</IsShippingPackage>
   </PropertyGroup>
 
@@ -25,8 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\PerformanceSensitiveAnalyzers\Core\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.csproj" />
-    <ProjectReference Include="..\..\src\PerformanceSensitiveAnalyzers\CSharp\Analyzers\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.csproj" />
-    <ProjectReference Include="..\..\src\PerformanceSensitiveAnalyzers\CSharp\CodeFixes\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.csproj" />
+    <ProjectReference Include="..\..\PerformanceSensitiveAnalyzers\Core\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.csproj" />
+    <ProjectReference Include="..\..\PerformanceSensitiveAnalyzers\CSharp\Analyzers\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.csproj" />
+    <ProjectReference Include="..\..\PerformanceSensitiveAnalyzers\CSharp\CodeFixes\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.csproj" />
   </ItemGroup>
 </Project>

@@ -11,7 +11,7 @@
     <PackageTags>Roslyn Analyzer Utilities CodeAnalysis Dataflow ControlFlowGraph FlowAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
     <IsShippingPackage>true</IsShippingPackage>
 
-    <!-- 
+    <!--
       PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.AnalyzerUtilities
       Restore would conclude that there is a cyclic dependency between Microsoft.CodeAnalysis and Microsoft.CodeAnalysis.AnalyzerUtilities.
     -->
@@ -23,13 +23,13 @@
 
     <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <AnalyzerNupkgLibrary Include="Microsoft.CodeAnalysis.AnalyzerUtilities.dll" />
     <AnalyzerNupkgLibrary Include="Microsoft.CodeAnalysis.AnalyzerUtilities.xml" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.AnalyzerUtilities\Microsoft.CodeAnalysis.AnalyzerUtilities.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.AnalyzerUtilities\Microsoft.CodeAnalysis.AnalyzerUtilities.csproj" />
   </ItemGroup>
 </Project>

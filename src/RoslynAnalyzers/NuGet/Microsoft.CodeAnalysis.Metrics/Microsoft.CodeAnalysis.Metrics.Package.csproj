@@ -12,20 +12,42 @@
     <ReleaseNotes>Tool to report source based code metrics</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis CodeMetrics Metrics Compiler CSharp VB VisualBasic Syntax Semantics</PackageTags>
     <ContainsPortedFxCopRules>false</ContainsPortedFxCopRules>
-	  <GeneratePackagePropsFile>false</GeneratePackagePropsFile>
+    <GeneratePackagePropsFile>false</GeneratePackagePropsFile>
     <IsShippingPackage>true</IsShippingPackage>
-	  <NoWarn>$(NoWarn);NU5100</NoWarn>
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
     <VersionPrefix>$(MetricsVersionPrefix)</VersionPrefix>
+
+    <MicrosoftCodeAnalysisPackageVersion>$(MicrosoftCodeAnalysisPackageVersionForMetrics)</MicrosoftCodeAnalysisPackageVersion>
+    <SQLitePCLRawVersion>1.1.2</SQLitePCLRawVersion>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <AnalyzerNupkgFolder Include="Metrics" />
     <AnalyzerNupkgFolder Include="Metrics.Legacy" />
     <AnalyzerNupkgFile Include="Microsoft.CodeAnalysis.Metrics.targets" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Tools\Metrics\Metrics.csproj" />
-    <ProjectReference Include="..\..\src\Tools\Metrics\Metrics.Legacy.csproj" />
+    <ProjectReference Include="..\..\Tools\Metrics\Metrics.csproj" />
+    <ProjectReference Include="..\..\Tools\Metrics\Metrics.Legacy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Features" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+
+    <PackageReference Include="SQLitePCLRaw.bundle_green" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.core" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.linux" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.osx" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3.net45" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
   </ItemGroup>
 </Project>
