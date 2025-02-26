@@ -18,7 +18,7 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider
 
         public Loader()
         {
-            _fallbackLoader = new DefaultAnalyzerAssemblyLoader();
+            _fallbackLoader = new AnalyzerAssemblyLoader();
         }
 
         public void AddDependencyLocation(string fullPath)
