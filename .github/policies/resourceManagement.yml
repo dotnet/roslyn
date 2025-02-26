@@ -97,7 +97,7 @@ configuration:
       - addLabel:
           label: auto-merge
 
-    - description: Auto-approve automated merge PRs
+    - description: Auto-approve/merge automated merge PRs
       triggerOnOwnActions: false
       if:
       - payloadType: Pull_Request
@@ -111,6 +111,8 @@ configuration:
       - isAction:
           action: Opened
       then:
+      - approvePullRequest:
+          comment: Auto-approve
       - addLabel:
           label: auto-merge
 
