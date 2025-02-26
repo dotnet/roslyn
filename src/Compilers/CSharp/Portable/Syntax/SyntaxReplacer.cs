@@ -200,6 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                     if (isReplacedNode)
                     {
+                        // If node is in _nodeSet, then it contributed to the calculation of _spanSet.
+                        // We are currently processing that node, so it no longer needs to contribute
+                        // to _spanSet and affect determination of inward visitation. This is done before
+                        // calling ShouldVisit to avoid walking into the node if there aren't any remaining
+                        // spans inside it representing items to replace.
                         CalculateVisitationCriteria();
                     }
 
@@ -224,6 +229,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 if (isReplacedToken)
                 {
+                    // If token is in _tokenSet, then it contributed to the calculation of _spanSet.
+                    // We are currently processing that token, so it no longer needs to contribute
+                    // to _spanSet and affect determination of inward visitation. This is done before
+                    // calling ShouldVisit to avoid walking into the token if there aren't any remaining
+                    // spans inside it representing items to replace.
                     CalculateVisitationCriteria();
                 }
 
@@ -247,6 +257,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 if (isReplacedTrivia)
                 {
+                    // If trivia is in _triviaSet, then it contributed to the calculation of _spanSet.
+                    // We are currently processing that trivia, so it no longer needs to contribute
+                    // to _spanSet and affect determination of inward visitation. This is done before
+                    // calling ShouldVisit to avoid walking into the trivia if there aren't any remaining
+                    // spans inside it representing items to replace.
                     CalculateVisitationCriteria();
                 }
 
@@ -278,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return list;
                 }
 
-                var listNode = list.Node!;
+                SyntaxNode listNode = list.Node!;
                 if (!listNode.IsList)
                 {
                     if (!this.ShouldVisit(listNode.FullSpan))
