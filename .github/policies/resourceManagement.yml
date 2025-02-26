@@ -97,6 +97,23 @@ configuration:
       - addLabel:
           label: auto-merge
 
+    - description: Auto-approve automated merge PRs
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - isActivitySender:
+          user: github-actions
+          issueAuthor: False
+      - titleContains:
+          pattern: "[automated] Merge branch"
+          isRegex: False
+      - isAction:
+          action: Opened
+      then:
+      - addLabel:
+          label: auto-merge
+
     - description: Remove "Need More Info" on comment
       triggerOnOwnActions: false
       if:
