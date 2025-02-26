@@ -14,10 +14,10 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
@@ -25,18 +25,20 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.WinForms.Interfaces;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 /// <summary>
 /// The base class of both the Roslyn editor factories.
 /// </summary>
-internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
+internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify, IVsEditorFactoryChooser
 {
     private readonly IComponentModel _componentModel;
-    private Microsoft.VisualStudio.OLE.Interop.IServiceProvider? _oleServiceProvider;
+    private OLE.Interop.IServiceProvider? _oleServiceProvider;
     private bool _encoding;
+    private static readonly Guid WinFormsDesignerEditorFactoryGuid = new("{8b39ef50-558d-4077-a40b-128adddd2880}");
+    private bool _isWinFormsDesignerPackageLoaded;
+    private bool? _isWinFormsDesignerAsyncLoadFeatureEnabled;
 
     protected AbstractEditorFactory(IComponentModel componentModel)
         => _componentModel = componentModel;
@@ -411,6 +413,73 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
                 return project;
 
             return project.AddAnalyzerConfigDocument(EditorConfigFileName, text, filePath: editorConfigFile).Project;
+        }
+    }
+
+    public int ChooseEditorFactory(
+        string pszMkDocument,
+        IVsHierarchy pHier,
+        uint itemid,
+        IntPtr punkDocDataExisting,
+        ref Guid rguidLogicalView,
+        out Guid pguidEditorTypeActual,
+        out Guid pguidLogicalViewActual)
+    {
+        // Use WinForms Editor Factory directly if view type is Designer.
+        if (IsWinFormsDesignerAsyncLoadFeatureEnabled() && rguidLogicalView == VSConstants.LOGVIEWID_Designer)
+        {
+            EnsureWinFormsDesignerPackageLoaded();
+
+            pguidEditorTypeActual = WinFormsDesignerEditorFactoryGuid;
+            pguidLogicalViewActual = VSConstants.LOGVIEWID_Designer;
+
+            return VSConstants.S_OK;
+        }
+
+        pguidEditorTypeActual = Guid.Empty;
+        pguidLogicalViewActual = Guid.Empty;
+
+        return VSConstants.S_FALSE;
+    }
+
+    private void EnsureWinFormsDesignerPackageLoaded()
+    {
+        if (_isWinFormsDesignerPackageLoaded)
+        {
+            return;
+        }
+
+        // In ChooseEditorFactory workflow VS Shell is not automatically loading WinForms Designer Package if it's not loaded yet.
+        // This issue is under investigation. For time being, we will load it ourselves.
+        // Tracking bug: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2397765
+        var packageManager = (IVsPackageManagerPrivate)PackageUtilities.QueryService<SVsPackageManagerPrivate>(_oleServiceProvider);
+
+        Guid WinFormsDesignerPackageGuid = new("{68939055-38E0-4d17-92CB-8909710D8178}");
+
+        packageManager.LoadPackageWithContext(
+            WinFormsDesignerPackageGuid,
+            (int)LoadPackageReasonPrivate.LR_EditorFactory,
+            WinFormsDesignerEditorFactoryGuid);
+
+        _isWinFormsDesignerPackageLoaded = true;
+    }
+
+    private bool IsWinFormsDesignerAsyncLoadFeatureEnabled()
+    {
+        return _isWinFormsDesignerAsyncLoadFeatureEnabled ??= GetWinFormsDesignerAsyncLoadFeatureFlagValue();
+
+        bool GetWinFormsDesignerAsyncLoadFeatureFlagValue()
+        {
+            try
+            {
+                var featureFlags = (IVsFeatureFlags)PackageUtilities.QueryService<SVsFeatureFlags>(_oleServiceProvider);
+                return featureFlags.IsFeatureEnabled("Winforms.AsyncDesignerLoad", defaultValue: false);
+            }
+            catch (Exception)
+            {
+                // Disable the feature in case of an exception
+                return false;
+            }
         }
     }
 }
