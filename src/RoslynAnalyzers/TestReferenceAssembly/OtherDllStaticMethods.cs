@@ -15,7 +15,7 @@ namespace OtherDll
     /// <remarks>
     /// Since Roslyn doesn't support cross-binary DFA, and this class is
     /// defined in a different binary, using this class from test source code
-    /// is a way to test handling of non-interprocedural results in dataflow 
+    /// is a way to test handling of non-interprocedural results in dataflow
     /// analysis implementations.
     /// </remarks>
     public static class OtherDllStaticMethods
@@ -29,7 +29,7 @@ namespace OtherDll
         public static T? ReturnsDefault<T>(T? input)
             where T : class
         {
-            return default;
+            return null;
         }
 
         public static string ReturnsRandom(string input)
@@ -50,7 +50,7 @@ namespace OtherDll
         public static void SetsOutputToDefault<T>(T? input, out T? output)
             where T : class
         {
-            output = default;
+            output = null;
         }
 
         public static void SetsOutputToRandom(string input, out string output)
@@ -67,7 +67,7 @@ namespace OtherDll
         public static void SetsReferenceToDefault<T>(T? input, ref T? output)
             where T : class
         {
-            output = default;
+            output = null;
         }
 
         public static void SetsReferenceToRandom(string input, ref string output)
