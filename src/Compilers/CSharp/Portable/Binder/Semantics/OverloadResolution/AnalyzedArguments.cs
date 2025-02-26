@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly ArrayBuilder<BoundExpression> Arguments;
         public readonly ArrayBuilder<(string Name, Location Location)?> Names;
         public readonly ArrayBuilder<RefKind> RefKinds;
-        public bool IsExtensionMethodInvocation;
+        public bool IsExtensionMethodInvocation; // Indicates that the receiver was added as first argument
         private ThreeState _lazyHasDynamicArgument;
 
         internal AnalyzedArguments()
