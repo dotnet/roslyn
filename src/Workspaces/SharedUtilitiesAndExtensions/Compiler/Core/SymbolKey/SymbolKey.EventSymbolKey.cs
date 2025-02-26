@@ -32,9 +32,13 @@ internal partial struct SymbolKey
 
             using var events = GetMembersOfNamedType<IEventSymbol>(containingTypeResolution, metadataName);
 
-            if (events.Count == 1 && isPartialImplementationPart)
+            if (isPartialImplementationPart)
             {
-                events.Builder[0] = events[0].PartialImplementationPart ?? events[0];
+                for (var i = 0; i < events.Builder.Count; i++)
+                {
+                    var candidate = events.Builder[i];
+                    events.Builder[i] = candidate.PartialImplementationPart ?? candidate;
+                }
             }
 
             return CreateResolution(events, $"({nameof(EventSymbolKey)} '{metadataName}' not found)", out failureReason);

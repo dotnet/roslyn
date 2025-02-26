@@ -48,11 +48,11 @@ internal static class GoToDefinitionFeatureHelpers
         // If symbol has a partial implementation part, prefer to go to it, since that is where the body is.
         symbol = symbol switch
         {
-            IMethodSymbol method => method.PartialImplementationPart ?? method,
-            IPropertySymbol property => property.PartialImplementationPart ?? property,
-            IEventSymbol ev => ev.PartialImplementationPart ?? ev,
+            IMethodSymbol method => method.PartialImplementationPart,
+            IPropertySymbol property => property.PartialImplementationPart,
+            IEventSymbol ev => ev.PartialImplementationPart,
             _ => symbol,
-        };
+        } ?? symbol;
 
         return symbol;
     }

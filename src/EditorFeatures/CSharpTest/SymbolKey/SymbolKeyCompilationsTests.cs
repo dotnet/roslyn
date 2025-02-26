@@ -133,8 +133,8 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         var implementation = definition.PartialImplementationPart;
 
         // Assert that both the definition and implementation resolve back to themselves
-        Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
-        Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+        Assert.Same(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+        Assert.Same(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
     }
 
     [Fact]
@@ -160,8 +160,8 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         var implementation = definition.PartialImplementationPart;
 
         // Assert that both the definition and implementation resolve back to themselves
-        Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
-        Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+        Assert.Same(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+        Assert.Same(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
     }
 
     [Fact]
@@ -188,8 +188,8 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         var implementation = definition.PartialImplementationPart;
 
         // Assert that both the definition and implementation resolve back to themselves
-        Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
-        Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+        Assert.Same(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+        Assert.Same(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
     }
 
     [Fact]
@@ -217,8 +217,8 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         Assert.NotSame(implementation, definition);
 
         // Assert that both the definition and implementation resolve back to themselves
-        Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
-        Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+        Assert.Same(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+        Assert.Same(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
     }
 
     [Fact]
@@ -246,8 +246,8 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         Assert.NotSame(implementation, definition);
 
         // Assert that both the definition and implementation resolve back to themselves
-        Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
-        Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+        Assert.Same(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+        Assert.Same(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
