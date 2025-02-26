@@ -4,11 +4,13 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -411,6 +413,60 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             _argumentsCoerced = true;
 #endif
+        }
+
+        internal MemberAnalysisResult WithoutReceiverArgument()
+        {
+            var badArguments = shift(BadArgumentsOpt);
+            var argsToParams = adjustArgsToParams(ArgsToParamsOpt);
+            var conversions = adjustConversions(ConversionsOpt);
+
+            return new MemberAnalysisResult(Kind, badArguments, argsToParams, conversions, BadParameter - 1, HasAnyRefOmittedArgument,
+                ConstraintFailureDiagnostics, DefinitionParamsElementTypeOpt, ParamsElementTypeOpt);
+
+            static BitVector shift(BitVector badArguments)
+            {
+                if (badArguments.IsNull)
+                {
+                    return badArguments;
+                }
+
+                foreach (int setIndex in badArguments.TrueBits())
+                {
+                    if (setIndex == 0)
+                    {
+                        badArguments[setIndex] = false;
+                        continue;
+                    }
+
+                    badArguments[setIndex] = false;
+                    badArguments[setIndex - 1] = true;
+                }
+
+                return badArguments;
+            }
+
+            static ImmutableArray<int> adjustArgsToParams(ImmutableArray<int> argsToParams)
+            {
+                if (argsToParams.IsDefault)
+                {
+                    return argsToParams;
+                }
+
+                var builder = ArrayBuilder<int>.GetInstance();
+                builder.AddRange(argsToParams, 1, argsToParams.Length - 1);
+                for (int i = 0; i < builder.Count; i++)
+                {
+                    builder[i]--;
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+
+            static ImmutableArray<Conversion> adjustConversions(ImmutableArray<Conversion> conversions)
+            {
+                return conversions.IsDefaultOrEmpty ? conversions : conversions.RemoveAt(0);
+            }
         }
     }
 }
