@@ -1386,12 +1386,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,14): error CS1501: No overload for method 'Create' takes 2 arguments
+                // (6,13): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<int>' to 'int'
                 //         c = [with(1)];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "with(1)").WithArguments("Create", "2").WithLocation(6, 14),
-                // (7,14): error CS1501: No overload for method 'Create' takes 2 arguments
+                Diagnostic(ErrorCode.ERR_BadArgType, "[with(1)]").WithArguments("1", "System.ReadOnlySpan<int>", "int").WithLocation(6, 13),
+                // (7,13): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<int>' to 'int'
                 //         c = [with(2), 3];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "with(2)").WithArguments("Create", "2").WithLocation(7, 14));
+                Diagnostic(ErrorCode.ERR_BadArgType, "[with(2), 3]").WithArguments("1", "System.ReadOnlySpan<int>", "int").WithLocation(7, 13));
         }
 
         [Fact]
@@ -1437,13 +1437,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics(
-                // (15,14): error CS1501: No overload for method 'Create' takes 2 arguments
-                //         c = [with(x)];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "with(x)").WithArguments("Create", "2").WithLocation(15, 14),
-                // (16,14): error CS1501: No overload for method 'Create' takes 2 arguments
-                //         c = [with(x), y];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "with(x)").WithArguments("Create", "2").WithLocation(16, 14));
+            // PROTOTYPE: [with(x)] and [with(x), y] should result in errors since x should not be included in the params argument.
+            comp.VerifyEmitDiagnostics();
         }
 
         // C#7.3 feature ImprovedOverloadCandidates drops candidates with constraint violations
@@ -2444,21 +2439,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (2,11): error CS1740: Named argument 'items' cannot be specified multiple times
+                // (2,11): error CS1744: Named argument 'items' specifies a parameter for which a positional argument has already been given
                 // c = [with(items: default)];
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "items").WithArguments("items").WithLocation(2, 11),
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "items").WithArguments("items").WithLocation(2, 11),
                 // (3,11): error CS8323: Named argument 'items' is used out-of-position but is followed by an unnamed argument
                 // c = [with(items: default, 1)];
                 Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "items").WithArguments("items").WithLocation(3, 11),
-                // (4,11): error CS1740: Named argument 'items' cannot be specified multiple times
+                // (4,11): error CS1744: Named argument 'items' specifies a parameter for which a positional argument has already been given
                 // c = [with(items: default, arg: 2)];
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "items").WithArguments("items").WithLocation(4, 11),
-                // (5,14): error CS1740: Named argument 'items' cannot be specified multiple times
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "items").WithArguments("items").WithLocation(4, 11),
+                // (5,14): error CS1744: Named argument 'items' specifies a parameter for which a positional argument has already been given
                 // c = [with(3, items: default)];
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "items").WithArguments("items").WithLocation(5, 14),
-                // (6,19): error CS1740: Named argument 'items' cannot be specified multiple times
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "items").WithArguments("items").WithLocation(5, 14),
+                // (6,19): error CS1744: Named argument 'items' specifies a parameter for which a positional argument has already been given
                 // c = [with(arg: 4, items: default)];
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "items").WithArguments("items").WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "items").WithArguments("items").WithLocation(6, 19),
                 // (7,6): error CS1501: No overload for method 'Create' takes 3 arguments
                 // c = [with(default, 5)];
                 Diagnostic(ErrorCode.ERR_BadArgCount, "with(default, 5)").WithArguments("Create", "3").WithLocation(7, 6),

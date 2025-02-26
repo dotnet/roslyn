@@ -1174,8 +1174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
             analyzedArguments.Arguments.Add(spanArgument);
-            analyzedArguments.Names.Add((AnalyzedArguments.ImplicitParameterNameFromIndex, Location.None));
-            analyzedArguments.RefKinds.Add(RefKind.None);
             withElement?.AddToArguments(analyzedArguments);
             var collectionCreation = BindMethodGroupInvocation(
                 syntax,
