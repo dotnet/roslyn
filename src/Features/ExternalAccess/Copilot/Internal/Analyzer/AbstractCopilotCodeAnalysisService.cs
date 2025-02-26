@@ -44,7 +44,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
     protected abstract Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken);
     protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
-    protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetMethodImplementationCoreAsync(MethodImplementationProposal proposal, CancellationToken cancellationToken);
+    protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionCoreAsync(Document document, TextSpan? span, MethodImplementationProposal proposal, CancellationToken cancellationToken);
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         => IsAvailableCoreAsync(cancellationToken);
@@ -195,17 +195,17 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
 
     public async Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
     {
-        if (!IsAvailableAsync(cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult())
+        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
             return (null, false);
 
         return await GetDocumentationCommentCoreAsync(proposal, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetMethodImplementationAsync(MethodImplementationProposal proposal, CancellationToken cancellationToken)
+    public async Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionAsync(Document document, TextSpan? span, MethodImplementationProposal proposal, CancellationToken cancellationToken)
     {
-        if (!IsAvailableAsync(cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult())
+        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
             return (null, false);
 
-        return await GetMethodImplementationCoreAsync(proposal, cancellationToken).ConfigureAwait(false);
+        return await ImplementNotImplementedExceptionCoreAsync(document, span, proposal, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -323,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult(True)
             End Function
 
-            Public Function IsGenerateMethodImplementationOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsGenerateMethodImplementationOptionEnabledAsync
+            Public Function IsImplementNotImplementedExceptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsImplementNotImplementedExceptionEnabledAsync
                 Return Task.FromResult(True)
             End Function
         End Class
@@ -371,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult((New Dictionary(Of String, String), False))
             End Function
 
-            Public Function GetMethodImplementationAsync(proposal As MethodImplementationProposal, cancellationToken As CancellationToken) As Task(Of (responseDictionary As Dictionary(Of String, String), isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetMethodImplementationAsync
+            Public Function ImplementNotImplementedExceptionAsync(document As Document, span As TextSpan?, proposal As MethodImplementationProposal, cancellationToken As CancellationToken) As Task(Of (responseDictionary As Dictionary(Of String, String), isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionAsync
                 Return Task.FromResult((New Dictionary(Of String, String), False))
             End Function
         End Class

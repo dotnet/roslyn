@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.MethodImplementation;
 
-internal sealed record MethodImplementationParameterContext
+internal sealed record ParameterContext
 {
     public required string Name { get; init; }
     public required string Type { get; init; }

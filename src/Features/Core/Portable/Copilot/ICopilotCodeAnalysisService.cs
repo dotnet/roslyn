@@ -87,10 +87,7 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Method to retrieve the implementation of a method for a given <paramref name="proposal"/>
+    /// Method to implement a <see cref="NotImplementedException"/> using the given <paramref name="proposal"/>
     /// </summary>
-    /// <param name="proposal"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetMethodImplementationAsync(MethodImplementationProposal proposal, CancellationToken cancellationToken);
+    Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionAsync(Document document, TextSpan? span, MethodImplementationProposal proposal, CancellationToken cancellationToken);
 }

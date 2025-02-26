@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.MethodImplementation;
 
-internal sealed record MethodImplementationReferenceContext
+internal sealed record ReferenceContext
 {
     public required string FileName { get; init; }
     public required string SurroundingCode { get; init; }

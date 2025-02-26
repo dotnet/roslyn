@@ -97,7 +97,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     public Task<bool> IsGenerateDocumentationCommentOptionEnabledAsync()
         => IsCopilotOptionEnabledAsync(_copilotGenerateDocumentationCommentOption);
 
-    public Task<bool> IsGenerateMethodImplementationOptionEnabledAsync()
+    public Task<bool> IsImplementNotImplementedExceptionEnabledAsync()
         => IsCopilotOptionEnabledAsync(_copilotGenerateMethodImplementationOption);
 
     private record struct CopilotOption(string Name, bool DefaultValue);

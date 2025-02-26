@@ -5,11 +5,12 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
 {
     internal interface IExternalCSharpCopilotGenerateImplementationService
     {
-        Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetMethodImplementationAsync(MethodImplementationProposalWrapper proposal, CancellationToken cancellationToken);
+        Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionAsync(Document document, TextSpan? textSpan, MethodProposalWrapper proposal, CancellationToken cancellationToken);
     }
 }

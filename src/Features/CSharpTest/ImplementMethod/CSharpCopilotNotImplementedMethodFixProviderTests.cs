@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;

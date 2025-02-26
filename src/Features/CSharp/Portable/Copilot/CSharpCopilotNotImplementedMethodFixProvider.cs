@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -32,8 +31,8 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         var document = context.Document;
         var cancellationToken = context.CancellationToken;
 
-        if (document.GetRequiredLanguageService<ICopilotOptionsService>() is not { } copilotOptionsService ||
-            await copilotOptionsService.IsGenerateMethodImplementationOptionEnabledAsync().ConfigureAwait(false) is false)
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } optionsService ||
+                 await optionsService.IsImplementNotImplementedExceptionEnabledAsync().ConfigureAwait(false) is false)
         {
             return;
         }
@@ -45,35 +44,20 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         }
 
         // Find the throw statement or throw expression node
-        var throwNode = FindThrowNode(context.Diagnostics[0], cancellationToken);
-        if (throwNode is null)
-            return;
+        var throwNode = context.Diagnostics[0].AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
         // Preliminary analysis before registering fix
-        var methodDeclaration = throwNode.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
-        if (methodDeclaration != null)
+        var memberDeclaration = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+        if (memberDeclaration is BasePropertyDeclarationSyntax || memberDeclaration is BaseMethodDeclarationSyntax)
         {
-            if (methodDeclaration.ExpressionBody != null)
-            {
-                // Arrow expression body not supported yet
-                return;
-            }
+            var x = DualChangeAction.New(CSharpAnalyzersResources.Implement_with_Copilot,
+            // for the non preview
+            async (_, cancellationToken) => await GetDocumentUpdater(context, null)(cancellationToken).ConfigureAwait(false),
+            // no-op for the preview
+            (_, _) => Task.FromResult(context.Document),
+            nameof(CSharpAnalyzersResources.Implement_with_Copilot));
 
-            if (context.Document.TryGetSemanticModel(out var semanticModel))
-            {
-                var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken);
-                if (methodSymbol != null)
-                {
-                    var x = DualChangeAction.New(CSharpAnalyzersResources.Implement_with_Copilot,
-                        // for the non preview
-                        (_, c) => GetDocumentUpdater(context, null)(c),
-                        // no-op for the preview
-                        (_, _) => Task.FromResult(context.Document),
-                        nameof(CSharpAnalyzersResources.Implement_with_Copilot));
-
-                    context.RegisterCodeFix(x, context.Diagnostics);
-                }
-            }
+            context.RegisterCodeFix(x, context.Diagnostics);
         }
     }
 
@@ -88,12 +72,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
     private static async Task FixOneAsync(
         SyntaxEditor editor, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
-        // Find the throw statement or throw expression node
-        var throwNode = FindThrowNode(diagnostic, cancellationToken);
-        if (throwNode is null)
-        {
-            return;
-        }
+        var throwNode = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
         // Analyze document
         var analysisRecord = await DocumentAnalyzer.AnalyzeDocumentAsync(document, throwNode, cancellationToken).ConfigureAwait(false);
@@ -104,19 +83,9 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
 
         // Give the analysis as text to copilot and receive some answer
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
-        var suggestedCodeBlock = await CodeProvider.SuggestCodeBlockAsync(copilotService, analysisRecord, cancellationToken).ConfigureAwait(false);
+        var suggestedCodeBlock = await CodeProvider.SuggestCodeBlockAsync(copilotService, document, throwNode.Span, analysisRecord, cancellationToken).ConfigureAwait(false);
 
         // Generate code
         CodeGenerator.GenerateCode(editor, throwNode, suggestedCodeBlock);
-    }
-
-    private static SyntaxNode? FindThrowNode(Diagnostic diagnostic, CancellationToken cancellationToken)
-    {
-        var throwNode = diagnostic.AdditionalLocations[0]
-            .FindNode(getInnermostNodeForTie: true, cancellationToken)
-            .AncestorsAndSelf()
-            .FirstOrDefault(node => node is ThrowStatementSyntax || node is ThrowExpressionSyntax);
-
-        return throwNode?.Parent != null ? throwNode : null;
     }
 }

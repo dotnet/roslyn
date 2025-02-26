@@ -37,5 +37,5 @@ internal interface ICopilotOptionsService : ILanguageService
     /// <summary>
     /// Returns true if Copilot generate method implementation feature is enabled.
     /// </summary>
-    Task<bool> IsGenerateMethodImplementationOptionEnabledAsync();
+    Task<bool> IsImplementNotImplementedExceptionEnabledAsync();
 }
