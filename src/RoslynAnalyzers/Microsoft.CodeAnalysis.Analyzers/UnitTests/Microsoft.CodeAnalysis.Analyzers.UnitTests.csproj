@@ -1,0 +1,24 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>$(NetCurrent)</TargetFramework>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <!-- Executable code, so set this in non-source build or repo source-build. Full
+         source build will use the incoming, pre-set MicrosoftCodeAnalysisPackageVersion. -->
+    <MicrosoftCodeAnalysisPackageVersion Condition="'$(DotNetBuildSourceOnly)' != 'true' or '$(DotNetBuildOrchestrator)' != 'true'">$(MicrosoftCodeAnalysisPackageVersionForTests)</MicrosoftCodeAnalysisPackageVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisPackageVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Test.Utilities\Test.Utilities.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Analyzers.csproj" />
+    <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.Analyzers.csproj" />
+    <ProjectReference Include="..\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Analyzers.vbproj" />
+  </ItemGroup>
+</Project>

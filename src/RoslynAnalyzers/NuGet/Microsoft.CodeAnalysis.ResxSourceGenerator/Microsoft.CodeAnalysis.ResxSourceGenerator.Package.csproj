@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecPackageId>Microsoft.CodeAnalysis.ResxSourceGenerator</NuspecPackageId>
+    <Description>Source generator for resource files</Description>
+    <Summary>Source generator for resource files</Summary>
+    <ReleaseNotes>Source generator for resource files</ReleaseNotes>
+    <PackageTags>Microsoft.CodeAnalysis.ResxSourceGenerator, analyzers</PackageTags>
+    <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
+    <IsShippingPackage>true</IsShippingPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.ResxSourceGenerator.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.csproj" />
+  </ItemGroup>
+
+</Project>
