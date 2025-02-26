@@ -71,6 +71,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             public static string Invalid => GetText("SolutionFilters.InvalidSolutionFilter.slnf");
             public static string CSharp => GetText("SolutionFilters.CSharpSolutionFilter.slnf");
         }
+        public static class XmlSolutions
+        {
+            public static string CSharp => GetText("XmlSolutions.CSharpXmlSolution.slnx");
+            public static string Invalid => GetText("XmlSolutions.InvalidXmlSolution.slnx");
+        }
 
         public static class SolutionFiles
         {
