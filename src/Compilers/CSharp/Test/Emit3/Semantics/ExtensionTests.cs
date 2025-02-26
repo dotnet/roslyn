@@ -115,6 +115,9 @@ public static class Extensions
                 object ''
             ) cil managed 
         {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
             // Method begins at RVA 0x2067
             // Code size 1 (0x1)
             .maxstack 8
@@ -192,6 +195,9 @@ public static class Extensions
                 object ''
             ) cil managed 
         {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
             // Method begins at RVA 0x2067
             // Code size 1 (0x1)
             .maxstack 8
@@ -267,6 +273,9 @@ public static class Extensions
                 object ''
             ) cil managed 
         {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
             // Method begins at RVA 0x2067
             // Code size 1 (0x1)
             .maxstack 8
@@ -509,6 +518,9 @@ public static class Extensions
                 object ''
             ) cil managed 
         {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
             // Method begins at RVA 0x209d
             // Code size 1 (0x1)
             .maxstack 8
@@ -665,7 +677,7 @@ public static class Extensions
         var nestedExtensionSymbol = model.GetDeclaredSymbol(nestedExtension);
         AssertExtensionDeclaration(nestedExtensionSymbol);
         Assert.Equal("Extensions.<>E__0", nestedExtensionSymbol.ContainingType.ToTestDisplayString());
-        Assert.Equal(["void Extensions.<>E__0.Method()", "Extensions.<>E__0.<>E__0"], nestedExtensionSymbol.ContainingType.GetMembers().ToTestDisplayStrings());
+        Assert.Equal(["void Extensions.<>E__0.<Extension>$(System.Object)", "void Extensions.<>E__0.Method()", "Extensions.<>E__0.<>E__0"], nestedExtensionSymbol.ContainingType.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -748,6 +760,9 @@ public static partial class Extensions
                 object ''
             ) cil managed 
         {
+                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
             // Method begins at RVA 0x2067
             // Code size 1 (0x1)
             .maxstack 8
@@ -1039,6 +1054,19 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method private hidebysig 
             instance void M () cil managed 
         {
@@ -1048,16 +1076,6 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x2067
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     // Methods
     .method private hidebysig specialname static 
@@ -1129,13 +1147,26 @@ public static class Extensions
 
         VerifyTypeIL(verifier, "Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-extends [netstandard]System.Object
+    extends [netstandard]System.Object
 {
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object ''
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method private hidebysig static 
             void M () cil managed 
         {
@@ -1145,16 +1176,6 @@ extends [netstandard]System.Object
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object ''
-            ) cil managed 
-        {
-            // Method begins at RVA 0x2067
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     // Methods
     .method private hidebysig specialname static 
@@ -1240,13 +1261,26 @@ public static class Extensions
 
         VerifyTypeIL(verifier, "Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-extends [netstandard]System.Object
+    extends [netstandard]System.Object
 {
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x206b
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method private hidebysig specialname 
             instance int32 get_Property () cil managed 
         {
@@ -1267,16 +1301,6 @@ extends [netstandard]System.Object
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::set_Property
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x206b
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
         // Properties
         .property instance int32 Property()
         {
@@ -1319,6 +1343,7 @@ extends [netstandard]System.Object
         Assert.Equal("System.Int32 Extensions.<>E__0.Property { get; set; }", symbol.GetMember("Property").ToTestDisplayString());
 
         AssertEx.Equal([
+            "void Extensions.<>E__0.<Extension>$(System.Object o)",
             "System.Int32 Extensions.<>E__0.Property { get; set; }",
             "System.Int32 Extensions.<>E__0.Property.get",
             "void Extensions.<>E__0.Property.set"],
@@ -1352,6 +1377,7 @@ public static class Extensions
         Assert.Equal("System.Int32 Extensions.<>E__0.Property { get; set; }", symbol.GetMember("Property").ToTestDisplayString());
 
         AssertEx.Equal([
+            "void Extensions.<>E__0.<Extension>$(System.Object o)",
             "System.Int32 Extensions.<>E__0.<Property>k__BackingField",
             "System.Int32 Extensions.<>E__0.Property { get; set; }",
             "System.Int32 Extensions.<>E__0.Property.get",
@@ -1408,6 +1434,19 @@ extends [netstandard]System.Object
         extends [netstandard]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object ''
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x206b
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method private hidebysig specialname static 
             int32 get_Property () cil managed 
         {
@@ -1428,16 +1467,6 @@ extends [netstandard]System.Object
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::set_Property
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object ''
-            ) cil managed 
-        {
-            // Method begins at RVA 0x206b
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
         // Properties
         .property int32 Property()
         {
@@ -1502,6 +1531,7 @@ public static class Extensions
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(["Property"], symbol.MemberNames);
         AssertEx.Equal([
+            "void Extensions.<>E__0.<Extension>$(System.Object)",
             "System.Int32 Extensions.<>E__0.<Property>k__BackingField",
             "System.Int32 Extensions.<>E__0.Property { get; set; }",
             "System.Int32 Extensions.<>E__0.Property.get",
@@ -1540,6 +1570,19 @@ public static class Extensions
             01 00 04 49 74 65 6d 00 00
         )
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x206b
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method private hidebysig specialname 
             instance int32 get_Item (
                 int32 i
@@ -1563,16 +1606,6 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::set_Item
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x206b
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
         // Properties
         .property instance int32 Item(
             int32 i
@@ -1619,6 +1652,7 @@ public static class Extensions
         Assert.Equal("System.Int32 Extensions.<>E__0.this[System.Int32 i] { get; set; }", symbol.GetMember("this[]").ToTestDisplayString());
 
         AssertEx.Equal([
+            "void Extensions.<>E__0.<Extension>$(System.Object o)",
             "System.Int32 Extensions.<>E__0.this[System.Int32 i] { get; set; }",
             "System.Int32 Extensions.<>E__0.this[System.Int32 i].get",
             "void Extensions.<>E__0.this[System.Int32 i].set"],
@@ -1668,7 +1702,7 @@ public static class Extensions
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Empty(symbol.MemberNames);
-        Assert.Equal(["Extensions.<>E__0.Nested"], symbol.GetMembers().ToTestDisplayStrings());
+        Assert.Equal(["void Extensions.<>E__0.<Extension>$(System.Object)", "Extensions.<>E__0.Nested"], symbol.GetMembers().ToTestDisplayStrings());
         Assert.Equal(["Extensions.<>E__0.Nested"], symbol.GetTypeMembers().ToTestDisplayStrings());
         Assert.Equal("Extensions.<>E__0.Nested", symbol.GetTypeMember("Nested").ToTestDisplayString());
     }
@@ -1727,7 +1761,7 @@ public static class Extensions
         AssertExtensionDeclaration(symbol);
 
         Assert.Equal(["Finalize"], symbol.MemberNames);
-        Assert.Equal(["void Extensions.<>E__0.Finalize()"], symbol.GetMembers().ToTestDisplayStrings());
+        Assert.Equal(["void Extensions.<>E__0.<Extension>$(System.Object)", "void Extensions.<>E__0.Finalize()"], symbol.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -1761,7 +1795,7 @@ public static class Extensions
         AssertExtensionDeclaration(symbol);
 
         Assert.Equal(["field"], symbol.MemberNames);
-        Assert.Equal(["System.Int32 Extensions.<>E__0.field"], symbol.GetMembers().ToTestDisplayStrings());
+        Assert.Equal(["void Extensions.<>E__0.<Extension>$(System.Object o)", "System.Int32 Extensions.<>E__0.field"], symbol.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -1787,7 +1821,7 @@ public static class Extensions
         AssertExtensionDeclaration(symbol);
 
         Assert.Equal(["i"], symbol.MemberNames);
-        Assert.Equal(["System.Int32 Extensions.<>E__0.i"], symbol.GetMembers().ToTestDisplayStrings());
+        Assert.Equal(["void Extensions.<>E__0.<Extension>$(System.Object)", "System.Int32 Extensions.<>E__0.i"], symbol.GetMembers().ToTestDisplayStrings());
     }
 
     [Fact]
@@ -2641,11 +2675,17 @@ public static class Extensions
 public static class Extensions
 {
     extension(ref readonly int i) { }
+    extension(ref readonly int) { }
     static void M(this ref readonly int i) { }
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+
+        CompileAndVerify(comp, symbolValidator: (m) =>
+        {
+            Assert.Equal(RefKind.RefReadOnlyParameter, m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__0.<Extension>$").Parameters[0].RefKind);
+            Assert.Equal(RefKind.RefReadOnlyParameter, m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__1.<Extension>$").Parameters[0].RefKind);
+        }).VerifyDiagnostics();
     }
 
     [Fact]
@@ -2766,7 +2806,7 @@ public static class Extensions
         var src = """
 extension(C) { }
 extension(C c) { }
-static class C { }
+public static class C { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
@@ -2782,6 +2822,24 @@ static class C { }
     }
 
     [Fact]
+    public void ReceiverParameter_StaticType_05()
+    {
+        var src = """
+static class Extensions
+{
+    extension(C)
+    {
+    }
+}
+
+static class C {}
+""";
+        var comp = CreateCompilation(src);
+
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void ReceiverParameter_InstanceType_01()
     {
         var src = """
@@ -2790,7 +2848,7 @@ public static class Extensions
     extension(C c) { }
     extension(C) { }
 }
-class C { }
+public class C { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
@@ -2942,6 +3000,155 @@ public static class Extensions
     }
 
     [Fact]
+    public void ReceiverParameter_ConstatesCheck()
+    {
+        var src = """
+static class Extensions
+{
+    extension(System.Nullable<string> receiver)
+    {
+    }
+
+    extension(System.Nullable<string>)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (3,39): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+            //     extension(System.Nullable<string> receiver)
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "receiver").WithArguments("System.Nullable<T>", "T", "string").WithLocation(3, 39),
+            // (7,15): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+            //     extension(System.Nullable<string>)
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "System.Nullable<string>").WithArguments("System.Nullable<T>", "T", "string").WithLocation(7, 15)
+            );
+    }
+
+    [Fact]
+    public void ReceiverParameter_RefScope()
+    {
+        var src = """
+static class Extensions
+{
+    extension(scoped ref int receiver)
+    {
+    }
+
+    extension(scoped ref int)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        CompileAndVerify(comp, symbolValidator: (m) =>
+        {
+            AssertEx.Equal(ScopedKind.ScopedRef, m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__0.<Extension>$").Parameters[0].EffectiveScope);
+            AssertEx.Equal(ScopedKind.ScopedRef, m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__1.<Extension>$").Parameters[0].EffectiveScope);
+        }).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ReceiverParameter_Nullability()
+    {
+        var src = """
+#nullable enable
+
+static class Extensions
+{
+    extension(string? receiver)
+    {
+    }
+
+    extension(string?)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        CompileAndVerify(comp, symbolValidator: (m) =>
+        {
+            AssertEx.Equal("System.String?", m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__0.<Extension>$").Parameters[0].TypeWithAnnotations.ToTestDisplayString());
+            AssertEx.Equal("System.String?", m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__1.<Extension>$").Parameters[0].TypeWithAnnotations.ToTestDisplayString());
+        }).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ReceiverParameter_NativeInteger()
+    {
+        var src = """
+#nullable enable
+
+static class Extensions
+{
+    extension(nint receiver)
+    {
+    }
+
+    extension(nint)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        CompileAndVerify(comp, symbolValidator: (m) =>
+        {
+            Assert.True(m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__0.<Extension>$").Parameters[0].Type.IsNativeIntegerType);
+            Assert.True(m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__1.<Extension>$").Parameters[0].Type.IsNativeIntegerType);
+        }).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ReceiverParameter_InconsistentTypeAccessibility_01()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(C x)
+    {
+        public void M() {}
+    }
+}
+
+class C {}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (3,14): error CS0051: Inconsistent accessibility: parameter type 'C' is less accessible than method 'Extensions.extension(C).<Extension>$(C)'
+            //     extension(C x)
+            Diagnostic(ErrorCode.ERR_BadVisParamType, "(").WithArguments("Extensions.extension(C).<Extension>$(C)", "C").WithLocation(3, 14)
+            );
+    }
+
+    [Fact]
+    public void ReceiverParameter_InconsistentTypeAccessibility_02()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(C x)
+    {
+    }
+
+    private class C {}
+}
+""";
+        var comp = CreateCompilation(src);
+
+        // PROTOTYPE: It looks like there is no way to extend private type. It is possible to do with legacy extensions.
+        comp.VerifyDiagnostics(
+            // (3,14): error CS0051: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than method 'Extensions.extension(Extensions.C).<Extension>$(Extensions.C)'
+            //     extension(C x)
+            Diagnostic(ErrorCode.ERR_BadVisParamType, "(").WithArguments("Extensions.extension(Extensions.C).<Extension>$(Extensions.C)", "Extensions.C").WithLocation(3, 14)
+            );
+    }
+
+    [Fact]
     public void Skeleton()
     {
         var src = """
@@ -2975,6 +3182,96 @@ public static class Extensions
   IL_000a:  ret
 }
 """);
+    }
+
+    [Fact]
+    public void GetDiagnosticsForSpan_NoReceiverParameter()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(__arglist)
+    {
+        public int M()
+        {
+            return "";
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var ext = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var m = ext.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+        model.GetDiagnostics(ext.ParameterList.Span).Verify(
+            // (3,15): error CS1669: __arglist is not valid in this context
+            //     extension(__arglist)
+            Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15)
+            );
+
+        model.GetDiagnostics(m.Body.Span).Verify(
+            // (7,20): error CS0029: Cannot implicitly convert type 'string' to 'int'
+            //             return "";
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(7, 20)
+            );
+
+        comp.VerifyDiagnostics(
+            // (7,20): error CS0029: Cannot implicitly convert type 'string' to 'int'
+            //             return "";
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(7, 20),
+            // (3,15): error CS1669: __arglist is not valid in this context
+            //     extension(__arglist)
+            Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15)
+            );
+    }
+
+    [Fact]
+    public void GetDiagnosticsForSpan_WithReceiverParameter()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(object o = null)
+    {
+        public int M()
+        {
+            return "";
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var ext = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var m = ext.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+        model.GetDiagnostics(ext.ParameterList.Span).Verify(
+            // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            //     extension(object o = null)
+            Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "object o = null").WithLocation(3, 15)
+            );
+
+        model.GetDiagnostics(m.Body.Span).Verify(
+            // (7,20): error CS0029: Cannot implicitly convert type 'string' to 'int'
+            //             return "";
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(7, 20)
+            );
+
+        comp.VerifyDiagnostics(
+            // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            //     extension(object o = null)
+            Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "object o = null").WithLocation(3, 15),
+            // (7,20): error CS0029: Cannot implicitly convert type 'string' to 'int'
+            //             return "";
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(7, 20)
+            );
+
+        Assert.Null(model.GetDeclaredSymbol(ext.ParameterList.Parameters[0])); // PROTOTYPE: should find 'extension(object).o'
     }
 
     [Fact]
@@ -3145,27 +3442,30 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
-            instance void M (
-                string s
-            ) cil managed 
-        {
-            // Method begins at RVA 0x2077
-            // Code size 2 (0x2)
-            .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
-        } // end of method '<>E__0'::M
         .method public hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
         {
-            // Method begins at RVA 0x207a
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2077
             // Code size 1 (0x1)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
+        .method private hidebysig 
+            instance void M (
+                string s
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2079
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
     } // end of class <>E__0
     // Methods
     .method private hidebysig specialname static 
@@ -3224,27 +3524,30 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig 
-            instance string M (
-                string s
-            ) cil managed 
-        {
-            // Method begins at RVA 0x207b
-            // Code size 2 (0x2)
-            .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
-        } // end of method '<>E__0'::M
         .method public hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
         {
-            // Method begins at RVA 0x207e
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x207b
             // Code size 1 (0x1)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
+        .method public hidebysig 
+            instance string M (
+                string s
+            ) cil managed 
+        {
+            // Method begins at RVA 0x207d
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
     } // end of class <>E__0
     // Methods
     .method public hidebysig specialname static 
@@ -3362,27 +3665,30 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig 
-            instance string M (
-                string s
-            ) cil managed 
-        {
-            // Method begins at RVA 0x20ab
-            // Code size 2 (0x2)
-            .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
-        } // end of method '<>E__0'::M
         .method public hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
         {
-            // Method begins at RVA 0x20ae
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x20ab
             // Code size 1 (0x1)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
+        .method public hidebysig 
+            instance string M (
+                string s
+            ) cil managed 
+        {
+            // Method begins at RVA 0x20ad
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.ValueType
@@ -3533,27 +3839,30 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig 
-            instance string M (
-                string s
-            ) cil managed 
-        {
-            // Method begins at RVA 0x208c
-            // Code size 2 (0x2)
-            .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
-        } // end of method '<>E__0'::M
         .method public hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
         {
-            // Method begins at RVA 0x208f
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x208c
             // Code size 1 (0x1)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
+        .method public hidebysig 
+            instance string M (
+                string s
+            ) cil managed 
+        {
+            // Method begins at RVA 0x208e
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.Object
@@ -3708,6 +4017,19 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x207e
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method public hidebysig 
             instance class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
                 string s
@@ -3718,22 +4040,12 @@ public static class Extensions
                 45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
                 00 00
             )
-            // Method begins at RVA 0x207e
+            // Method begins at RVA 0x2080
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x2081
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<<Extension>M>d__1'
         extends [mscorlib]System.Object
@@ -4102,6 +4414,19 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x20b3
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method public hidebysig 
             instance class [mscorlib]System.Threading.Tasks.Task`1<string> M (
                 string s
@@ -4112,22 +4437,12 @@ public static class Extensions
                 45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
                 00 00
             )
-            // Method begins at RVA 0x20b3
+            // Method begins at RVA 0x20b5
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x20b6
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<<Extension>M>d__1'
         extends [mscorlib]System.ValueType
@@ -4399,28 +4714,31 @@ public class C<T>(string v)
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                class C`1<!T> o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x20a5
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
         .method public hidebysig 
             instance string M<U> (
                 !T t,
                 !!U u
             ) cil managed 
         {
-            // Method begins at RVA 0x20a5
+            // Method begins at RVA 0x20a7
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                class C`1<!T> o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x20a8
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     // Methods
     .method public hidebysig specialname static 
@@ -4551,28 +4869,31 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                class C`1<!T> o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x216d
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
         .method public hidebysig 
             instance class C`1<!!U> M<U> (
                 !T t1,
                 !!U u1
             ) cil managed 
         {
-            // Method begins at RVA 0x216d
+            // Method begins at RVA 0x216f
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                class C`1<!T> o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x2170
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0`2'<T, U>
         extends [mscorlib]System.ValueType
@@ -4817,28 +5138,31 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                class C`1<!T> o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x20c4
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
         .method public hidebysig 
             instance class C`1<!!U> M<U> (
                 !T t1,
                 !!U u1
             ) cil managed 
         {
-            // Method begins at RVA 0x20c4
+            // Method begins at RVA 0x20c6
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                class C`1<!T> o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x20c7
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0`2'<T, U>
         extends [mscorlib]System.Object
@@ -5063,6 +5387,19 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                class C`1<!T> o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x209c
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
         .method public hidebysig 
             instance class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M<U> (
                 !T t1,
@@ -5074,22 +5411,12 @@ public class C<T>(string val)
                 45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
                 60 32 00 00
             )
-            // Method begins at RVA 0x209c
+            // Method begins at RVA 0x209e
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                class C`1<!T> o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x209f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi sealed beforefieldinit '<<Extension>M>d__1`2'<T, U>
         extends [mscorlib]System.Object
@@ -5445,6 +5772,19 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                class C`1<!T> o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x20d2
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
         .method public hidebysig 
             instance class [mscorlib]System.Threading.Tasks.Task`1<string> M<U> (
                 !T t1,
@@ -5456,22 +5796,12 @@ public class C<T>(string val)
                 45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
                 60 32 00 00
             )
-            // Method begins at RVA 0x20d2
+            // Method begins at RVA 0x20d4
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                class C`1<!T> o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x20d5
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi sealed beforefieldinit '<<Extension>M>d__1`2'<T, U>
         extends [mscorlib]System.ValueType
@@ -5749,28 +6079,31 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object _
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x207b
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method public hidebysig static 
             string M (
                 object o,
                 string s
             ) cil managed 
         {
-            // Method begins at RVA 0x207b
+            // Method begins at RVA 0x207d
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object _
-            ) cil managed 
-        {
-            // Method begins at RVA 0x207e
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     // Methods
     .method public hidebysig specialname static 
@@ -5892,28 +6225,31 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object _
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x20ab
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method public hidebysig static 
             string M (
                 object o,
                 string s
             ) cil managed 
         {
-            // Method begins at RVA 0x20ab
+            // Method begins at RVA 0x20ad
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object _
-            ) cil managed 
-        {
-            // Method begins at RVA 0x20ae
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.ValueType
@@ -6064,28 +6400,31 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object _
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x208c
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method public hidebysig static 
             string M (
                 object o,
                 string s
             ) cil managed 
         {
-            // Method begins at RVA 0x208c
+            // Method begins at RVA 0x208e
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object _
-            ) cil managed 
-        {
-            // Method begins at RVA 0x208f
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
         extends [mscorlib]System.Object
@@ -6240,6 +6579,19 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object _
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x207e
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method public hidebysig static 
             class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
                 object o,
@@ -6251,22 +6603,12 @@ public static class Extensions
                 53 74 61 74 69 63 45 78 74 65 6e 73 69 6f 6e 3e
                 4d 3e 64 5f 5f 31 00 00
             )
-            // Method begins at RVA 0x207e
+            // Method begins at RVA 0x2080
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object _
-            ) cil managed 
-        {
-            // Method begins at RVA 0x2081
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<<StaticExtension>M>d__1'
         extends [mscorlib]System.Object
@@ -6601,6 +6943,19 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object _
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x20b3
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method public hidebysig static 
             class [mscorlib]System.Threading.Tasks.Task`1<string> M (
                 object o,
@@ -6612,22 +6967,12 @@ public static class Extensions
                 53 74 61 74 69 63 45 78 74 65 6e 73 69 6f 6e 3e
                 4d 3e 64 5f 5f 31 00 00
             )
-            // Method begins at RVA 0x20b3
+            // Method begins at RVA 0x20b5
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object _
-            ) cil managed 
-        {
-            // Method begins at RVA 0x20b6
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi sealed beforefieldinit '<<StaticExtension>M>d__1'
         extends [mscorlib]System.ValueType
@@ -6891,25 +7236,28 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname 
-            instance string get_P () cil managed 
-        {
-            // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
-            .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
-        } // end of method '<>E__0'::get_P
         .method public hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
         {
-            // Method begins at RVA 0x2072
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 1 (0x1)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
+        .method public hidebysig specialname 
+            instance string get_P () cil managed 
+        {
+            // Method begins at RVA 0x2071
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::get_P
         // Properties
         .property instance string P()
         {
@@ -7019,25 +7367,28 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname 
-            instance string get_P () cil managed 
-        {
-            // Method begins at RVA 0x206f
-            // Code size 2 (0x2)
-            .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
-        } // end of method '<>E__0'::get_P
         .method public hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
         {
-            // Method begins at RVA 0x2072
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x206f
             // Code size 1 (0x1)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
+        .method public hidebysig specialname 
+            instance string get_P () cil managed 
+        {
+            // Method begins at RVA 0x2071
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::get_P
         // Properties
         .property instance string P()
         {
@@ -7159,6 +7510,19 @@ class C1
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                !T o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
         .method private hidebysig 
             instance void M2<U> () cil managed 
         {
@@ -7168,16 +7532,6 @@ class C1
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M2
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                !T o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x2067
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi abstract sealed beforefieldinit '<local>O__1_0`3'<T, U, V>
         extends [mscorlib]System.Object
@@ -7294,6 +7648,19 @@ class C1
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                !T o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
         .method private hidebysig 
             instance void M2 () cil managed 
         {
@@ -7303,16 +7670,6 @@ class C1
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M2
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                !T o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x2067
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>O__1_0`1'<T>
         extends [mscorlib]System.Object
@@ -7430,6 +7787,19 @@ class C1
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method private hidebysig 
             instance void M2 () cil managed 
         {
@@ -7439,16 +7809,6 @@ class C1
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M2
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x2067
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi abstract sealed beforefieldinit '<>O'
         extends [mscorlib]System.Object
@@ -7561,25 +7921,28 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
-            instance class [mscorlib]System.Action M2 () cil managed 
-        {
-            // Method begins at RVA 0x2096
-            // Code size 2 (0x2)
-            .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
-        } // end of method '<>E__0`1'::M2
         .method public hidebysig specialname static 
             void '<Extension>$' (
                 !T o
             ) cil managed 
         {
-            // Method begins at RVA 0x2099
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2096
             // Code size 1 (0x1)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
+        .method private hidebysig 
+            instance class [mscorlib]System.Action M2 () cil managed 
+        {
+            // Method begins at RVA 0x2098
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0`1'::M2
     } // end of class <>E__0`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>O__1_0`1'<T>
         extends [mscorlib]System.Object
@@ -7694,25 +8057,28 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig 
-            instance class [mscorlib]System.Action M2 () cil managed 
-        {
-            // Method begins at RVA 0x2096
-            // Code size 2 (0x2)
-            .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
-        } // end of method '<>E__0'::M2
         .method public hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
         {
-            // Method begins at RVA 0x2099
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2096
             // Code size 1 (0x1)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
+        .method private hidebysig 
+            instance class [mscorlib]System.Action M2 () cil managed 
+        {
+            // Method begins at RVA 0x2098
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M2
     } // end of class <>E__0
     .class nested private auto ansi abstract sealed beforefieldinit '<>O'
         extends [mscorlib]System.Object
@@ -7826,6 +8192,19 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                !T o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
         .method private hidebysig 
             instance void M2<U> () cil managed 
         {
@@ -7835,16 +8214,6 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M2
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                !T o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x2067
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__0|1`3'<T, U, V>
         extends [mscorlib]System.Object
@@ -7996,6 +8365,19 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                !T o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0`1'::'<Extension>$'
         .method private hidebysig 
             instance void M2 () cil managed 
         {
@@ -8005,16 +8387,6 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0`1'::M2
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                !T o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x2067
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0`1'::'<Extension>$'
     } // end of class <>E__0`1
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__1`1'<T>
         extends [mscorlib]System.Object
@@ -8150,6 +8522,19 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
         .method private hidebysig 
             instance void M2 () cil managed 
         {
@@ -8159,16 +8544,6 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::M2
-        .method public hidebysig specialname static 
-            void '<Extension>$' (
-                object o
-            ) cil managed 
-        {
-            // Method begins at RVA 0x2067
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
     } // end of class <>E__0
     .class nested private auto ansi abstract sealed beforefieldinit '<>o__1'
         extends [mscorlib]System.Object

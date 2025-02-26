@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsExtensionMethod
+        public sealed override bool IsExtensionMethod
         {
             get
             {

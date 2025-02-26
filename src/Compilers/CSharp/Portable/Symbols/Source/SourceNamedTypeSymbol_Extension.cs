@@ -63,43 +63,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (_lazyExtensionInfo.LazyExtensionParameter == null)
                 {
-                    var diagnostics = BindingDiagnosticBag.GetInstance();
-                    var extensionParameter = makeExtensionParameter(this, diagnostics);
-                    if (Interlocked.CompareExchange(ref _lazyExtensionInfo.LazyExtensionParameter, new StrongBox<ParameterSymbol?>(extensionParameter), null) == null)
-                    {
-                        AddDeclarationDiagnostics(diagnostics);
-                    }
-                    diagnostics.Free();
+                    var extensionParameter = makeExtensionParameter(this);
+                    Interlocked.CompareExchange(ref _lazyExtensionInfo.LazyExtensionParameter, new StrongBox<ParameterSymbol?>(extensionParameter), null);
                 }
 
                 return _lazyExtensionInfo.LazyExtensionParameter.Value;
 
-                static ParameterSymbol? makeExtensionParameter(SourceNamedTypeSymbol symbol, BindingDiagnosticBag diagnostics)
+                static ParameterSymbol? makeExtensionParameter(SourceNamedTypeSymbol symbol)
                 {
-                    var syntax = (ExtensionDeclarationSyntax)symbol.GetNonNullSyntaxNode();
-                    var parameterList = syntax.ParameterList;
-                    Debug.Assert(parameterList is not null);
+                    var markerMethod = symbol.GetMembers(WellKnownMemberNames.ExtensionMarkerMethodName).OfType<SynthesizedExtensionMarker>().SingleOrDefault();
 
-                    int count = parameterList.Parameters.Count;
-                    Debug.Assert(count > 0);
-
-                    if (parameterList is null || count == 0)
+                    if (markerMethod is not { Parameters: [var parameter, ..] })
                     {
                         return null;
                     }
 
-                    BinderFactory binderFactory = symbol.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
-                    var withTypeParamsBinder = binderFactory.GetBinder(parameterList);
-
-                    // Constraints are checked later
-                    var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, symbol);
-
-                    for (int parameterIndex = 1; parameterIndex < count; parameterIndex++)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_ReceiverParameterOnlyOne, parameterList.Parameters[parameterIndex].GetLocation());
-                    }
-
-                    return ParameterHelpers.MakeExtensionReceiverParameter(withTypeParametersBinder: signatureBinder, owner: symbol, parameterList, diagnostics);
+                    return new ReceiverParameterSymbol(symbol, parameter);
                 }
             }
         }
@@ -134,18 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return _lazyExtensionInfo.LazyImplementationMap.GetValueOrDefault(method);
-        }
-
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
-        {
-            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
-
-            // PROTOTYPE: What other parameter related checks we should do here?
-
-            if (IsExtension && ExtensionParameter is { } parameter)
-            {
-                ParameterHelpers.EnsureRefKindAttributesExist(DeclaringCompilation, [parameter], diagnostics, modifyCompilation: true);
-            }
         }
     }
 }
