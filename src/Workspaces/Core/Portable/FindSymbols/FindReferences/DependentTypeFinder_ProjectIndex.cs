@@ -22,6 +22,15 @@ internal static partial class DependentTypeFinder
         MultiDictionary<DocumentId, DeclaredSymbolInfo> delegates,
         MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)> namedTypes)
     {
+        /// <summary>
+        /// We cache the project instance per <see cref="ProjectState"/>.  This allows us to reuse it over a wide set of
+        /// changes (for example, changing completely unrelated projects that a particular project doesn't depend on).
+        /// However, <see cref="ProjectState"/> doesn't change even when certain things change that will create a
+        /// substantively different <see cref="Project"/>.  For example, if the <see
+        /// cref="SourceGeneratorExecutionVersion"/> for the project changes, we'll still have the same project state.
+        /// As such, we store the <see cref="Checksum"/> of the project as well, ensuring that if anything in it or its
+        /// dependencies changes, we recompute the index.
+        /// </summary>
         private static readonly ConditionalWeakTable<ProjectState, StrongBox<(Checksum checksum, AsyncLazy<ProjectIndex> lazyProjectIndex)>> s_projectToIndex = new();
 
         public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> ClassesAndRecordsThatMayDeriveFromSystemObject = classesAndRecordsThatMayDeriveFromSystemObject;
