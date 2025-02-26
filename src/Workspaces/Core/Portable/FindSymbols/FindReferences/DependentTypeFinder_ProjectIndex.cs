@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -21,7 +22,7 @@ internal static partial class DependentTypeFinder
         MultiDictionary<DocumentId, DeclaredSymbolInfo> delegates,
         MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)> namedTypes)
     {
-        private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<ProjectIndex>> s_projectToIndex = new();
+        private static readonly ConditionalWeakTable<ProjectState, StrongBox<(Checksum checksum, AsyncLazy<ProjectIndex> lazyProjectIndex)>> s_projectToIndex = new();
 
         public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> ClassesAndRecordsThatMayDeriveFromSystemObject = classesAndRecordsThatMayDeriveFromSystemObject;
         public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> ValueTypes = valueTypes;
@@ -29,18 +30,29 @@ internal static partial class DependentTypeFinder
         public readonly MultiDictionary<DocumentId, DeclaredSymbolInfo> Delegates = delegates;
         public readonly MultiDictionary<string, (DocumentId, DeclaredSymbolInfo)> NamedTypes = namedTypes;
 
-        public static Task<ProjectIndex> GetIndexAsync(
+        public static async Task<ProjectIndex> GetIndexAsync(
             Project project, CancellationToken cancellationToken)
         {
-            if (!s_projectToIndex.TryGetValue(project.State, out var lazyIndex))
+            // Use the checksum of the project.  That way if its state *or* SG info changes, we compute a new index with
+            // accurate information in it.
+            var checksum = await project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false);
+            if (!s_projectToIndex.TryGetValue(project.State, out var tuple) ||
+                tuple.Value.checksum != checksum)
             {
-                lazyIndex = s_projectToIndex.GetValue(
-                    project.State, p => AsyncLazy.Create(
-                        static (project, c) => CreateIndexAsync(project, c),
-                        project));
+                tuple = new((checksum, AsyncLazy.Create(CreateIndexAsync, project)));
+
+#if NET
+                s_projectToIndex.AddOrUpdate(project.State, tuple);
+#else
+                // Best effort try to update the map with the new data. 
+                s_projectToIndex.Remove(project.State);
+                // Note: intentionally ignore the return value here.  We want to use the value we've computed even if
+                // another thread beats us to adding things here. 
+                _ = s_projectToIndex.GetValue(project.State, _ => tuple);
+#endif
             }
 
-            return lazyIndex.GetValueAsync(cancellationToken);
+            return await tuple.Value.lazyProjectIndex.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ProjectIndex> CreateIndexAsync(Project project, CancellationToken cancellationToken)
