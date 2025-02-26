@@ -14,4 +14,20 @@ internal static class RazorUri
 
     public static string GetDocumentFilePathFromUri(Uri uri)
         => ProtocolConversions.GetDocumentFilePathFromUri(uri);
+
+    public static bool IsGeneratedDocumentUri(Uri generatedDocumentUri)
+        => generatedDocumentUri.Scheme == SourceGeneratedDocumentUri.Scheme;
+
+    // TODO: This method is unnecessary if https://github.com/dotnet/roslyn/issues/50546 is done
+    public static string GetHintNameFromGeneratedDocumentUri(Solution solution, Uri generatedDocumentUri)
+    {
+        Contract.ThrowIfFalse(IsGeneratedDocumentUri(generatedDocumentUri));
+
+        if (SourceGeneratedDocumentUri.DeserializeIdentity(solution, generatedDocumentUri) is not { } identity)
+        {
+            throw new InvalidOperationException($"Could not deserialize Uri into a source generated Uri: {generatedDocumentUri}");
+        }
+
+        return identity.HintName;
+    }
 }
