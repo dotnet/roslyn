@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     // Note: instances of this object are pooled
     internal sealed class AnalyzedArguments
     {
-        internal const string ImplicitParameterNameFromIndex = "<>ImplicitParameterNameFromIndex";
-
         public readonly ArrayBuilder<BoundExpression> Arguments;
         public readonly ArrayBuilder<(string Name, Location Location)?> Names;
         public readonly ArrayBuilder<RefKind> RefKinds;
@@ -73,18 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return builder.ToImmutableAndFree();
-        }
-
-        public string? GetName(ImmutableArray<ParameterSymbol> parameters, int i)
-        {
-            var name = Name(i);
-            if (name == ImplicitParameterNameFromIndex)
-            {
-                return i < parameters.Length ?
-                    parameters[i].Name :
-                    null;
-            }
-            return name;
         }
 
         public RefKind RefKind(int i)

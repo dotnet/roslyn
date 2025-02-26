@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // (5) Is there any named argument that were specified twice?
 
-            int? duplicateNamedArgument = CheckForDuplicateNamedArgument(arguments, parameters);
+            int? duplicateNamedArgument = CheckForDuplicateNamedArgument(arguments);
             if (duplicateNamedArgument != null)
             {
                 return ArgumentAnalysisResult.DuplicateNamedArgument(duplicateNamedArgument.Value);
@@ -259,8 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 
             // Arguments in the argument-list of instance constructors, methods, indexers and delegates:
 
-            string name = arguments.GetName(memberParameters, argumentPosition);
-            isNamedArgument = name != null;
+            isNamedArgument = arguments.Names.Count > argumentPosition && arguments.Names[argumentPosition] != null;
 
             if (!isNamedArgument)
             {
@@ -312,6 +311,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC VIOLATION: parameter array and allow the candidate to be applicable in its
                 // SPEC VIOLATION: expanded form.
 
+                Debug.Assert(arguments.Names[argumentPosition].HasValue);
+                var name = arguments.Names[argumentPosition].GetValueOrDefault().Name;
                 for (int p = 0; p < memberParameters.Length; ++p)
                 {
                     // p is initialized to zero; it is ok for a named argument to "correspond" to
@@ -481,9 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static int? CheckForDuplicateNamedArgument(
-            AnalyzedArguments arguments,
-            ImmutableArray<ParameterSymbol> parameters)
+        private static int? CheckForDuplicateNamedArgument(AnalyzedArguments arguments)
         {
             if (arguments.Names.IsEmpty)
             {
@@ -494,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var alreadyDefined = PooledHashSet<string>.GetInstance();
             for (int i = 0; i < arguments.Names.Count; ++i)
             {
-                string name = arguments.GetName(parameters, i);
+                string name = arguments.Name(i);
 
                 if (name is null)
                 {
