@@ -18067,6 +18067,26 @@ static class Extensions
     {
         static public long M7() => 0;
     }
+
+    extension(int receiver)
+    {
+        public static void M8() {}
+    }
+
+    extension(ref int receiver)
+    {
+        public static void M8() {}
+    }
+
+    extension(int receiver)
+    {
+        public void M9() {}
+    }
+
+    extension(int receiver)
+    {
+        public static void M9(int x) {}
+    }
 }
 """;
         var comp = CreateCompilation(src);
@@ -18088,14 +18108,17 @@ static class Extensions
             //         static public void M5() {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M5").WithArguments("M5", "Extensions.extension(object)").WithLocation(46, 28),
 
-            // PROTOTYPE: It feels unfortunate that we generate conflicting signatures, the methods extend different types
+            // PROTOTYPE: It feels unfortunate that we generate conflicting signatures, the methods extend different types (refer to M6 and M7 cases)
 
             // (56,28): error CS0111: Type 'Extensions' already defines a member called 'M6' with the same parameter types
             //         static public void M6() {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M6").WithArguments("M6", "Extensions").WithLocation(56, 28),
             // (66,28): error CS0111: Type 'Extensions' already defines a member called 'M7' with the same parameter types
             //         static public long M7() => 0;
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "Extensions").WithLocation(66, 28)
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "Extensions").WithLocation(66, 28),
+            // (76,28): error CS0111: Type 'Extensions' already defines a member called 'M8' with the same parameter types
+            //         public static void M8() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M8").WithArguments("M8", "Extensions").WithLocation(76, 28)
             );
     }
 
