@@ -3872,7 +3872,7 @@ outerDefault:
             ImmutableArray<ParameterSymbol> parameters = isNewExtensionMember ? GetParametersIncludingExtensionParameter(member) : member.GetParameters();
 
             // We simulate an extra parameter for vararg methods 
-            int parameterCount = member.GetParameterCount() + (member.GetIsVararg() ? 1 : 0);
+            int parameterCount = parameters.Length + (member.GetIsVararg() ? 1 : 0);
 
             if (argumentCount == parameterCount && argToParamMap.IsDefaultOrEmpty)
             {

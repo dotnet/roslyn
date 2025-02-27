@@ -1231,15 +1231,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!ignoreComReceiver)
             {
-                var receiverNamedType = invokedAsExtensionMethod ?
-                                        ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
-                                        methodOrIndexer.ContainingType;
+                NamedTypeSymbol? receiverNamedType = tryGetReceiverNamedType(methodOrIndexer, invokedAsExtensionMethod);
                 isComReceiver = receiverNamedType is { IsComImport: true };
             }
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
                 !isComReceiver;
+
+            static NamedTypeSymbol? tryGetReceiverNamedType(Symbol methodOrIndexer, bool invokedAsExtensionMethod)
+            {
+                if (invokedAsExtensionMethod)
+                {
+                    return ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol;
+                }
+
+                if (methodOrIndexer.GetIsNewExtensionMember())
+                {
+                    Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is not null);
+                    return methodOrIndexer.ContainingType.ExtensionParameter.Type as NamedTypeSymbol;
+                }
+
+                return (NamedTypeSymbol?)methodOrIndexer.ContainingType;
+            }
         }
 
         private static ImmutableArray<RefKind> GetRefKindsOrNull(ArrayBuilder<RefKind> refKinds)

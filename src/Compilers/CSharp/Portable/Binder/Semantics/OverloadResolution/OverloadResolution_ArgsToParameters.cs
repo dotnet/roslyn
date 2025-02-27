@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE consider optimizing
             var refKinds = symbol.GetParameterRefKinds();
             var receiverRefKind = symbol.ContainingType.ExtensionParameter.RefKind;
-            if (refKinds.IsDefault && receiverRefKind == RefKind.None)
+            if (refKinds.IsDefault)
             {
-                return default;
+                return receiverRefKind == RefKind.None ? default : [receiverRefKind];
             }
 
             return [receiverRefKind, .. refKinds];

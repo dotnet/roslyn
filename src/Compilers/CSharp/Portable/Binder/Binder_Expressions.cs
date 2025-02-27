@@ -3892,6 +3892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // PROTOTYPE consider removing or adjusting the reported argument position
                 var argNumber = invokedAsExtensionMethod ? arg : arg + 1;
 
                 // Warn for `ref`/`in` or None/`ref readonly` mismatch.
@@ -7988,8 +7989,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression? ResolveExtensionMemberAccessIfResultIsNonMethod(SyntaxNode syntax, BoundExpression receiver, string name,
             ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, BindingDiagnosticBag diagnostics)
         {
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
-
             // Note: we're resolving without arguments, which means we're not treating the member access as invoked
             var resolution = this.ResolveExtension(
                 syntax, name, analyzedArguments: null, receiver, typeArgumentsOpt, options: OverloadResolution.Options.None,
@@ -8511,18 +8510,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
 
             foreach (var scope in new ExtensionScopes(this))
             {
                 lookupResult.Clear();
                 classicExtensionLookupResult.Clear();
 
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
                 scope.Binder.LookupExtensionMembersInSingleBinder(
                     lookupResult, left.Type!, memberName, arity,
                     basesBeingResolved: null, lookupOptions, originalBinder: this, ref useSiteInfo);
 
                 this.LookupExtensionMethods(classicExtensionLookupResult, scope, memberName, arity, ref useSiteInfo);
+
                 diagnostics.Add(expression, useSiteInfo);
 
                 lookupResult.MergeEqual(classicExtensionLookupResult);
@@ -8545,7 +8545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var methodGroup = MethodGroup.GetInstance();
-                methodGroup.PopulateWithMethods(left, members, typeArgumentsWithAnnotations, resultKind: lookupResult.Kind);
+                methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, resultKind: lookupResult.Kind);
                 members.Free();
 
                 if (analyzedArguments == null)
@@ -8687,7 +8687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out wasError, qualifierOpt: null);
                 Debug.Assert((object)symbol == null);
                 Debug.Assert(members.Count > 0);
-                methodGroup.PopulateWithMethods(left, members, typeArgumentsWithAnnotations, lookupResult.Kind);
+                methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, lookupResult.Kind);
                 members.Free();
             }
 

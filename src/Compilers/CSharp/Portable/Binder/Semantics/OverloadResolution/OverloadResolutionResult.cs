@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ParameterSymbol parameter = parameters[parm];
-            bool isLastParameter = parameters.Count() == parm + 1; // This is used to later decide if we need to try to unwrap a params collection
+            bool isLastParameter = parameters.Length == parm + 1; // This is used to later decide if we need to try to unwrap a params collection
             RefKind refArg = arguments.RefKind(arg);
             RefKind refParameter = parameter.RefKind;
 

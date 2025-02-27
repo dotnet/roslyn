@@ -2828,13 +2828,19 @@ public static class Extensions<T>
     public void ReceiverParameter_Ref()
     {
         var src = """
+int i = 42;
+i.M(43);
+
 public static class Extensions
 {
-    extension(ref int i) { }
+    extension(ref int i)
+    {
+        public void M(int j) { System.Console.Write((i, j)); }
+    }
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
     }
 
     [Fact]
@@ -11684,9 +11690,6 @@ namespace N
         comp.VerifyEmitDiagnostics(
             // (3,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // Container.M();
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "Container.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 1),
-            // (3,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // Container.M();
             Diagnostic(ErrorCode.ERR_NoTypeDef, "Container.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 1));
 
         var tree = comp.SyntaxTrees.Single();
@@ -13437,6 +13440,7 @@ public static class E2
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.Member");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal(["void E2.Member(this System.Object o)", "System.String E1.<>E__0.Member { get; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -17976,7 +17980,7 @@ static class E
     }
 
     [Fact]
-    public void Mixing()
+    public void MethodInvocation_01()
     {
         var source = """
 new object().M();
@@ -19370,5 +19374,99 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.P");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void RefOmittedComCall()
+    {
+        // For COM import type, omitting the ref is allowed
+        string source = @"
+using System;
+using System.Runtime.InteropServices;
+
+short x = 123;
+C c = new C();
+c.M(x);
+c.I(123);
+
+[ComImport, Guid(""1234C65D-1234-447A-B786-64682CBEF136"")]
+class C { }
+
+static class E
+{
+    extension(C c)
+    {
+        public void M(ref short p) { }
+        public void M(sbyte p) { }
+        public void I(ref int p) { }
+    }
+}
+";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void RefOmittedComCall_02()
+    {
+        string source = @"
+using System;
+using System.Runtime.InteropServices;
+
+C c = default;
+c.M();
+c.M2();
+
+[ComImport, Guid(""1234C65D-1234-447A-B786-64682CBEF136"")]
+class C { }
+
+static class E
+{
+    extension(ref C c)
+    {
+        public void M() { }
+    }
+    public static void M2(this ref C c) { }
+}
+";
+        // PROTOTYPE missing ERR_RefExtensionMustBeValueTypeOrConstrainedToOne on the extension parameter
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (7,3): error CS1061: 'C' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // c.M2();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("C", "M2").WithLocation(7, 3),
+            // (18,24): error CS8337: The first parameter of a 'ref' extension method 'M2' must be a value type or a generic type constrained to struct.
+            //     public static void M2(this ref C c) { }
+            Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "M2").WithArguments("M2").WithLocation(18, 24));
+    }
+
+    [Fact]
+    public void RefOmittedComCall_03()
+    {
+        string source = @"
+using System;
+using System.Runtime.InteropServices;
+
+C c = default;
+c.M();
+c.M2();
+
+[ComImport, Guid(""1234C65D-1234-447A-B786-64682CBEF136"")]
+struct C { }
+
+static class E
+{
+    extension(ref C c)
+    {
+        public void M() { }
+    }
+    public static void M2(this ref C c) { }
+}
+";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (9,2): error CS0592: Attribute 'ComImport' is not valid on this declaration type. It is only valid on 'class, interface' declarations.
+            // [ComImport, Guid("1234C65D-1234-447A-B786-64682CBEF136")]
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ComImport").WithArguments("ComImport", "class, interface").WithLocation(9, 2));
     }
 }
