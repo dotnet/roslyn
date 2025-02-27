@@ -23,12 +23,6 @@ try {
     $remoteRef = git ls-remote origin refs/pull/$prNumber/head
     Write-Host ($remoteRef | Out-String)
 
-    # $prHeadSHA = $remoteRef.Split()[0]
-    # if (!$prHeadSHA.StartsWith($commitSHA)) {
-    #   Write-Host "##vso[task.LogIssue type=error;]The PR's Head SHA ($prHeadSHA) does not begin with the specified commit SHA ($commitSHA). Unreviewed changes may have been pushed to the PR."
-    #   exit 1
-    # }
-
     Write-Host "Setting up the build for PR validation by merging refs/pull/$prNumber/merge into $sourceBranchName..."
     git pull origin refs/pull/$prNumber/merge
     if (!$?) {
