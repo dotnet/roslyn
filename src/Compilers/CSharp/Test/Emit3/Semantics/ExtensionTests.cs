@@ -760,7 +760,7 @@ public static partial class Extensions
                 object ''
             ) cil managed 
         {
-                .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
             )
             // Method begins at RVA 0x2067
@@ -3000,7 +3000,7 @@ public static class Extensions
     }
 
     [Fact]
-    public void ReceiverParameter_ConstatesCheck()
+    public void ReceiverParameter_ConstraintsCheck()
     {
         var src = """
 static class Extensions
