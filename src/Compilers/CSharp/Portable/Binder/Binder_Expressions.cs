@@ -5346,7 +5346,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.ColonToken.GetLocation());
             var key = BindValue(syntax.KeyExpression, diagnostics, BindValueKind.RValue);
             var value = BindValue(syntax.ValueExpression, diagnostics, BindValueKind.RValue);
-            return new BoundKeyValuePairElement(syntax, key, value);
+            return new BoundKeyValuePairElement(
+                syntax,
+                key,
+                value,
+                keyPlaceholder: null,
+                valuePlaceholder: null,
+                indexerAssignment: null);
         }
 #nullable disable
 
@@ -6582,11 +6588,99 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElementAddMethod(
+        private BoundExpression BindDictionaryItemAssignment(
+            SyntaxNode syntax,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            MethodSymbol setMethod,
+            BoundExpression expr,
+            Conversion keyConversion,
+            TypeSymbol destinationKeyType,
+            Conversion valueConversion,
+            TypeSymbol destinationValueType,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(expr.Type is { });
+            Debug.Assert(ConversionsBase.IsKeyValuePairType(Compilation, expr.Type, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out _, out _));
+
+            var exprType = (NamedTypeSymbol)expr.Type;
+            return BindDictionaryItemAssignment(
+                syntax,
+                implicitReceiver,
+                setMethod,
+                CreateConversion(
+                    bindKeyOrValue(
+                        syntax,
+                        expr,
+                        ((MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax)).AsMember(exprType)),
+                    keyConversion,
+                    destinationKeyType,
+                    diagnostics),
+                CreateConversion(
+                    bindKeyOrValue(
+                        syntax,
+                        expr,
+                        ((MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax)).AsMember(exprType)),
+                    valueConversion,
+                    destinationValueType,
+                    diagnostics),
+                diagnostics);
+
+            static BoundCall bindKeyOrValue(SyntaxNode syntax, BoundExpression expr, MethodSymbol getMethod)
+            {
+                return new BoundCall(
+                    syntax,
+                    receiverOpt: expr,
+                    // PROTOTYPE: What is the correct value for receiver cloning? Test with expression element
+                    // and spread element where the item is ref KVP<,> or ref readonly KVP<,>.
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                    method: getMethod,
+                    arguments: [],
+                    argumentNamesOpt: default,
+                    argumentRefKindsOpt: default,
+                    isDelegateCall: false,
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default,
+                    defaultArguments: default,
+                    resultKind: LookupResultKind.Viable,
+                    type: getMethod.ReturnType).MakeCompilerGenerated();
+            }
+        }
+
+        // PROTOTYPE: Test when there is a more applicable indexer. We should stick with this one.
+        // PROTOTYPE: Test when there is no conversion from value to indexer type, since value is not included in AnalyzedArguments.
+        private BoundExpression BindDictionaryItemAssignment(
+            SyntaxNode syntax,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            MethodSymbol setMethod,
+            BoundExpression key,
+            BoundExpression value,
+            BindingDiagnosticBag diagnostics)
+        {
+            // PROTOTYPE: What about argument conversions?
+            return new BoundCall(
+                syntax,
+                receiverOpt: implicitReceiver,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                method: setMethod,
+                arguments: [key, value],
+                argumentNamesOpt: default,
+                argumentRefKindsOpt: default,
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: default,
+                defaultArguments: default,
+                resultKind: LookupResultKind.Viable,
+                type: setMethod.ReturnType).MakeCompilerGenerated();
+        }
+
+        private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElement<TArg>(
             SpreadElementSyntax syntax,
             BoundCollectionExpressionSpreadElement element,
-            Binder collectionInitializerAddMethodBinder,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            Func<Binder, ExpressionSyntax, BoundValuePlaceholder, BoundObjectOrCollectionValuePlaceholder, TArg, BindingDiagnosticBag, BoundExpression> bindItem,
+            TArg arg,
             BindingDiagnosticBag diagnostics)
         {
             var enumeratorInfo = element.EnumeratorInfoOpt;
@@ -6603,22 +6697,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
-            var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
-            var addMethodInvocation = BindCollectionInitializerElementAddMethod(
+            // PROTOTYPE: See ConvertCollectionExpression().bindSpread() which uses syntax.Expression rather
+            // than syntax for the item placeholder and also uses .WithSuppression(syntax.Expression.IsSuppressed).
+            var itemPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
+            var item = bindItem(
+                this,
                 syntax.Expression,
-                ImmutableArray.Create((BoundExpression)addElementPlaceholder),
-                hasEnumerableInitializerType: true,
-                collectionInitializerAddMethodBinder,
-                diagnostics,
-                implicitReceiver);
+                itemPlaceholder,
+                implicitReceiver,
+                arg,
+                diagnostics);
             return element.Update(
                 element.Expression,
                 expressionPlaceholder: element.ExpressionPlaceholder,
                 conversion: element.Conversion,
                 enumeratorInfo,
                 lengthOrCount: element.LengthOrCount,
-                elementPlaceholder: addElementPlaceholder,
-                iteratorBody: new BoundExpressionStatement(syntax, addMethodInvocation) { WasCompilerGenerated = true });
+                elementPlaceholder: itemPlaceholder,
+                iteratorBody: new BoundExpressionStatement(syntax, item) { WasCompilerGenerated = true });
         }
 #nullable disable
 

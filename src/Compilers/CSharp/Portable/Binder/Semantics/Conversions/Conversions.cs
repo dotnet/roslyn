@@ -188,43 +188,65 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
+                // PROTOTYPE: Test type with indexer but no constructor callable with no arguments. Should be a conversion error rather than subsequent binding error.
                 if (!_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
 
-                if (elements.Length > 0 &&
+                // PROTOTYPE: Test collection type that does not include an indexer, and where element type is some KeyValuePair<,>.
+                if (object.ReferenceEquals(elementType.OriginalDefinition, Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)) &&
+                    Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
+                    _binder.GetCollectionExpressionApplicableIndexer(syntax, targetType, BindingDiagnosticBag.Discarded) is { })
+                {
+                    collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
+                }
+                else if (elements.Length > 0 &&
                     !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
             }
 
-            bool usesKeyValuePairs = CollectionUsesKeyValuePairs(Compilation, collectionTypeKind, elementType, out var keyType, out var valueType);
-            var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
-            foreach (var element in elements)
+            ImmutableArray<Conversion> elementConversions;
+            if (CollectionUsesKeyValuePairs(Compilation, collectionTypeKind, elementType, out var keyType, out var valueType))
             {
-                switch (element)
+                var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length * 2);
+                foreach (var element in elements)
                 {
-                    case BoundCollectionExpressionWithElement:
-                        // Collection arguments do not affect convertibility.
-                        continue;
-                    case BoundCollectionExpressionSpreadElement spreadElement:
-                        {
-                            var elementConversion = GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo);
-                            if (elementConversion.Exists)
+                    switch (element)
+                    {
+                        case BoundCollectionExpressionWithElement:
+                            // Collection arguments do not affect convertibility.
+                            continue;
+                        case BoundCollectionExpressionSpreadElement spreadElement:
                             {
-                                builder.Add(elementConversion);
-                                continue;
+                                var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
+                                if (enumeratorInfo is { })
+                                {
+                                    // PROTOTYPE: Test case where elementType is null.
+                                    // PROTOTYPE: Test when element is not KeyValuePair<,>, or when there is no conversion between key or value types.
+                                    // PROTOTYPE: Test when element is not KeyValuePair<,> but there is an implicit conversion to KeyValuePair<K, V>. Should fail.
+                                    // PROTOTYPE: No dynamic support. Test that case, and update the spec accordingly.
+                                    if (IsKeyValuePairType(Compilation, enumeratorInfo.ElementType, out var itemKeyType, out var itemValueType))
+                                    {
+                                        var keyConversion = ClassifyImplicitConversionFromType(itemKeyType, keyType, ref useSiteInfo);
+                                        var valueConversion = ClassifyImplicitConversionFromType(itemValueType, valueType, ref useSiteInfo);
+                                        if (keyConversion.Exists && valueConversion.Exists)
+                                        {
+                                            builder.Add(keyConversion);
+                                            builder.Add(valueConversion);
+                                            continue;
+                                        }
+                                    }
+                                }
+
                             }
-                        }
-                        break;
-                    case BoundKeyValuePairElement keyValuePairElement:
-                        {
-                            if (usesKeyValuePairs)
+                            break;
+                        case BoundKeyValuePairElement keyValuePairElement:
                             {
-                                var keyConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Key, keyType.Type, ref useSiteInfo);
-                                var valueConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Value, valueType.Type, ref useSiteInfo);
+                                var keyConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Key, keyType, ref useSiteInfo);
+                                var valueConversion = ClassifyImplicitConversionFromExpression(keyValuePairElement.Value, valueType, ref useSiteInfo);
                                 if (keyConversion.Exists && valueConversion.Exists)
                                 {
                                     builder.Add(keyConversion);
@@ -232,24 +254,88 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     continue;
                                 }
                             }
-                        }
-                        break;
-                    default:
-                        {
-                            var elementConversion = ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo);
-                            if (elementConversion.Exists)
+                            break;
+                        case BoundExpression expressionElement:
                             {
-                                builder.Add(elementConversion);
-                                continue;
+                                // PROTOTYPE: dictionary-expressions.md currently states "If Ei is an expression element, there is an implicit conversion
+                                // from Ei to T." But that is incorrect since that allows conversions from types other than KeyValuePair<,>, and it disallows
+                                // conversions from KeyValuePair<Ke, Ve> to KeyValuePair<K, V> (if we remove "key-value pair conversions".) Update the
+                                // spec, removing "key-value pair conversions" and replacing the existing expression element rule with: "If Ei is an expression
+                                // element, and either: Ei has no type and there is an implicit conversion from Ei to T, or Ei has type KeyValuePair<Ke, Ve>
+                                // and there is an implicit conversion from Ke to K and an implicit conversion from Ve to V."
+
+                                // PROTOTYPE: Test when element is not KeyValuePair<,>, or when there is no conversion between key or value types.
+                                // PROTOTYPE: Test when element is not KeyValuePair<,> but there is an implicit conversion to KeyValuePair<K, V>. Should fail.
+                                // PROTOTYPE: No dynamic support. Test that case, and update the spec accordingly.
+                                if (expressionElement.Type is { })
+                                {
+                                    if (IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
+                                    {
+                                        var keyConversion = ClassifyImplicitConversionFromType(elementKeyType, keyType, ref useSiteInfo);
+                                        var valueConversion = ClassifyImplicitConversionFromType(elementValueType, valueType, ref useSiteInfo);
+                                        if (keyConversion.Exists && valueConversion.Exists)
+                                        {
+                                            builder.Add(keyConversion);
+                                            builder.Add(valueConversion);
+                                            continue;
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    var expressionConversion = ClassifyImplicitConversionFromExpression(expressionElement, elementType, ref useSiteInfo);
+                                    if (expressionConversion.Exists)
+                                    {
+                                        builder.Add(expressionConversion);
+                                        continue;
+                                    }
+                                }
                             }
-                        }
-                        break;
+                            break;
+                    }
+                    builder.Free();
+                    return Conversion.NoConversion;
                 }
-                builder.Free();
-                return Conversion.NoConversion;
+                elementConversions = builder.ToImmutableAndFree();
+            }
+            else
+            {
+                var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
+                foreach (var element in elements)
+                {
+                    switch (element)
+                    {
+                        case BoundCollectionExpressionWithElement:
+                            // Collection arguments do not affect convertibility.
+                            continue;
+                        case BoundCollectionExpressionSpreadElement spreadElement:
+                            {
+                                var elementConversion = GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo);
+                                if (elementConversion.Exists)
+                                {
+                                    builder.Add(elementConversion);
+                                    continue;
+                                }
+                            }
+                            break;
+                        case BoundExpression expressionElement:
+                            {
+                                var elementConversion = ClassifyImplicitConversionFromExpression(expressionElement, elementType, ref useSiteInfo);
+                                if (elementConversion.Exists)
+                                {
+                                    builder.Add(elementConversion);
+                                    continue;
+                                }
+                            }
+                            break;
+                    }
+                    builder.Free();
+                    return Conversion.NoConversion;
+                }
+                elementConversions = builder.ToImmutableAndFree();
             }
 
-            return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, builder.ToImmutableAndFree());
+            return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, elementConversions);
         }
 
         internal Conversion GetCollectionExpressionSpreadElementConversion(
