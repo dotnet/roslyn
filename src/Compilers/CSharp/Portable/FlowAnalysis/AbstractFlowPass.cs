@@ -2113,6 +2113,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitIndexerAssignmentFromExpression(BoundIndexerAssignmentFromExpression node)
+        {
+            VisitRvalue(node.Expression);
+            return null;
+        }
+
         public override BoundNode VisitNewT(BoundNewT node)
         {
             VisitRvalue(node.InitializerExpressionOpt);

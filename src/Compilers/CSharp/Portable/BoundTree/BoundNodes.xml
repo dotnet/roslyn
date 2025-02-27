@@ -1920,10 +1920,12 @@
     <Field Name="CollectionTypeKind" Type="CollectionExpressionTypeKind"/>
     <!-- An expression placeholder value representing the initialized collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
-    <!-- Constructor call to create the empty collection type. -->
+    <!-- Constructor or factory method call to create the collection instance. -->
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Placeholder for collection builder elements span. -->
     <Field Name="CollectionBuilderSpanPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Indexer setter used to set items for dictionary. -->
+    <Field Name="SetMethod" Type="MethodSymbol?" Null="allow"/>
     <!-- Indicates whether the collection expression was successfully target-typed (it is inside a conversion) -->
     <Field Name="WasTargetTyped" Type="bool" />
     <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
@@ -1944,14 +1946,33 @@
     <Field Name="LengthOrCount" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
     <!-- Collection element placeholder, used in IteratorBody. -->
     <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <!-- Statement executed for each collection element. -->
-    <Field Name="IteratorBody" Type="BoundStatement?" SkipInVisitor="true" Null="allow"/>
+    <!-- Code executed for each collection element. -->
+    <Field Name="IteratorBody" Type="BoundNode?" SkipInVisitor="true" Null="allow"/>
   </Node>
 
   <!-- A key:value pair element within a collection expression. -->
   <Node Name="BoundKeyValuePairElement" Base="BoundNode">
+    <!-- Key expression. -->
     <Field Name="Key" Type="BoundExpression"/>
+    <!-- Value expression. -->
     <Field Name="Value" Type="BoundExpression"/>
+    <!-- Placeholder for Key in assignment. -->
+    <Field Name="KeyPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Placeholder for Value in assignment. -->
+    <Field Name="ValuePlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Indexer assignment of key:value pair to containing dictionary. -->
+    <Field Name="IndexerAssignment" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+  </Node>
+
+  <!-- PROTOTYPE: Use more specific name if this is only used for expression elements (where spread elements use BoundAssignmentOperator directly). -->
+  <!-- An assignment of an expression of KeyValuePair&lt;,&gt; type to a dictionary. -->
+  <Node Name="BoundIndexerAssignmentFromExpression" Base="BoundNode">
+    <!-- Expression. -->
+    <Field Name="Expression" Type="BoundExpression"/>
+    <!-- Placeholder for Expression in assignment. -->
+    <Field Name="ExpressionPlaceholder" Type="BoundValuePlaceholder" SkipInVisitor="true"/>
+    <!-- Indexer assignment of Key and Value properties of Expression to containing dictionary. -->
+    <Field Name="IndexerAssignment" Type="BoundExpression" SkipInVisitor="true"/>
   </Node>
 
   <!-- Unconverted collection expression arguments. -->
@@ -1961,7 +1982,7 @@
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Binder" Type="Binder" Null="disallow"/>
   </Node>
-  
+
   <!-- 
   Tuple literals can exist in two forms - literal and converted literal.
   This is the base node for both forms.
