@@ -11,16 +11,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.MethodImplementation;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.Analyzer.CSharp;
 
@@ -29,12 +27,14 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
 {
     private IExternalCSharpCopilotCodeAnalysisService? AnalysisService { get; }
     private IExternalCSharpCopilotGenerateDocumentationService? GenerateDocumentationService { get; }
+    private IExternalCSharpCopilotGenerateImplementationService? GenerateImplementationService { get; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpCopilotCodeAnalysisService(
         [Import(AllowDefault = true)] IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
         [Import(AllowDefault = true)] IExternalCSharpCopilotGenerateDocumentationService? externalCSharpCopilotGenerateDocumentationService,
+        [Import(AllowDefault = true)] IExternalCSharpCopilotGenerateImplementationService? externalCSharpCopilotGenerateImplementationService,
         IDiagnosticsRefresher diagnosticsRefresher
         ) : base(diagnosticsRefresher)
     {
@@ -44,8 +44,12 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         if (externalCSharpCopilotGenerateDocumentationService is null)
             FatalError.ReportAndCatch(new NullReferenceException("ExternalCSharpCopilotGenerateDocumentationService is unavailable."), ErrorSeverity.Diagnostic);
 
+        if (externalCSharpCopilotGenerateDocumentationService is null)
+            FatalError.ReportAndCatch(new NullReferenceException("ExternalCSharpCopilotGenerateImplementationService is unavailable."), ErrorSeverity.Diagnostic);
+
         AnalysisService = externalCopilotService;
         GenerateDocumentationService = externalCSharpCopilotGenerateDocumentationService;
+        GenerateImplementationService = externalCSharpCopilotGenerateImplementationService;
     }
 
     protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
@@ -128,6 +132,14 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
     {
         if (GenerateDocumentationService is not null)
             return GenerateDocumentationService.GetDocumentationCommentAsync(new CopilotDocumentationCommentProposalWrapper(proposal), cancellationToken);
+
+        return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
+    }
+
+    protected override Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionCoreAsync(Document document, TextSpan? span, MethodImplementationProposal proposal, CancellationToken cancellationToken)
+    {
+        if (GenerateImplementationService is not null)
+            return GenerateImplementationService.ImplementNotImplementedExceptionAsync(document, span, new MethodProposalWrapper(proposal), cancellationToken);
 
         return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
     }
