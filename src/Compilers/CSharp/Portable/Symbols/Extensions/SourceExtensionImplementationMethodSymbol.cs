@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
         {
             Debug.Assert(sourceMethod.ContainingSymbol is NamedTypeSymbol { IsExtension: true });
+            Debug.Assert(sourceMethod.IsStatic || sourceMethod.ContainingType.ExtensionParameter is not null);
             Debug.Assert(!sourceMethod.IsExtern);
             Debug.Assert(!sourceMethod.IsExternal);
 
@@ -51,10 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PROTOTYPE: Would it be better to not create an implementation method in the first place when the ExtensionParameter is faulty?
-                //            I personally don't see much advantage in that.
-                return _originalMethod.ParameterCount +
-                    (_originalMethod.IsStatic || _originalMethod.ContainingType is not SourceNamedTypeSymbol { ExtensionParameter: { } } ? 0 : 1);
+                return _originalMethod.ParameterCount + (_originalMethod.IsStatic ? 0 : 1);
             }
         }
 
@@ -103,10 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override ImmutableArray<ParameterSymbol> MakeParameters()
         {
             var sourceParameters = _originalMethod.Parameters;
-            var parameterCount = ParameterCount;
-            var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(parameterCount);
+            var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(ParameterCount);
 
-            if (sourceParameters.Length < parameterCount)
+            if (!_originalMethod.IsStatic)
             {
                 // PROTOTYPE: Need to confirm if this rewrite going to break LocalStateTracingInstrumenter
                 //            Specifically BoundParameterId, etc.   
@@ -118,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 parameters.Add(new ExtensionMetadataMethodParameterSymbol(this, parameter));
             }
 
+            Debug.Assert(parameters.Count == ParameterCount);
             return parameters.ToImmutableAndFree();
         }
 
@@ -147,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     var ordinal = this._underlyingParameter.Ordinal;
 
-                    if (_containingMethod.ParameterCount == ((MethodSymbol)this._underlyingParameter.ContainingSymbol).ParameterCount)
+                    if (this._underlyingParameter.ContainingSymbol.IsStatic)
                     {
                         return ordinal;
                     }

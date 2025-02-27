@@ -1983,8 +1983,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckIndexerNameConflicts(diagnostics, membersByName);
 
             // key and value will be the same object in these dictionaries.
-            var methodsBySignature = new Dictionary<SourceMemberMethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
-            var conversionsAsMethods = new Dictionary<SourceMemberMethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
+            var methodsBySignature = new Dictionary<MethodSymbol, MethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
+            var conversionsAsMethods = new Dictionary<MethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
             var conversionsAsConversions = new HashSet<SourceUserDefinedConversionSymbol>(ConversionSignatureComparer.Comparer);
 
             // SPEC: The signature of an operator must differ from the signatures of all other
@@ -2099,7 +2099,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // second and third categories as follows:
 
                     var conversion = symbol as SourceUserDefinedConversionSymbol;
-                    var method = symbol as SourceMemberMethodSymbol;
 
                     // We don't want to consider explicit interface implementations
                     if (conversion is { MethodKind: MethodKind.Conversion })
@@ -2132,7 +2131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Do not add the conversion to the set of previously-seen methods; that set
                         // is only non-conversion methods.
                     }
-                    else if (!(method is null))
+                    else if (symbol is MethodSymbol method && method is (SourceMemberMethodSymbol or SourceExtensionImplementationMethodSymbol))
                     {
                         // Does this method collide *as a method* with any previously-seen
                         // conversion?
@@ -2163,7 +2162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Report a name conflict; the error is reported on the location of method1.
         // UNDONE: Consider adding a secondary location pointing to the second method.
-        private void ReportMethodSignatureCollision(BindingDiagnosticBag diagnostics, SourceMemberMethodSymbol method1, SourceMemberMethodSymbol method2)
+        private void ReportMethodSignatureCollision(BindingDiagnosticBag diagnostics, MethodSymbol method1, MethodSymbol method2)
         {
             switch (method1, method2)
             {
@@ -2179,10 +2178,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If method1 is a constructor only because its return type is missing, then
             // we've already produced a diagnostic for the missing return type and we suppress the
             // diagnostic about duplicate signature.
-            if (method1.MethodKind == MethodKind.Constructor &&
-                ((ConstructorDeclarationSyntax)method1.SyntaxRef.GetSyntax()).Identifier.ValueText != this.Name)
+            if (method1 is SourceMemberMethodSymbol { MethodKind: MethodKind.Constructor } constructor &&
+                ((ConstructorDeclarationSyntax)constructor.SyntaxRef.GetSyntax()).Identifier.ValueText != this.Name)
             {
                 return;
+            }
+
+            if ((method1 as SourceExtensionImplementationMethodSymbol)?.UnderlyingMethod.ContainingType is { } extensionDeclaration &&
+                (object)extensionDeclaration == (method2 as SourceExtensionImplementationMethodSymbol)?.UnderlyingMethod.ContainingType)
+            {
+                return; // The conflict is reported in context of extension declaration
             }
 
             Debug.Assert(method1.ParameterCount == method2.ParameterCount);
@@ -2200,6 +2205,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return;
                 }
+            }
+
+            if (method1 is SourceExtensionImplementationMethodSymbol extensionImplementation)
+            {
+                method1 = extensionImplementation.UnderlyingMethod;
             }
 
             // Special case: if there are two destructors, use the destructor syntax instead of "Finalize"
@@ -3612,7 +3622,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     foreach (var member in type.GetMembers())
                     {
-                        if (member is MethodSymbol { IsImplicitlyDeclared: false } method)
+                        if (member is MethodSymbol { IsImplicitlyDeclared: false } method &&
+                            (method.IsStatic || type.ExtensionParameter is not null))
                         {
                             builder.AddNonTypeMember(this, new SourceExtensionImplementationMethodSymbol(method), declaredMembersAndInitializers);
                         }

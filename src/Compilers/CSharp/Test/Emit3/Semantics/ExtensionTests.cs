@@ -2691,9 +2691,7 @@ public static class Extensions
             //     extension(__arglist) { }
             Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(5, 15));
 
-        MethodSymbol implementation = comp.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
-        Assert.Equal(0, implementation.ParameterCount);
-        Assert.Equal("void Extensions.<Extension>M()", implementation.ToTestDisplayString());
+        Assert.Empty(comp.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>());
     }
 
     [Fact]
@@ -17833,5 +17831,427 @@ static class E
 
         var format = new SymbolDisplayFormat(parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeModifiers);
         Assert.Equal("extension(ref readonly Int32)", symbol.ToDisplayString(format));
+    }
+
+    [Fact]
+    public void SignatureConflict_01()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        public void M1() {}
+    }
+
+    extension(object receiver)
+    {
+        public void M1() {}
+    }
+
+    extension(int receiver)
+    {
+        public void M2() {}
+    }
+
+    extension(ref int receiver)
+    {
+        public void M2() {}
+    }
+
+    extension(in int receiver)
+    {
+        public void M3() {}
+    }
+
+    extension(ref int receiver)
+    {
+        public void M3() {}
+    }
+
+    extension(ref readonly int receiver)
+    {
+        public void M4() {}
+    }
+
+    extension(ref int receiver)
+    {
+        public void M4() {}
+    }
+
+    extension(ref readonly int receiver)
+    {
+        public void M5() {}
+    }
+
+    extension(in int receiver)
+    {
+        public void M5() {}
+    }
+
+    static public void M6(this int receiver) {}
+
+    static public void M6(this ref int receiver) {}
+
+    static public void M7(this in int receiver) {}
+
+    static public void M7(this ref int receiver) {}
+
+    static public void M8(this ref readonly int receiver) {}
+
+    static public void M8(this ref int receiver) {}
+
+    static public void M9(this ref readonly int receiver) {}
+
+    static public void M9(this in int receiver) {}
+
+    extension(object receiver)
+    {
+        public void M10() {}
+        public void M10() {}
+    }
+
+    extension(object receiver1)
+    {
+        public void M13() {}
+    }
+
+    extension(object receiver2)
+    {
+        public void M13() {}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        // PROTOTYPE: Despite the fact that we do not complain about M6, should we report an error for M2 (the only difference is receiver ref-ness)?
+        comp.VerifyDiagnostics(
+            // (10,21): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
+            //         public void M1() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(10, 21),
+
+            // PROTOTYPE: The error might be somewhat confusing in this scenario because there are no parameters and we complain about ref-ness of the receiver.
+
+            // (30,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'in'
+            //         public void M3() {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M3").WithArguments("Extensions", "method", "ref", "in").WithLocation(30, 21),
+            // (40,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'ref readonly'
+            //         public void M4() {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M4").WithArguments("Extensions", "method", "ref", "ref readonly").WithLocation(40, 21),
+            // (50,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref readonly'
+            //         public void M5() {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M5").WithArguments("Extensions", "method", "in", "ref readonly").WithLocation(50, 21),
+            // (59,24): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'in'
+            //     static public void M7(this ref int receiver) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M7").WithArguments("Extensions", "method", "ref", "in").WithLocation(59, 24),
+            // (63,24): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'ref readonly'
+            //     static public void M8(this ref int receiver) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M8").WithArguments("Extensions", "method", "ref", "ref readonly").WithLocation(63, 24),
+            // (67,24): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref readonly'
+            //     static public void M9(this in int receiver) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M9").WithArguments("Extensions", "method", "in", "ref readonly").WithLocation(67, 24),
+            // (72,21): error CS0111: Type 'Extensions.extension(object)' already defines a member called 'M10' with the same parameter types
+            //         public void M10() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M10").WithArguments("M10", "Extensions.extension(object)").WithLocation(72, 21),
+            // (82,21): error CS0111: Type 'Extensions' already defines a member called 'M13' with the same parameter types
+            //         public void M13() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M13").WithArguments("M13", "Extensions").WithLocation(82, 21)
+            );
+
+        comp = CreateCompilation("""
+static class Extensions
+{
+    extension(int receiver)
+    {
+        public void M2() {}
+    }
+
+    extension(ref int receiver)
+    {
+        public void M2() {}
+    }
+
+    extension(int receiver)
+    {
+        public void M11() {}
+    }
+
+    extension(string receiver)
+    {
+        public void M11() {}
+    }
+
+    extension(long receiver)
+    {
+        public void M12(int x) {}
+    }
+
+    extension(long receiver)
+    {
+        public void M12(ref int x) {}
+    }
+}
+""");
+
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SignatureConflict_02()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        static public void M1() {}
+    }
+
+    extension(object receiver)
+    {
+        static public void M1() {}
+    }
+
+    extension(object receiver)
+    {
+        static public void M2(ref int x) {}
+    }
+
+    extension(object receiver)
+    {
+        static public void M2(ref readonly int x) {}
+    }
+
+    extension(object receiver)
+    {
+        static public void M3(in int x) {}
+    }
+
+    extension(object receiver)
+    {
+        static public void M3(ref readonly int x) {}
+    }
+
+    extension(object receiver)
+    {
+        static public void M4(ref int x) {}
+    }
+
+    extension(object receiver)
+    {
+        static public void M4(in int x) {}
+    }
+
+    extension(object receiver)
+    {
+        static public void M5() {}
+        static public void M5() {}
+    }
+
+    extension(int receiver)
+    {
+        static public void M6() {}
+    }
+
+    extension(string receiver)
+    {
+        static public void M6() {}
+    }
+
+    extension(int receiver)
+    {
+        static public int M7() => 0;
+    }
+
+    extension(long receiver)
+    {
+        static public long M7() => 0;
+    }
+
+    extension(int receiver)
+    {
+        public static void M8() {}
+    }
+
+    extension(ref int receiver)
+    {
+        public static void M8() {}
+    }
+
+    extension(int receiver)
+    {
+        public void M9() {}
+    }
+
+    extension(int receiver)
+    {
+        public static void M9(int x) {}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (10,28): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
+            //         static public void M1() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(10, 28),
+            // (20,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'ref'
+            //         static public void M2(ref readonly int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M2").WithArguments("Extensions", "method", "ref readonly", "ref").WithLocation(20, 28),
+            // (30,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'in'
+            //         static public void M3(ref readonly int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M3").WithArguments("Extensions", "method", "ref readonly", "in").WithLocation(30, 28),
+            // (40,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
+            //         static public void M4(in int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M4").WithArguments("Extensions", "method", "in", "ref").WithLocation(40, 28),
+            // (46,28): error CS0111: Type 'Extensions.extension(object)' already defines a member called 'M5' with the same parameter types
+            //         static public void M5() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M5").WithArguments("M5", "Extensions.extension(object)").WithLocation(46, 28),
+
+            // PROTOTYPE: It feels unfortunate that we generate conflicting signatures, the methods extend different types (refer to M6 and M7 cases)
+
+            // (56,28): error CS0111: Type 'Extensions' already defines a member called 'M6' with the same parameter types
+            //         static public void M6() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M6").WithArguments("M6", "Extensions").WithLocation(56, 28),
+            // (66,28): error CS0111: Type 'Extensions' already defines a member called 'M7' with the same parameter types
+            //         static public long M7() => 0;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "Extensions").WithLocation(66, 28), // PROTOTYPE: Signatures in metadata are different in this case (return type is different), consider if we want to enable this specific case 
+
+            // (76,28): error CS0111: Type 'Extensions' already defines a member called 'M8' with the same parameter types
+            //         public static void M8() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M8").WithArguments("M8", "Extensions").WithLocation(76, 28)
+            );
+    }
+
+    [Fact]
+    public void SignatureConflict_03()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        public int P1 => 1;
+    }
+
+    extension(object receiver)
+    {
+        public int P1 => 4;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (10,26): error CS0111: Type 'Extensions' already defines a member called 'get_P1' with the same parameter types
+            //         public int P1 => 4;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "4").WithArguments("get_P1", "Extensions").WithLocation(10, 26)
+            );
+    }
+
+    [Fact]
+    public void SignatureConflict_04()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        static public int P1 => 1;
+    }
+
+    extension(object receiver)
+    {
+        static public int P1 => 4;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (10,33): error CS0111: Type 'Extensions' already defines a member called 'get_P1' with the same parameter types
+            //         static public int P1 => 4;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "4").WithArguments("get_P1", "Extensions").WithLocation(10, 33)
+            );
+    }
+
+    [Fact]
+    public void SignatureConflict_05()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        public int P1 => 1;
+        public int get_P2() => 2;
+    }
+
+    extension(object receiver)
+    {
+        public int get_P1() => 3;
+        public int P2 => 4;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (11,20): error CS0111: Type 'Extensions' already defines a member called 'get_P1' with the same parameter types
+            //         public int get_P1() => 3;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "get_P1").WithArguments("get_P1", "Extensions").WithLocation(11, 20),
+            // (12,26): error CS0111: Type 'Extensions' already defines a member called 'get_P2' with the same parameter types
+            //         public int P2 => 4;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "4").WithArguments("get_P2", "Extensions").WithLocation(12, 26)
+            );
+    }
+
+    [Fact]
+    public void SignatureConflict_06()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        public int P1 => 1;
+    }
+
+    extension(object receiver)
+    {
+        public int P1 {set{}}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        // PROTOTYPE: Should be complain about a conflict like this?
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SignatureConflict_07()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        public void M(){}
+    }
+
+    extension(__arglist)
+    {
+        public void M(object x){}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (8,15): error CS1669: __arglist is not valid in this context
+            //     extension(__arglist)
+            Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(8, 15)
+            );
     }
 }
