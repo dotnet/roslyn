@@ -166,6 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitExpression(expression, used: true);
                     return null;
 
+                case BoundKind.LoweredConditionalSideEffect:
+                    throw ExceptionUtilities.UnexpectedValue(expression.Kind);
+
                 default:
                     Debug.Assert(!HasHome(expression, addressKind));
                     return EmitAddressOfTempClone(expression);

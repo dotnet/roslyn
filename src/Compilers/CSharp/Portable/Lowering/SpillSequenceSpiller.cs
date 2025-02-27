@@ -1349,6 +1349,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitLoweredConditionalSideEffect(BoundLoweredConditionalSideEffect node)
+        {
+            // PROTOTYPE: No current path will actually hit this. Should we leave a Debug.Fail here so
+            // that when this is hit in the future, we know to add proper testing? Or just throw Unreachable?
+            BoundSpillSequenceBuilder conditionBuilder = null;
+            var condition = VisitExpression(ref conditionBuilder, node.Condition);
+
+            BoundSpillSequenceBuilder sideEffectBuilder = null;
+            var sideEffect = VisitExpression(ref sideEffectBuilder, node.SideEffect);
+
+            if (sideEffectBuilder == null)
+            {
+                return UpdateExpression(conditionBuilder, node.Update(condition, sideEffect));
+            }
+
+            conditionBuilder ??= new BoundSpillSequenceBuilder(sideEffectBuilder.Syntax);
+            conditionBuilder.AddStatement(_F.If(condition, UpdateStatement(sideEffectBuilder, _F.ExpressionStatement(sideEffect))));
+
+            return conditionBuilder.Update(_F.Default(node.Type));
+        }
+
         private sealed class ConditionalReceiverReplacer : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             private readonly BoundExpression _receiver;

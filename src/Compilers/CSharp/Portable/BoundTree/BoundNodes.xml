@@ -2587,4 +2587,11 @@
     <Field Name="InitializerExpression" Type="BoundObjectInitializerExpressionBase" />
   </Node>
 
+  <!-- Node only created during some lowering stage as a possible side effect in a BoundSequence. It effectively represents `if (condition) expr`, as an expression -->
+  <Node Name="BoundLoweredConditionalSideEffect" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always" />
+    <Field Name="Condition" Type="BoundExpression" Null="disallow" />
+    <Field Name="SideEffect" Type="BoundExpression" Null="disallow" />
+  </Node>
+
 </Tree>

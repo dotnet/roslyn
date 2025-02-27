@@ -1613,6 +1613,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNull, node.Id, node.ForceCopyOfNullableValueType, node.Type);
         }
 
+        public override BoundNode VisitLoweredConditionalSideEffect(BoundLoweredConditionalSideEffect node)
+        {
+            var origStack = StackDepth();
+            var condition = (BoundExpression)this.Visit(node.Condition);
+
+            var cookie = GetStackStateCookie();     // implicit branch here
+            SetStackDepth(origStack);  // side effect is evaluated with original stack
+            var sideEffect = (BoundExpression)this.Visit(node.SideEffect);
+            EnsureStackState(cookie);   // implicit label here
+
+            return node.Update(condition, sideEffect);
+        }
+
         public override BoundNode VisitComplexConditionalReceiver(BoundComplexConditionalReceiver node)
         {
             EnsureOnlyEvalStack();
