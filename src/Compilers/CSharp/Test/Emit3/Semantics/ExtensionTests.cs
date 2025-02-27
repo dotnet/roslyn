@@ -17910,6 +17910,16 @@ static class Extensions
         public void M10() {}
         public void M10() {}
     }
+
+    extension(object receiver1)
+    {
+        public void M13() {}
+    }
+
+    extension(object receiver2)
+    {
+        public void M13() {}
+    }
 }
 """;
         var comp = CreateCompilation(src);
@@ -17942,7 +17952,10 @@ static class Extensions
             Diagnostic(ErrorCode.ERR_OverloadRefKind, "M9").WithArguments("Extensions", "method", "in", "ref readonly").WithLocation(67, 24),
             // (72,21): error CS0111: Type 'Extensions.extension(object)' already defines a member called 'M10' with the same parameter types
             //         public void M10() {}
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M10").WithArguments("M10", "Extensions.extension(object)").WithLocation(72, 21)
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M10").WithArguments("M10", "Extensions.extension(object)").WithLocation(72, 21),
+            // (82,21): error CS0111: Type 'Extensions' already defines a member called 'M13' with the same parameter types
+            //         public void M13() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M13").WithArguments("M13", "Extensions").WithLocation(82, 21)
             );
 
         comp = CreateCompilation("""
@@ -17966,6 +17979,16 @@ static class Extensions
     extension(string receiver)
     {
         public void M11() {}
+    }
+
+    extension(long receiver)
+    {
+        public void M12(int x) {}
+    }
+
+    extension(long receiver)
+    {
+        public void M12(ref int x) {}
     }
 }
 """);
@@ -18034,6 +18057,16 @@ static class Extensions
     {
         static public void M6() {}
     }
+
+    extension(int receiver)
+    {
+        static public int M7() => 0;
+    }
+
+    extension(string receiver)
+    {
+        static public long M7() => 0;
+    }
 }
 """;
         var comp = CreateCompilation(src);
@@ -18059,7 +18092,10 @@ static class Extensions
 
             // (56,28): error CS0111: Type 'Extensions' already defines a member called 'M6' with the same parameter types
             //         static public void M6() {}
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M6").WithArguments("M6", "Extensions").WithLocation(56, 28)
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M6").WithArguments("M6", "Extensions").WithLocation(56, 28),
+            // (66,28): error CS0111: Type 'Extensions' already defines a member called 'M7' with the same parameter types
+            //         static public long M7() => 0;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "Extensions").WithLocation(66, 28)
             );
     }
 
