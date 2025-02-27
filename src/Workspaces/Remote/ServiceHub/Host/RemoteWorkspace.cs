@@ -220,8 +220,12 @@ internal sealed partial class RemoteWorkspace : Workspace
 
         async Task<bool> IsIncrementalUpdateAsync()
         {
+            // During the first call to obtain compilation state checksums, also ensure the host waits for pending
+            // workspace change events to be processed. This minimizes the cost of synchronization since workspace
+            // change events are processed as diffs, while cache misses on the client side are processed by sending
+            // complete documents.
             var newSolutionCompilationChecksums = await assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
-                AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                AssetPathKind.SolutionCompilationStateChecksums | AssetPathKind.SolutionSynchronization, solutionChecksum, cancellationToken).ConfigureAwait(false);
             var newSolutionChecksums = await assetProvider.GetAssetAsync<SolutionStateChecksums>(
                 AssetPathKind.SolutionStateChecksums, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
             var newSolutionInfo = await assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
