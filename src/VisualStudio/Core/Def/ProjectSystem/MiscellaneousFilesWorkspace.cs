@@ -36,7 +36,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     private readonly OpenTextBufferProvider _openTextBufferProvider;
     private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
 
-    private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = [];
+    private ImmutableDictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = ImmutableDictionary<Guid, LanguageInformation>.Empty;
 
     /// <summary>
     /// <see cref="WorkspaceRegistration"/> instances for all open buffers being tracked by by this object
@@ -114,7 +114,12 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     void IOpenTextBufferEventListener.OnSaveDocument(string moniker) { }
 
     public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
-        => _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
+    {
+        ImmutableInterlocked.TryAdd(
+            ref _languageInformationByLanguageGuid,
+            languageGuid,
+            new LanguageInformation(languageName, scriptExtension));
+    }
 
     private LanguageInformation TryGetLanguageInformation(string filename)
     {

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -36,20 +37,10 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
+        // Should only be called from a threadpool. Opinionated, as package load sequence thread switches are impactful.
+        Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
+
         await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
-
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var shell = (IVsShell7)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-        var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
-        cancellationToken.ThrowIfCancellationRequested();
-        Assumes.Present(shell);
-        Assumes.Present(solution);
-
-        foreach (var editorFactory in CreateEditorFactories())
-        {
-            RegisterEditorFactory(editorFactory);
-        }
 
         RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
         {
@@ -64,10 +55,27 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             return _languageService.ComAggregate;
         });
 
-        await shell.LoadPackageAsync(Guids.RoslynPackageId);
+        var shell = await GetServiceAsync<SVsShell, IVsShell7>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
+
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        foreach (var editorFactory in CreateEditorFactories())
+        {
+            RegisterEditorFactory(editorFactory);
+        }
 
         var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
         RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+
+        await shell.LoadPackageAsync(Guids.RoslynPackageId);
+    }
+
+    protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
+    {
+        // Should only be called from a threadpool. Opinionated, as package load sequence thread switches are impactful.
+        Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
+
+        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
 
         if (!IVsShellExtensions.IsInCommandLineMode(JoinableTaskFactory))
         {
@@ -79,10 +87,10 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
     }
 
-    protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
+    protected override Task LoadComponentsAsync(CancellationToken cancellationToken)
     {
-        // Do the MEF loads and initialization in the BG explicitly.
-        await TaskScheduler.Default;
+        // Should only be called from a threadpool thread as this may do MEF loads and initialization
+        Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
 
         // Ensure the nuget package services are initialized. This initialization pass will only run
         // once our package is loaded indirectly through a legacy COM service we proffer (like the legacy project systems
@@ -99,6 +107,8 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
         _packageInstallerService?.RegisterLanguage(this.RoslynLanguageName);
         _symbolSearchService?.RegisterLanguage(this.RoslynLanguageName);
+
+        return Task.CompletedTask;
     }
 
     protected abstract void RegisterMiscellaneousFilesWorkspaceInformation(MiscellaneousFilesWorkspace miscellaneousFilesWorkspace);

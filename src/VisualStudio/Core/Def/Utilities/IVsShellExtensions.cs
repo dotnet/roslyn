@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using Microsoft.VisualStudio.LanguageServices.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -21,22 +22,15 @@ internal static class IVsShellExtensions
     /// </summary>
     public static bool IsInCommandLineMode(JoinableTaskFactory joinableTaskFactory)
     {
-        var result = s_isInCommandLineMode;
-        if (result == 0)
+        if (s_isInCommandLineMode == 0)
         {
-            s_isInCommandLineMode = result = joinableTaskFactory.Run(async () =>
-            {
-                await joinableTaskFactory.SwitchToMainThreadAsync();
-
-                var shell = ServiceProvider.GlobalProvider.GetService<SVsShell, IVsShell>(joinableTaskFactory);
-                return
-                    (shell != null) &&
-                    ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out var result)) &&
+            var appId = ServiceProvider.GlobalProvider.GetService<IVsAppId, IVsAppId>(joinableTaskFactory, throwOnFailure: false);
+            s_isInCommandLineMode = (appId != null) &&
+                    ErrorHandler.Succeeded(appId.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out var result)) &&
                     (bool)result ? 1 : -1;
-            });
         }
 
-        return result == 1;
+        return s_isInCommandLineMode == 1;
     }
 
     public static bool TryGetPropertyValue(this IVsShell shell, __VSSPROPID id, out IntPtr value)
