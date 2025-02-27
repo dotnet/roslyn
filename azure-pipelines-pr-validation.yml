@@ -143,6 +143,9 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
+        - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
+          displayName: Disable Real-time Monitoring
+          
         - task: Powershell@2
           displayName: Setting OriginalBuildNumber variable
           condition: succeeded()
@@ -214,16 +217,6 @@ extends:
             packageType: sdk
             useGlobalJson: true
             workingDirectory: '$(Build.SourcesDirectory)'
-
-        # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
-        - task: NuGetCommand@2
-          displayName: Restore internal tools
-          inputs:
-            command: restore
-            feedsToUse: config
-            restoreSolution: 'eng\common\internal\Tools.csproj'
-            nugetConfigPath: 'NuGet.config'
-            restoreDirectory: '$(Build.SourcesDirectory)\.packages'
 
         - task: MicroBuildSigningPlugin@4
           inputs:

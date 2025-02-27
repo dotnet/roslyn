@@ -1172,6 +1172,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Gets a slot for a static member, or a member of 'this', which is being referenced by a postcondition.
+        /// Used for "declaration-site" analysis of MemberNotNullAttributes.
+        /// </summary>
         private int GetSlotForMemberPostCondition(Symbol member)
         {
             if (member.Kind != SymbolKind.Field &&
@@ -1181,22 +1185,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return -1;
             }
 
-            int containingSlot = GetReceiverSlotForMemberPostConditions(_symbol as MethodSymbol);
-
-            if (containingSlot < 0)
-            {
-                return -1;
-            }
-
+            int containingSlot;
             if (member.IsStatic)
             {
-                // Trying to access a static member from a non-static context
                 containingSlot = 0;
             }
-            else if (containingSlot == 0)
+            else
             {
-                // Trying to access an instance member from a static context
-                return -1;
+                containingSlot = GetReceiverSlotForMemberPostConditions(_symbol as MethodSymbol);
+                if (containingSlot <= 0)
+                {
+                    // Either trying to access an instance member from a static context,
+                    // or an invalid slot (-1) was returned
+                    return -1;
+                }
             }
 
             return GetOrCreateSlot(member, containingSlot);
@@ -7147,6 +7149,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Applies the member postconditions of <paramref name="method"/> to members of <paramref name="receiverOpt"/> or to the appropriate static members.
+        /// Used for the "use-site" analysis of MemberNotNullAttributes.
+        /// </summary>
         private void ApplyMemberPostConditions(BoundExpression? receiverOpt, MethodSymbol? method)
         {
             if (method is null)
@@ -7166,9 +7172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ApplyMemberPostConditions(receiverSlot, method);
         }
 
-        // For an instance method, or a non-static local function in an instance method, returns the slot for the `this` parameter
-        // For a static method, or a static local function, or a local function in a static method, returns 0
-        // Otherwise, returns -1
+        /// <summary>
+        /// Returns -1 when a null method is passed. In this case there are definitely no member postconditions to apply.
+        /// Returns the slot for the `this` parameter for an instance method, or a non-static local function in an instance method.
+        /// Otherwise, returns 0, because postconditions applying to static members of the containing type could be present.
+        /// </summary>
         private int GetReceiverSlotForMemberPostConditions(MethodSymbol? method)
         {
             if (method is null)
@@ -7196,7 +7204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetOrCreateSlot(thisParameter);
             }
 
-            return -1;
+            return 0;
         }
 
         private void ApplyMemberPostConditions(int receiverSlot, MethodSymbol method)

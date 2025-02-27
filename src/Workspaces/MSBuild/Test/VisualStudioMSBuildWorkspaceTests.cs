@@ -30,12 +30,17 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Threading;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     public class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     {
+        public VisualStudioMSBuildWorkspaceTests(ITestOutputHelper testOutput) : base(testOutput)
+        {
+        }
+
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         public void TestCreateMSBuildWorkspace()
         {
@@ -194,7 +199,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         private static Metadata GetMetadata(MetadataReference metadataReference)
             => ((PortableExecutableReference)metadataReference).GetMetadata();
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552981")]
         public async Task TestOpenSolution_DuplicateProjectGuids()
         {
@@ -1132,7 +1137,7 @@ class C1
             Assert.Equal(expected, e.Message);
         }
 
-        private readonly IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
+        private static readonly IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/3931")]
@@ -2708,7 +2713,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public async Task TestOpenSolution_WithDuplicatedGuidsBecomeSelfReferential()
         {
@@ -2734,7 +2739,7 @@ class C1
             Assert.Empty(libraryProject.AllProjectReferences);
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public async Task TestOpenSolution_WithDuplicatedGuidsBecomeCircularReferential()
         {

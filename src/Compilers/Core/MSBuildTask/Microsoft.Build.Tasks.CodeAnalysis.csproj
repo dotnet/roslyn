@@ -17,7 +17,7 @@
       https://github.com/dotnet/arcade/issues/9305
      -->
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
-    <AssemblyVersion/>
+    <AssemblyVersion />
     <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
     <NoWarn>$(NoWarn);CA1819</NoWarn>
 
@@ -53,14 +53,10 @@
     <Compile Include="..\Portable\InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\Debug.cs" Link="Debug.cs" />
-    <Compile Include="..\Portable\InternalUtilities\IReadOnlySet.cs" />
-    <Compile Include="..\Portable\InternalUtilities\NullableAttributes.cs" />
     <Compile Include="..\Portable\InternalUtilities\PlatformInformation.cs" />
     <Compile Include="..\Portable\InternalUtilities\ReflectionUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\RoslynString.cs" />
     <Compile Include="..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs" />
-    <Compile Include="..\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" />
-    <Compile Include="..\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="ErrorString.resx" GenerateSource="true" />
@@ -80,9 +76,7 @@
     <CompilerVersionTargetsFile Include="$(IntermediateOutputPath)Microsoft.Managed.Core.CurrentVersions.targets" />
   </ItemGroup>
 
-  <Target Name="GenerateCompilerVersionTargets"
-          BeforeTargets="AssignTargetPaths"
-          DependsOnTargets="GenerateCompilerVersionTargetsFile">
+  <Target Name="GenerateCompilerVersionTargets" BeforeTargets="AssignTargetPaths" DependsOnTargets="GenerateCompilerVersionTargetsFile">
     <ItemGroup>
       <Content Include="@(CompilerVersionTargetsFile)">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -94,8 +88,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="GenerateCompilerVersionTargetsFile"
-          Outputs="@(CompilerVersionTargetsFile)">
+  <Target Name="GenerateCompilerVersionTargetsFile" Outputs="@(CompilerVersionTargetsFile)">
 
     <PropertyGroup>
       <_CompilerApiVersion>$([System.Version]::Parse($(VersionPrefix)).Major).$([System.Version]::Parse($(VersionPrefix)).Minor)</_CompilerApiVersion>
@@ -108,9 +101,8 @@
       </_CompilerVersionTargetsFileContent>
     </PropertyGroup>
 
-    <WriteLinesToFile File="@(CompilerVersionTargetsFile)"
-                      Lines="$(_CompilerVersionTargetsFileContent)"
-                      Overwrite="true"
-                      WriteOnlyWhenDifferent="true" />
+    <WriteLinesToFile File="@(CompilerVersionTargetsFile)" Lines="$(_CompilerVersionTargetsFileContent)" Overwrite="true" WriteOnlyWhenDifferent="true" />
   </Target>
+
+  <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

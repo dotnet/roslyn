@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             _solutionServices = workspace.Services.SolutionServices;
             _diagnosticReporter = new DiagnosticReporter(workspace);
-            _loggerFactory = DiagnosticReporterLoggerProvider.CreateLoggerFactoryForDiagnosticReporter(_diagnosticReporter);
+            _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_diagnosticReporter)]);
             _pathResolver = new PathResolver(_diagnosticReporter);
             _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(_solutionServices, _diagnosticReporter);
 
