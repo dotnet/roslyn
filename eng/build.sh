@@ -37,7 +37,7 @@ usage()
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
-  echo "  --solution                 Soluton to build (Default is Compilers.slnf)"
+  echo "  --solution                 Soluton to build (Default is Metalama.Compiler.slnf)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -79,7 +79,7 @@ warn_as_error=false
 properties=""
 source_build=false
 restoreUseStaticGraphEvaluation=true
-solution_to_build="Compilers.slnf"
+solution_to_build="Metalama.Compiler.slnf"
 
 args=""
 

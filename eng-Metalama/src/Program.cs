@@ -11,7 +11,7 @@ using MetalamaDependencies = PostSharp.Engineering.BuildTools.Dependencies.Defin
 
 var product = new Product(MetalamaDependencies.MetalamaCompiler)
 {
-    VersionsFilePath = "eng\\Versions.props",
+    VersionsFilePath = "eng/Versions.props",
     GenerateArcadeProperties = true,
     AdditionalDirectoriesToClean = ["artifacts"],
     Solutions = [new RoslynSolution()],
@@ -33,7 +33,7 @@ var product = new Product(MetalamaDependencies.MetalamaCompiler)
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(PackageVersion).nupkg"),
     Dependencies = [DevelopmentDependencies.PostSharpEngineering],
     SupportedProperties = new() { ["TestAll"] = "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." },
-    ExportedProperties = { { @"eng\Versions.props", new[] { "RoslynVersion" } } },
+    ExportedProperties = { { @"eng/Versions.props", new[] { "RoslynVersion" } } },
     KeepEditorConfig = true,
     Configurations = Product.DefaultConfigurations.WithValue(BuildConfiguration.Release, c => c with { ExportsToTeamCityBuild = true }),
     DefaultTestsFilter = "Category!=OuterLoop"
