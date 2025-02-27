@@ -20,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [JsonPropertyName("uri")]
         [JsonConverter(typeof(DocumentUriConverter))]
-        public Uri Uri
+        public DocumentUri Uri
         {
             get;
             set;
@@ -45,7 +45,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <inheritdoc/>
         public bool Equals(Location? other)
         {
-            return other != null && this.Uri != null && other.Uri != null &&
+            return other != null &&
                    this.Uri.Equals(other.Uri) &&
                    EqualityComparer<Range>.Default.Equals(this.Range, other.Range);
         }
@@ -54,7 +54,7 @@ namespace Roslyn.LanguageServer.Protocol
         public override int GetHashCode()
         {
             var hashCode = 1486144663;
-            hashCode = (hashCode * -1521134295) + EqualityComparer<Uri>.Default.GetHashCode(this.Uri);
+            hashCode = (hashCode * -1521134295) + this.Uri.GetHashCode();
             hashCode = (hashCode * -1521134295) + EqualityComparer<Range>.Default.GetHashCode(this.Range);
             return hashCode;
         }

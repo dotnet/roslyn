@@ -5,6 +5,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 
@@ -27,7 +28,8 @@ internal class RazorDynamicFileChangedHandler : ILspServiceNotificationHandler<R
 
     public Task HandleNotificationAsync(RazorDynamicFileChangedParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        var filePath = ProtocolConversions.GetDocumentFilePathFromUri(request.RazorDocument.Uri);
+        var parsedUri = request.RazorDocument.Uri.GetRequiredParsedUri();
+        var filePath = ProtocolConversions.GetDocumentFilePathFromUri(parsedUri);
         _razorDynamicFileInfoProvider.Update(filePath);
         return Task.CompletedTask;
     }

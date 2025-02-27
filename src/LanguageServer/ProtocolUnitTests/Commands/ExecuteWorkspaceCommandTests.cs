@@ -34,7 +34,7 @@ public class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtocolTests
 
         var request = new ExecuteCommandParams()
         {
-            Arguments = new object[] { JsonSerializer.Serialize(new TextDocumentIdentifier { Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\someFile.cs") }) },
+            Arguments = new object[] { JsonSerializer.Serialize(new TextDocumentIdentifier { Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\someFile.cs") }) },
             Command = TestWorkspaceCommandHandler.CommandName
         };
         var response = await server.ExecuteRequestAsync<ExecuteCommandParams, object>(Methods.WorkspaceExecuteCommandName, request, CancellationToken.None);
