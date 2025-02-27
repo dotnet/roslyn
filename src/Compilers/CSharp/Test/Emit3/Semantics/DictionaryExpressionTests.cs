@@ -134,33 +134,105 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
-        public void Dictionary()
+        [Theory]
+        [CombinatorialData]
+        public void Dictionary_01(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool includeExtensionAdd)
         {
-            string source = """
+            string sourceA = """
                 using System.Collections.Generic;
-                class Program
+                Dictionary<int, string> d = [1:"one"];
+                """;
+            string sourceB = """
+                using System.Collections.Generic;
+                static class Extensions
                 {
-                    static void Main()
+                    internal static void Add<K, V>(this Dictionary<K, V> d, KeyValuePair<K, V> kvp)
                     {
-                        var x = new KeyValuePair<int, string>(2, "two");
-                        var y = new KeyValuePair<int, string>[] { new(3, "three") };
-                        F(x, y).Report();
-                    }
-                    static Dictionary<int, string> F(KeyValuePair<int, string> x, IEnumerable<KeyValuePair<int, string>> y)
-                    {
-                        return [1:"one", x, ..y];
+                        d.Add(kvp.Key, kvp.Value);
                     }
                 }
                 """;
-            var comp = CreateCompilation([source, s_dictionaryExtensions]);
-            comp.VerifyEmitDiagnostics(
-                // (12,16): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         return [1:"one", x, ..y];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, @"[1:""one"", x, ..y]").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(12, 16),
-                // (12,17): error CS9274: Collection expression type 'Dictionary<int, string>' does not support key-value pair elements.
-                //         return [1:"one", x, ..y];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"1:""one""").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(12, 17));
+            var comp = CreateCompilation(
+                includeExtensionAdd ? [sourceA, sourceB] : sourceA,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                if (includeExtensionAdd)
+                {
+                    comp.VerifyEmitDiagnostics(
+                        // (2,30): error CS9274: Collection expression type 'Dictionary<int, string>' does not support key-value pair elements.
+                        // Dictionary<int, string> d = [1:"one"];
+                        Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"1:""one""").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(2, 30),
+                        // (2,31): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // Dictionary<int, string> d = [1:"one"];
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(2, 31));
+                }
+                else
+                {
+                    comp.VerifyEmitDiagnostics(
+                        // (2,29): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
+                        // Dictionary<int, string> d = [1:"one"];
+                        Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(2, 29),
+                        // (2,30): error CS9274: Collection expression type 'Dictionary<int, string>' does not support key-value pair elements.
+                        // Dictionary<int, string> d = [1:"one"];
+                        Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"1:""one""").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(2, 30),
+                        // (2,31): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // Dictionary<int, string> d = [1:"one"];
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(2, 31));
+                }
+            }
+            else
+            {
+                // PROTOTYPE: Execute and verify IL.
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Dictionary_02(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool includeExtensionAdd)
+        {
+            string sourceA = """
+                using System.Collections.Generic;
+                Dictionary<int, string> d;
+                d = [];
+                var x = new KeyValuePair<int, string>(2, "two");
+                var y = new KeyValuePair<int, string>[] { new(3, "three") };
+                d = [x];
+                d = [..y];
+                """;
+            string sourceB = """
+                using System.Collections.Generic;
+                static class Extensions
+                {
+                    internal static void Add<K, V>(this Dictionary<K, V> d, KeyValuePair<K, V> kvp)
+                    {
+                        d.Add(kvp.Key, kvp.Value);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                includeExtensionAdd ? [sourceA, sourceB] : sourceA,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp13 && !includeExtensionAdd)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,5): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
+                    // d = [x];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x]").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(6, 5),
+                    // (7,5): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
+                    // d = [..y];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..y]").WithArguments("System.Collections.Generic.Dictionary<int, string>").WithLocation(7, 5));
+            }
+            else
+            {
+                // PROTOTYPE: Execute and verify IL.
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
