@@ -18063,7 +18063,7 @@ static class Extensions
         static public int M7() => 0;
     }
 
-    extension(string receiver)
+    extension(long receiver)
     {
         static public long M7() => 0;
     }
@@ -18115,7 +18115,8 @@ static class Extensions
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M6").WithArguments("M6", "Extensions").WithLocation(56, 28),
             // (66,28): error CS0111: Type 'Extensions' already defines a member called 'M7' with the same parameter types
             //         static public long M7() => 0;
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "Extensions").WithLocation(66, 28),
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "Extensions").WithLocation(66, 28), // PROTOTYPE: Signatures in metadata are different in this case (return type is different), consider if we want to enable this specific case 
+
             // (76,28): error CS0111: Type 'Extensions' already defines a member called 'M8' with the same parameter types
             //         public static void M8() {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M8").WithArguments("M8", "Extensions").WithLocation(76, 28)
