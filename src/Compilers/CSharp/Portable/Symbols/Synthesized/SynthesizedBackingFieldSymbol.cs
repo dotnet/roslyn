@@ -126,27 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => _property.TypeWithAnnotations;
 
 #nullable enable
-        /// <summary>If null, binding+flow analysis of getter is required to determine null resilience. If non-null, then whether the getter is null-resilient is trivially known.</summary>
-        private bool? IsGetterTriviallyNullResilient
-        {
-            get
-            {
-                // getter is vacuously null-resilient, since it doesn't exist.
-                if (_property.GetMethod is not SourcePropertyAccessorSymbol getMethod)
-                {
-                    Debug.Assert(_property.GetMethod is null);
-                    return true;
-                }
-
-                // auto-implemented getter is not null-resilient.
-                if (getMethod.IsAutoPropertyAccessor)
-                    return false;
-
-                // getter exists and is manually implemented.
-                return null;
-            }
-        }
-
         internal bool InfersNullableAnnotation
         {
             get
@@ -179,14 +158,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private NullableAnnotation ComputeInferredNullableAnnotation()
         {
+            // https://github.com/dotnet/csharplang/blob/main/proposals/field-keyword.md#nullability-of-the-backing-field
             Debug.Assert(InfersNullableAnnotation);
-            if (IsGetterTriviallyNullResilient is { } isNullResilient)
-                return isNullResilient ? NullableAnnotation.Annotated : NullableAnnotation.NotAnnotated;
 
-            var getAccessor = (SourcePropertyAccessorSymbol?)_property.GetMethod;
-            Debug.Assert(getAccessor is not null);
+            // If the property does not have a get accessor, it is (vacuously) null-resilient.
+            if (_property.GetMethod is not SourcePropertyAccessorSymbol getAccessor)
+            {
+                Debug.Assert(_property.GetMethod is null);
+                return NullableAnnotation.Annotated;
+            }
+
+            // If the get accessor is auto-implemented, the property is not null-resilient.
+            if (getAccessor.IsAutoPropertyAccessor)
+                return NullableAnnotation.NotAnnotated;
+
             getAccessor = (SourcePropertyAccessorSymbol?)getAccessor.PartialImplementationPart ?? getAccessor;
-
             var binder = getAccessor.TryGetBodyBinder() ?? throw ExceptionUtilities.UnexpectedValue(getAccessor);
             var boundGetAccessor = binder.BindMethodBody(getAccessor.SyntaxNode, BindingDiagnosticBag.Discarded);
 
@@ -195,8 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (annotatedDiagnostics.IsEmptyWithoutResolution)
             {
-                // No nullable warnings occur in the getter when we treat the field as nullable.
-                // Infer that the field is nullable-annotated. This can prevent nuisance warnings in constructors.
+                // If the pass where the field was annotated results in no diagnostics at all, then the property is null-resilient and the not-annotated pass can be skipped.
                 annotatedDiagnostics.Free();
                 return NullableAnnotation.Annotated;
             }
@@ -206,13 +191,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (notAnnotatedDiagnostics.IsEmptyWithoutResolution)
             {
-                // We had nullable warnings with annotated nullability, and no nullable warnings with NotAnnotated nullability.
+                // annotated pass had diagnostics, and not-annotated pass had no diagnostics.
                 annotatedDiagnostics.Free();
                 notAnnotatedDiagnostics.Free();
                 return NullableAnnotation.NotAnnotated;
             }
 
-            // Both Annotated and not NotAnnotated cases had nullable warnings.
+            // Both annotated and not-annotated cases had nullable warnings.
             var notAnnotatedDiagnosticsSet = new HashSet<Diagnostic>(notAnnotatedDiagnostics.AsEnumerable(), SameDiagnosticComparer.Instance);
             notAnnotatedDiagnostics.Free();
 
@@ -220,7 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!notAnnotatedDiagnosticsSet.Contains(diagnostic))
                 {
-                    // Treating the field as non-nullable removes a nullable warning compared to treating it as annotated.
+                    // There is a nullable diagnostic in the pass where the field was *annotated*,
+                    // which was not present in the pass where the field is *not-annotated*. The property is not null-resilient.
                     annotatedDiagnostics.Free();
                     return NullableAnnotation.NotAnnotated;
                 }

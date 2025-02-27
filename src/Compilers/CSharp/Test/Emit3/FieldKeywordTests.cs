@@ -7338,7 +7338,7 @@ class C<T>
     T P2
     {
         get => field;
-    } = default; // 2
+    } = default; // 1
 
     [MaybeNull, AllowNull]
     T P3
@@ -7357,8 +7357,8 @@ class C<T>
     T P5
     {
         get => field;
-        set => field = value; // 5
-    } = default; // 6
+        set => field = value; // 2
+    } = default; // 3
 
     [MaybeNull, AllowNull]
     T P6
@@ -7370,9 +7370,9 @@ class C<T>
     C([AllowNull]T t)
     {
         P1 = t;
-        P2 = t;
+        P2 = t; // 4
         P3 = t;
-        P4 = t; // 10
+        P4 = t; // 5
         P5 = t;
         P6 = t;
     }
@@ -7380,16 +7380,19 @@ class C<T>
             var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, MaybeNullAttributeDefinition });
             comp.VerifyDiagnostics(
                 // 0.cs(15,9): warning CS8601: Possible null reference assignment.
-                //     } = default; // 2
+                //     } = default; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(15, 9),
                 // 0.cs(34,24): warning CS8601: Possible null reference assignment.
-                //         set => field = value; // 5
+                //         set => field = value; // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(34, 24),
                 // 0.cs(35,9): warning CS8601: Possible null reference assignment.
-                //     } = default; // 6
+                //     } = default; // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(35, 9),
+                // 0.cs(47,14): warning CS8601: Possible null reference assignment.
+                //         P2 = t; // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(47, 14),
                 // 0.cs(49,14): warning CS8601: Possible null reference assignment.
-                //         P4 = t; // 10
+                //         P4 = t; // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(49, 14)
                 );
 

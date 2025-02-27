@@ -10063,21 +10063,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we may enter a conditional state for error scenarios on the LHS.
             Unsplit();
 
-            // TODO2: this probably needs to be specced
-            // and more tests for more combinations of attributes on property+field
-            // as well as both property assignment and initializer cases.
+            // When a getter-only prop is assigned in a constructor, it is bound as
+            // an assignment of the property even though it is really an assignment of the backing field.
+            // When such a property also uses the field keyword, we want the field's annotations+attributes
+            // to decide the validity of the assignment and the ones on the property itself to be ignored.
             TypeWithAnnotations leftLValueType;
-            FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(left);
+            FlowAnalysisAnnotations leftAnnotations;
             if (left is BoundPropertyAccess { PropertySymbol: SourcePropertySymbolBase property }
                 && property.SetMethod is null
                 && property.UsesFieldKeyword)
             {
                 var field = property.BackingField;
-                leftAnnotations |= GetFieldAnnotations(field);
+                leftAnnotations = field.FlowAnalysisAnnotations;
                 leftLValueType = ApplyLValueAnnotations(GetTypeOrReturnTypeWithAnnotations(field), leftAnnotations);
             }
             else
             {
+                leftAnnotations = GetLValueAnnotations(left);
                 leftLValueType = ApplyLValueAnnotations(LvalueResultType, leftAnnotations);
             }
 
