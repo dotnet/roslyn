@@ -2368,6 +2368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadExtensionContainingType = 9502,
         ERR_ExtensionParameterDisallowsDefaultValue = 9503,
         ERR_ReceiverParameterOnlyOne = 9504,
+        ERR_ExtensionResolutionFailed = 9505,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

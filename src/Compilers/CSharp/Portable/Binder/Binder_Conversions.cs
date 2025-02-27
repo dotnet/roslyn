@@ -1405,7 +1405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var finalApplicableCandidates = addMethodBinder.GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult,
                                                                                                                 methodGroup.ReceiverOpt,
                                                                                                                 methodGroup.TypeArgumentsOpt,
-                                                                                                                invokedAsExtensionMethod: resolution.IsExtensionMethodGroup,
+                                                                                                                isExtensionMethodGroup: resolution.IsExtensionMethodGroup,
                                                                                                                 diagnostics);
 
                             Debug.Assert(finalApplicableCandidates.Length != 1 || finalApplicableCandidates[0].IsApplicable);
@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     parameterTypes,
                                     parameterRefKinds,
                                     ImmutableArray.Create<BoundExpression>(methodGroup.ReceiverOpt, new BoundValuePlaceholder(syntax, secondArgumentType) { WasCompilerGenerated = true }),
-                                    ref useSiteInfo);
+                                    ref useSiteInfo); // PROTOTYPE we may need to override ordinals here
 
                                 if (!inferenceResult.Success)
                                 {

@@ -183,12 +183,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(name is not null);
 
-            var compatibleExtensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
-            getCompatibleExtensions(binder: this, receiverType, compatibleExtensions, originalBinder, ref useSiteInfo);
+            Debug.Assert(!receiverType.IsDynamic());
+            if (!receiverType.IsErrorType())
+            {
+                this.GetExtensionDeclarations(extensions, originalBinder);
+            }
 
             var tempResult = LookupResult.GetInstance();
-            foreach (NamedTypeSymbol extension in compatibleExtensions)
+            foreach (NamedTypeSymbol extension in extensions)
             {
                 // No need for "diagnose" since we discard the lookup results (and associated diagnostic info)
                 // unless the results are good.
@@ -200,109 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             tempResult.Free();
-            compatibleExtensions.Free();
-
-            return;
-
-            static void getCompatibleExtensions(Binder binder, TypeSymbol receiverType, ArrayBuilder<NamedTypeSymbol> compatibleExtensions,
-                Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                Debug.Assert(!receiverType.IsDynamic());
-                if (receiverType.IsErrorType())
-                {
-                    return;
-                }
-
-                var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                binder.GetExtensionDeclarations(extensions, originalBinder);
-
-                foreach (var extension in extensions)
-                {
-                    addCompatibleExtension(binder, extension, receiverType, compatibleExtensions, ref useSiteInfo);
-                }
-
-                extensions.Free();
-                return;
-            }
-
-            static void addCompatibleExtension(Binder binder, NamedTypeSymbol extension, TypeSymbol receiverType, ArrayBuilder<NamedTypeSymbol> compatibleExtensions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                if (extension.ExtensionParameter is not { } extensionParameter)
-                {
-                    return;
-                }
-
-                var compilation = binder.Compilation;
-                var constructedExtension = inferExtensionTypeArguments(extension, receiverType, compilation, ref useSiteInfo);
-                if (constructedExtension is null)
-                {
-                    return;
-                }
-
-                Debug.Assert(constructedExtension.ExtensionParameter is not null);
-                var conversion = compilation.Conversions.ConvertExtensionMethodThisArg(parameterType: constructedExtension.ExtensionParameter.Type, receiverType, ref useSiteInfo, isMethodGroupConversion: false);
-                if (!conversion.Exists)
-                {
-                    return;
-                }
-
-                compatibleExtensions.Add(constructedExtension);
-            }
-
-            static NamedTypeSymbol? inferExtensionTypeArguments(NamedTypeSymbol extension, TypeSymbol receiverType, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                if (extension.Arity == 0)
-                {
-                    return extension;
-                }
-
-                var containingAssembly = extension.ContainingAssembly;
-                var conversions = containingAssembly.CorLibrary.TypeConversions;
-
-                // Note: we create a value for purpose of inferring type arguments even when the receiver type is static
-                var syntax = (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
-                var receiverValue = new BoundLiteral(syntax, ConstantValue.Bad, receiverType) { WasCompilerGenerated = true };
-
-                var typeArguments = MethodTypeInferrer.InferTypeArgumentsFromReceiverType(extension, receiverValue, compilation, conversions, ref useSiteInfo);
-                if (typeArguments.IsDefault || typeArguments.Any(t => !t.HasType))
-                {
-                    return null;
-                }
-
-                bool success = checkConstraints(extension, typeArguments, compilation, conversions, ref useSiteInfo);
-                if (!success)
-                {
-                    return null;
-                }
-
-                return extension.Construct(typeArguments);
-            }
-
-            static bool checkConstraints(NamedTypeSymbol symbol, ImmutableArray<TypeWithAnnotations> typeArgs, CSharpCompilation compilation,
-                TypeConversions conversions, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                var typeParams = symbol.TypeParameters;
-                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-                var substitution = new TypeMap(typeParams, typeArgs);
-                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
-
-                bool success = symbol.CheckConstraints(
-                    new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo)),
-                    substitution, typeParams, typeArgs, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
-                    ref useSiteDiagnosticsBuilder, ignoreTypeConstraintsDependentOnTypeParametersOpt: null);
-
-                diagnosticsBuilder.Free();
-
-                if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
-                {
-                    foreach (TypeParameterDiagnosticInfo diagnostic in useSiteDiagnosticsBuilder)
-                    {
-                        useSiteInfo.Add(diagnostic.UseSiteInfo);
-                    }
-                }
-
-                return success;
-            }
+            extensions.Free();
         }
 #nullable disable
 

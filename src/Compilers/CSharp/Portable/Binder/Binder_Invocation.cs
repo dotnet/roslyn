@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult,
                                                                                             methodGroup.ReceiverOpt,
                                                                                             methodGroup.TypeArgumentsOpt,
-                                                                                            invokedAsExtensionMethod: resolution.IsExtensionMethodGroup,
+                                                                                            isExtensionMethodGroup: resolution.IsExtensionMethodGroup,
                                                                                             diagnostics);
 
                         if (finalApplicableCandidates.Length == 0)
@@ -826,11 +826,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // casting the dynamic arguments or calling the extension method without the extension method
                                 // syntax.
 
-                                // We found an extension method, so the instance associated with the method group must have 
-                                // existed and had a type.
-                                Debug.Assert(methodGroup.InstanceOpt != null && (object)methodGroup.InstanceOpt.Type != null);
+                                Debug.Assert(methodGroup.ReceiverOpt != null && (object)methodGroup.ReceiverOpt.Type != null);
 
-                                Error(diagnostics, ErrorCode.ERR_BadArgTypeDynamicExtension, syntax, methodGroup.InstanceOpt.Type, methodGroup.Name);
+                                Error(diagnostics, ErrorCode.ERR_BadArgTypeDynamicExtension, syntax, methodGroup.ReceiverOpt.Type, methodGroup.Name);
                                 result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
                             }
                             else
@@ -986,7 +984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
             BoundExpression receiverOpt,
             ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
-            bool invokedAsExtensionMethod,
+            bool isExtensionMethodGroup,
             BindingDiagnosticBag diagnostics) where TMethodOrPropertySymbol : Symbol
         {
             Debug.Assert(overloadResolutionResult.HasAnyApplicableMember);
@@ -1008,7 +1006,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // * If F is an instance method, the method group must have resulted from a simple-name, a member-access through a variable or value, 
                     //   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1).
 
-                    if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, result.Member, syntax, candidateDiagnostics, invokedAsExtensionMethod: invokedAsExtensionMethod) &&
+                    TMethodOrPropertySymbol member = result.Member;
+                    if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, member, syntax, candidateDiagnostics, invokedAsExtensionMethod: isExtensionMethodGroup && !member.GetIsNewExtensionMember()) &&
                         (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, candidateDiagnostics))))
                     {
                         finalCandidates.Add(result);
@@ -1284,24 +1283,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 analyzedArguments.Arguments[0] = receiverArgument;
             }
-            else if (isNewExtensionMethod)
+            else if (isNewExtensionMethod && receiver is not BoundTypeExpression)
             {
-                if (receiver is not BoundTypeExpression)
-                {
-                    ParameterSymbol extensionParameter = method.ContainingType.ExtensionParameter;
-                    Debug.Assert(extensionParameter is not null);
-
-                    CheckArgumentRefKind(RefKind.None, receiver, arg: 0, extensionParameter, invokedAsExtensionMethod: true, diagnostics);
-
-                    if (extensionParameter.RefKind == RefKind.Ref)
-                    {
-                        // If this was a ref extension method, the receiver must be checked for L-value constraints.
-                        // This helper method will also replace it with a BoundBadExpression if it was invalid.
-                        receiver = CheckValue(receiver, BindValueKind.RefOrOut, diagnostics);
-                    }
-
-                    receiver = CreateConversion(receiver, extensionParameter.Type, diagnostics);
-                }
+                receiver = CheckAndConvertExtensionReceiver(receiver, method.ContainingType.ExtensionParameter, diagnostics);
             }
 
             // This will be the receiver of the BoundCall node that we create.
@@ -1372,6 +1356,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        private BoundExpression CheckAndConvertExtensionReceiver(BoundExpression receiver, ParameterSymbol extensionParameter, BindingDiagnosticBag diagnostics)
+        {
+            CheckArgumentRefKind(RefKind.None, receiver, arg: 0, extensionParameter, invokedAsExtensionMethod: true, diagnostics);
+
+            if (extensionParameter.RefKind == RefKind.Ref)
+            {
+                // If this was a ref extension method, the receiver must be checked for L-value constraints.
+                // This helper method will also replace it with a BoundBadExpression if it was invalid.
+                receiver = CheckValue(receiver, BindValueKind.RefOrOut, diagnostics);
+            }
+
+            receiver = CreateConversion(receiver, extensionParameter.Type, diagnostics);
+            return receiver;
+        }
 
         internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, PropertySymbol property)
         {
