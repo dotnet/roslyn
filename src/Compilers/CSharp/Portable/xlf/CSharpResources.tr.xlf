@@ -368,8 +368,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
-        <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
-        <target state="translated">'INumberBase&lt;T&gt;' öğesinden devraldığı veya genişlediği için '{0}' öğesinde sayısal bir sabit veya ilişkisel desen kullanılamaz. Belirli bir sayısal türe daraltmak için bir tür deseni kullanmayı düşünün.</target>
+        <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
+        <target state="needs-review-translation">'INumberBase&lt;T&gt;' öğesinden devraldığı veya genişlediği için '{0}' öğesinde sayısal bir sabit veya ilişkisel desen kullanılamaz. Belirli bir sayısal türe daraltmak için bir tür deseni kullanmayı düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
