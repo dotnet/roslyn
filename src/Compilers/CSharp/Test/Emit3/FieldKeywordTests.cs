@@ -11342,5 +11342,33 @@ class C<T>
             Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
             Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
+
+        [Fact]
+        public void Nullable_Resilient_AnnotationInMetadata()
+        {
+            // Inferred nullability is not used in metadata.
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string Prop
+                    {
+                        get => field ??= "a";
+                    }
+                }
+                """;
+
+            var comp0 = CreateCompilation(source);
+            comp0.VerifyEmitDiagnostics();
+            var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
+            Assert.True(sourceField.InfersNullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
+
+            var comp1 = CreateCompilation("", references: [comp0.EmitToImageReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var metadataField = comp1.GetMember<FieldSymbol>("C.<Prop>k__BackingField");
+            Assert.Equal(NullableAnnotation.NotAnnotated, metadataField.TypeWithAnnotations.NullableAnnotation);
+        }
     }
 }
