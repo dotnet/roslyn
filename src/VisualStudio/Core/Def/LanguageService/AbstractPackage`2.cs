@@ -55,7 +55,8 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             return _languageService.ComAggregate;
         });
 
-        var shell = await GetServiceAsync<SVsShell, IVsShell7>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
+        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+        RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -64,9 +65,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             RegisterEditorFactory(editorFactory);
         }
 
-        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
-        RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
-
+        var shell = await GetServiceAsync<SVsShell, IVsShell7>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
     }
 

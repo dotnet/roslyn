@@ -30,8 +30,6 @@ internal abstract class AbstractPackage : AsyncPackage
         // Should only be called from a threadpool. Opinionated, as package load sequence thread switches are impactful.
         Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
 
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
-
         _componentModel_doNotAccessDirectly = await GetServiceAsync<SComponentModel, IComponentModel>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
         Assumes.Present(_componentModel_doNotAccessDirectly);
     }
@@ -40,8 +38,6 @@ internal abstract class AbstractPackage : AsyncPackage
     {
         // Should only be called from a threadpool. Opinionated, as package load sequence thread switches are impactful.
         Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
-
-        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
 
         // TODO: remove, workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1985204
         var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
