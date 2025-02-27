@@ -2835,10 +2835,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // TODO2: possibility of a cycle across inference of multiple fields?
-                    // we should probably avoid calling this API if any field is being inferred here, but,
-                    // if the data doesn't apply to the field at hand, then use the property annotation instead of the assumedNullableAnnotation.
+                    // If we have a '_getterNullResilienceData' in this code path,
+                    // it means we are currently inferring the annotation of a different field.
+                    // We should not proceed as there is a possibility of a cycle across inference of multiple fields.
                     Debug.Assert(_getterNullResilienceData is null);
+
                     nullableAnnotation = backingField.GetInferredNullableAnnotation();
                 }
 
