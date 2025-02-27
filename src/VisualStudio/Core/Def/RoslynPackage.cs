@@ -144,10 +144,30 @@ internal sealed class RoslynPackage : AbstractPackage
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
+        // Should only be called from a threadpool. Opinionated, as package load sequence thread switches are impactful.
+        Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
+
         await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+
+        // Misc workspace has to be up and running by the time our package is usable so that it can track running
+        // doc events and appropriately map files to/from it and other relevant workspaces (like the
+        // metadata-as-source workspace).
+        await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync().ConfigureAwait(false);
 
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+        var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
+        RegisterEditorFactory(settingsEditorFactory);
+    }
+
+    protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
+    {
+        // Execution should initiate on a threadpool as package load sequence thread switches are impactful.
+        await TaskScheduler.Default;
+
+        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(true);
+
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
         // Ensure the options persisters are loaded since we have to fetch options from the shell
@@ -164,14 +184,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
         _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
         TrackBulkFileOperations(globalNotificationService);
-
-        var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
-        RegisterEditorFactory(settingsEditorFactory);
-
-        // Misc workspace has to be up and running by the time our package is usable so that it can track running
-        // doc events and appropriately map files to/from it and other relevant workspaces (like the
-        // metadata-as-source workspace).
-        await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync().ConfigureAwait(false);
 
         // Proffer in-process service broker services
         var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(this.JoinableTaskFactory).ConfigureAwait(false);
