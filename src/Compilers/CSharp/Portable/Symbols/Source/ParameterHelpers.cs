@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (!typeWithAnnotations.IsDefault && typeWithAnnotations.IsStatic)
             {
-                bool inExtension = owner is TypeSymbol { IsExtension: true };
+                bool inExtension = owner is SynthesizedExtensionMarker;
                 bool isNamed = syntax is ParameterSyntax parameterSyntax && parameterSyntax.Identifier.Kind() != SyntaxKind.None;
 
                 Debug.Assert(containingSymbol is null
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // stick it in the parameter because we want to be able to analyze it for
             // IntelliSense purposes.
 
-            bool inExtension = parameter.ContainingSymbol is TypeSymbol { IsExtension: true };
+            bool inExtension = parameter.ContainingSymbol is SynthesizedExtensionMarker;
             if (inExtension)
             {
                 diagnostics.Add(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, parameterSyntax.GetLocation());

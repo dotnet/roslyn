@@ -436,22 +436,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private sealed class ReceiverParameterSymbol : RewrittenParameterSymbol
-        {
-            private readonly PENamedTypeSymbol _containingType;
-
-            public ReceiverParameterSymbol(PENamedTypeSymbol containingType, ParameterSymbol originalParameter) :
-                base(originalParameter)
-            {
-                _containingType = containingType;
-            }
-
-            public override Symbol ContainingSymbol
-            {
-                get { return _containingType; }
-            }
-        }
-
         public sealed override MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
         {
             Debug.Assert(this.IsExtension);

@@ -488,12 +488,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (compilationState.Emitting)
                 {
-                    if (containingType is { IsExtension: true, ExtensionParameter: not null })
-                    {
-                        // PROTOTYPE the extension marker should also be added in metadata-only emit scenario (see SynthesizedMetadataCompiler)
-                        CompileSynthesizedExtensionMarker(containingType, compilationState);
-                    }
-
                     CompileSynthesizedExplicitImplementations(sourceTypeSymbol, compilationState);
                 }
             }
@@ -542,7 +536,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method.MethodKind == MethodKind.StaticConstructor ? processedStaticInitializers :
                                 default(Binder.ProcessedFieldInitializers);
 
-                            if (containingType.IsExtension)
+                            // Compile extension methods without implementation normally, to bind the body and get errors.
+                            // Also, extension marker method should always be compiled normally. 
+                            if (containingType.IsExtension &&
+                                method.TryGetCorrespondingExtensionImplementationMethod() is not null)
                             {
                                 EmitSkeletonMethodInExtension(method);
                             }
@@ -665,24 +662,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             compilationState.Free();
-        }
-
-        private void CompileSynthesizedExtensionMarker(NamedTypeSymbol sourceExtension, TypeCompilationState compilationState)
-        {
-            if (!_globalHasErrors)
-            {
-                var extensionMarker = new SynthesizedExtensionMarker(sourceExtension, _diagnostics);
-
-#if DEBUG
-                var discardedDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
-#else
-                var discardedDiagnostics = BindingDiagnosticBag.Discarded;
-#endif
-                extensionMarker.GenerateMethodBody(compilationState, discardedDiagnostics);
-                Debug.Assert(!discardedDiagnostics.HasAnyErrors());
-
-                _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceExtension, extensionMarker.GetCciAdapter());
-            }
         }
 
         internal static MethodSymbol GetMethodToCompile(MethodSymbol method)

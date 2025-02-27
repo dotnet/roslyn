@@ -622,12 +622,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishMemberChecks:
                         if (state.NotePartComplete(CompletionPart.StartMemberChecks))
                         {
-                            if (IsExtension && ((SourceNamedTypeSymbol)this).ExtensionParameter is { } parameter)
-                            {
-                                parameter.ForceComplete(locationOpt, filter: null, cancellationToken);
-                                // PROTOTYPE once we emit the parameter, we'll need to ensure we have the supporting attributes (for example, ParameterHelpers.EnsureNullableAttributeExists)
-                            }
-
                             var diagnostics = BindingDiagnosticBag.GetInstance();
                             AfterMembersChecks(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
@@ -1821,12 +1815,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (IsExtension)
             {
                 CheckExtensionMembers(this.GetMembers(), diagnostics);
-
-                var conversions = this.ContainingAssembly.CorLibrary.TypeConversions;
-                if (((SourceNamedTypeSymbol)this).ExtensionParameter is { } parameter)
-                {
-                    parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
-                }
             }
 
             CheckMemberNamesDistinctFromType(diagnostics);
@@ -3607,6 +3595,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     break;
 
+                case TypeKind.Extension:
+                    AddSynthesizedExtensionMarker(builder, declaredMembersAndInitializers);
+                    break;
+
                 default:
                     break;
             }
@@ -3630,6 +3622,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+        }
+
+        private void AddSynthesizedExtensionMarker(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers)
+        {
+            var syntax = (ExtensionDeclarationSyntax)this.GetNonNullSyntaxNode();
+            var parameterList = syntax.ParameterList;
+            Debug.Assert(parameterList is not null);
+
+            if (parameterList is null)
+            {
+                return;
+            }
+
+            int count = parameterList.Parameters.Count;
+            Debug.Assert(count > 0);
+
+            builder.AddNonTypeMember(this, new SynthesizedExtensionMarker(this, parameterList), declaredMembersAndInitializers);
         }
 
         private void AddDeclaredNontypeMembers(DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
