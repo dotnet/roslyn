@@ -74,7 +74,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         // Should only be called from a threadpool. Opinionated, as package load sequence thread switches are impactful.
         Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
 
-        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
+        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(true);
 
         if (!IVsShellExtensions.IsInCommandLineMode(JoinableTaskFactory))
         {

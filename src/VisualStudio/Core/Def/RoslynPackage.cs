@@ -144,8 +144,8 @@ internal sealed class RoslynPackage : AbstractPackage
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        // Should only be called from a threadpool. Opinionated, as package load sequence thread switches are impactful.
-        Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
+        // Execution should initiate on a threadpool as package load sequence thread switches are impactful.
+        await TaskScheduler.Default;
 
         await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
