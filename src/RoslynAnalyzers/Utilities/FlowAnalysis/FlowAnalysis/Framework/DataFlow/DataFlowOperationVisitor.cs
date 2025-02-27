@@ -1022,10 +1022,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (AnalysisDataForUnhandledThrowOperations == null)
             {
-                return default;
+                return null;
             }
 
-            TAnalysisData? mergedData = default;
+            TAnalysisData? mergedData = null;
             foreach (TAnalysisData data in AnalysisDataForUnhandledThrowOperations.Values)
             {
                 mergedData = mergedData != null ? MergeAnalysisData(mergedData, data) : data;
@@ -2192,7 +2192,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return true;
             }
 
-            analysisResult = default;
+            analysisResult = null;
             return false;
         }
 
@@ -3036,12 +3036,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     if (constantValue)
                     {
                         truePredicatedData = predicatedData;
-                        falsePredicatedData = default;
+                        falsePredicatedData = null;
                     }
                     else
                     {
                         falsePredicatedData = predicatedData;
-                        truePredicatedData = default;
+                        truePredicatedData = null;
                     }
 
                     StartTrackingPredicatedData(flowCaptureEntity, truePredicatedData, falsePredicatedData);

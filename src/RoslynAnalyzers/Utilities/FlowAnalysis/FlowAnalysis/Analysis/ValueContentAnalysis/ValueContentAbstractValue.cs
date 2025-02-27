@@ -150,14 +150,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
             hashCode.Add(HashUtilities.Combine(LiteralValues));
-            hashCode.Add(NonLiteralState.GetHashCode());
+            hashCode.Add(((int)NonLiteralState).GetHashCode());
         }
 
         protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<ValueContentAbstractValue> obj)
         {
             var other = (ValueContentAbstractValue)obj;
             return HashUtilities.Combine(LiteralValues) == HashUtilities.Combine(other.LiteralValues)
-                && NonLiteralState.GetHashCode() == other.NonLiteralState.GetHashCode();
+                && ((int)NonLiteralState).GetHashCode() == ((int)other.NonLiteralState).GetHashCode();
         }
 
         /// <summary>

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             GlobalFlowStateAnalysisValueSetKind kind)
         {
             Debug.Assert((!analysisValues.IsEmpty || !parents.IsEmpty) == (kind == GlobalFlowStateAnalysisValueSetKind.Known));
-            Debug.Assert(analysisValues.All(value => value != default));
+            Debug.Assert(analysisValues.All(value => value != null));
             Debug.Assert(parents.All(parent => parent != null));
             Debug.Assert(height >= 0);
             Debug.Assert(height == 0 || kind == GlobalFlowStateAnalysisValueSetKind.Known);
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             hashCode.Add(HashUtilities.Combine(AnalysisValues));
             hashCode.Add(HashUtilities.Combine(Parents));
             hashCode.Add(Height.GetHashCode());
-            hashCode.Add(Kind.GetHashCode());
+            hashCode.Add(((int)Kind).GetHashCode());
         }
 
         protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<GlobalFlowStateAnalysisValueSet> obj)
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             return HashUtilities.Combine(AnalysisValues) == HashUtilities.Combine(other.AnalysisValues)
                 && HashUtilities.Combine(Parents) == HashUtilities.Combine(other.Parents)
                 && Height.GetHashCode() == other.Height.GetHashCode()
-                && Kind.GetHashCode() == other.Kind.GetHashCode();
+                && ((int)Kind).GetHashCode() == ((int)other.Kind).GetHashCode();
         }
 
         public override string ToString()

@@ -15,6 +15,8 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
     Public NotInheritable Class VisualBasicCreateTestAccessor
         Inherits AbstractCreateTestAccessor(Of TypeStatementSyntax)
 
+        <ImportingConstructor>
+        <Obsolete("This exported object must be obtained through the MEF export provider.", True)>
         Public Sub New()
         End Sub
 

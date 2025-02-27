@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 
             static string TrimForErrorReporting(string declarationId)
             {
+#pragma warning disable format
                 return declarationId switch
                 {
                     // Remove the prefix and colon if there.
@@ -138,6 +139,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     [_, .. var rest] => rest,
                     _ => declarationId,
                 };
+#pragma warning restore format
             }
         }
     }

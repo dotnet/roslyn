@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 $"Annotate {minimalSymbolName} in public API",
                                 document.Id,
                                 isPublic: diagnostic.Id == DiagnosticIds.AnnotatePublicApiRuleId,
-                                c => GetFix(document, publicSymbolName, publicSymbolNameWithNullability, c)),
+                                c => GetFixAsync(document, publicSymbolName, publicSymbolNameWithNullability, c)),
                             diagnostic);
                 }
             }
 
             return Task.CompletedTask;
 
-            static async Task<Solution> GetFix(TextDocument publicSurfaceAreaDocument, string oldSymbolName, string newSymbolName, CancellationToken cancellationToken)
+            static async Task<Solution> GetFixAsync(TextDocument publicSurfaceAreaDocument, string oldSymbolName, string newSymbolName, CancellationToken cancellationToken)
             {
                 SourceText sourceText = await publicSurfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 SourceText newSourceText = AnnotateSymbolNamesInSourceText(sourceText, new Dictionary<string, string> { [oldSymbolName] = newSymbolName });

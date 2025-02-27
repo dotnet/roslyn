@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var cfg = analysisContext.ControlFlowGraph;
             if (cfg?.SupportsFlowAnalysis() != true)
             {
-                return default;
+                return null;
             }
 
             using var resultBuilder = new DataFlowAnalysisResultBuilder<TAnalysisData>();

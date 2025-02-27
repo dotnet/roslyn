@@ -19,6 +19,8 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
     [Shared]
     public sealed class CSharpExposeMemberForTesting : AbstractExposeMemberForTesting<TypeDeclarationSyntax>
     {
+        [ImportingConstructor]
+        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
         public CSharpExposeMemberForTesting()
         {
         }

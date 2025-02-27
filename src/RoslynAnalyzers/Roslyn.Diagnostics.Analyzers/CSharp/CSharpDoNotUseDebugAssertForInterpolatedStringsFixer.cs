@@ -28,7 +28,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var compilation = await context.Document.Project.GetCompilationAsync(context.CancellationToken);
+            var compilation = await context.Document.Project.GetCompilationAsync(context.CancellationToken).ConfigureAwait(false);
 
             if (compilation is null)
             {

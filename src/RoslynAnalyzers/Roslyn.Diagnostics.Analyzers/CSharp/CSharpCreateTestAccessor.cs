@@ -4,6 +4,7 @@
 
 #nullable disable warnings
 
+using System;
 using System.Composition;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
@@ -17,6 +18,8 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
     [Shared]
     public sealed class CSharpCreateTestAccessor : AbstractCreateTestAccessor<TypeDeclarationSyntax>
     {
+        [ImportingConstructor]
+        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
         public CSharpCreateTestAccessor()
         {
         }

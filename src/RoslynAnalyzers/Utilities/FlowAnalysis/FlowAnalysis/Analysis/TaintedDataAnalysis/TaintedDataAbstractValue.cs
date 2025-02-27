@@ -38,14 +38,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
             hashCode.Add(HashUtilities.Combine(SourceOrigins));
-            hashCode.Add(Kind.GetHashCode());
+            hashCode.Add(((int)Kind).GetHashCode());
         }
 
         protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<TaintedDataAbstractValue> obj)
         {
             var other = (TaintedDataAbstractValue)obj;
             return HashUtilities.Combine(SourceOrigins) == HashUtilities.Combine(other.SourceOrigins)
-                && Kind.GetHashCode() == other.Kind.GetHashCode();
+                && ((int)Kind).GetHashCode() == ((int)other.Kind).GetHashCode();
         }
 
         /// <summary>
