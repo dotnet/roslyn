@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
@@ -51,16 +48,16 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         private async Task GenerateDocumentationCommentProposalsAsync(Document document, DocumentationCommentSnippet snippet, ITextSnapshot snapshot, VirtualSnapshotPoint caret, ITextView textView, CancellationToken cancellationToken)
         {
-            var generateDocumentationCommentProvider = await CreateProviderAsync(document, textView, cancellationToken).ConfigureAwait(false);
+            var generateDocumentationCommentProvider = await CreateProviderAsync(document, textView, snippet.MemberNode, cancellationToken).ConfigureAwait(false);
             if (generateDocumentationCommentProvider is not null)
             {
                 await generateDocumentationCommentProvider.GenerateDocumentationProposalAsync(snippet, snapshot, caret, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task<CopilotGenerateDocumentationCommentProvider?> CreateProviderAsync(Document document, ITextView textView, CancellationToken cancellationToken)
+        private async Task<CopilotGenerateDocumentationCommentProvider?> CreateProviderAsync(Document document, ITextView textView, SyntaxNode? memberNode, CancellationToken cancellationToken)
         {
-            var copilotService = await IsGenerateDocumentationAvailableAsync(document, cancellationToken).ConfigureAwait(false);
+            var copilotService = await IsGenerateDocumentationAvailableAsync(document, memberNode, cancellationToken).ConfigureAwait(false);
 
             if (copilotService is null)
             {
@@ -75,7 +72,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return provider;
         }
 
-        private static async Task<ICopilotCodeAnalysisService?> IsGenerateDocumentationAvailableAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<ICopilotCodeAnalysisService?> IsGenerateDocumentationAvailableAsync(Document document, SyntaxNode? memberNode, CancellationToken cancellationToken)
         {
             // Bailing out if copilot is not available or the option is not enabled.
             if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionService ||
@@ -86,6 +83,17 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
                     await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+            {
+                return null;
+            }
+
+            if (memberNode is null)
+            {
+                return null;
+            }
+
+            // Check to see if the file containing the member being documented has been excluded.
+            if (await copilotService.IsFileExcludedAsync(memberNode.SyntaxTree.FilePath, cancellationToken).ConfigureAwait(false))
             {
                 return null;
             }
