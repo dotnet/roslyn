@@ -10070,9 +10070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to decide the validity of the assignment and the ones on the property itself to be ignored.
             TypeWithAnnotations leftLValueType;
             FlowAnalysisAnnotations leftAnnotations;
-            if (left is BoundPropertyAccess { PropertySymbol: SourcePropertySymbolBase property }
-                && property.SetMethod is null
-                && property.UsesFieldKeyword)
+            if (left is BoundPropertyAccess { PropertySymbol: SourcePropertySymbolBase { SetMethod: null, UsesFieldKeyword: true } property })
             {
                 var field = property.BackingField;
                 leftAnnotations = field.FlowAnalysisAnnotations;
