@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
+using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2493,6 +2494,342 @@ public partial class C
                 // (8,17): error CS0751: A partial member must be declared within a partial type
                 //     partial int P3 { get => 1; set { } }
                 Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "P3").WithLocation(8, 17));
+        }
+
+        [Fact]
+        public void InInterface()
+        {
+            var source = """
+                partial interface I
+                {
+                    partial int P { get; set; }
+                    partial int P { get => 0; set { } }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,21): error CS8701: Target runtime doesn't support default interface implementation.
+                //     partial int P { get => 0; set { } }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(4, 21),
+                // (4,31): error CS8701: Target runtime doesn't support default interface implementation.
+                //     partial int P { get => 0; set { } }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(4, 31));
+
+            CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+
+            CreateCompilation(source, targetFramework: TargetFramework.Net60, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (3,17): error CS8703: The modifier 'partial' is not valid for this item in C# 7.0. Please use language version '13.0' or greater.
+                //     partial int P { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "7.0", "13.0").WithLocation(3, 17),
+                // (4,17): error CS8703: The modifier 'partial' is not valid for this item in C# 7.0. Please use language version '13.0' or greater.
+                //     partial int P { get => 0; set { } }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "7.0", "13.0").WithLocation(4, 17),
+                // (4,21): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //     partial int P { get => 0; set { } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "8.0").WithLocation(4, 21),
+                // (4,31): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //     partial int P { get => 0; set { } }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "8.0").WithLocation(4, 31));
+        }
+
+        [Fact]
+        public void InInterface_DefinitionOnly()
+        {
+            var source = """
+                partial interface I
+                {
+                    partial int P { get; set; }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,17): error CS9248: Partial property 'I.P' must have an implementation part.
+                //     partial int P { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P").WithArguments("I.P").WithLocation(3, 17));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+        public void InInterface_Virtual(
+            [CombinatorialValues("", "public")] string access,
+            [CombinatorialValues("", "virtual")] string virt)
+        {
+            var source = $$"""
+                using System;
+
+                M(new C1());
+                M(new C2());
+
+                static void M(I x)
+                {
+                    x.P++;
+                }
+
+                partial interface I
+                {
+                    {{access}} {{virt}} partial int P { get; set; }
+                    {{access}} {{virt}} partial int P
+                    {
+                        get { Console.Write(1); return 0; }
+                        set { Console.Write(2); }
+                    }
+                }
+
+                class C1 : I;
+
+                class C2 : I
+                {
+                    int I.P
+                    {
+                        get { Console.Write(3); return 0; }
+                        set { Console.Write(4); }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+            CompileAndVerify(comp,
+                sourceSymbolValidator: validate,
+                symbolValidator: validate,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "1234" : null,
+                verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var p = module.GlobalNamespace.GetMember<PropertySymbol>("I.P");
+                validateProperty(p);
+
+                if (module is SourceModuleSymbol)
+                {
+                    validateProperty((PropertySymbol)p.GetPartialImplementationPart()!);
+                }
+            }
+
+            static void validateProperty(PropertySymbol p)
+            {
+                Assert.False(p.IsAbstract);
+                Assert.True(p.IsVirtual);
+                Assert.False(p.IsSealed);
+                Assert.False(p.IsStatic);
+                Assert.False(p.IsExtern);
+                Assert.False(p.IsOverride);
+                Assert.Equal(Accessibility.Public, p.DeclaredAccessibility);
+                Assert.True(p.ContainingModule is not SourceModuleSymbol || p.IsPartialMember());
+                validateAccessor(p.GetMethod);
+                validateAccessor(p.SetMethod);
+            }
+
+            static void validateAccessor(MethodSymbol m)
+            {
+                Assert.False(m.IsAbstract);
+                Assert.True(m.IsVirtual);
+                Assert.True(m.IsMetadataVirtual());
+                Assert.True(m.IsMetadataNewSlot());
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsExtern);
+                Assert.False(m.IsOverride);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+        public void InInterface_Private()
+        {
+            var source = """
+                partial interface I
+                {
+                    private partial int P { get; set; }
+                    private partial int P { get => 0; set { } }
+                }
+                """;
+            var comp = CreateCompilation(source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+            CompileAndVerify(comp,
+                sourceSymbolValidator: validate,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var p = module.GlobalNamespace.GetMember<PropertySymbol>("I.P");
+                validateProperty(p);
+
+                if (module is SourceModuleSymbol)
+                {
+                    validateProperty((PropertySymbol)p.GetPartialImplementationPart()!);
+                }
+            }
+
+            static void validateProperty(PropertySymbol p)
+            {
+                Assert.False(p.IsAbstract);
+                Assert.False(p.IsVirtual);
+                Assert.False(p.IsSealed);
+                Assert.False(p.IsStatic);
+                Assert.False(p.IsExtern);
+                Assert.False(p.IsOverride);
+                Assert.Equal(Accessibility.Private, p.DeclaredAccessibility);
+                Assert.True(p.ContainingModule is not SourceModuleSymbol || p.IsPartialMember());
+                validateAccessor(p.GetMethod);
+                validateAccessor(p.SetMethod);
+            }
+
+            static void validateAccessor(MethodSymbol m)
+            {
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsMetadataVirtual());
+                Assert.False(m.IsMetadataNewSlot());
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsExtern);
+                Assert.False(m.IsOverride);
+                Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+                Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+        public void InInterface_Sealed(
+            [CombinatorialValues("", "public")] string access)
+        {
+            var source = $$"""
+                partial interface I
+                {
+                    {{access}} sealed partial int P { get; set; }
+                    {{access}} sealed partial int P { get => 0; set { } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+            CompileAndVerify(comp,
+                sourceSymbolValidator: validate,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var p = module.GlobalNamespace.GetMember<PropertySymbol>("I.P");
+                validateProperty(p);
+
+                if (module is SourceModuleSymbol)
+                {
+                    validateProperty((PropertySymbol)p.GetPartialImplementationPart()!);
+                }
+            }
+
+            static void validateProperty(PropertySymbol p)
+            {
+                Assert.False(p.IsAbstract);
+                Assert.False(p.IsVirtual);
+                Assert.False(p.IsSealed);
+                Assert.False(p.IsStatic);
+                Assert.False(p.IsExtern);
+                Assert.False(p.IsOverride);
+                Assert.Equal(Accessibility.Public, p.DeclaredAccessibility);
+                Assert.True(p.ContainingModule is not SourceModuleSymbol || p.IsPartialMember());
+                validateAccessor(p.GetMethod);
+                validateAccessor(p.SetMethod);
+            }
+
+            static void validateAccessor(MethodSymbol m)
+            {
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsMetadataVirtual());
+                Assert.False(m.IsMetadataNewSlot());
+                Assert.False(m.IsSealed);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsExtern);
+                Assert.False(m.IsOverride);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+        public void InInterface_StaticVirtual(
+            [CombinatorialValues("", "public")] string access)
+        {
+            var source = $$"""
+                M<C1>();
+                M<C2>();
+                M<C3>();
+
+                static void M<T>() where T : I
+                {
+                    System.Console.Write(T.P);
+                }
+
+                partial interface I
+                {
+                    {{access}} static virtual partial int P { get; set; }
+                    {{access}} static virtual partial int P { get => 1; set { } }
+                }
+
+                class C1 : I
+                {
+                    static int P { get => 2; set { } }
+                }
+
+                class C2 : I
+                {
+                    public static int P { get => 3; set { } }
+                }
+
+                class C3 : I
+                {
+                    static int I.P { get => 4; set { } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+            CompileAndVerify(comp,
+                sourceSymbolValidator: validate,
+                symbolValidator: validate,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "134" : null,
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [<<Main>$>g__M|0_0]: Missing callvirt following constrained prefix. { Offset = 0x6 }
+                        """,
+                }).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var p = module.GlobalNamespace.GetMember<PropertySymbol>("I.P");
+                validateProperty(p);
+
+                if (module is SourceModuleSymbol)
+                {
+                    validateProperty((PropertySymbol)p.GetPartialImplementationPart()!);
+                }
+            }
+
+            static void validateProperty(PropertySymbol p)
+            {
+                Assert.False(p.IsAbstract);
+                Assert.True(p.IsVirtual);
+                Assert.False(p.IsSealed);
+                Assert.True(p.IsStatic);
+                Assert.False(p.IsExtern);
+                Assert.False(p.IsOverride);
+                Assert.Equal(Accessibility.Public, p.DeclaredAccessibility);
+                Assert.True(p.ContainingModule is not SourceModuleSymbol || p.IsPartialMember());
+                validateAccessor(p.GetMethod);
+                validateAccessor(p.SetMethod);
+            }
+
+            static void validateAccessor(MethodSymbol m)
+            {
+                Assert.False(m.IsAbstract);
+                Assert.True(m.IsVirtual);
+                Assert.True(m.IsMetadataVirtual());
+                Assert.False(m.IsMetadataNewSlot());
+                Assert.False(m.IsSealed);
+                Assert.True(m.IsStatic);
+                Assert.False(m.IsExtern);
+                Assert.False(m.IsOverride);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
+            }
         }
 
         [Fact]

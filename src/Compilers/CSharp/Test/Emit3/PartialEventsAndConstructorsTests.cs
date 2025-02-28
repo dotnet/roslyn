@@ -946,6 +946,313 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("I.E").WithLocation(3, 33));
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+    public void InInterface_Virtual(
+        [CombinatorialValues("", "public")] string access,
+        [CombinatorialValues("", "virtual")] string virt)
+    {
+        var source = $$"""
+            using System;
+
+            M(new C1());
+            M(new C2());
+
+            static void M(I x)
+            {
+                x.E += null;
+                x.E -= null;
+            }
+
+            partial interface I
+            {
+                {{access}} {{virt}} partial event Action E;
+                {{access}} {{virt}} partial event Action E
+                {
+                    add { Console.Write(1); }
+                    remove { Console.Write(2); }
+                }
+            }
+
+            class C1 : I;
+
+            class C2 : I
+            {
+                event Action I.E
+                {
+                    add { Console.Write(3); }
+                    remove { Console.Write(4); }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+        CompileAndVerify(comp,
+            sourceSymbolValidator: validate,
+            symbolValidator: validate,
+            expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "1234" : null,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("I.E");
+            validateEvent(e);
+
+            if (module is SourceModuleSymbol)
+            {
+                validateEvent((EventSymbol)e.GetPartialImplementationPart()!);
+            }
+        }
+
+        static void validateEvent(EventSymbol e)
+        {
+            Assert.False(e.IsAbstract);
+            Assert.True(e.IsVirtual);
+            Assert.False(e.IsSealed);
+            Assert.False(e.IsStatic);
+            Assert.False(e.IsExtern);
+            Assert.False(e.IsOverride);
+            Assert.Equal(Accessibility.Public, e.DeclaredAccessibility);
+            Assert.True(e.ContainingModule is not SourceModuleSymbol || e.IsPartialMember());
+            validateAccessor(e.AddMethod!);
+            validateAccessor(e.RemoveMethod!);
+        }
+
+        static void validateAccessor(MethodSymbol m)
+        {
+            Assert.False(m.IsAbstract);
+            Assert.True(m.IsVirtual);
+            Assert.True(m.IsMetadataVirtual());
+            Assert.True(m.IsMetadataNewSlot());
+            Assert.False(m.IsSealed);
+            Assert.False(m.IsStatic);
+            Assert.False(m.IsExtern);
+            Assert.False(m.IsOverride);
+            Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
+        }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+    public void InInterface_Private()
+    {
+        var source = """
+            partial interface I
+            {
+                private partial event System.Action E;
+                private partial event System.Action E { add { } remove { } }
+            }
+            """;
+        var comp = CreateCompilation(source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+        CompileAndVerify(comp,
+            sourceSymbolValidator: validate,
+            symbolValidator: validate,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("I.E");
+            validateEvent(e);
+
+            if (module is SourceModuleSymbol)
+            {
+                validateEvent((EventSymbol)e.GetPartialImplementationPart()!);
+            }
+        }
+
+        static void validateEvent(EventSymbol e)
+        {
+            Assert.False(e.IsAbstract);
+            Assert.False(e.IsVirtual);
+            Assert.False(e.IsSealed);
+            Assert.False(e.IsStatic);
+            Assert.False(e.IsExtern);
+            Assert.False(e.IsOverride);
+            Assert.Equal(Accessibility.Private, e.DeclaredAccessibility);
+            Assert.True(e.ContainingModule is not SourceModuleSymbol || e.IsPartialMember());
+            validateAccessor(e.AddMethod!);
+            validateAccessor(e.RemoveMethod!);
+        }
+
+        static void validateAccessor(MethodSymbol m)
+        {
+            Assert.False(m.IsAbstract);
+            Assert.False(m.IsVirtual);
+            Assert.False(m.IsMetadataVirtual());
+            Assert.False(m.IsMetadataNewSlot());
+            Assert.False(m.IsSealed);
+            Assert.False(m.IsStatic);
+            Assert.False(m.IsExtern);
+            Assert.False(m.IsOverride);
+            Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+            Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+    public void InInterface_Sealed(
+        [CombinatorialValues("", "public")] string access)
+    {
+        var source = $$"""
+            partial interface I
+            {
+                {{access}} sealed partial event System.Action E;
+                {{access}} sealed partial event System.Action E { add { } remove { } }
+            }
+            """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+        CompileAndVerify(comp,
+            sourceSymbolValidator: validate,
+            symbolValidator: validate,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("I.E");
+            validateEvent(e);
+
+            if (module is SourceModuleSymbol)
+            {
+                validateEvent((EventSymbol)e.GetPartialImplementationPart()!);
+            }
+        }
+
+        static void validateEvent(EventSymbol e)
+        {
+            Assert.False(e.IsAbstract);
+            Assert.False(e.IsVirtual);
+            Assert.False(e.IsSealed);
+            Assert.False(e.IsStatic);
+            Assert.False(e.IsExtern);
+            Assert.False(e.IsOverride);
+            Assert.Equal(Accessibility.Public, e.DeclaredAccessibility);
+            Assert.True(e.ContainingModule is not SourceModuleSymbol || e.IsPartialMember());
+            validateAccessor(e.AddMethod!);
+            validateAccessor(e.RemoveMethod!);
+        }
+
+        static void validateAccessor(MethodSymbol m)
+        {
+            Assert.False(m.IsAbstract);
+            Assert.False(m.IsVirtual);
+            Assert.False(m.IsMetadataVirtual());
+            Assert.False(m.IsMetadataNewSlot());
+            Assert.False(m.IsSealed);
+            Assert.False(m.IsStatic);
+            Assert.False(m.IsExtern);
+            Assert.False(m.IsOverride);
+            Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+    public void InInterface_StaticVirtual(
+        [CombinatorialValues("", "public")] string access)
+    {
+        var source = $$"""
+            using System;
+
+            M<C1>();
+            M<C2>();
+            M<C3>();
+
+            static void M<T>() where T : I
+            {
+                T.E += null;
+                T.E -= null;
+            }
+
+            partial interface I
+            {
+                {{access}} static virtual partial event Action E;
+                {{access}} static virtual partial event Action E
+                {
+                    add { Console.Write(1); }
+                    remove { Console.Write(2); }
+                }
+            }
+
+            class C1 : I
+            {
+                static event Action E
+                {
+                    add { Console.Write(3); }
+                    remove { Console.Write(4); }
+                }
+            }
+
+            class C2 : I
+            {
+                public static event Action E
+                {
+                    add { Console.Write(5); }
+                    remove { Console.Write(6); }
+                }
+            }
+
+            class C3 : I
+            {
+                static event Action I.E
+                {
+                    add { Console.Write(7); }
+                    remove { Console.Write(8); }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+        CompileAndVerify(comp,
+            sourceSymbolValidator: validate,
+            symbolValidator: validate,
+            expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "125678" : null,
+            verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [<<Main>$>g__M|0_0]: Missing callvirt following constrained prefix. { Offset = 0x7 }
+                    [<<Main>$>g__M|0_0]: Missing callvirt following constrained prefix. { Offset = 0x13 }
+                    """,
+            }).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("I.E");
+            validateEvent(e);
+
+            if (module is SourceModuleSymbol)
+            {
+                validateEvent((EventSymbol)e.GetPartialImplementationPart()!);
+            }
+        }
+
+        static void validateEvent(EventSymbol e)
+        {
+            Assert.False(e.IsAbstract);
+            Assert.True(e.IsVirtual);
+            Assert.False(e.IsSealed);
+            Assert.True(e.IsStatic);
+            Assert.False(e.IsExtern);
+            Assert.False(e.IsOverride);
+            Assert.Equal(Accessibility.Public, e.DeclaredAccessibility);
+            Assert.True(e.ContainingModule is not SourceModuleSymbol || e.IsPartialMember());
+            validateAccessor(e.AddMethod!);
+            validateAccessor(e.RemoveMethod!);
+        }
+
+        static void validateAccessor(MethodSymbol m)
+        {
+            Assert.False(m.IsAbstract);
+            Assert.True(m.IsVirtual);
+            Assert.True(m.IsMetadataVirtual());
+            Assert.False(m.IsMetadataNewSlot());
+            Assert.False(m.IsSealed);
+            Assert.True(m.IsStatic);
+            Assert.False(m.IsExtern);
+            Assert.False(m.IsOverride);
+            Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
+        }
+    }
+
     [Fact]
     public void Abstract()
     {

@@ -782,7 +782,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (containingTypeIsInterface)
             {
                 mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, hasBody,
-                                                                         methodKind == MethodKind.ExplicitInterfaceImplementation);
+                                                                         methodKind == MethodKind.ExplicitInterfaceImplementation,
+                                                                         forMethod: true);
             }
             else if (methodKind == MethodKind.ExplicitInterfaceImplementation)
             {

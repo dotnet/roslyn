@@ -245,8 +245,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        internal static DeclarationModifiers AdjustModifiersForAnInterfaceMember(DeclarationModifiers mods, bool hasBody, bool isExplicitInterfaceImplementation)
+        internal static DeclarationModifiers AdjustModifiersForAnInterfaceMember(DeclarationModifiers mods, bool hasBody, bool isExplicitInterfaceImplementation, bool forMethod)
         {
+            // Partial methods without accessibility modifiers (i.e., not the "extended partial methods") are implicitly private and not virtual.
+            var noExplicitAccessibilityModifiers = (mods & DeclarationModifiers.AccessibilityMask) == 0;
+            var plainPartialMethod = noExplicitAccessibilityModifiers && forMethod && (mods & DeclarationModifiers.Partial) != 0;
+
             if (isExplicitInterfaceImplementation)
             {
                 if ((mods & DeclarationModifiers.Abstract) != 0)
@@ -258,11 +262,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 mods &= ~DeclarationModifiers.Sealed;
             }
-            else if ((mods & (DeclarationModifiers.Private | DeclarationModifiers.Partial | DeclarationModifiers.Virtual | DeclarationModifiers.Abstract)) == 0)
+            else if (!plainPartialMethod && (mods & (DeclarationModifiers.Private | DeclarationModifiers.Virtual | DeclarationModifiers.Abstract)) == 0)
             {
                 Debug.Assert(!isExplicitInterfaceImplementation);
 
-                if (hasBody || (mods & (DeclarationModifiers.Extern | DeclarationModifiers.Sealed)) != 0)
+                if (hasBody || (mods & (DeclarationModifiers.Extern | DeclarationModifiers.Partial | DeclarationModifiers.Sealed)) != 0)
                 {
                     if ((mods & DeclarationModifiers.Sealed) == 0)
                     {
@@ -279,9 +283,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
+            if (noExplicitAccessibilityModifiers)
             {
-                if ((mods & DeclarationModifiers.Partial) == 0 && !isExplicitInterfaceImplementation)
+                if (!plainPartialMethod && !isExplicitInterfaceImplementation)
                 {
                     mods |= DeclarationModifiers.Public;
                 }
