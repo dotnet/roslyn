@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services;
 [Export, Shared]
 internal class ExtensionAssemblyManagerMefProvider
 {
-    private ExtensionAssemblyManager? _extensionAssemblyManager;
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ExtensionAssemblyManagerMefProvider()
@@ -29,10 +27,10 @@ internal class ExtensionAssemblyManagerMefProvider
     }
 
     [Export]
-    public ExtensionAssemblyManager ExtensionAssemblyManager => _extensionAssemblyManager ?? throw new InvalidOperationException($"{nameof(ExtensionAssemblyManager)} is not initialized");
+    public ExtensionAssemblyManager ExtensionAssemblyManager { get => field ?? throw new InvalidOperationException($"{nameof(ExtensionAssemblyManager)} is not initialized"); private set; }
 
     public void SetMefExtensionAssemblyManager(ExtensionAssemblyManager extensionAssemblyManager)
     {
-        _extensionAssemblyManager = extensionAssemblyManager;
+        ExtensionAssemblyManager = extensionAssemblyManager;
     }
 }
