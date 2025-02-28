@@ -62,20 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return [symbol.ContainingType.ExtensionParameter, .. symbol.GetParameters()];
         }
 
-        private static ImmutableArray<RefKind> GetParameterRefKindsIncludingReceiver(Symbol symbol)
-        {
-            Debug.Assert(symbol.GetIsNewExtensionMember());
-            // PROTOTYPE consider optimizing
-            var refKinds = symbol.GetParameterRefKinds();
-            var receiverRefKind = symbol.ContainingType.ExtensionParameter.RefKind;
-            if (refKinds.IsDefault)
-            {
-                return receiverRefKind == RefKind.None ? default : [receiverRefKind];
-            }
-
-            return [receiverRefKind, .. refKinds];
-        }
-
         private static ImmutableArray<TypeWithAnnotations> GetParameterTypesIncludingReceiver(Symbol symbol)
         {
             Debug.Assert(symbol.GetIsNewExtensionMember());

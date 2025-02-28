@@ -421,6 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argsToParams = adjustArgsToParams(ArgsToParamsOpt);
             var conversions = adjustConversions(ConversionsOpt);
 
+            // We only need HasAnyRefOmittedArgument as part of overload resolution, so we don't need to adjust it post-overload resolution.
             return new MemberAnalysisResult(Kind, badArguments, argsToParams, conversions, BadParameter - 1, HasAnyRefOmittedArgument,
                 ConstraintFailureDiagnostics, DefinitionParamsElementTypeOpt, ParamsElementTypeOpt);
 

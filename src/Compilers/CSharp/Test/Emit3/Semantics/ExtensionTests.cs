@@ -19469,4 +19469,95 @@ static class E
             // [ComImport, Guid("1234C65D-1234-447A-B786-64682CBEF136")]
             Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ComImport").WithArguments("ComImport", "class, interface").WithLocation(9, 2));
     }
+
+    [Fact]
+    public void RefOmittedComCall_04()
+    {
+        // For COM import type, omitting the ref is allowed
+        string source = @"
+using System;
+using System.Runtime.InteropServices;
+
+short x = 42;
+short y = 43;
+C.M(x.ToString(), y.ToString());
+
+[ComImport, Guid(""1234C65D-1234-447A-B786-64682CBEF136"")]
+class C { }
+
+static class E
+{
+    extension(C)
+    {
+        public static void M(ref string p, ref string p2) { }
+    }
+}
+";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify(comp);
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (short V_0, //x
+                short V_1, //y
+                string V_2,
+                string V_3)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.s   43
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       "string short.ToString()"
+  IL_000d:  stloc.2
+  IL_000e:  ldloca.s   V_2
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  call       "string short.ToString()"
+  IL_0017:  stloc.3
+  IL_0018:  ldloca.s   V_3
+  IL_001a:  call       "void E.<StaticExtension>M(ref string, ref string)"
+  IL_001f:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void RefOmittedComCall_05()
+    {
+        string source = @"
+using System;
+using System.Runtime.InteropServices;
+
+short x = 42;
+C.M(x.ToString());
+
+[ComImport, Guid(""1234C65D-1234-447A-B786-64682CBEF136"")]
+class C { }
+
+static class E
+{
+    extension(C)
+    {
+        public static void M(string p) { }
+    }
+}
+";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify(comp);
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (short V_0) //x
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       "string short.ToString()"
+  IL_000a:  call       "void E.<StaticExtension>M(string)"
+  IL_000f:  ret
+}
+""");
+    }
 }

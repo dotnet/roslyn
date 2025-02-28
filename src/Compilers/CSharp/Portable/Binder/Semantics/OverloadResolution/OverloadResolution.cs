@@ -3876,11 +3876,17 @@ outerDefault:
 
             if (argumentCount == parameterCount && argToParamMap.IsDefaultOrEmpty)
             {
-                ImmutableArray<RefKind> parameterRefKinds = isNewExtensionMember ? GetParameterRefKindsIncludingReceiver(member) : member.GetParameterRefKinds();
-                if (parameterRefKinds.IsDefaultOrEmpty)
+                bool hasSomeRefKinds = !member.GetParameterRefKinds().IsDefaultOrEmpty;
+                if (member.GetIsNewExtensionMember())
+                {
+                    Debug.Assert(member.ContainingType.ExtensionParameter is not null);
+                    hasSomeRefKinds |= member.ContainingType.ExtensionParameter.RefKind != RefKind.None;
+                }
+
+                if (!hasSomeRefKinds)
                 {
                     var parameterTypes = isNewExtensionMember ? GetParameterTypesIncludingReceiver(member) : member.GetParameterTypes();
-                    return new EffectiveParameters(parameterTypes, parameterRefKinds, firstParamsElementIndex: -1);
+                    return new EffectiveParameters(parameterTypes, refKinds: default, firstParamsElementIndex: -1);
                 }
             }
 
