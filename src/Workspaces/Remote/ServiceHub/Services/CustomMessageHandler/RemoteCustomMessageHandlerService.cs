@@ -3,7 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.Tracing;
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,12 +15,22 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CustomMessageHandler;
 using Microsoft.CodeAnalysis.Remote.CustomMessageHandler;
 using Microsoft.CodeAnalysis.Text;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
 internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServiceBase, IRemoteCustomMessageHandlerService
 {
+#if !NETSTANDARD2_0
+    /// <summary>
+    /// Extensions assembly load contexts and loaded handlers, indexed by handler file path. The handlers are indexed by type name.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, CustomMessageHandlerExtension> _extensions = new();
+
+    private readonly System.Runtime.Loader.AssemblyLoadContext _defaultLoadContext
+        = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(typeof(RemoteCustomMessageHandlerService).Assembly)
+        ?? throw new InvalidOperationException($"Cannot get assembly load context for {nameof(RemoteCustomMessageHandlerService)}.");
+#endif
+
     internal sealed class Factory : FactoryBase<IRemoteCustomMessageHandlerService>
     {
         protected override IRemoteCustomMessageHandlerService CreateService(in ServiceConstructionArguments arguments)
@@ -62,56 +73,65 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                 Contract.ThrowIfNull(document);
             }
 
-            System.Runtime.Loader.AssemblyLoadContext? assemblyLoadContext = null;
             try
             {
-                var directory = Path.GetDirectoryName(assemblyPath);
-                Contract.ThrowIfNull(directory);
-
-                var defaultLoadContext = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(typeof(RemoteCustomMessageHandlerService).Assembly);
-                Contract.ThrowIfNull(defaultLoadContext);
-
-                assemblyLoadContext = new System.Runtime.Loader.AssemblyLoadContext(name: $"RemoteCustomMessageHandlerService assembly load context for {directory}", isCollectible: true);
-                assemblyLoadContext.Resolving += (context, assemblyName) =>
+                var extension = _extensions.GetOrAdd(assemblyPath, _ =>
                 {
-                    var sharedAssembly = defaultLoadContext.Assemblies.Where(a => a.GetName().Name == assemblyName.Name).FirstOrDefault();
+                    var directory = Path.GetDirectoryName(assemblyPath);
+                    Contract.ThrowIfNull(directory);
 
-                    if (sharedAssembly is not null)
+                    var loadContext = new System.Runtime.Loader.AssemblyLoadContext(name: $"RemoteCustomMessageHandlerService assembly load context for {assemblyPath}", isCollectible: true);
+                    loadContext.Resolving += (context, assemblyName) =>
                     {
-                        if (sharedAssembly.GetName().Version < assemblyName.Version)
+                        var sharedAssembly = _defaultLoadContext.Assemblies.Where(a => a.GetName().Name == assemblyName.Name).FirstOrDefault();
+
+                        if (sharedAssembly is not null)
                         {
-                            throw new InvalidOperationException($"The version of the loaded assembly {assemblyName.Name} is too low: requested {assemblyName.Version}, found {sharedAssembly.GetName().Version}.");
+                            if (sharedAssembly.GetName().Version < assemblyName.Version)
+                            {
+                                throw new InvalidOperationException($"The version of the loaded assembly {assemblyName.Name} is too low: requested {assemblyName.Version}, found {sharedAssembly.GetName().Version}.");
+                            }
+
+                            return sharedAssembly;
                         }
 
-                        return sharedAssembly;
-                    }
+                        var extensionAssemblyPath = Path.Combine(directory, $"{assemblyName.Name}.dll");
+                        if (File.Exists(extensionAssemblyPath))
+                        {
+                            return loadContext.LoadFromAssemblyPath(extensionAssemblyPath);
+                        }
 
-                    var extensionAssemblyPath = Path.Combine(directory, $"{assemblyName.Name}.dll");
-                    if (File.Exists(extensionAssemblyPath))
-                    {
-                        return assemblyLoadContext.LoadFromAssemblyPath(extensionAssemblyPath);
-                    }
+                        return null;
+                    };
 
-                    return null;
-                };
+                    return new CustomMessageHandlerExtension(loadContext);
+                });
 
-                var assembly = assemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
+                var handler = extension.Handlers.GetOrAdd(typeFullName, name =>
+                {
+                    var assembly = extension.AssemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
+                    var type = assembly.GetType(typeFullName)
+                        ?? throw new InvalidOperationException($"Cannot find type {typeFullName} in {assemblyPath}.");
 
-                var type = assembly.GetType(typeFullName)
-                    ?? throw new InvalidOperationException($"Cannot find type {typeFullName} in {assemblyPath}.");
-
-                // Create the Handler instance. Requires having a parameterless constructor.
-                // ```
-                // public class CustomMessageHandler
-                // {
-                //     public Task<TResponse> ExecuteAsync(TRequest, Document, CancellationToken);
-                // }
-                // ```
-                var handler = Activator.CreateInstance(type);
+                    // Create the Handler instance. Requires having a parameterless constructor.
+                    // ```
+                    // public class CustomMessageHandler
+                    // {
+                    //     public Task<TResponse> ExecuteAsync(TRequest, CancellationToken);
+                    // }
+                    //
+                    // public class CustomMessageDocumentHandler
+                    // {
+                    //     public Task<TResponse> ExecuteAsync(TRequest, Document, CancellationToken);
+                    // }
+                    // ```
+                    return Activator.CreateInstance(type)
+                        ?? throw new InvalidOperationException($"Cannot create {typeFullName} from {assemblyPath}.");
+                });
 
                 // TODO: use a well-known interface once available
                 const string executeMethodName = "ExecuteAsync";
-                var executeMethod = type.GetMethod(executeMethodName, BindingFlags.Public | BindingFlags.Instance)
+                var executeMethod = handler.GetType().GetMethod(executeMethodName, BindingFlags.Public | BindingFlags.Instance)
                     ?? throw new InvalidOperationException($"Cannot find method {executeMethodName} in type {typeFullName} assembly {assemblyPath}.");
 
                 // CustomMessage.Message references positions in CustomMessage.TextDocument as indexes referencing CustomMessage.Positions.
@@ -128,9 +148,9 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                 var message = JsonSerializer.Deserialize(jsonMessage, requestType, readOptions);
 
                 // Invoke the execute method.
-                var parameters = document is null ?
-                    new object?[] { message, cancellationToken } :
-                    new object?[] { message, document, cancellationToken };
+                object?[] parameters = document is null
+                    ? [message, cancellationToken]
+                    : [message, document, cancellationToken];
                 var resultTask = executeMethod.Invoke(handler, parameters) as Task
                     ?? throw new InvalidOperationException($"Unexpected return type from {typeFullName}:{executeMethodName} in assembly {assemblyPath}, expected type Task<>.");
 
@@ -166,11 +186,67 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                 Log(TraceEventType.Error, $"Custom handler {assemblyPath} {typeFullName} error: {e}");
                 throw;
             }
-            finally
-            {
-                assemblyLoadContext?.Unload();
-            }
         }, cancellationToken);
 #endif
     }
+
+#pragma warning disable CA1822 // Mark members as static
+    public ValueTask UnloadCustomMessageHandlerAsync(
+        string assemblyPath,
+        CancellationToken cancellationToken)
+#pragma warning restore CA1822 // Mark members as static
+    {
+#if NETSTANDARD2_0
+        throw new InvalidOperationException("Custom handlers are only supported in the servicehub host");
+#else
+
+#if DEBUG
+        System.Diagnostics.Debugger.Launch();
+#endif
+
+        Requires.NotNullOrEmpty(assemblyPath);
+
+        return RunServiceAsync((_) =>
+        {
+            try
+            {
+                var defaultLoadContext = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(typeof(RemoteCustomMessageHandlerService).Assembly);
+                Contract.ThrowIfNull(defaultLoadContext);
+
+                if (_extensions.TryRemove(assemblyPath, out var extension))
+                {
+                    extension.Handlers.Clear();
+                    extension.AssemblyLoadContext.Unload();
+                }
+            }
+            catch (Exception e)
+            {
+                Log(TraceEventType.Error, $"Error unloading {assemblyPath}: {e}");
+                return ValueTask.FromException(e);
+            }
+
+            return ValueTask.CompletedTask;
+        }, cancellationToken);
+#endif
+    }
+
+#if !NETSTANDARD2_0
+    public override void Dispose()
+    {
+        base.Dispose();
+
+        foreach (var extension in _extensions.Values)
+        {
+            extension.Handlers.Clear();
+            extension.AssemblyLoadContext.Unload();
+        }
+
+        _extensions.Clear();
+    }
+
+    private record struct CustomMessageHandlerExtension(System.Runtime.Loader.AssemblyLoadContext AssemblyLoadContext)
+    {
+        public ConcurrentDictionary<string, object> Handlers { get; } = new();
+    }
+#endif
 }

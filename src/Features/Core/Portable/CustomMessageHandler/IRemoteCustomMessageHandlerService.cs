@@ -28,4 +28,8 @@ internal interface IRemoteCustomMessageHandlerService
         DocumentId? documentId,
         ImmutableArray<LinePosition> positions,
         CancellationToken cancellationToken);
+
+    ValueTask UnloadCustomMessageHandlerAsync(
+        string assemblyPath,
+        CancellationToken cancellationToken);
 }
