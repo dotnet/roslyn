@@ -22,19 +22,12 @@ internal class LspServiceLifeCycleManager : ILifeCycleManager, ILspService
 
     public async Task ShutdownAsync(string message = "Shutting down")
     {
-        try
+        var messageParams = new LogMessageParams()
         {
-            var messageParams = new LogMessageParams()
-            {
-                MessageType = MessageType.Info,
-                Message = message
-            };
-            await _clientLanguageServerManager.SendNotificationAsync("window/logMessage", messageParams, CancellationToken.None).ConfigureAwait(false);
-        }
-        catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
-        {
-            //Don't fail shutdown just because jsonrpc has already been cancelled.
-        }
+            MessageType = MessageType.Info,
+            Message = message
+        };
+        await _clientLanguageServerManager.SendNotificationAsync("window/logMessage", messageParams, CancellationToken.None).ConfigureAwait(false);
     }
 
     public Task ExitAsync()

@@ -77,7 +77,7 @@ internal sealed class OnInitializedServiceFactory : ILspServiceFactory
             }
 
             public Task<TResponse> SendRequestAsync<TParams, TResponse>(string methodName, TParams @params, CancellationToken cancellationToken)
-                => _clientLanguageServerManager.SendRequestAsync<TParams, TResponse>(methodName, @params, cancellationToken);
+                => _clientLanguageServerManager.SendRequestAsync<TParams, TResponse>(methodName, @params, cancellationToken)!;
 
             public ValueTask SendRequestAsync(string methodName, CancellationToken cancellationToken)
                 => _clientLanguageServerManager.SendRequestAsync(methodName, cancellationToken);

@@ -91,7 +91,7 @@ internal partial class RazorDynamicFileInfoProvider
                 },
                 cancellationToken);
 
-            RoslynDebug.AssertNotNull(response.Updates);
+            RoslynDebug.AssertNotNull(response?.Updates);
             RoslynDebug.Assert(response.Updates.IsSingle());
 
             var text = UpdateSourceTextWithEdits(_emptySourceText.Value, response.Updates);

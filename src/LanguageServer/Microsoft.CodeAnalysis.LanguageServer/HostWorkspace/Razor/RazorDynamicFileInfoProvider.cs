@@ -71,7 +71,7 @@ internal partial class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
         var response = await clientLanguageServerManager.SendRequestAsync<RazorProvideDynamicFileParams, RazorProvideDynamicFileResponse>(
             ProvideRazorDynamicFileInfoMethodName, requestParams, cancellationToken);
 
-        if (response.CSharpDocument is null)
+        if (response?.CSharpDocument is null)
         {
             return null;
         }
