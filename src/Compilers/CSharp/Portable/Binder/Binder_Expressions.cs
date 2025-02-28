@@ -7989,10 +7989,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression? ResolveExtensionMemberAccessIfResultIsNonMethod(SyntaxNode syntax, BoundExpression receiver, string name,
             ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, BindingDiagnosticBag diagnostics)
         {
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
+
             // Note: we're resolving without arguments, which means we're not treating the member access as invoked
             var resolution = this.ResolveExtension(
                 syntax, name, analyzedArguments: null, receiver, typeArgumentsOpt, options: OverloadResolution.Options.None,
-                returnRefKind: default, returnType: null, withDependencies: diagnostics.AccumulatesDependencies);
+                returnRefKind: default, returnType: null, ref useSiteInfo);
+
+            diagnostics.Add(syntax, useSiteInfo);
 
             if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
             {
@@ -8484,7 +8488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolution.Options options,
             RefKind returnRefKind,
             TypeSymbol? returnType,
-            bool withDependencies,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             in CallingConventionInfo callingConvention = default)
         {
             Debug.Assert(left.Type is not null);
@@ -8509,21 +8513,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lookupOptions |= LookupOptions.MustBeInvocableIfMember;
             }
 
-            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies);
-
             foreach (var scope in new ExtensionScopes(this))
             {
                 lookupResult.Clear();
                 classicExtensionLookupResult.Clear();
 
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
                 scope.Binder.LookupExtensionMembersInSingleBinder(
                     lookupResult, left.Type!, memberName, arity,
                     basesBeingResolved: null, lookupOptions, originalBinder: this, ref useSiteInfo);
 
                 this.LookupExtensionMethods(classicExtensionLookupResult, scope, memberName, arity, ref useSiteInfo);
-
-                diagnostics.Add(expression, useSiteInfo);
 
                 lookupResult.MergeEqual(classicExtensionLookupResult);
 
@@ -8533,6 +8532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var members = ArrayBuilder<Symbol>.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, useSiteInfo.AccumulatesDependencies);
                 Symbol? symbol = this.GetSymbolOrMethodOrPropertyGroupStrict(lookupResult, expression, memberName, arity, members, diagnostics, qualifierOpt: null);
                 if (symbol is not null)
                 {
@@ -8613,7 +8613,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((actualArguments == null) || !firstResult.IsEmpty);
             lookupResult.Free();
             classicExtensionLookupResult.Free();
-            diagnostics.Free();
 
             return firstResult;
 
@@ -10543,7 +10542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var extensionMethodResolution = ResolveExtension(
                 expression, memberName, analyzedArguments, methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt, options,
-                returnRefKind: returnRefKind, returnType: returnType, useSiteInfo.AccumulatesDependencies,
+                returnRefKind: returnRefKind, returnType: returnType, ref useSiteInfo,
                 in callingConvention);
             bool preferExtensionMethodResolution = false;
 

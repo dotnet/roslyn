@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static ImmutableArray<ParameterSymbol> GetParametersIncludingExtensionParameter(Symbol symbol)
+        internal static ImmutableArray<ParameterSymbol> GetParametersIncludingReceiver(Symbol symbol)
         {
             Debug.Assert(symbol.GetIsNewExtensionMember());
             // PROTOTYPE consider optimizing
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(arguments != null);
 
             bool isNewExtensionMember = symbol.GetIsNewExtensionMember();
-            ImmutableArray<ParameterSymbol> parameters = isNewExtensionMember ? GetParametersIncludingExtensionParameter(symbol) : symbol.GetParameters();
+            ImmutableArray<ParameterSymbol> parameters = isNewExtensionMember ? GetParametersIncludingReceiver(symbol) : symbol.GetParameters();
             bool isVararg = symbol.GetIsVararg();
 
             // The easy out is that we have no named arguments and are in normal form.

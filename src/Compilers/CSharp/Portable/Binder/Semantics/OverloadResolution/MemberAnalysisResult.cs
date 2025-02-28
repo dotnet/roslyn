@@ -432,19 +432,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return badArguments;
                 }
 
+                var result = BitVector.Create(badArguments.Capacity);
                 foreach (int setIndex in badArguments.TrueBits())
                 {
-                    if (setIndex == 0)
-                    {
-                        badArguments[setIndex] = false;
-                        continue;
-                    }
-
-                    badArguments[setIndex] = false;
-                    badArguments[setIndex - 1] = true;
+                    result[setIndex] = true;
                 }
 
-                return badArguments;
+                return result;
             }
 
             static ImmutableArray<int> adjustArgsToParams(ImmutableArray<int> argsToParams)

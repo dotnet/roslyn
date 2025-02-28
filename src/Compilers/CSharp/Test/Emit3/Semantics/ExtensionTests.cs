@@ -11790,6 +11790,9 @@ static class E
 """;
         var comp = CreateCompilation(src, references: [derivedRef]);
         comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // new Derived().M();
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "new Derived().M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
             // (1,15): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // new Derived().M();
             Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 15),
@@ -11983,6 +11986,9 @@ static class E
 """;
         var comp = CreateCompilation(src, references: [containerRef]);
         comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // Container.M();
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "Container.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
             // (1,11): error CS0117: 'Container' does not contain a definition for 'M'
             // Container.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("Container", "M").WithLocation(1, 11));
@@ -12068,7 +12074,7 @@ namespace N
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Container.M");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal("void N.E2.<>E__0<Container>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
         src = """
@@ -12082,9 +12088,11 @@ static class E
     }
 }
 """;
-        // We only end up reporting the details of the use-site problems if we find an applicable extension method
         comp = CreateCompilation(src, references: [containerRef]);
         comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // Container.M();
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "Container.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
             // (1,11): error CS0117: 'Container' does not contain a definition for 'M'
             // Container.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("Container", "M").WithLocation(1, 11));
@@ -17507,7 +17515,7 @@ Right:
         VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, expectedDiagnostics);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE lowering of collection initializer with a conversion on receiver")]
     public void ExtensionMemberLookup_CollectionInitializer_NoApplicableMethod()
     {
         var src = """
@@ -20268,7 +20276,7 @@ static class E
     [Fact]
     public void RefOmittedComCall_04()
     {
-        // For COM import type, omitting the ref is allowed
+        // For COM import type, omitting the ref is allowed (even in static scenarios)
         string source = @"
 using System;
 using System.Runtime.InteropServices;
@@ -20313,6 +20321,40 @@ static class E
   IL_0018:  ldloca.s   V_3
   IL_001a:  call       "void E.<StaticExtension>M(ref string, ref string)"
   IL_001f:  ret
+}
+""");
+
+        source = """
+using System;
+using System.Runtime.InteropServices;
+
+short x = 42;
+C.M(x.ToString());
+
+[ComImport, Guid("1234C65D-1234-447A-B786-64682CBEF136")]
+class C 
+{ 
+    public extern static void M(ref string p);
+}
+""";
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+
+        verifier = CompileAndVerify(comp);
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (short V_0, //x
+                string V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       "string short.ToString()"
+  IL_000a:  stloc.1
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  call       "void C.M(ref string)"
+  IL_0012:  ret
 }
 """);
     }

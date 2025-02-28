@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt) where TMember : Symbol
         {
             // When the feature 'ImprovedOverloadCandidates' is enabled, we do not include instance members when the receiver
-            // is a type, or static members when the receiver is an instance. It also does not apply when the
+            // is a type, or static members when the receiver is an instance. It does not apply when the
             // receiver is a TypeOrValueExpression, which is used to handle the receiver of a Color-Color ambiguity, where either
             // an instance or a static member would be acceptable.
             if (Binder.IsTypeOrValueExpression(receiverOpt))
@@ -3869,7 +3869,7 @@ outerDefault:
             hasAnyRefOmittedArgument = false;
 
             bool isNewExtensionMember = member.GetIsNewExtensionMember();
-            ImmutableArray<ParameterSymbol> parameters = isNewExtensionMember ? GetParametersIncludingExtensionParameter(member) : member.GetParameters();
+            ImmutableArray<ParameterSymbol> parameters = isNewExtensionMember ? GetParametersIncludingReceiver(member) : member.GetParameters();
 
             // We simulate an extra parameter for vararg methods 
             int parameterCount = parameters.Length + (member.GetIsVararg() ? 1 : 0);
@@ -4030,7 +4030,7 @@ outerDefault:
             var types = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             var refs = ArrayBuilder<RefKind>.GetInstance();
             bool anyRef = false;
-            var parameters = member.GetIsNewExtensionMember() ? GetParametersIncludingExtensionParameter(member) : member.GetParameters();
+            var parameters = member.GetIsNewExtensionMember() ? GetParametersIncludingReceiver(member) : member.GetParameters();
             bool hasAnyRefArg = argumentRefKinds.Any();
             hasAnyRefOmittedArgument = false;
             TypeWithAnnotations paramsIterationType = default;
