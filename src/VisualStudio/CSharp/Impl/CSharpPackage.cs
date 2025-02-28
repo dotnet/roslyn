@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -64,14 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            // Execution should initiate on a threadpool as package load sequence thread switches are impactful.
-            await TaskScheduler.Default;
-
-            Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
-
             try
             {
-                await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+                await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
 
                 this.RegisterService<ICSharpTempPECompilerService>(async ct =>
                 {

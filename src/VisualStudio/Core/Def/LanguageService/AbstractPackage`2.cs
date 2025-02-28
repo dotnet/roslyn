@@ -37,10 +37,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        // Should only be called from a threadpool. Opinionated, as package load sequence thread switches are impactful.
-        Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
-
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
 
         RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
         {
@@ -71,10 +68,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
     protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
     {
-        // Should only be called from a threadpool. Opinionated, as package load sequence thread switches are impactful.
-        Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
-
-        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(true);
+        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
 
         if (!IVsShellExtensions.IsInCommandLineMode(JoinableTaskFactory))
         {

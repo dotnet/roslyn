@@ -144,10 +144,7 @@ internal sealed class RoslynPackage : AbstractPackage
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        // Execution should initiate on a threadpool as package load sequence thread switches are impactful.
-        await TaskScheduler.Default;
-
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
 
         // Misc workspace has to be up and running by the time our package is usable so that it can track running
         // doc events and appropriately map files to/from it and other relevant workspaces (like the
@@ -162,10 +159,7 @@ internal sealed class RoslynPackage : AbstractPackage
 
     protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
     {
-        // Execution should initiate on a threadpool as package load sequence thread switches are impactful.
-        await TaskScheduler.Default;
-
-        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(true);
+        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
 
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();

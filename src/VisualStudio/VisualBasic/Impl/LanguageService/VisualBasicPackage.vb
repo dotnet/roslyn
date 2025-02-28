@@ -17,7 +17,6 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.Threading
 Imports Task = System.Threading.Tasks.Task
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
@@ -68,9 +67,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         Protected Overrides Async Function InitializeAsync(cancellationToken As CancellationToken, progress As IProgress(Of ServiceProgressData)) As Task
             Try
-                ' Execution should initiate on a threadpool as package load sequence thread switches are impactful.
-                Await TaskScheduler.Default
-
                 Await MyBase.InitializeAsync(cancellationToken, progress).ConfigureAwait(True)
 
                 RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))

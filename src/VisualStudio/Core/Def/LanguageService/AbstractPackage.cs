@@ -27,18 +27,12 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        // Should only be called from a threadpool. Opinionated, as package load sequence thread switches are impactful.
-        Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
-
         _componentModel_doNotAccessDirectly = await GetServiceAsync<SComponentModel, IComponentModel>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
         Assumes.Present(_componentModel_doNotAccessDirectly);
     }
 
     protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
     {
-        // Should only be called from a threadpool. Opinionated, as package load sequence thread switches are impactful.
-        Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
-
         // TODO: remove, workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1985204
         var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
         if (globalOptions.GetOption(SemanticSearchFeatureFlag.Enabled))
