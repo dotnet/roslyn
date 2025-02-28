@@ -5,16 +5,20 @@
 using System;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
 /// <summary>
-/// Parameters for the <see cref="CustomMessageHandler"/> request.
+/// Parameters for the <see cref="CustomMessageDocumentHandler"/> request.
 /// </summary>
 /// <param name="assemblyPath">Full path to the assembly that contains the message handler.</param>
 /// <param name="typeFullName">Full name of the <see cref="Type"/> of the message handler.</param>
 /// <param name="message">Json message to be passed to a custom message handler.</param>
-internal readonly struct CustomMessageParams(string assemblyPath, string typeFullName, JsonNode message)
+/// <param name="textDocument">Text document the <paramref name="message"/> refers to.</param>
+/// <param name="positions">List of <see cref="Position"/> objects the <paramref name="message"/> refers to.
+/// All elemements in <paramref name="positions"/> refer to <paramref name="textDocument"/>.</param>
+internal readonly struct CustomMessageDocumentParams(string assemblyPath, string typeFullName, JsonNode message, TextDocumentIdentifier textDocument, Position[] positions)
 {
     /// <summary>
     /// Gets the full path to the assembly that contains the message handler.
@@ -33,4 +37,19 @@ internal readonly struct CustomMessageParams(string assemblyPath, string typeFul
     /// </summary>
     [JsonPropertyName("message")]
     public JsonNode Message { get; } = Requires.NotNull(message);
+
+    /// <summary>
+    /// Gets the text document the <see cref="Message"/> relates to.
+    /// </summary>
+    [JsonPropertyName("textDocument")]
+    public TextDocumentIdentifier TextDocument { get; } = Requires.NotNull(textDocument);
+
+    /// <summary>
+    /// Gets the list of <see cref="Position"/> objects the <see cref="Message"/> refers to.
+    /// </summary>
+    /// <remarks>
+    /// All elemements in <see cref="Positions"/> refer to <see cref="TextDocument"/>.
+    /// </remarks>
+    [JsonPropertyName("positions")]
+    public Position[] Positions { get; } = Requires.NotNull(positions);
 }

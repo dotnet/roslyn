@@ -4,15 +4,18 @@
 
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
-internal class CustomResponse(JsonNode message, Position[] positions)
+/// <summary>
+/// Return type for the <see cref="CustomMessageHandler"/> request.
+/// </summary>
+/// <param name="response">Json response returned by the custom message handler.</param>
+internal readonly struct CustomResponse(JsonNode response)
 {
-    [JsonPropertyName("message")]
-    public JsonNode Message { get; } = Requires.NotNull(message);
-
-    [JsonPropertyName("positions")]
-    public Position[] Positions { get; } = Requires.NotNull(positions);
+    /// <summary>
+    /// Gets the json response returned by the custom message handler.
+    /// </summary>
+    [JsonPropertyName("response")]
+    public JsonNode Response { get; } = Requires.NotNull(response);
 }

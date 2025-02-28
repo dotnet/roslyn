@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.Tracing;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CustomMessageHandler;
 using Microsoft.CodeAnalysis.Remote.CustomMessageHandler;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -34,7 +37,7 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
         string typeFullName,
         string jsonMessage,
         DocumentId? documentId,
-        LinePosition[] positions,
+        ImmutableArray<LinePosition> positions,
         CancellationToken cancellationToken)
     {
 #if NETSTANDARD2_0
@@ -105,6 +108,8 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                 // }
                 // ```
                 var handler = Activator.CreateInstance(type);
+
+                // TODO: use a well-known interface once available
                 const string executeMethodName = "ExecuteAsync";
                 var executeMethod = type.GetMethod(executeMethodName, BindingFlags.Public | BindingFlags.Instance)
                     ?? throw new InvalidOperationException($"Cannot find method {executeMethodName} in type {typeFullName} assembly {assemblyPath}.");
@@ -112,15 +117,20 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                 // CustomMessage.Message references positions in CustomMessage.TextDocument as indexes referencing CustomMessage.Positions.
                 // LinePositionReadConverter allows the deserialization of these indexes into LinePosition objects.
                 JsonSerializerOptions readOptions = new();
-                LinePositionReadConverter linePositionReadConverter = new(positions);
-                readOptions.Converters.Add(linePositionReadConverter);
+                if (document is not null)
+                {
+                    LinePositionReadConverter linePositionReadConverter = new(positions);
+                    readOptions.Converters.Add(linePositionReadConverter);
+                }
 
                 // Deserialize the message into the expected TRequest type.
                 var requestType = executeMethod.GetParameters()[0].ParameterType;
                 var message = JsonSerializer.Deserialize(jsonMessage, requestType, readOptions);
 
                 // Invoke the execute method.
-                var parameters = new object?[] { message, document, cancellationToken };
+                var parameters = document is null ?
+                    new object?[] { message, cancellationToken } :
+                    new object?[] { message, document, cancellationToken };
                 var resultTask = executeMethod.Invoke(handler, parameters) as Task
                     ?? throw new InvalidOperationException($"Unexpected return type from {typeFullName}:{executeMethodName} in assembly {assemblyPath}, expected type Task<>.");
 
@@ -133,8 +143,12 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                 // CustomResponse.Message must express positions in CustomMessage.TextDocument as indexes referencing CustomResponse.Positions.
                 // LinePositionWriteConverter allows serializing extender-defined types into json with indexes referencing LinePosition objects.
                 JsonSerializerOptions writeOptions = new();
-                LinePositionWriteConverter linePositionWriteConverter = new();
-                writeOptions.Converters.Add(linePositionWriteConverter);
+                LinePositionWriteConverter? linePositionWriteConverter = null;
+                if (document is not null)
+                {
+                    linePositionWriteConverter = new();
+                    writeOptions.Converters.Add(linePositionWriteConverter);
+                }
 
                 // Serialize the TResponse and return it to the extension.
                 var responseType = resultProperty.PropertyType;
@@ -142,9 +156,15 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
 
                 return new HandleCustomMessageResponse()
                 {
-                    Message = responseJson,
-                    Positions = linePositionWriteConverter.LinePositions.OrderBy(lp => lp.Value).Select(lp => lp.Key).ToArray(),
+                    Response = responseJson,
+                    Positions = linePositionWriteConverter?.LinePositions.OrderBy(lp => lp.Value).Select(lp => lp.Key).ToImmutableArray()
+                        ?? ImmutableArray<LinePosition>.Empty,
                 };
+            }
+            catch (Exception e)
+            {
+                Log(TraceEventType.Error, $"Custom handler {assemblyPath} {typeFullName} error: {e}");
+                throw;
             }
             finally
             {
