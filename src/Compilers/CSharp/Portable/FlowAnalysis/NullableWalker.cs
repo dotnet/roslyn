@@ -2835,8 +2835,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // If we have a '_getterNullResilienceData' in this code path,
-                    // it means we are currently inferring the annotation of a different field.
+                    // We should not have any '_getterNullResilienceData' in this code path.
+                    // If we do have one, it means we are currently inferring the annotation of a different field.
                     // We should not proceed as there is a possibility of a cycle across inference of multiple fields.
                     Debug.Assert(_getterNullResilienceData is null);
 

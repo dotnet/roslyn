@@ -150,7 +150,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_inferredNullableAnnotation == (int)NullableAnnotation.Ignored)
             {
-                Interlocked.CompareExchange(ref _inferredNullableAnnotation, (int)ComputeInferredNullableAnnotation(), (int)NullableAnnotation.Ignored);
+                var inferredAnnotation = ComputeInferredNullableAnnotation();
+                Debug.Assert(inferredAnnotation is not NullableAnnotation.Ignored);
+                Interlocked.CompareExchange(ref _inferredNullableAnnotation, (int)inferredAnnotation, (int)NullableAnnotation.Ignored);
             }
             Debug.Assert((NullableAnnotation)_inferredNullableAnnotation is NullableAnnotation.NotAnnotated or NullableAnnotation.Annotated);
             return (NullableAnnotation)_inferredNullableAnnotation;
