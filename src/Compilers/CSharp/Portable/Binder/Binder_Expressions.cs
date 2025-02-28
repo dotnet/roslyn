@@ -8522,7 +8522,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lookupResult, left.Type!, memberName, arity,
                     basesBeingResolved: null, lookupOptions, originalBinder: this, ref useSiteInfo);
 
-                this.LookupExtensionMethods(classicExtensionLookupResult, scope, memberName, arity, ref useSiteInfo);
+                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, useSiteInfo.AccumulatesDependencies);
+
+                CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                this.LookupExtensionMethods(classicExtensionLookupResult, scope, memberName, arity, ref classicExtensionUseSiteInfo);
+                diagnostics.Add(expression, classicExtensionUseSiteInfo);
 
                 lookupResult.MergeEqual(classicExtensionLookupResult);
 
@@ -8532,7 +8536,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var members = ArrayBuilder<Symbol>.GetInstance();
-                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, useSiteInfo.AccumulatesDependencies);
                 Symbol? symbol = this.GetSymbolOrMethodOrPropertyGroupStrict(lookupResult, expression, memberName, arity, members, diagnostics, qualifierOpt: null);
                 if (symbol is not null)
                 {
