@@ -38,7 +38,21 @@
     <PackageReference Include="Microsoft.NETCore.App.crossgen2.win-x64" Condition="'$(GenerateReadyToRun)' == 'true'" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />    
   </ItemGroup>
   
-  <Target Name="CalculateCrossgenInputs" DependsOnTargets="PublishItemsOutputGroup">
+  <Target Name="CalculateCrossgenInputs" DependsOnTargets="PublishItemsOutputGroup">  
+    <PropertyGroup>
+      <!-- 
+        For BCL, we want to use the version provided by the runtime in VS, not the ones from the NuGet packages. 
+        This might not be possible if Roslyn is referencing a higher version than the one shipped as part of runtime in VS.
+        For example, we could be referecing S.C.I 7.0 but VS still ships .NET 6. Usually this is a transient state, and the
+        two would eventually be in sync. But we'd need to include those binaries during the out-of-sync period.
+        Note, for the same reasone, we can't safely exclude shared dependencies from ServiceHub host folder.
+
+        Always include BCL in the vsix for non-official build to avoid breakage. Since VS used on CI machines
+        as well as by external contributors usually lags behind our insertion target.
+      -->
+      <_ExcludeRuntimeLibraries Condition="'$(OfficialBuild)' == 'true'">false</_ExcludeRuntimeLibraries>
+    </PropertyGroup>
+
     <ItemGroup>
       <_PublishPaths Include="@(PublishItemsOutputGroupOutputs->'%(OutputPath)')" />
       <_PublishDllPaths Include="@(_PublishPaths)" Condition="'%(Extension)' == '.dll'" />
@@ -58,9 +72,16 @@
       <_R2RAssemblies Include="SQLitePCLRaw.batteries_v2.dll" />
       <_R2RAssemblies Include="StreamJsonRpc.dll" />
       <_R2RAssemblies Include="System.IO.Pipelines.dll" />
-      <_R2RAssemblies Include="System.Text.Json.dll" />
-      <_R2RAssemblies Include="System.Text.Encodings.Web.dll" />
       <_R2RAssemblies Include="Microsoft.NET.StringTools.dll" />
+      
+      <!-- If we need to ship framework assemblies in our vsix (because we are refernceing them via NuGet packages of higher version than shipped in VS, see `_ExcludeRuntimeLibraries`)
+          then also crossgen a few of them to reduce jitting impact -->
+      <_R2RRuntimeAssemblies Include="System.Collections.Immutable.dll" />
+      <_R2RRuntimeAssemblies Include="System.Reflection.Metadata.dll" />
+      <_R2RRuntimeAssemblies Include="System.Text.Encodings.Web.dll" />
+      <_R2RRuntimeAssemblies Include="System.Text.Json.dll" />
+      <_R2RRuntimeAssemblies Include="System.Threading.Tasks.Dataflow.dll" />      
+      <_R2RAssemblies Include="@(_R2RRuntimeAssemblies)" Condition="'$(_ExcludeRuntimeLibraries)' != 'true'" />
 
       <!-- Find all assemblies (including Roslyn and all dependencies) from the actual published location -->
       <_AllPublishedAssemblyPaths Include="@(_PublishDllPaths)" />
@@ -200,20 +221,6 @@
   </Target>
 
   <Target Name="PublishedProjectOutputGroup" DependsOnTargets="CalculateCrossgenInputs" Returns="@(_VsixItem)">
-    <PropertyGroup>
-      <!-- 
-        For BCL, we want to use the version provided by the runtime in VS, not the ones from the NuGet packages. 
-        This might not be possible if Roslyn is referencing a higher version than the one shipped as part of runtime in VS.
-        For example, we could be referecing S.C.I 7.0 but VS still ships .NET 6. Usually this is a transient state, and the
-        two would eventually be in sync. But we'd need to include those binaries during the out-of-sync period.
-        Note, for the same reasone, we can't safely exclude shared dependencies from ServiceHub host folder.
-
-        Always include BCL in the vsix for non-official build to avoid breakage. Since VS used on CI machines
-        as well as by external contributors usually lags behind our insertion target.
-      -->
-      <_ExcludeRuntimeLibraries Condition="'$(OfficialBuild)' == 'true'">false</_ExcludeRuntimeLibraries>
-    </PropertyGroup>
-
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
       <_VsixItem Include="@(_PublishPaths)" />
