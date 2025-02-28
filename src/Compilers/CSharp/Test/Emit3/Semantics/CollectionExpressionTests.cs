@@ -38538,8 +38538,10 @@ partial class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
-        [Fact]
-        public void Add_ParamsArray_01()
+        [Theory]
+        [CombinatorialData]
+        public void Add_ParamsArray_01(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
@@ -38568,7 +38570,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ");
 
@@ -38617,8 +38622,10 @@ partial class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
-        [Fact]
-        public void Add_ParamsCollection_01()
+        [Theory]
+        [CombinatorialData]
+        public void Add_ParamsCollection_01(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
@@ -38647,7 +38654,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ").VerifyDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,

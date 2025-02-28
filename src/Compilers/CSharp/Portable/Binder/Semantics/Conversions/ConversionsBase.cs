@@ -1685,11 +1685,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return CollectionExpressionTypeKind.DictionaryInterface;
             }
-            else if (isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_Dictionary_KV, out elementType) &&
-                compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions)) // fallback to "implements IEnumerable" for earlier language versions
-            {
-                return CollectionExpressionTypeKind.Dictionary;
-            }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
             {
                 // ^ This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
@@ -1699,6 +1694,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // to check for nullable to disallow: Nullable<StructCollection> s = [];
                 // Instead, we just walk the implemented interfaces.
                 elementType = default;
+
+                // PROTOTYPE: Determining whether the target type is ImplementsIEnumerable or ImplementsIEnumerableWithIndexer
+                // should be made here. That requires a Binder instance which we should have at most call sites other than perhaps tests.
+                // It would also mean we could always return the element type, if any, rather than requiring callers to make that
+                // additional check explicitly.
+                // PROTOTYPE: Test collection type that implements IEnumerable only and where the only strongly-typed
+                // GetEnumerator() is an extension method. We should not treat that as ImplementsIEnumerableWithIndexer.
+
                 return CollectionExpressionTypeKind.ImplementsIEnumerable;
             }
 
@@ -1756,7 +1759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CollectionUsesKeyValuePairs(CSharpCompilation compilation, CollectionExpressionTypeKind collectionTypeKind, TypeSymbol elementType, out TypeWithAnnotations keyType, out TypeWithAnnotations valueType)
         {
             // PROTOTYPE: Should apply to any collection of KeyValuePair<,>, not just dictionaries.
-            if (collectionTypeKind is CollectionExpressionTypeKind.Dictionary or CollectionExpressionTypeKind.DictionaryInterface)
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
             {
                 bool usesKeyValuePairs = IsKeyValuePairType(compilation, elementType, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out keyType, out valueType);
                 Debug.Assert(usesKeyValuePairs);

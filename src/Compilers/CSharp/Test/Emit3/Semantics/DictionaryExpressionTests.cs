@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void LanguageVersionDiagnostics_05(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
-            bool includeExtensionMethod)
+            bool includeExtensionAdd)
         {
             string sourceA = """
                 using System.Collections.Generic;
@@ -195,10 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(
-                includeExtensionMethod ? [sourceA, sourceB, s_dictionaryExtensions] : [sourceA, s_dictionaryExtensions],
+                includeExtensionAdd ? [sourceA, sourceB, s_dictionaryExtensions] : [sourceA, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13 && !includeExtensionMethod)
+            if (languageVersion == LanguageVersion.CSharp13 && !includeExtensionAdd)
             {
                 comp.VerifyEmitDiagnostics(
                     // (6,37): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void LanguageVersionDiagnostics_06(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
-            bool includeExtensionMethod)
+            bool includeExtensionAdd)
         {
             string sourceA = """
                 using System.Collections.Generic;
@@ -274,10 +274,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(
-                includeExtensionMethod ? [sourceA, sourceB, s_dictionaryExtensions] : [sourceA, s_dictionaryExtensions],
+                includeExtensionAdd ? [sourceA, sourceB, s_dictionaryExtensions] : [sourceA, s_dictionaryExtensions],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                 options: TestOptions.ReleaseExe);
-            if (languageVersion == LanguageVersion.CSharp13 && !includeExtensionMethod)
+            if (languageVersion == LanguageVersion.CSharp13 && !includeExtensionAdd)
             {
                 comp.VerifyEmitDiagnostics(
                     // (9,13): error CS9215: Collection expression type 'Dictionary<int, string>' must have an instance or extension method 'Add' that can be called with a single argument.

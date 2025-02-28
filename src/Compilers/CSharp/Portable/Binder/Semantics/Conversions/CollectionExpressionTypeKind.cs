@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ReadOnlySpan,
         CollectionBuilder,
         ImplementsIEnumerable,
+        ImplementsIEnumerableWithIndexer,
         ArrayInterface,
-        Dictionary, // PROTOTYPE: Remove this. We shouldn't be hardcoding support for Dictionary<K, V>.
         DictionaryInterface,
     }
 }
