@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt) where TMember : Symbol
         {
             // When the feature 'ImprovedOverloadCandidates' is enabled, we do not include instance members when the receiver
-            // is a type, or static members when the receiver is an instance. It does not apply when the
+            // is a type, or static members when the receiver is an instance. This does not apply when the
             // receiver is a TypeOrValueExpression, which is used to handle the receiver of a Color-Color ambiguity, where either
             // an instance or a static member would be acceptable.
             if (Binder.IsTypeOrValueExpression(receiverOpt))
