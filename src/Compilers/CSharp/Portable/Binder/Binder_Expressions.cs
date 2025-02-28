@@ -8532,6 +8532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!lookupResult.IsMultiViable)
                 {
+                    diagnostics.Free();
                     continue;
                 }
 
@@ -8578,6 +8579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (methodGroup.Methods.Count == 0)
                 {
                     methodGroup.Free();
+                    diagnostics.Free();
                     continue;
                 }
 
