@@ -39,121 +39,194 @@ public class UseExpressionBodyForIndexersRefactoringTests : AbstractCSharpCodeAc
     public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
     {
         await TestMissingAsync(
-@"class C
-{
-    int this[int i]
-    {
-        get 
-        {
-            [||]return Bar();
-        }
-    }
-}", parameters: new TestParameters(options: UseExpressionBody));
+            """
+            class C
+            {
+                int this[int i]
+                {
+                    get 
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    int this[int i]
-    {
-        get
-        {
-            [||]return Bar();
-        }
-    }
-}",
-@"class C
-{
-    int this[int i] => Bar();
-}", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
+            """
+            class C
+            {
+                int this[int i]
+                {
+                    get
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int this[int i] => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    int this[int i]
-    {
-        get
-        {
-            [||]return Bar();
-        }
-    }
-}",
-@"class C
-{
-    int this[int i] => Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                int this[int i]
+                {
+                    get
+                    {
+                        [||]return Bar();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int this[int i] => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact]
     public async Task TestNotOfferedInLambda()
     {
         await TestMissingAsync(
-@"class C
-{
-    Action Goo[int i]
-    {
-        get 
-        {
-            return () => { [||] };
-        }
-    }
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                Action Goo[int i]
+                {
+                    get 
+                    {
+                        return () => { [||] };
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact]
     public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
     {
         await TestMissingAsync(
-@"class C
-{
-    int this[int i] => [||]Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                int this[int i] => [||]Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    int this[int i] => [||]Bar();
-}",
-@"class C
-{
-    int this[int i]
-    {
-        get
-        {
-            return Bar();
-        }
-    }
-}", parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
+            """
+            class C
+            {
+                int this[int i] => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                int this[int i]
+                {
+                    get
+                    {
+                        return Bar();
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
     public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    int this[int i] => [||]Bar();
-}",
-@"class C
-{
-    int this[int i]
-    {
-        get
-        {
-            return Bar();
-        }
+            """
+            class C
+            {
+                int this[int i] => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                int this[int i]
+                {
+                    get
+                    {
+                        return Bar();
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
     }
-}", parameters: new TestParameters(options: UseExpressionBody));
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideBlockBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int this[int i]
+                {
+                    get
+                    {
+                        [|return Bar()|];
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int this[int i] => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                int this[int i]
+                {
+                    get
+                    {
+                        [|return Bar();
+                    }
+                }
+            }|]
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 }
