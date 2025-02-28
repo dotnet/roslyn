@@ -135,14 +135,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
+        [MemberData(nameof(LanguageVersions))]
+        public void LanguageVersionDiagnostics_04(LanguageVersion languageVersion)
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void  Main()
+                    {
+                        Dictionary<int, string> d = [];
+                        d.Report();
+                    }
+                }
+                """;
+            // C#12 collection expressions support target types that implement IEnumerable,
+            // with no Add requirement if the collection is empty.
+            var verifier = CompileAndVerify(
+                [source, s_dictionaryExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                expectedOutput: "[], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+
+                """);
+        }
+
+        [Theory]
         [CombinatorialData]
-        public void Dictionary_01(
+        public void LanguageVersionDiagnostics_05(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool includeExtensionAdd)
         {
             string sourceA = """
                 using System.Collections.Generic;
-                Dictionary<int, string> d = [1:"one"];
+                class Program
+                {
+                    static void  Main()
+                    {
+                        Dictionary<int, string> d = [1:"one"];
+                        d.Report();
+                    }
+                }
                 """;
             string sourceB = """
                 using System.Collections.Generic;
@@ -155,8 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(
-                includeExtensionAdd ? [sourceA, sourceB] : sourceA,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+                includeExtensionAdd ? [sourceA, sourceB, s_dictionaryExtensions] : [sourceA, s_dictionaryExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 if (includeExtensionAdd)
@@ -192,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Dictionary_02(
+        public void LanguageVersionDiagnostics_06(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool includeExtensionAdd)
         {
