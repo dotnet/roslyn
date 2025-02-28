@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../AnalyzersResources.resx">
+    <body>
+      <trans-unit id="ClosureCaptureRuleMessage">
+        <source>The compiler will emit a class that will hold this as a field to allow capturing of this closure</source>
+        <target state="translated">Derleyici, bu kapanışın yakalanmasını sağlamak için bunu bir alan olarak tutacak bir sınıf üretir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClosureCaptureRuleTitle">
+        <source>Display class allocation to capture closure</source>
+        <target state="translated">Kapanış yakalamak için sınıf ayırmayı görüntüle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClosureDriverRuleMessage">
+        <source>Heap allocation of closure Captures: {0}</source>
+        <target state="translated">Kapanış Yakalamalarının yığın ayırması: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ClosureDriverRuleTitle">
+        <source>Closure Allocation Source</source>
+        <target state="translated">Kapanış Ayırma Kaynağı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DelegateOnStructInstanceRuleMessage">
+        <source>Struct instance method being used for delegate creation, this will result in a boxing instruction</source>
+        <target state="translated">Yapı örneği metodu temsilci oluşturmak için kullanılıyor. Bu durum kutulama yönergesine neden olur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DelegateOnStructInstanceRuleTitle">
+        <source>Delegate on struct instance caused a boxing allocation</source>
+        <target state="translated">Yapı örneğindeki temsilci kutulama ayırmasına neden oldu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleMessage">
+        <source>Considering moving this out of the generic method</source>
+        <target state="translated">Bunun genel metodun dışına taşınması düşünülüyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LambaOrAnonymousMethodInGenericMethodRuleTitle">
+        <source>Lambda or anonymous method in a generic method allocates a delegate instance</source>
+        <target state="translated">Genel bir metottaki lambda veya anonim metot bir temsilci örneği ayırır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodGroupAllocationRuleMessage">
+        <source>This will allocate a delegate instance</source>
+        <target state="translated">Bu bir temsilci örneğini ayırır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MethodGroupAllocationRuleTitle">
+        <source>Delegate allocation from a method group</source>
+        <target state="translated">Bir metot grubundan temsilci ayırma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ParamsParameterRuleMessage">
+        <source>This call site is calling into a function with a 'params' parameter. This results in an array allocation.</source>
+        <target state="translated">Bu çağrı sitesi 'params' parametresi ile bir işleve çağrı yapıyor. Bu durum bir dizi ayırmasına neden olur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ParamsParameterRuleTitle">
+        <source>Array allocation for params parameter</source>
+        <target state="translated">params parametresi için dizi ayırma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReadonlyMethodGroupAllocationRuleMessage">
+        <source>This will allocate a delegate instance</source>
+        <target state="translated">Bu bir temsilci örneğini ayırır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReadonlyMethodGroupAllocationRuleTitle">
+        <source>Delegate allocation from a method group</source>
+        <target state="translated">Bir metot grubundan temsilci ayırma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReferenceTypeEnumeratorRuleMessage">
+        <source>Non-ValueType enumerator may result in a heap allocation</source>
+        <target state="translated">ValueType olmayan numaralandırıcı bir yığın ayırmaya neden olabilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReferenceTypeEnumeratorRuleTitle">
+        <source>Possible allocation of reference type enumerator</source>
+        <target state="translated">Başvuru türü numaralandırıcısının olası ayırması</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StringConcatenationAllocationRuleMessage">
+        <source>Considering using StringBuilder</source>
+        <target state="translated">StringBuilder kullanılması düşünülüyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StringConcatenationAllocationRuleTitle">
+        <source>Implicit string concatenation allocation</source>
+        <target state="translated">Örtük dize birleştirmesini ayırma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueTypeNonOverridenCallRuleMessage">
+        <source>Non-overridden virtual method call on a value type adds a boxing or constrained instruction</source>
+        <target state="translated">Bir değer türü üzerindeki geçersiz kılınmayan sanal metot çağrısı bir kutulama veya kısıtlanmış yönerge ekler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueTypeNonOverridenCallRuleTitle">
+        <source>Non-overridden virtual method call on value type</source>
+        <target state="translated">Değer türü üzerindeki geçersiz kılınmayan sanal metot çağrısı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
+        <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
+        <target state="translated">Değer türünden başvuru türüne dönüştürme, çağrı sitesinde (burada) kutulamaya ve çağrılan sitede ise kutudan çıkarmaya neden olur. Varsa genel türleri kullanmayı deneyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">
+        <source>Value type to reference type conversion causing boxing allocation</source>
+        <target state="translated">Değer türünden başvuru türüne dönüştürme, kutulama ayırmasına neden oluyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleMessage">
+        <source>Value type ({0}) is being boxed to a reference type for a string concatenation</source>
+        <target state="translated">{0} değer türü, dize birleştirmesi için bir başvuru türüne kutulanıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ValueTypeToReferenceTypeInAStringConcatenationRuleTitle">
+        <source>Value type to reference type conversion allocation for string concatenation</source>
+        <target state="translated">Dize birleştirmesi için değer türünden başvuru türüne dönüştürme ayırması</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
