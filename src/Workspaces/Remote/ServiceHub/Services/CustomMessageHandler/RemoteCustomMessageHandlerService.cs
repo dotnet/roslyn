@@ -37,7 +37,13 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
         LinePosition[] positions,
         CancellationToken cancellationToken)
     {
+#if NETSTANDARD2_0
+        throw new InvalidOperationException("Custom handlers are only supported in the servicehub host");
+#else
+
+#if DEBUG
         System.Diagnostics.Debugger.Launch();
+#endif
 
         Requires.NotNullOrEmpty(assemblyPath);
         Requires.NotNullOrEmpty(typeFullName);
@@ -53,26 +59,16 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                 Contract.ThrowIfNull(document);
             }
 
-            // Create the Handler instance. Requires having a parameterless constructor.
-            // ```
-            // public class CustomMessageHandler
-            // {
-            //     public Task<TResponse> ExecuteAsync(TRequest, Document, CancellationToken);
-            // }
-            // ```
-#if !NETSTANDARD2_0
             System.Runtime.Loader.AssemblyLoadContext? assemblyLoadContext = null;
-#endif
             try
             {
-#if NETSTANDARD2_0
-                var assembly = Assembly.LoadFrom(assemblyPath);
-#else
                 var directory = Path.GetDirectoryName(assemblyPath);
+                Contract.ThrowIfNull(directory);
 
                 var defaultLoadContext = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(typeof(RemoteCustomMessageHandlerService).Assembly);
+                Contract.ThrowIfNull(defaultLoadContext);
 
-                assemblyLoadContext = new(name: null, isCollectible: true);
+                assemblyLoadContext = new System.Runtime.Loader.AssemblyLoadContext(name: $"RemoteCustomMessageHandlerService assembly load context for {directory}", isCollectible: true);
                 assemblyLoadContext.Resolving += (context, assemblyName) =>
                 {
                     var sharedAssembly = defaultLoadContext.Assemblies.Where(a => a.GetName().Name == assemblyName.Name).FirstOrDefault();
@@ -81,7 +77,7 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                     {
                         if (sharedAssembly.GetName().Version < assemblyName.Version)
                         {
-                            throw new InvalidOperationException();
+                            throw new InvalidOperationException($"The version of the loaded assembly {assemblyName.Name} is too low: requested {assemblyName.Version}, found {sharedAssembly.GetName().Version}.");
                         }
 
                         return sharedAssembly;
@@ -97,11 +93,21 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                 };
 
                 var assembly = assemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
-#endif
 
-                var type = assembly.GetType(typeFullName);
+                var type = assembly.GetType(typeFullName)
+                    ?? throw new InvalidOperationException($"Cannot find type {typeFullName} in {assemblyPath}.");
+
+                // Create the Handler instance. Requires having a parameterless constructor.
+                // ```
+                // public class CustomMessageHandler
+                // {
+                //     public Task<TResponse> ExecuteAsync(TRequest, Document, CancellationToken);
+                // }
+                // ```
                 var handler = Activator.CreateInstance(type);
-                var executeMethod = type.GetMethod("ExecuteAsync", BindingFlags.Public | BindingFlags.Instance);
+                const string executeMethodName = "ExecuteAsync";
+                var executeMethod = type.GetMethod(executeMethodName, BindingFlags.Public | BindingFlags.Instance)
+                    ?? throw new InvalidOperationException($"Cannot find method {executeMethodName} in type {typeFullName} assembly {assemblyPath}.");
 
                 // CustomMessage.Message references positions in CustomMessage.TextDocument as indexes referencing CustomMessage.Positions.
                 // LinePositionReadConverter allows the deserialization of these indexes into LinePosition objects.
@@ -115,11 +121,13 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
 
                 // Invoke the execute method.
                 var parameters = new object?[] { message, document, cancellationToken };
-                var resultTask = (Task)executeMethod.Invoke(handler, parameters);
+                var resultTask = executeMethod.Invoke(handler, parameters) as Task
+                    ?? throw new InvalidOperationException($"Unexpected return type from {typeFullName}:{executeMethodName} in assembly {assemblyPath}, expected type Task<>.");
 
                 // Await the result and get its value.
                 await resultTask.ConfigureAwait(false);
-                var resultProperty = resultTask.GetType().GetProperty("Result");
+                var resultProperty = resultTask.GetType().GetProperty(nameof(Task<>.Result))
+                    ?? throw new InvalidOperationException($"Unexpected return type from {typeFullName}:{executeMethodName} in assembly {assemblyPath}, expected type Task<>.");
                 var result = resultProperty.GetValue(resultTask);
 
                 // CustomResponse.Message must express positions in CustomMessage.TextDocument as indexes referencing CustomResponse.Positions.
@@ -140,10 +148,9 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
             }
             finally
             {
-#if !NETSTANDARD2_0
                 assemblyLoadContext?.Unload();
-#endif
             }
         }, cancellationToken);
+#endif
     }
 }

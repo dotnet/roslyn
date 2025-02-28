@@ -55,7 +55,7 @@ internal class CustomMessageHandler()
 
         if (!response.HasValue)
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("The remote message handler didn't return any value.");
         }
 
         var responsePositions = response.Value.Positions
