@@ -14,13 +14,13 @@ try {
       Write-Host  "##vso[task.LogIssue type=warning;]The base branch for insertion validation is $sourceBranchName, which is not a vs-deps branch."
     }
 
-    if ($enforceLatestCommit) {
-      Write-Host "Validating the PR head matches the specified commit SHA ($commitSHA)..."
-      if ($commitSHA.Length -lt 7) {
+    if ($commitSHA.Length -lt 7) {
         Write-Host "##vso[task.LogIssue type=error;]The PR Commit SHA must be at least 7 characters long."
         exit 1
-      }
-
+    }
+    
+    if ($enforceLatestCommit) {
+      Write-Host "Validating the PR head matches the specified commit SHA ($commitSHA)..."
       Write-Host "Getting the hash of refs/pull/$prNumber/head..."
       $remoteRef = git ls-remote origin refs/pull/$prNumber/head
       Write-Host ($remoteRef | Out-String)
