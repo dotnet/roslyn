@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
 
-        public override string Name
+        public sealed override string Name
         {
             get
             {
