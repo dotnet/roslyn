@@ -959,7 +959,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         GenerateImplicitConversionError(diagnostics, Compilation, syntax, dictionaryConversion, dictionaryType, targetType);
                     }
-
+                }
+                if (collectionTypeKind is CollectionExpressionTypeKind.Dictionary or CollectionExpressionTypeKind.DictionaryInterface)
+                {
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);

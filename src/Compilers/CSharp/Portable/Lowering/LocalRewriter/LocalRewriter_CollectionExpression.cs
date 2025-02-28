@@ -90,6 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return VisitCollectionBuilderCollectionExpression(node);
                     case CollectionExpressionTypeKind.ArrayInterface:
                         return VisitListInterfaceCollectionExpression(node);
+                    case CollectionExpressionTypeKind.Dictionary:
+                        return CreateAndPopulateDictionary(node, ((NamedTypeSymbol)node.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics, node.Elements);
                     case CollectionExpressionTypeKind.DictionaryInterface:
                         return VisitDictionaryInterfaceCollectionExpression(node);
                     default:
