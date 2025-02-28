@@ -50,7 +50,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         var memberDeclaration = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
         if (memberDeclaration is BasePropertyDeclarationSyntax || memberDeclaration is BaseMethodDeclarationSyntax)
         {
-            var x = DualChangeAction.New(CSharpAnalyzersResources.Implement_with_Copilot,
+            var x = DocumentChangeAction.New(CSharpAnalyzersResources.Implement_with_Copilot,
             // for the non preview
             async (_, cancellationToken) => await GetDocumentUpdater(context, null)(cancellationToken).ConfigureAwait(false),
             // no-op for the preview
