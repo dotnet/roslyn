@@ -42,12 +42,12 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
             throw new NotImplementedException("mapCode Request failed: additional workspace 'Update' is currently not supported");
         }
 
-        using var _ = PooledDictionary<Uri, LSP.TextEdit[]>.GetInstance(out var uriToEditsMap);
+        using var _ = PooledDictionary<DocumentUri, LSP.TextEdit[]>.GetInstance(out var uriToEditsMap);
         foreach (var codeMapping in request.Mappings)
         {
             var mappingResult = await MapCodeAsync(codeMapping).ConfigureAwait(false);
 
-            if (mappingResult is not (Uri uri, LSP.TextEdit[] textEdits))
+            if (mappingResult is not (DocumentUri uri, LSP.TextEdit[] textEdits))
             {
                 // Failed the entire request if any of the sub-requests failed
                 return null;
@@ -73,11 +73,11 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
         {
             return new WorkspaceEdit
             {
-                Changes = uriToEditsMap.ToDictionary(kvp => ProtocolConversions.GetDocumentFilePathFromUri(kvp.Key), kvp => kvp.Value)
+                Changes = uriToEditsMap.ToDictionary(kvp => ProtocolConversions.GetDocumentFilePathFromUri(kvp.Key.GetRequiredParsedUri()), kvp => kvp.Value)
             };
         }
 
-        async Task<(Uri, LSP.TextEdit[])?> MapCodeAsync(LSP.VSInternalMapCodeMapping codeMapping)
+        async Task<(DocumentUri, LSP.TextEdit[])?> MapCodeAsync(LSP.VSInternalMapCodeMapping codeMapping)
         {
             var textDocument = codeMapping.TextDocument
                 ?? throw new ArgumentException($"mapCode sub-request failed: MapCodeMapping.TextDocument not expected to be null.");

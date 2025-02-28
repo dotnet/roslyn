@@ -25,8 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 
         protected internal override void BeforeRequest<TRequest>(TRequest request)
         {
-            if (request is ITextDocumentParams textDocumentParams &&
-                textDocumentParams.TextDocument is { Uri: { IsAbsoluteUri: true } documentUri })
+            if (request is ITextDocumentParams textDocumentParams && textDocumentParams.TextDocument.Uri.ParsedUri is Uri documentUri && documentUri.IsAbsoluteUri)
             {
                 _projectService.TrackOpenDocument(documentUri.LocalPath);
             }

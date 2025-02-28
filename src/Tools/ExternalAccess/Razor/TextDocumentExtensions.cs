@@ -6,12 +6,16 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 internal static class TextDocumentExtensions
 {
     public static Uri CreateUri(this TextDocument document)
+        => document.GetURI().GetRequiredParsedUri();
+
+    public static DocumentUri CreateDocumentUri(this TextDocument document)
         => document.GetURI();
 
     public static async Task<ChecksumWrapper> GetChecksumAsync(this TextDocument document, CancellationToken cancellationToken)

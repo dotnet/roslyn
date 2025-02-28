@@ -21,7 +21,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [JsonPropertyName("href")]
         [JsonConverter(typeof(DocumentUriConverter))]
-        public Uri Href
+        public DocumentUri Href
         {
             get;
             set;
@@ -70,7 +70,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return this.Href == null ? 53 : this.Href.GetHashCode();
+            return this.Href is null ? 53 : this.Href.GetHashCode();
         }
     }
 }
