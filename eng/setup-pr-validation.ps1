@@ -15,8 +15,8 @@ try {
     }
 
     if ($commitSHA.Length -lt 7) {
-        Write-Host "##vso[task.LogIssue type=error;]The PR Commit SHA must be at least 7 characters long."
-        exit 1
+      Write-Host "##vso[task.LogIssue type=error;]The PR Commit SHA must be at least 7 characters long."
+      exit 1
     }
     
     if ($enforceLatestCommit) {
