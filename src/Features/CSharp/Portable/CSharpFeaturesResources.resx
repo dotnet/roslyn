@@ -581,4 +581,19 @@
   <data name="required_property" xml:space="preserve">
     <value>required property</value>
   </data>
+  <data name="Error_colon_Could_not_complete_this_request" xml:space="preserve">
+    <value>Error: Could not complete this request.</value>
+  </data>
+    <data name="Error_colon_Quota_exceeded" xml:space="preserve">
+    <value>Error: Quota exceeded.</value>
+  </data>
+    <data name="Error_colon_Copilot_not_available" xml:space="preserve">
+    <value>Error: Copilot not available.</value>
+  </data>
+    <data name="Error_colon_Failed_to_parse" xml:space="preserve">
+    <value>Error: Failed to parse.</value>
+  </data>
+    <data name="Error_colon_Failed_to_parse_into_a_method_or_property" xml:space="preserve">
+    <value>Error: Failed to parse into a method or property.</value>
+  </data>
 </root>

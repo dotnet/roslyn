@@ -192,6 +192,31 @@
         <target state="translated">Activer les types référence Nullable dans la solution</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_colon_Copilot_not_available">
+        <source>Error: Copilot not available.</source>
+        <target state="new">Error: Copilot not available.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_colon_Could_not_complete_this_request">
+        <source>Error: Could not complete this request.</source>
+        <target state="new">Error: Could not complete this request.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_colon_Failed_to_parse">
+        <source>Error: Failed to parse.</source>
+        <target state="new">Error: Failed to parse.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_colon_Failed_to_parse_into_a_method_or_property">
+        <source>Error: Failed to parse into a method or property.</source>
+        <target state="new">Error: Failed to parse into a method or property.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_colon_Quota_exceeded">
+        <source>Error: Quota exceeded.</source>
+        <target state="new">Error: Quota exceeded.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">Directives « using » globales</target>
