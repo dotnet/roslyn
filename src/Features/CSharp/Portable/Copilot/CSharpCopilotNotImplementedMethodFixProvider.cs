@@ -59,7 +59,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
         if (methodOrProperty is BasePropertyDeclarationSyntax || methodOrProperty is BaseMethodDeclarationSyntax)
         {
-            var fix = DualChangeAction.New(CSharpAnalyzersResources.Implement_with_Copilot,
+            var fix = DocumentChangeAction.New(CSharpAnalyzersResources.Implement_with_Copilot,
                 async (_, cancellationToken) => await GetDocumentUpdater(context, null)(cancellationToken).ConfigureAwait(false),
                 (_, _) => Task.FromResult(context.Document),
                 nameof(CSharpAnalyzersResources.Implement_with_Copilot));

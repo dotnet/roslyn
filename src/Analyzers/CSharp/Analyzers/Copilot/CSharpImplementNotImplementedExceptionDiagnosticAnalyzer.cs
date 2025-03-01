@@ -4,9 +4,9 @@
 
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 
@@ -17,7 +17,8 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
         EnforceOnBuildValues.CopilotImplementNotImplementedException,
         option: null,
         new LocalizableResourceString(
-            nameof(CSharpAnalyzersResources.Implement_with_Copilot), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+            nameof(CSharpAnalyzersResources.Implement_with_Copilot), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        configurable: false)
 {
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -26,7 +27,7 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
     {
         context.RegisterCompilationStartAction(context =>
         {
-            var notImplementedExceptionType = context.Compilation.GetTypeByMetadataName(typeof(NotImplementedException).FullName);
+            var notImplementedExceptionType = context.Compilation.GetBestTypeByMetadataName(typeof(NotImplementedException).FullName);
             if (notImplementedExceptionType != null)
                 context.RegisterOperationAction(context => AnalyzeThrow(context, notImplementedExceptionType), OperationKind.Throw);
         });
@@ -35,18 +36,9 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
     private void AnalyzeThrow(OperationAnalysisContext context, INamedTypeSymbol notImplementedExceptionType)
     {
         var throwOperation = (IThrowOperation)context.Operation;
-        if (throwOperation is
-            {
-                Exception: IConversionOperation
-                {
-                    Operand: IObjectCreationOperation
-                    {
-                        Constructor.ContainingType: INamedTypeSymbol constructedType,
-                    },
-                },
-                Syntax: ThrowExpressionSyntax or ThrowStatementSyntax,
-            } &&
-            notImplementedExceptionType.Equals(constructedType))
+        if (throwOperation.Exception.WalkDownConversion() is
+            IObjectCreationOperation { Constructor.ContainingType: INamedTypeSymbol constructedType }
+            && SymbolEqualityComparer.Default.Equals(notImplementedExceptionType, constructedType))
         {
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
@@ -55,4 +47,3 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
         }
     }
 }
-

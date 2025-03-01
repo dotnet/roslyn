@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -658,25 +657,19 @@ public abstract partial class CodeAction
     internal class DocumentChangeAction : SimpleCodeAction
     {
         private readonly Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> _createChangedDocument;
+        private readonly Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>>? _createChangedDocumentPreview;
 
-        protected DocumentChangeAction(
+        private DocumentChangeAction(
             string title,
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
+            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>>? createChangedDocumentPreview,
             string? equivalenceKey,
             CodeActionPriority priority,
             bool createdFromFactoryMethod)
             : base(title, equivalenceKey, priority, createdFromFactoryMethod)
         {
             _createChangedDocument = createChangedDocument;
-        }
-
-        protected DocumentChangeAction(
-            string title,
-            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
-            string? equivalenceKey,
-            CodeActionPriority priority = CodeActionPriority.Default)
-            : this(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: false)
-        {
+            _createChangedDocumentPreview = createChangedDocumentPreview;
         }
 
         public static DocumentChangeAction New(
@@ -684,7 +677,24 @@ public abstract partial class CodeAction
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
             string? equivalenceKey,
             CodeActionPriority priority = CodeActionPriority.Default)
-            => new(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: true);
+            => new(title, createChangedDocument, createChangedDocumentPreview: null, equivalenceKey, priority, createdFromFactoryMethod: true);
+
+        public static DocumentChangeAction New(
+            string title,
+            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
+            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocumentPreview,
+            string? equivalenceKey,
+            CodeActionPriority priority = CodeActionPriority.Default)
+            => new(title, createChangedDocument, createChangedDocumentPreview, equivalenceKey, priority, createdFromFactoryMethod: true);
+
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+        {
+            if (_createChangedDocumentPreview is null)
+                return await base.ComputePreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
+
+            var newDocument = await _createChangedDocumentPreview(CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+            return [new ApplyChangesOperation(newDocument.Project.Solution)];
+        }
 
         protected sealed override Task<Document> GetChangedDocumentAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => _createChangedDocument(progress, cancellationToken);
@@ -744,38 +754,6 @@ public abstract partial class CodeAction
 
         protected sealed override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
              => SpecializedTasks.Null<Solution>();
-    }
-
-    internal sealed class DualChangeAction : DocumentChangeAction
-    {
-        private readonly Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> _createChangedDocumentPreview;
-
-        private DualChangeAction(
-            string title,
-            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
-            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocumentPreview,
-            string? equivalenceKey,
-            CodeActionPriority priority,
-            bool createdFromFactoryMethod)
-            : base(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod)
-        {
-            _createChangedDocumentPreview = createChangedDocumentPreview;
-        }
-
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-        {
-            var newDocument = await _createChangedDocumentPreview(CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
-            return [new ApplyChangesOperation(newDocument.Project.Solution)];
-        }
-
-        public static DualChangeAction New(
-            string title,
-            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
-            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocumentPreview,
-            string? equivalenceKey,
-            CodeActionPriority priority = CodeActionPriority.Default)
-            // todo: confirm createdFromFactoryMethod has to be false
-            => new(title, createChangedDocument, createChangedDocumentPreview, equivalenceKey, priority, createdFromFactoryMethod: false);
     }
 
     #endregion
