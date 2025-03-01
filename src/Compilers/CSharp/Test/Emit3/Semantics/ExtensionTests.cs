@@ -20339,8 +20339,7 @@ class C
 """;
         comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
-
-        verifier = CompileAndVerify(comp);
+        verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
         verifier.VerifyIL("<top-level-statements-entry-point>", """
 {
   // Code size       19 (0x13)
