@@ -233,6 +233,7 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
                 SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
                 SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
                 SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
+                SyntaxKind.ExtensionDeclaration => DeclaredSymbolInfoKind.ExtensionMethod,
                 _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind()),
             },
             GetAccessibility(container, typeDeclaration.Modifiers),
