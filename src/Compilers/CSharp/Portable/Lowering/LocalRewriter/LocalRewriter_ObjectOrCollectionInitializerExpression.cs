@@ -148,6 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(initializer.Arguments.Any());
             Debug.Assert(rewrittenReceiver != null || _inExpressionLambda);
 
+            // PROTOTYPE The receiver may have a conversion (stored in ImplicitReceiverOpt) for a new extension method. We need to account for it
+
             var syntax = initializer.Syntax;
 
             if (_allowOmissionOfConditionalCalls)

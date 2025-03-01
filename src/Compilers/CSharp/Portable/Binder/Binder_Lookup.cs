@@ -195,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupMembersInClass(tempResult, extension, name, arity, basesBeingResolved,
                     options, originalBinder, diagnose: false, ref useSiteInfo);
 
-                // PROTOTYPE we should prefer extension members that apply to a more specific type
                 result.MergeEqual(tempResult);
                 tempResult.Clear();
             }
