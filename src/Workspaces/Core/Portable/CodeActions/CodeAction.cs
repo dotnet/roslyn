@@ -672,6 +672,15 @@ public abstract partial class CodeAction
             _createChangedDocumentPreview = createChangedDocumentPreview;
         }
 
+        protected DocumentChangeAction(
+            string title,
+            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
+            string? equivalenceKey,
+            CodeActionPriority priority = CodeActionPriority.Default)
+            : this(title, createChangedDocument, createChangedDocumentPreview: null, equivalenceKey, priority, createdFromFactoryMethod: false)
+        {
+        }
+
         public static DocumentChangeAction New(
             string title,
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
