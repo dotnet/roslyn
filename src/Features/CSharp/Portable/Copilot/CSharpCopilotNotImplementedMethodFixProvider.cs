@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ImplementNotImplementedException), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     private static SyntaxAnnotation WarningAnnotation { get; }
         = CodeActions.WarningAnnotation.Create(
