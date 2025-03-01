@@ -122,7 +122,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
             var copilotService = document.GetLanguageService<ICopilotCodeAnalysisService>();
             replacement = copilotService switch
             {
-                null => AddCommentToExistingMember(methodOrProperty, "Copilot not available"),
+                null => AddCommentToExistingMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Copilot_not_available),
                 _ => await GetReplacementFromCopilotServiceAsync(copilotService, document, throwNode, methodOrProperty, memberSymbol, semanticModel, references, cancellationToken).ConfigureAwait(false)
             };
 
@@ -143,17 +143,17 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         var (implementationSuggestion, isQuotaExceeded) = await copilotService.ImplementNotImplementedMethodAsync(
             document, throwNode.Span, methodOrProperty, memberSymbol, semanticModel, references, cancellationToken).ConfigureAwait(false);
 
-        return isQuotaExceeded ? AddCommentToExistingMember(methodOrProperty, "Quota exceeded") :
-            implementationSuggestion is null || !implementationSuggestion.TryGetValue("Implementation", out var implementation) || string.IsNullOrEmpty(implementation) ?
-            AddCommentToExistingMember(methodOrProperty, implementationSuggestion?.TryGetValue("Message", out var desc) == true ? desc : "Could not complete this request.") :
+        return isQuotaExceeded ? AddCommentToExistingMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded) :
+            implementationSuggestion is null || !implementationSuggestion.TryGetValue("Implementation", out var implementation) || string.IsNullOrEmpty(implementation)
+            ? AddCommentToExistingMember(methodOrProperty, implementationSuggestion?.TryGetValue("Message", out var desc) == true ? desc : CSharpFeaturesResources.Error_colon_Could_not_complete_this_request) :
             ParseImplementation(implementation, methodOrProperty);
     }
 
     private static MemberDeclarationSyntax ParseImplementation(string implementation, MemberDeclarationSyntax methodOrProperty)
     {
         var parseOnce = SyntaxFactory.ParseMemberDeclaration(implementation, options: methodOrProperty.SyntaxTree.Options);
-        return parseOnce is null || !(parseOnce is BasePropertyDeclarationSyntax || parseOnce is BaseMethodDeclarationSyntax) ?
-            AddCommentToExistingMember(methodOrProperty, parseOnce is null ? "Failed to parse" : "Failed to parse into a method or property") :
+        return parseOnce is null || !(parseOnce is BasePropertyDeclarationSyntax || parseOnce is BaseMethodDeclarationSyntax)
+            ? AddCommentToExistingMember(methodOrProperty, parseOnce is null ? CSharpFeaturesResources.Error_colon_Failed_to_parse : CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property) :
             parseOnce
                 .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
                 .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
@@ -165,7 +165,7 @@ internal sealed partial class CSharpCopilotNotImplementedMethodFixProvider() : S
         var (indentLength, leadingTrivia) = ComputeIndentation(member);
         var indent = new string(' ', indentLength);
         var comment = SyntaxFactory.TriviaList(
-            SyntaxFactory.Comment($"/* Error: {message} */"),
+            SyntaxFactory.Comment($"/* {message} */"),
             SyntaxFactory.CarriageReturnLineFeed,
             SyntaxFactory.Whitespace(indent));
         return member.WithLeadingTrivia(leadingTrivia.AddRange(comment));
