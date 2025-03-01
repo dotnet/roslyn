@@ -162,7 +162,6 @@ internal sealed class RoslynPackage : AbstractPackage
         await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
 
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        cancellationToken.ThrowIfCancellationRequested();
 
         // Ensure the options persisters are loaded since we have to fetch options from the shell
         LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();

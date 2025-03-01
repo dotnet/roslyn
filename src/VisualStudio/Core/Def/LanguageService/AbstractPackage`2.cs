@@ -80,10 +80,10 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
     }
 
-    protected override Task LoadComponentsAsync(CancellationToken cancellationToken)
+    protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
     {
-        // Should only be called from a threadpool thread as this may do MEF loads and initialization
-        Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
+        // Do the MEF loads and initialization in the BG explicitly.
+        await TaskScheduler.Default;
 
         // Ensure the nuget package services are initialized. This initialization pass will only run
         // once our package is loaded indirectly through a legacy COM service we proffer (like the legacy project systems
@@ -100,8 +100,6 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
         _packageInstallerService?.RegisterLanguage(this.RoslynLanguageName);
         _symbolSearchService?.RegisterLanguage(this.RoslynLanguageName);
-
-        return Task.CompletedTask;
     }
 
     protected abstract void RegisterMiscellaneousFilesWorkspaceInformation(MiscellaneousFilesWorkspace miscellaneousFilesWorkspace);
