@@ -22,6 +22,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Roslyn.Utilities
+Imports Microsoft.CodeAnalysis.FindSymbols
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
@@ -371,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult((New Dictionary(Of String, String), False))
             End Function
 
-            Public Function ImplementNotImplementedExceptionAsync(document As Document, span As TextSpan?, proposal As MethodImplementationProposal, cancellationToken As CancellationToken) As Task(Of (responseDictionary As Dictionary(Of String, String), isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionAsync
+            Public Function ImplementNotImplementedMethodAsync(document As Document, span As TextSpan?, memberDeclaration As SyntaxNode, memberSymbol As ISymbol, semanticModel As SemanticModel, references As ImmutableArray(Of ReferencedSymbol), cancellationToken As CancellationToken) As Task(Of (responseDictionary As Dictionary(Of String, String), isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.ImplementNotImplementedMethodAsync
                 Return Task.FromResult((New Dictionary(Of String, String), False))
             End Function
         End Class

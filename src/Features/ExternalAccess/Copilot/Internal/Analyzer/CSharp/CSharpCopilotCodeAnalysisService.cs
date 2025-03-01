@@ -12,10 +12,10 @@ using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.MethodImplementation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -136,11 +136,17 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
     }
 
-    protected override Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionCoreAsync(Document document, TextSpan? span, MethodImplementationProposal proposal, CancellationToken cancellationToken)
+    protected override Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedMethodCoreAsync(
+        Document document,
+        TextSpan? span,
+        SyntaxNode memberDeclaration,
+        ISymbol memberSymbol,
+        SemanticModel semanticModel,
+        ImmutableArray<ReferencedSymbol> references,
+        CancellationToken cancellationToken)
     {
         if (GenerateImplementationService is not null)
-            return GenerateImplementationService.ImplementNotImplementedExceptionAsync(document, span, new MethodProposalWrapper(proposal), cancellationToken);
-
+            return GenerateImplementationService.ImplementNotImplementedMethodAsync(document, span, memberDeclaration, memberSymbol, semanticModel, references, cancellationToken);
         return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
     }
 }

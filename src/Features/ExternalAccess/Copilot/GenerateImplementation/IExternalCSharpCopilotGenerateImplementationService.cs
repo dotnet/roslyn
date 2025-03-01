@@ -3,14 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
 {
     internal interface IExternalCSharpCopilotGenerateImplementationService
     {
-        Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionAsync(Document document, TextSpan? textSpan, MethodProposalWrapper proposal, CancellationToken cancellationToken);
+        Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedMethodAsync(
+            Document document,
+            TextSpan? span,
+            SyntaxNode memberDeclaration,
+            ISymbol memberSymbol,
+            SemanticModel semanticModel,
+            ImmutableArray<ReferencedSymbol> references,
+            CancellationToken cancellationToken);
     }
 }
