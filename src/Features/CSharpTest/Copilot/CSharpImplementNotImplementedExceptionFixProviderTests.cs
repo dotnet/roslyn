@@ -74,29 +74,29 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
             {
                 public int Add(int a, int b)
                 {
-                    [|{|IDE3000:throw new NotImplementedException("Add method not implemented")|}|];
+                    {|IDE3000:throw new NotImplementedException("Add method not implemented")|};
                 }
 
                 public int Subtract(int a, int b) => [|throw new NotImplementedException("Subtract method not implemented")|}|];
 
                 public int Multiply(int a, int b)
                 {
-                    [|{|IDE3000:throw new NotImplementedException("Multiply method not implemented")|}|];
+                    {|IDE3000:throw new NotImplementedException("Multiply method not implemented")|};
                 }
 
                 public double Divide(int a, int b)
                 {
-                    [|{|IDE3000:throw new NotImplementedException("Divide method not implemented")|}|];
+                    {|IDE3000:throw new NotImplementedException("Divide method not implemented")|};
                 }
 
                 public double CalculateSquareRoot(double number) => [|throw new NotImplementedException("CalculateSquareRoot method not implemented")|}|];
 
                 public int Factorial(int number)
                 {
-                    [|{|IDE3000:throw new NotImplementedException("Factorial method not implemented")|}|];
+                    {|IDE3000:throw new NotImplementedException("Factorial method not implemented")|};
                 }
 
-                public int ConstantValue => [|{|IDE3000:throw new NotImplementedException("Property not implemented")|}|];
+                public int ConstantValue => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
             """;
 
@@ -177,7 +177,7 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
             {
                 public void AddData(string data)
                 {
-                    [|{|IDE3000:throw new NotImplementedException("AddData method not implemented")|}|];
+                    {|IDE3000:throw new NotImplementedException("AddData method not implemented")|};
                 }
 
                 public string GetData(int id) => [|throw new NotImplementedException();|]
@@ -186,7 +186,7 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
                 public void UpdateData(int id, string data)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
-                    [|{|IDE3000:throw new NotImplementedException("UpdateData method not implemented")|}|];
+                    {|IDE3000:throw new NotImplementedException("UpdateData method not implemented")|};
                 }
 
                 // Deletes data by ID
@@ -202,10 +202,10 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
                 /// <returns>A task representing the save operation</returns>
                 public Task SaveChangesAsync()
                 {
-                    [|{|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented")|}|];
+                    {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented")|};
                 }
 
-                public int DataCount => [|{|IDE3000:throw new NotImplementedException("Property not implemented")|}|];
+                public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
             """;
 
@@ -296,7 +296,7 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
         {
             void M()
             {
-                [|{|IDE3000:throw new NotImplementedException()|}|];
+                {|IDE3000:throw new NotImplementedException()|};
             }
         }
         """;
@@ -389,7 +389,7 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
             {
                 void M()
                 {
-                    [|{|IDE3000:throw new NotImplementedException()|}|];
+                    {|IDE3000:throw new NotImplementedException()|};
                 }
             }
             """;
