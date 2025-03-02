@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         }
 
         public async Task GenerateDocumentationProposalAsync(DocumentationCommentSnippet snippet,
-        ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
+            ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
         {
             await Task.Yield().ConfigureAwait(false);
 
@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return;
             }
 
-            var snippetProposal = GetSnippetProposal(snippet.SnippetText, snippet.MemberNode, snippet.Position, snippet.CaretOffset);
+            // MemberNode is not null at this point, checked when determining if the file is exluded.
+            var snippetProposal = GetSnippetProposal(snippet.SnippetText, snippet.MemberNode!, snippet.Position, snippet.CaretOffset);
 
             if (snippetProposal is null)
             {
@@ -80,13 +81,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         /// <summary>
         /// Traverses the documentation comment shell and retrieves the pieces that are needed to generate the documentation comment.
         /// </summary>
-        private static DocumentationCommentProposal? GetSnippetProposal(string comments, SyntaxNode? memberNode, int? position, int caret)
+        private static DocumentationCommentProposal? GetSnippetProposal(string comments, SyntaxNode memberNode, int? position, int caret)
         {
-            if (memberNode is null)
-            {
-                return null;
-            }
-
             if (position is null)
             {
                 return null;
