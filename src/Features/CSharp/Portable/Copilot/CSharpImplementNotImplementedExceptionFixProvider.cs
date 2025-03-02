@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ImplementNotImplementedException), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     private static SyntaxAnnotation WarningAnnotation { get; }
         = CodeActions.WarningAnnotation.Create(
@@ -61,9 +61,10 @@ internal sealed class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEdi
 
         // Preliminary analysis before registering fix
         var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
-        if (methodOrProperty is BasePropertyDeclarationSyntax || methodOrProperty is BaseMethodDeclarationSyntax)
+        if (methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax)
         {
-            var fix = DocumentChangeAction.New(CSharpAnalyzersResources.Implement_with_Copilot,
+            var fix = DocumentChangeAction.New(
+                CSharpAnalyzersResources.Implement_with_Copilot,
                 async (_, cancellationToken) => await GetDocumentUpdater(context, null)(cancellationToken).ConfigureAwait(false),
                 (_, _) => Task.FromResult(context.Document),
                 nameof(CSharpAnalyzersResources.Implement_with_Copilot));
@@ -112,13 +113,13 @@ internal sealed class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEdi
         var throwNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
         var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
         Contract.ThrowIfNull(methodOrProperty);
-        Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax || methodOrProperty is BaseMethodDeclarationSyntax);
+        Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var memberSymbol = semanticModel.GetRequiredDeclaredSymbol(methodOrProperty, cancellationToken);
         var references = await FindReferencesAsync(document, memberSymbol, cancellationToken).ConfigureAwait(false);
         MemberDeclarationSyntax replacement;
 
-        var copilotService = document.GetLanguageService<ICopilotCodeAnalysisService>();
+        var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
         replacement = copilotService switch
         {
             null => AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Copilot_not_available),
@@ -138,7 +139,7 @@ internal sealed class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEdi
         ImmutableArray<ReferencedSymbol> references,
         CancellationToken cancellationToken)
     {
-        var (implementationSuggestion, isQuotaExceeded) = await copilotService.ImplementNotImplementedMethodAsync(
+        var (implementationSuggestion, isQuotaExceeded) = await copilotService.ImplementNotImplementedExceptionAsync(
             document, throwNode.Span, methodOrProperty, memberSymbol, semanticModel, references, cancellationToken).ConfigureAwait(false);
 
         return isQuotaExceeded ? AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded) :
@@ -150,12 +151,12 @@ internal sealed class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEdi
     private static MemberDeclarationSyntax ParseImplementation(string implementation, MemberDeclarationSyntax methodOrProperty)
     {
         var parseOnce = SyntaxFactory.ParseMemberDeclaration(implementation, options: methodOrProperty.SyntaxTree.Options);
-        return parseOnce is null || !(parseOnce is BasePropertyDeclarationSyntax || parseOnce is BaseMethodDeclarationSyntax)
-            ? AddCommentToMember(methodOrProperty, parseOnce is null ? CSharpFeaturesResources.Error_colon_Failed_to_parse : CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property) :
-            parseOnce
+        return parseOnce is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax
+            ? parseOnce
                 .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
                 .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
-                .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation);
+                .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation)
+            : AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property);
     }
 
     private static MemberDeclarationSyntax AddCommentToMember(MemberDeclarationSyntax member, string message)

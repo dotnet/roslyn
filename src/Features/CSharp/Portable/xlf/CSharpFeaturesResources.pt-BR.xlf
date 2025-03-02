@@ -202,11 +202,6 @@
         <target state="new">Error: Could not complete this request.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_colon_Failed_to_parse">
-        <source>Error: Failed to parse.</source>
-        <target state="new">Error: Failed to parse.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Error_colon_Failed_to_parse_into_a_method_or_property">
         <source>Error: Failed to parse into a method or property.</source>
         <target state="new">Error: Failed to parse into a method or property.</target>

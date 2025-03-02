@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
 {
     internal interface IExternalCSharpCopilotGenerateImplementationService
     {
-        Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedMethodAsync(
+        Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionAsync(
             Document document,
             TextSpan? span,
-            SyntaxNode memberDeclaration,
+            SyntaxNode syntaxNode,
             ISymbol memberSymbol,
             SemanticModel semanticModel,
             ImmutableArray<ReferencedSymbol> references,

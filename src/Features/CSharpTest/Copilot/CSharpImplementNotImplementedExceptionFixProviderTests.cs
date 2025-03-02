@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Copilot.UnitTests;
 
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpImplementNotImplementedExceptionDiagnosticAnalyzer,
-    CSharpCopilotNotImplementedMethodFixProvider>;
+    CSharpImplementNotImplementedExceptionFixProvider>;
 
-public class CSharpCopilotNotImplementedMethodFixProviderTests
+public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
 {
     [Fact]
     public async Task TestNotImplementedMethodFix_ReplicatesProperResponse()
@@ -37,7 +37,7 @@ public class CSharpCopilotNotImplementedMethodFixProviderTests
             .ReturnsAsync(true);
 
         mockCopilotService
-            .Setup(service => service.ImplementNotImplementedMethodAsync(
+            .Setup(service => service.ImplementNotImplementedExceptionAsync(
                 It.IsAny<Document>(),
                 It.IsAny<TextSpan?>(),
                 It.IsAny<SyntaxNode>(),
@@ -159,7 +159,7 @@ public class CSharpCopilotNotImplementedMethodFixProviderTests
             .ReturnsAsync(true);
 
         mockCopilotService
-            .Setup(service => service.ImplementNotImplementedMethodAsync(
+            .Setup(service => service.ImplementNotImplementedExceptionAsync(
                 It.IsAny<Document>(),
                 It.IsAny<TextSpan?>(),
                 It.IsAny<SyntaxNode>(),
@@ -278,7 +278,7 @@ public class CSharpCopilotNotImplementedMethodFixProviderTests
             .ReturnsAsync(true);
 
         mockCopilotService
-            .Setup(service => service.ImplementNotImplementedMethodAsync(
+            .Setup(service => service.ImplementNotImplementedExceptionAsync(
                 It.IsAny<Document>(),
                 It.IsAny<TextSpan?>(),
                 It.IsAny<SyntaxNode>(),
@@ -371,7 +371,7 @@ public class CSharpCopilotNotImplementedMethodFixProviderTests
             .ReturnsAsync(true);
 
         mockCopilotService
-            .Setup(service => service.ImplementNotImplementedMethodAsync(
+            .Setup(service => service.ImplementNotImplementedExceptionAsync(
                 It.IsAny<Document>(),
                 It.IsAny<TextSpan?>(),
                 It.IsAny<SyntaxNode>(),

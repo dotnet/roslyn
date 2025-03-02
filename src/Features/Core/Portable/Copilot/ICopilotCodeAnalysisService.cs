@@ -87,19 +87,13 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Method to generate a proposal for reimplementing a method or property that throws a <see cref="NotImplementedException"/>.
+    /// Method to implement a <see cref="NotImplementedException"/> in a given <paramref name="syntaxNode"/>
     /// </summary>
-    /// <param name="document">The document containing the member declaration.</param>
-    /// <param name="span">The text span within the document where the <see cref="NotImplementedException"/> is located.</param>
-    /// <param name="memberDeclaration">The member declaration to be reimplemented.</param>
-    /// <param name="semanticModel">The semantic model for the document.</param>
-    /// <param name="references">The references to the member declaration.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A tuple containing a dictionary with implementation details and a boolean indicating if the quota has been exceeded.</returns>
-    Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedMethodAsync(
+    Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionAsync(
         Document document,
         TextSpan? span,
-        SyntaxNode memberDeclaration,
+        SyntaxNode syntaxNode,
         ISymbol memberSymbol,
         SemanticModel semanticModel,
         ImmutableArray<ReferencedSymbol> references,

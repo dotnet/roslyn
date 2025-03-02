@@ -590,9 +590,6 @@
     <data name="Error_colon_Copilot_not_available" xml:space="preserve">
     <value>Error: Copilot not available.</value>
   </data>
-    <data name="Error_colon_Failed_to_parse" xml:space="preserve">
-    <value>Error: Failed to parse.</value>
-  </data>
     <data name="Error_colon_Failed_to_parse_into_a_method_or_property" xml:space="preserve">
     <value>Error: Failed to parse into a method or property.</value>
   </data>
