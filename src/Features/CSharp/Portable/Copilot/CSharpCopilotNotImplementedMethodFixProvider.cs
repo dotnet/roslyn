@@ -37,6 +37,11 @@ internal sealed class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEdi
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        if (context.Diagnostics.Length == 0)
+        {
+            return;
+        }
+
         var document = context.Document;
         var cancellationToken = context.CancellationToken;
 
@@ -52,8 +57,7 @@ internal sealed class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEdi
             return;
         }
 
-        // Find the throw statement or throw expression node
-        var throwNode = context.Diagnostics[0].AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+        var throwNode = context.Diagnostics[0].Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
         // Preliminary analysis before registering fix
         var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
@@ -105,29 +109,23 @@ internal sealed class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEdi
     private static async Task FixOneAsync(
         SyntaxEditor editor, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
-        var throwNode = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+        var throwNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
         var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
-        if (methodOrProperty == null)
+        Contract.ThrowIfNull(methodOrProperty);
+        Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax || methodOrProperty is BaseMethodDeclarationSyntax);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var memberSymbol = semanticModel.GetRequiredDeclaredSymbol(methodOrProperty, cancellationToken);
+        var references = await FindReferencesAsync(document, memberSymbol, cancellationToken).ConfigureAwait(false);
+        MemberDeclarationSyntax replacement;
+
+        var copilotService = document.GetLanguageService<ICopilotCodeAnalysisService>();
+        replacement = copilotService switch
         {
-            return;
-        }
+            null => AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Copilot_not_available),
+            _ => await GetReplacementFromCopilotServiceAsync(copilotService, document, throwNode, methodOrProperty, memberSymbol, semanticModel, references, cancellationToken).ConfigureAwait(false)
+        };
 
-        if (methodOrProperty is BasePropertyDeclarationSyntax || methodOrProperty is BaseMethodDeclarationSyntax)
-        {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var memberSymbol = semanticModel.GetRequiredDeclaredSymbol(methodOrProperty, cancellationToken);
-            var references = await FindReferencesAsync(document, memberSymbol, cancellationToken).ConfigureAwait(false);
-            MemberDeclarationSyntax replacement;
-
-            var copilotService = document.GetLanguageService<ICopilotCodeAnalysisService>();
-            replacement = copilotService switch
-            {
-                null => AddCommentToExistingMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Copilot_not_available),
-                _ => await GetReplacementFromCopilotServiceAsync(copilotService, document, throwNode, methodOrProperty, memberSymbol, semanticModel, references, cancellationToken).ConfigureAwait(false)
-            };
-
-            editor.ReplaceNode(methodOrProperty, replacement);
-        }
+        editor.ReplaceNode(methodOrProperty, replacement);
     }
 
     private static async Task<MemberDeclarationSyntax> GetReplacementFromCopilotServiceAsync(
@@ -143,9 +141,9 @@ internal sealed class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEdi
         var (implementationSuggestion, isQuotaExceeded) = await copilotService.ImplementNotImplementedMethodAsync(
             document, throwNode.Span, methodOrProperty, memberSymbol, semanticModel, references, cancellationToken).ConfigureAwait(false);
 
-        return isQuotaExceeded ? AddCommentToExistingMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded) :
-            implementationSuggestion is null || !implementationSuggestion.TryGetValue("Implementation", out var implementation) || string.IsNullOrEmpty(implementation)
-            ? AddCommentToExistingMember(methodOrProperty, implementationSuggestion?.TryGetValue("Message", out var desc) == true ? desc : CSharpFeaturesResources.Error_colon_Could_not_complete_this_request) :
+        return isQuotaExceeded ? AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded) :
+            implementationSuggestion is null || !implementationSuggestion.TryGetValue("Implementation", out var implementation) || string.IsNullOrWhiteSpace(implementation)
+            ? AddCommentToMember(methodOrProperty, implementationSuggestion?.TryGetValue("Message", out var description) == true ? description : CSharpFeaturesResources.Error_colon_Could_not_complete_this_request) :
             ParseImplementation(implementation, methodOrProperty);
     }
 
@@ -153,36 +151,33 @@ internal sealed class CSharpCopilotNotImplementedMethodFixProvider() : SyntaxEdi
     {
         var parseOnce = SyntaxFactory.ParseMemberDeclaration(implementation, options: methodOrProperty.SyntaxTree.Options);
         return parseOnce is null || !(parseOnce is BasePropertyDeclarationSyntax || parseOnce is BaseMethodDeclarationSyntax)
-            ? AddCommentToExistingMember(methodOrProperty, parseOnce is null ? CSharpFeaturesResources.Error_colon_Failed_to_parse : CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property) :
+            ? AddCommentToMember(methodOrProperty, parseOnce is null ? CSharpFeaturesResources.Error_colon_Failed_to_parse : CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property) :
             parseOnce
                 .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
                 .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
                 .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation);
     }
 
-    private static MemberDeclarationSyntax AddCommentToExistingMember(MemberDeclarationSyntax member, string message)
+    private static MemberDeclarationSyntax AddCommentToMember(MemberDeclarationSyntax member, string message)
     {
-        var (indentLength, leadingTrivia) = ComputeIndentation(member);
-        var indent = new string(' ', indentLength);
+        var leadingTrivia = member.GetLeadingTrivia();
         var comment = SyntaxFactory.TriviaList(
             SyntaxFactory.Comment($"/* {message} */"),
-            SyntaxFactory.CarriageReturnLineFeed,
-            SyntaxFactory.Whitespace(indent));
-        return member.WithLeadingTrivia(leadingTrivia.AddRange(comment));
-    }
+            SyntaxFactory.CarriageReturnLineFeed);
 
-    private static (int, SyntaxTriviaList) ComputeIndentation(SyntaxNode node)
-    {
-        var indentLength = 0;
-        var leadingTrivia = node.GetLeadingTrivia();
-        foreach (var trivia in leadingTrivia)
+        // Find the position after all blank lines
+        var insertIndex = 0;
+        while (insertIndex < leadingTrivia.Count &&
+               leadingTrivia[insertIndex].IsKind(SyntaxKind.EndOfLineTrivia))
         {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                indentLength += trivia.Span.Length;
-            }
+            insertIndex++;
         }
 
-        return (indentLength, leadingTrivia);
+        // Insert the comment after any blank lines
+        var newLeadingTrivia = leadingTrivia.InsertRange(insertIndex, comment);
+
+        return member
+            .WithLeadingTrivia(newLeadingTrivia)
+            .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation);
     }
 }

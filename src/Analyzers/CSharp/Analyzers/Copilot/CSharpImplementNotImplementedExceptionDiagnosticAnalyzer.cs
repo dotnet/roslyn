@@ -4,9 +4,9 @@
 
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 
@@ -27,7 +27,9 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
     {
         context.RegisterCompilationStartAction(context =>
         {
-            var notImplementedExceptionType = context.Compilation.GetBestTypeByMetadataName(typeof(NotImplementedException).FullName);
+            var fullName = typeof(NotImplementedException).FullName;
+            Contract.ThrowIfNull(fullName);
+            var notImplementedExceptionType = context.Compilation.GetTypeByMetadataName(fullName);
             if (notImplementedExceptionType != null)
                 context.RegisterOperationAction(context => AnalyzeThrow(context, notImplementedExceptionType), OperationKind.Throw);
         });
@@ -36,14 +38,22 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
     private void AnalyzeThrow(OperationAnalysisContext context, INamedTypeSymbol notImplementedExceptionType)
     {
         var throwOperation = (IThrowOperation)context.Operation;
-        if (throwOperation.Exception.WalkDownConversion() is
-            IObjectCreationOperation { Constructor.ContainingType: INamedTypeSymbol constructedType }
-            && SymbolEqualityComparer.Default.Equals(notImplementedExceptionType, constructedType))
+        if (throwOperation is
+            {
+                Exception: IConversionOperation
+                {
+                    Operand: IObjectCreationOperation
+                    {
+                        Constructor.ContainingType: INamedTypeSymbol constructedType,
+                    },
+                },
+                Syntax: ThrowExpressionSyntax or ThrowStatementSyntax,
+            } &&
+            notImplementedExceptionType.Equals(constructedType))
         {
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
-                throwOperation.Syntax.GetFirstToken().GetLocation(),
-                [throwOperation.Syntax.GetLocation()]));
+                throwOperation.Syntax.GetLocation()));
         }
     }
 }

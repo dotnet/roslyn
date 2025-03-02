@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Copilot
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.DocumentationComments
-Imports Microsoft.CodeAnalysis.MethodImplementation
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces

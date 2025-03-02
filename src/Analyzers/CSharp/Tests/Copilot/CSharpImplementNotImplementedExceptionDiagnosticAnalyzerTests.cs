@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot.UnitTests
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Copilot.UnitTests
                 {
                     void M()
                     {
-                        [|throw new NotImplementedException();|]
+                        [|{|IDE3000:throw new NotImplementedException()|}|];
                     }
                 }
                 """;
@@ -35,10 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Copilot.UnitTests
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                ExpectedDiagnostics =
-                {
-                    VerifyCS.Diagnostic().WithSpan(7, 9, 7, 45)
-                },
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             }.RunAsync();
@@ -54,12 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Copilot.UnitTests
                 {
                     void M1()
                     {
-                        [|throw new NotImplementedException("Not implemented");|]
+                        [|{|IDE3000:throw new NotImplementedException("Not implemented")|}|];
                     }
 
                     void M2()
                     {
-                        [|throw new NotImplementedException("Not implemented");|]
+                        [|{|IDE3000:throw new NotImplementedException("Not implemented")|}|];
                     }
 
                     void M3()
@@ -70,47 +64,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Copilot.UnitTests
                         }
                         catch (Exception)
                         {
-                            [|throw new NotImplementedException();|]
+                            [|{|IDE3000:throw new NotImplementedException()|}|];
                         }
                     }
 
                     int P1
                     {
-                        get { [|throw new NotImplementedException();|] }
+                        get { [|{|IDE3000:throw new NotImplementedException()|}|]; }
                     }
 
                     int P2
                     {
-                        get { [|throw new NotImplementedException();|] }
-                        set { [|throw new NotImplementedException();|] }
+                        get { [|{|IDE3000:throw new NotImplementedException()|}|]; }
+                        set { [|{|IDE3000:throw new NotImplementedException()|}|]; }
                     }
 
                     int this[int index]
                     {
-                        get { [|throw new NotImplementedException();|] }
-                        set { [|throw new NotImplementedException();|] }
+                        get { [|{|IDE3000:throw new NotImplementedException()|}|]; }
+                        set { [|{|IDE3000:throw new NotImplementedException()|}|]; }
                     }
 
                     void M4()
                     {
-                        Action action = () => [|throw new NotImplementedException();|];
+                        Action action = () => [|{|IDE3000:throw new NotImplementedException()|}|];
                         action();
                     }
 
                     void M5()
                     {
-                        Func<int> func = () => [|throw new NotImplementedException();|];
+                        Func<int> func = () => [|{|IDE3000:throw new NotImplementedException()|}|];
                         func();
                     }
 
                     void M6()
                     {
-                        [|throw new NotImplementedException();|]
+                        [|{|IDE3000:throw new NotImplementedException()|}|];
                     }
 
                     void M7()
                     {
-                        [|throw new NotImplementedException("Not implemented");|]
+                        [|{|IDE3000:throw new NotImplementedException("Not implemented")|}|];
                     }
                 }
                 """;
