@@ -24,7 +24,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
 {
     [Fact]
-    public async Task TestNotImplementedMethodFix_ReplicatesProperResponse()
+    public async Task ValidResponse_ParseSuccessfully()
     {
         var mockOptionsService = new Mock<ICopilotOptionsService>(MockBehavior.Strict);
         mockOptionsService
@@ -146,7 +146,7 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
     }
 
     [Fact]
-    public async Task TestNotImplementedMethodFix_VariousForms_NotifiesWhenQuotaExceeded()
+    public async Task QuotaExceeded_VariousForms_NotifiesAsComment()
     {
         var mockOptionsService = new Mock<ICopilotOptionsService>(MockBehavior.Strict);
         mockOptionsService
@@ -265,7 +265,7 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
     }
 
     [Fact]
-    public async Task TestNotImplementedMethodFix_FailedToParseIntoMethodOrProperty()
+    public async Task ReceivesInvalidCode_NotifiesAsComment()
     {
         var mockOptionsService = new Mock<ICopilotOptionsService>(MockBehavior.Strict);
         mockOptionsService
@@ -324,13 +324,13 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
     }
 
     [Fact]
-    public async Task TestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable_NullDictionary()
+    public async Task NullDictionary_NotifiesWithDefaultComment()
     {
         await RunTestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable(null);
     }
 
     [Fact]
-    public async Task TestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable_EmptyDictionary()
+    public async Task EmptyDictionary_NotifiesWithDefaultComment()
     {
         await RunTestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable([]);
     }
@@ -338,24 +338,25 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
     [Theory]
     [InlineData("Implementation", " ")]
     [InlineData("Implementation", "")]
-    public async Task TestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable_ImplementationKey(string key, string value)
+    public async Task EmptyImplementation_NotifiedWithDefault(string key, string value)
     {
         await RunTestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable(
-            new Dictionary<string, string> { { key, value } });
+            new Dictionary<string, string>
+            {
+                [key] = value
+            })
+            .ConfigureAwait(false);
     }
 
     [Fact]
-    public async Task TestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable_OtherKeyDictionary()
+    public async Task MessageAvailable_MissingImplementation_NotifiesUsingMessage()
     {
         await RunTestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable(
-            new Dictionary<string, string> { { "OtherKey", "SomeValue" } });
-    }
-
-    [Fact]
-    public async Task TestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable_MessageDictionary()
-    {
-        await RunTestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable(
-            new Dictionary<string, string> { { "Message", "Custom error message" } });
+            new Dictionary<string, string>
+            {
+                ["Message"] = "Custom error message"
+            })
+            .ConfigureAwait(false);
     }
 
     private static async Task RunTestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable(Dictionary<string, string>? implementationSuggestion)
