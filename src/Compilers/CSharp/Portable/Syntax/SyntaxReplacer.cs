@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
@@ -276,80 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
 
                 return rewritten;
-            }
-
-            public override SyntaxList<TSyntaxNode> VisitList<TSyntaxNode>(SyntaxList<TSyntaxNode> list)
-            {
-                // This method is a performance optimized version of CSharpSyntaxRewriter.VisitList.
-                // Optimizations include:
-                // 1: Usage of ShouldVisit to minimize nodes on which to invoke VisitListElement
-                // 2: Avoids creation of SyntaxListBuilder if no nodes are replaced
-                // 3: Avoids realization of red nodes unless VisitListElement needs to be invoked
-                // 4: Avoids creation of SyntaxList result if no nodes are replaced
-                // 5: Avoids call to SyntaxList.FullSpan in list scenario as it realizes first and last nodes in list.
-                var listCount = list.Count;
-                if (listCount == 0)
-                {
-                    return list;
-                }
-
-                SyntaxNode listNode = list.Node!;
-                if (!listNode.IsList)
-                {
-                    if (!this.ShouldVisit(listNode.FullSpan))
-                    {
-                        return list;
-                    }
-
-                    var visited = this.VisitListElement(listNode);
-
-                    return visited != listNode && visited != null && !visited.IsKind(SyntaxKind.None)
-                        ? new SyntaxList<TSyntaxNode>(visited)
-                        : list;
-                }
-
-                SyntaxListBuilder? alternate = null;
-                var greenList = new CodeAnalysis.Syntax.InternalSyntax.SyntaxList<GreenNode>(listNode.Green);
-                var start = list[0].FullSpan.Start;
-
-                for (var i = 0; i < listCount; i++)
-                {
-                    var green = greenList[i]!;
-                    var greenSpan = new TextSpan(start, green.FullWidth);
-
-                    if (!this.ShouldVisit(greenSpan))
-                    {
-                        alternate?.AddInternal(green);
-                    }
-                    else
-                    {
-                        var item = list[i];
-                        var visited = this.VisitListElement(item);
-
-                        if (visited != item && alternate == null)
-                        {
-                            alternate = new SyntaxListBuilder(list.Count);
-                            for (int j = 0; j < i; j++)
-                            {
-                                alternate.AddInternal(greenList[j]!);
-                            }
-                        }
-
-                        if (alternate != null && visited != null && !visited.IsKind(SyntaxKind.None))
-                        {
-                            alternate.Add(visited);
-                        }
-                    }
-
-                    start += green.FullWidth;
-                }
-
-                if (alternate != null)
-                {
-                    return (SyntaxList<TSyntaxNode>)alternate.ToList();
-                }
-
-                return list;
             }
         }
 
