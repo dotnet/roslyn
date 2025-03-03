@@ -10,13 +10,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal sealed class NamespaceKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class NamespaceKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.NamespaceKeyword)
 {
-    public NamespaceKeywordRecommender()
-        : base(SyntaxKind.NamespaceKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var syntaxTree = context.SyntaxTree;

@@ -11,10 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
 internal sealed class VarKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
 {
-    public VarKeywordRecommender()
-    {
-    }
-
     private static bool IsValidContext(CSharpSyntaxContext context)
     {
         if (context.IsStatementContext ||
