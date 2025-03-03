@@ -926,17 +926,14 @@ public class NavigateToTests : AbstractNavigateToTests
             }
             """, async w =>
             {
-                var expecteditems = new List<NavigateToItem>
-                {
+                var items = (await _aggregator.GetItemsAsync("C")).ToList();
+                items.Sort(CompareNavigateToItems);
+                VerifyNavigateToResultItems([
                     new("C1", NavigateToItemKind.Class, "csharp", "C1", null, s_emptyPrefixPatternMatch, null),
                     new("C1", NavigateToItemKind.Method, "csharp", "C1", null, s_emptyPrefixPatternMatch, null),
                     new("C2", NavigateToItemKind.Class, "csharp", "C2", null, s_emptyPrefixPatternMatch, null),
                     new("C2", NavigateToItemKind.Method, "csharp", "C2", null, s_emptyPrefixPatternMatch, null), // this is the static ctor
-                    new("C2", NavigateToItemKind.Method, "csharp", "C2", null, s_emptyPrefixPatternMatch, null),
-                };
-                var items = (await _aggregator.GetItemsAsync("C")).ToList();
-                items.Sort(CompareNavigateToItems);
-                VerifyNavigateToResultItems(expecteditems, items);
+                    new("C2", NavigateToItemKind.Method, "csharp", "C2", null, s_emptyPrefixPatternMatch, null)], items);
             });
     }
 
@@ -1018,13 +1015,12 @@ public class NavigateToTests : AbstractNavigateToTests
             var expecteditem1 = new NavigateToItem("get_keyword", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive, null);
             var expecteditem2 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive, null);
             var expecteditem3 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCasePrefixPatternMatch, null);
-            var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem2, expecteditem3 };
 
             var items = await _aggregator.GetItemsAsync("GK");
 
             Assert.Equal(expecteditems.Count, items.Count());
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([expecteditem1, expecteditem2, expecteditem3], items);
         });
     }
 
@@ -1036,11 +1032,10 @@ public class NavigateToTests : AbstractNavigateToTests
         {
             var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive, null);
             var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseExactPatternMatch, null);
-            var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem2 };
 
             var items = await _aggregator.GetItemsAsync("GKW");
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([expecteditem1, expecteditem2], items);
         });
     }
 
@@ -1052,11 +1047,10 @@ public class NavigateToTests : AbstractNavigateToTests
         {
             var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseSubstringPatternMatch_NotCaseSensitive, null);
             var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptySubstringPatternMatch, null);
-            var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem2 };
 
             var items = await _aggregator.GetItemsAsync("K W");
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([expecteditem1, expecteditem2], items);
         });
     }
 
@@ -1088,17 +1082,13 @@ public class NavigateToTests : AbstractNavigateToTests
         var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
         await TestAsync(testHost, composition, source, async w =>
         {
-            var expecteditems = new List<NavigateToItem>
-            {
+            var items = await _aggregator.GetItemsAsync("get word");
+
+            VerifyNavigateToResultItems([
                 new("getkeyword", NavigateToItemKind.Field, "csharp", null, null, s_emptyFuzzyPatternMatch, null),
                 new("get_keyword", NavigateToItemKind.Field, "csharp", null, null, s_emptyFuzzyPatternMatch, null),
                 new("get_key_word", NavigateToItemKind.Field, "csharp", null, null,s_emptySubstringPatternMatch, null),
-                new("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptySubstringPatternMatch_NotCaseSensitive, null)
-            };
-
-            var items = await _aggregator.GetItemsAsync("get word");
-
-            VerifyNavigateToResultItems(expecteditems, items);
+                new("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptySubstringPatternMatch_NotCaseSensitive, null)], items);
         });
     }
 
@@ -1134,14 +1124,9 @@ public class NavigateToTests : AbstractNavigateToTests
             """;
         await TestAsync(testHost, composition, source, async w =>
         {
-            var expecteditems = new List<NavigateToItem>
-            {
-                new("this", NavigateToItemKind.Property, "csharp", null, null, s_emptyExactPatternMatch, null),
-            };
-
             var items = await _aggregator.GetItemsAsync("this");
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([new("this", NavigateToItemKind.Property, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
         });
     }
 
@@ -1151,14 +1136,9 @@ public class NavigateToTests : AbstractNavigateToTests
         var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
         await TestAsync(testHost, composition, source, async w =>
         {
-            var expecteditems = new List<NavigateToItem>
-            {
-                new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)
-            };
-
             var items = await _aggregator.GetItemsAsync("B.Q");
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
         });
     }
 
@@ -1168,13 +1148,9 @@ public class NavigateToTests : AbstractNavigateToTests
         var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
         await TestAsync(testHost, composition, source, async w =>
         {
-            var expecteditems = new List<NavigateToItem>
-            {
-            };
-
             var items = await _aggregator.GetItemsAsync("C.Q");
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([], items);
         });
     }
 
@@ -1184,14 +1160,9 @@ public class NavigateToTests : AbstractNavigateToTests
         var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
         await TestAsync(testHost, composition, source, async w =>
         {
-            var expecteditems = new List<NavigateToItem>
-            {
-                new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)
-            };
-
             var items = await _aggregator.GetItemsAsync("B.B.Q");
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
         });
     }
 
@@ -1201,14 +1172,9 @@ public class NavigateToTests : AbstractNavigateToTests
         var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
         await TestAsync(testHost, composition, source, async w =>
         {
-            var expecteditems = new List<NavigateToItem>
-            {
-                new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
-            };
-
             var items = await _aggregator.GetItemsAsync("Baz.Quux");
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
         });
     }
 
@@ -1218,14 +1184,9 @@ public class NavigateToTests : AbstractNavigateToTests
         var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
         await TestAsync(testHost, composition, source, async w =>
         {
-            var expecteditems = new List<NavigateToItem>
-            {
-                new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
-            };
-
             var items = await _aggregator.GetItemsAsync("G.B.B.Quux");
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
         });
     }
 
@@ -1235,13 +1196,9 @@ public class NavigateToTests : AbstractNavigateToTests
         var source = "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }";
         await TestAsync(testHost, composition, source, async w =>
         {
-            var expecteditems = new List<NavigateToItem>
-            {
-            };
-
             var items = await _aggregator.GetItemsAsync("F.F.B.B.Quux");
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([], items);
         });
     }
 
@@ -1252,14 +1209,9 @@ public class NavigateToTests : AbstractNavigateToTests
         var source = "namespace Goo { namespace Bar { class Baz<X,Y,Z> { void Quux() { } } } }";
         await TestAsync(testHost, composition, source, async w =>
         {
-            var expecteditems = new List<NavigateToItem>
-            {
-                new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)
-            };
-
             var items = await _aggregator.GetItemsAsync("Baz.Q");
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
         });
     }
 
@@ -1270,15 +1222,11 @@ public class NavigateToTests : AbstractNavigateToTests
         var source = "namespace System { class Console { void Write(string s) { } void WriteLine(string s) { } } }";
         await TestAsync(testHost, composition, source, async w =>
         {
-            var expecteditems = new List<NavigateToItem>
-            {
-                new("Write", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
-                new("WriteLine", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)
-            };
-
             var items = await _aggregator.GetItemsAsync("Console.Write");
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([
+                new("Write", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                new("WriteLine", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
         });
     }
 
@@ -1315,15 +1263,12 @@ public class NavigateToTests : AbstractNavigateToTests
         _aggregator = new NavigateToTestAggregator(_provider);
 
         var items = await _aggregator.GetItemsAsync("VisibleMethod");
-        var expectedItems = new List<NavigateToItem>()
-            {
-                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
-                new("VisibleMethod_Generated", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)
-            };
 
         // The pattern matcher should match 'VisibleMethod' to both 'VisibleMethod' and 'VisibleMethod_Not', except that
         // the _Not method is declared in a generated file.
-        VerifyNavigateToResultItems(expectedItems, items);
+        VerifyNavigateToResultItems([
+            new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+            new("VisibleMethod_Generated", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/11474")]
@@ -1741,13 +1686,10 @@ public class NavigateToTests : AbstractNavigateToTests
             _aggregator = new NavigateToTestAggregator(_provider);
 
             var items = await _aggregator.GetItemsAsync("VisibleMethod");
-            var expectedItems = new List<NavigateToItem>()
-            {
-                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
-                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
-            };
 
-            VerifyNavigateToResultItems(expectedItems, items);
+            VerifyNavigateToResultItems([
+                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
 
             Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
             Assert.Single(items, i => i.SecondarySort.StartsWith("0001") && IsFromFile(i, "File2.cs"));
@@ -1786,13 +1728,10 @@ public class NavigateToTests : AbstractNavigateToTests
             _aggregator = new NavigateToTestAggregator(_provider);
 
             var items = await _aggregator.GetItemsAsync("VisibleMethod");
-            var expectedItems = new List<NavigateToItem>()
-            {
-                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
-                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
-            };
 
-            VerifyNavigateToResultItems(expectedItems, items);
+            VerifyNavigateToResultItems([
+                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
 
             Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
             Assert.Single(items, i => i.SecondarySort.StartsWith("0001") && IsFromFile(i, "File2.cs"));
@@ -1831,13 +1770,10 @@ public class NavigateToTests : AbstractNavigateToTests
             _aggregator = new NavigateToTestAggregator(_provider);
 
             var items = await _aggregator.GetItemsAsync("VisibleMethod");
-            var expectedItems = new List<NavigateToItem>()
-            {
-                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
-                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
-            };
 
-            VerifyNavigateToResultItems(expectedItems, items);
+            VerifyNavigateToResultItems([
+                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
 
             Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
             Assert.Single(items, i => i.SecondarySort.StartsWith("0002") && IsFromFile(i, "File2.cs"));
@@ -1876,13 +1812,10 @@ public class NavigateToTests : AbstractNavigateToTests
             _aggregator = new NavigateToTestAggregator(_provider);
 
             var items = await _aggregator.GetItemsAsync("VisibleMethod");
-            var expectedItems = new List<NavigateToItem>()
-            {
-                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
-                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
-            };
 
-            VerifyNavigateToResultItems(expectedItems, items);
+            VerifyNavigateToResultItems([
+                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
 
             Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
             Assert.Single(items, i => i.SecondarySort.StartsWith("0002") && IsFromFile(i, "File2.cs"));
@@ -1921,13 +1854,10 @@ public class NavigateToTests : AbstractNavigateToTests
             _aggregator = new NavigateToTestAggregator(_provider);
 
             var items = await _aggregator.GetItemsAsync("VisibleMethod");
-            var expectedItems = new List<NavigateToItem>()
-            {
-                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
-                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)
-            };
 
-            VerifyNavigateToResultItems(expectedItems, items);
+            VerifyNavigateToResultItems([
+                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
+                new("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
 
             Assert.Single(items, i => i.SecondarySort.StartsWith("0000") && IsFromFile(i, "File1.cs"));
             Assert.Single(items, i => i.SecondarySort.StartsWith("0003") && IsFromFile(i, "File2.cs"));
