@@ -74,11 +74,11 @@ jobs:
 
     - name: 💽 Upload artifacts to release
       shell: pwsh
-      if: ${{ github.event.release.assets_url }} != ''
+      if: ${{ github.event_name == 'release' && github.event.release.assets_url != '' }}
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        Get-ChildItem '${{ runner.temp }}/deployables' |% {
+        Get-ChildItem '${{ runner.temp }}/deployables' -File -Recurse |% {
           Write-Host "Uploading $($_.Name) to release..."
           gh release -R ${{ github.repository }} upload "${{ github.ref_name }}" $_.FullName
         }
