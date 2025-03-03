@@ -31,7 +31,7 @@ internal sealed class DynamicKeywordRecommender : IKeywordRecommender<CSharpSynt
             : [];
     }
 
-    protected static bool IsDynamicTypeContext(
+    private static bool IsDynamicTypeContext(
         int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var syntaxTree = context.SyntaxTree;

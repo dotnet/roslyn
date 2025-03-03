@@ -30,7 +30,7 @@ internal sealed class NewKeywordRecommender : AbstractSyntacticSingleKeywordReco
             SyntaxKind.VolatileKeyword,
         };
 
-    protected static readonly ISet<SyntaxKind> ValidTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+    private static readonly ISet<SyntaxKind> ValidTypeModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.AbstractKeyword,
             SyntaxKind.InternalKeyword,

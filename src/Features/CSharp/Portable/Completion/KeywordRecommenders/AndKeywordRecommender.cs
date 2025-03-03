@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal sealed class AndKeywordRecommender : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.AndKeyword)
+internal sealed class AndKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.AndKeyword)
 {
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         => context.IsAtEndOfPattern;

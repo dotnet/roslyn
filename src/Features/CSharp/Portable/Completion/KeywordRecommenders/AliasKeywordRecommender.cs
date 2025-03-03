@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal sealed class AliasKeywordRecommender : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.AliasKeyword)
+internal sealed class AliasKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.AliasKeyword)
 {
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
