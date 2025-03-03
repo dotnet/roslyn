@@ -123,7 +123,8 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             var handlerName = $"{this.GetType().Name}(category: {category})";
             context.TraceInformation($"{handlerName} started getting diagnostics");
 
-            var versionedCache = _categoryToVersionedCache.GetOrAdd(handlerName, static handlerName => new(handlerName));
+            var versionedCache = _categoryToVersionedCache.GetOrAdd(
+                handlerName, static (handlerName, globalOptions) => new(globalOptions, handlerName), GlobalOptions);
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.

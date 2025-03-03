@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string ChangeSignature = nameof(ChangeSignature);
             public const string ClassView = nameof(ClassView);
             public const string Classification = nameof(Classification);
-            public const string CodeActionsAddAccessibilityModifiers = "CodeActions.AddAccessibilityModifiers";
+            public const string CodeActionsAddOrRemoveAccessibilityModifiers = "CodeActions.AddOrRemoveAccessibilityModifiers";
             public const string CodeActionsAddAnonymousTypeMemberName = "CodeActions.AddAnonymousTypeMemberName";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";

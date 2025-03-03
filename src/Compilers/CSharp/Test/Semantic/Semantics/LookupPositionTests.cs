@@ -2430,7 +2430,7 @@ record C(int X) : Base`(X`)
                         members),
                     Remove(
                         "System.Int32 C.X { get; init; }"),
-                    Add( // paremeters
+                    Add( // parameters
                         "System.Int32 X")),
                 Combine(s_pop, s_pop, s_pop),
                 Add( // Members
@@ -2514,7 +2514,7 @@ class C(int X) : Base`(X`)
                         members),
                     Remove(
                         "System.Int32 C.X { get; }"),
-                    Add( // paremeters
+                    Add( // parameters
                         "System.Int32 X")),
                 Combine(s_pop, s_pop, s_pop),
                 Add( // Members

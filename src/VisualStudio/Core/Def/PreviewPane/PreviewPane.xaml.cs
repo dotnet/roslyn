@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;

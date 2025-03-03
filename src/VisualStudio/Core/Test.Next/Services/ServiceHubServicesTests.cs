@@ -95,7 +95,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // sync
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                (service, cancellationToken) => service.SynchronizeTextChangesAsync([(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText).AsImmutable(), newState.Text)], cancellationToken),
+                (service, cancellationToken) => service.SynchronizeTextChangesAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText).AsImmutable(), newState.Text, cancellationToken),
                 CancellationToken.None);
 
             // check that text already exist in remote side
