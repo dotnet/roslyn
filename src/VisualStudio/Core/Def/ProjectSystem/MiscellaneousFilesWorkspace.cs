@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -19,11 +18,9 @@ using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -52,7 +49,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
 
     private readonly ImmutableArray<MetadataReference> _metadataReferences;
 
-    private IVsTextManager _textManager;
+    private readonly Threading.AsyncLazy<IVsTextManager> _lazyTextManager;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -72,11 +69,9 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         _metadataReferences = [.. CreateMetadataReferences()];
 
         _openTextBufferProvider.AddListener(this);
-    }
 
-    public async Task InitializeAsync()
-    {
-        _textManager = await _textManagerService.GetValueAsync().ConfigureAwait(false);
+        // Use VS AsyncLazy as callers may be in JTF context
+        _lazyTextManager = new Threading.AsyncLazy<IVsTextManager>(() => _textManagerService.GetValueAsync(), _threadingContext.JoinableTaskFactory);
     }
 
     void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _) => TrackOpenedDocument(moniker, textBuffer);
@@ -124,7 +119,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     {
         LanguageInformation languageInformation = null;
 
-        if (ErrorHandler.Succeeded(_textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
+        if (ErrorHandler.Succeeded(_lazyTextManager.GetValue().MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
         {
             _languageInformationByLanguageGuid.TryGetValue(fileLanguageGuid, out languageInformation);
         }

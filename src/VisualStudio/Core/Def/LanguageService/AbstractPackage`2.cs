@@ -52,9 +52,6 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             return _languageService.ComAggregate;
         });
 
-        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
-        RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
-
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         foreach (var editorFactory in CreateEditorFactories())
@@ -69,6 +66,11 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
     {
         await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+        RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
         if (!IVsShellExtensions.IsInCommandLineMode(JoinableTaskFactory))
         {

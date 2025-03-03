@@ -146,11 +146,6 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
 
-        // Misc workspace has to be up and running by the time our package is usable so that it can track running
-        // doc events and appropriately map files to/from it and other relevant workspaces (like the
-        // metadata-as-source workspace).
-        await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync().ConfigureAwait(false);
-
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
@@ -162,6 +157,11 @@ internal sealed class RoslynPackage : AbstractPackage
         await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
 
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        // Misc workspace has to be up and running by the time our package is usable so that it can track running
+        // doc events and appropriately map files to/from it and other relevant workspaces (like the
+        // metadata-as-source workspace).
+        this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
         // Ensure the options persisters are loaded since we have to fetch options from the shell
         LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();
