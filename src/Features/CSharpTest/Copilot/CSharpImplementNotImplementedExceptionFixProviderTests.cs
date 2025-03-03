@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -21,50 +22,42 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpImplementNotImplementedExceptionDiagnosticAnalyzer,
     CSharpImplementNotImplementedExceptionFixProvider>;
 
-public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
+public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTests
 {
     [Fact]
-    public async Task ValidResponse_ParseSuccessfully()
+    public async Task FixAll_ParseSuccessfully()
     {
-        var mockOptionsService = new Mock<ICopilotOptionsService>(MockBehavior.Strict);
-        mockOptionsService
-            .Setup(service => service.IsImplementNotImplementedExceptionEnabledAsync())
-            .ReturnsAsync(true);
+        MockCopilotService((copilotService) =>
+        {
+            copilotService
+                .Setup(service => service.ImplementNotImplementedExceptionAsync(
+                    It.IsAny<Document>(),
+                    It.IsAny<TextSpan?>(),
+                    It.IsAny<SyntaxNode>(),
+                    It.IsAny<ISymbol>(),
+                    It.IsAny<SemanticModel>(),
+                    It.IsAny<ImmutableArray<ReferencedSymbol>>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(async (Document document, TextSpan? textSpan, SyntaxNode node, ISymbol symbol, SemanticModel semanticModel, ImmutableArray<ReferencedSymbol> references, CancellationToken cancellationToken) =>
+                {
+                    var text = await document.GetTextAsync(cancellationToken);
+                    var implementation = node is MethodDeclarationSyntax methodDeclaration
+                        ? methodDeclaration.Identifier.Text switch
+                        {
+                            "Add" => "public int Add(int a, int b)\n{\n    return a + b;\n}\n",
+                            "Subtract" => "public int Subtract(int a, int b) => a - b;\n",
+                            "Multiply" => "public int Multiply(int a, int b)\n{\n    return a * b;\n}\n",
+                            "Divide" => "public double Divide(int a, int b)\n{\n    if (b == 0) throw new DivideByZeroException(\"Division by zero is not allowed\");\n    return (double)a / b;\n}\n",
+                            "CalculateSquareRoot" => "public double CalculateSquareRoot(double number) => Math.Sqrt(number);\n",
+                            "Factorial" => "public int Factorial(int number)\n{\n    if (number < 0) throw new ArgumentException(\"Number must be non-negative\", nameof(number));\n    return number == 0 ? 1 : number * Factorial(number - 1);\n}\n",
+                            _ => string.Empty
+                        }
+                        : node is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Identifier.Text == "ConstantValue"
+                        ? "public int ConstantValue => 42;\n"
+                        : string.Empty;
 
-        var mockCopilotService = new Mock<ICopilotCodeAnalysisService>(MockBehavior.Strict);
-        mockCopilotService
-            .Setup(service => service.IsAvailableAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        mockCopilotService
-            .Setup(service => service.ImplementNotImplementedExceptionAsync(
-                It.IsAny<Document>(),
-                It.IsAny<TextSpan?>(),
-                It.IsAny<SyntaxNode>(),
-                It.IsAny<ISymbol>(),
-                It.IsAny<SemanticModel>(),
-                It.IsAny<ImmutableArray<ReferencedSymbol>>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(async (Document document, TextSpan? textSpan, SyntaxNode node, ISymbol symbol, SemanticModel semanticModel, ImmutableArray<ReferencedSymbol> references, CancellationToken cancellationToken) =>
-            {
-                var text = await document.GetTextAsync(cancellationToken);
-                var implementation = node is MethodDeclarationSyntax methodDeclaration
-                    ? methodDeclaration.Identifier.Text switch
-                    {
-                        "Add" => "public int Add(int a, int b)\n{\n    return a + b;\n}\n",
-                        "Subtract" => "public int Subtract(int a, int b) => a - b;\n",
-                        "Multiply" => "public int Multiply(int a, int b)\n{\n    return a * b;\n}\n",
-                        "Divide" => "public double Divide(int a, int b)\n{\n    if (b == 0) throw new DivideByZeroException(\"Division by zero is not allowed\");\n    return (double)a / b;\n}\n",
-                        "CalculateSquareRoot" => "public double CalculateSquareRoot(double number) => Math.Sqrt(number);\n",
-                        "Factorial" => "public int Factorial(int number)\n{\n    if (number < 0) throw new ArgumentException(\"Number must be non-negative\", nameof(number));\n    return number == 0 ? 1 : number * Factorial(number - 1);\n}\n",
-                        _ => null
-                    }
-                    : node is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Identifier.Text == "ConstantValue"
-                    ? "public int ConstantValue => 42;\n"
-                    : null;
-
-                return (new Dictionary<string, string> { { "Implementation", implementation ?? string.Empty } }, false);
-            });
+                    return (new() { ["Implementation"] = implementation }, false); });
+        });
 
         var testCode = """
             using System;
@@ -148,26 +141,19 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
     [Fact]
     public async Task QuotaExceeded_VariousForms_NotifiesAsComment()
     {
-        var mockOptionsService = new Mock<ICopilotOptionsService>(MockBehavior.Strict);
-        mockOptionsService
-            .Setup(service => service.IsImplementNotImplementedExceptionEnabledAsync())
-            .ReturnsAsync(true);
-
-        var mockCopilotService = new Mock<ICopilotCodeAnalysisService>(MockBehavior.Strict);
-        mockCopilotService
-            .Setup(service => service.IsAvailableAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        mockCopilotService
-            .Setup(service => service.ImplementNotImplementedExceptionAsync(
-                It.IsAny<Document>(),
-                It.IsAny<TextSpan?>(),
-                It.IsAny<SyntaxNode>(),
-                It.IsAny<ISymbol>(),
-                It.IsAny<SemanticModel>(),
-                It.IsAny<ImmutableArray<ReferencedSymbol>>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>((null, true)));
+        MockCopilotService((copilotService) =>
+        {
+            copilotService
+                .Setup(service => service.ImplementNotImplementedExceptionAsync(
+                    It.IsAny<Document>(),
+                    It.IsAny<TextSpan?>(),
+                    It.IsAny<SyntaxNode>(),
+                    It.IsAny<ISymbol>(),
+                    It.IsAny<SemanticModel>(),
+                    It.IsAny<ImmutableArray<ReferencedSymbol>>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>((null, true)));
+        });
 
         var testCode = """
             using System;
@@ -267,27 +253,20 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
     [Fact]
     public async Task ReceivesInvalidCode_NotifiesAsComment()
     {
-        var mockOptionsService = new Mock<ICopilotOptionsService>(MockBehavior.Strict);
-        mockOptionsService
-            .Setup(service => service.IsImplementNotImplementedExceptionEnabledAsync())
-            .ReturnsAsync(true);
-
-        var mockCopilotService = new Mock<ICopilotCodeAnalysisService>(MockBehavior.Strict);
-        mockCopilotService
-            .Setup(service => service.IsAvailableAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        mockCopilotService
-            .Setup(service => service.ImplementNotImplementedExceptionAsync(
-                It.IsAny<Document>(),
-                It.IsAny<TextSpan?>(),
-                It.IsAny<SyntaxNode>(),
-                It.IsAny<ISymbol>(),
-                It.IsAny<SemanticModel>(),
-                It.IsAny<ImmutableArray<ReferencedSymbol>>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>((
-                new Dictionary<string, string> { { "Implementation", "invalid code" } }, false)));
+        MockCopilotService((copilotService) =>
+        {
+            copilotService
+                .Setup(service => service.ImplementNotImplementedExceptionAsync(
+                    It.IsAny<Document>(),
+                    It.IsAny<TextSpan?>(),
+                    It.IsAny<SyntaxNode>(),
+                    It.IsAny<ISymbol>(),
+                    It.IsAny<SemanticModel>(),
+                    It.IsAny<ImmutableArray<ReferencedSymbol>>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>(
+                    (new() { ["Implementation"] = "invalid code" }, false)));
+        });
 
         var testCode = """
         using System;
@@ -361,26 +340,19 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
 
     private static async Task RunTestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable(Dictionary<string, string>? implementationSuggestion)
     {
-        var mockOptionsService = new Mock<ICopilotOptionsService>(MockBehavior.Strict);
-        mockOptionsService
-            .Setup(service => service.IsImplementNotImplementedExceptionEnabledAsync())
-            .ReturnsAsync(true);
-
-        var mockCopilotService = new Mock<ICopilotCodeAnalysisService>(MockBehavior.Strict);
-        mockCopilotService
-            .Setup(service => service.IsAvailableAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-
-        mockCopilotService
-            .Setup(service => service.ImplementNotImplementedExceptionAsync(
-                It.IsAny<Document>(),
-                It.IsAny<TextSpan?>(),
-                It.IsAny<SyntaxNode>(),
-                It.IsAny<ISymbol>(),
-                It.IsAny<SemanticModel>(),
-                It.IsAny<ImmutableArray<ReferencedSymbol>>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>((implementationSuggestion, false)));
+        MockCopilotService((copilotService) =>
+        {
+            copilotService
+                .Setup(service => service.ImplementNotImplementedExceptionAsync(
+                    It.IsAny<Document>(),
+                    It.IsAny<TextSpan?>(),
+                    It.IsAny<SyntaxNode>(),
+                    It.IsAny<ISymbol>(),
+                    It.IsAny<SemanticModel>(),
+                    It.IsAny<ImmutableArray<ReferencedSymbol>>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>((implementationSuggestion, false)));
+        });
 
         var testCode = """
             using System;
@@ -427,5 +399,20 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
+    }
+
+    private static void MockCopilotService(Action<Mock<ICopilotCodeAnalysisService>> setupCopilotService)
+    {
+        var mockOptionsService = new Mock<ICopilotOptionsService>(MockBehavior.Strict);
+        mockOptionsService
+            .Setup(service => service.IsImplementNotImplementedExceptionEnabledAsync())
+            .ReturnsAsync(true);
+
+        var copilotService = new Mock<ICopilotCodeAnalysisService>(MockBehavior.Strict);
+        copilotService
+            .Setup(service => service.IsAvailableAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        setupCopilotService(copilotService);
     }
 }
