@@ -8592,6 +8592,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var extensionMethodResult = resolveOverloads(this, methodGroup, actualArguments, options, returnType, returnRefKind, in callingConvention, expression, diagnostics);
+                diagnostics.Free();
+
                 // If the search in the current scope resulted in any applicable method (regardless of whether a best
                 // applicable method could be determined) then our search is complete. Otherwise, store aside the
                 // first non-applicable result and continue searching for an applicable result.
@@ -8601,7 +8603,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     actualArguments?.Free();
                     lookupResult.Free();
                     classicExtensionLookupResult.Free();
-                    diagnostics.Free();
                     return extensionMethodResult;
                 }
                 else if (firstResult.IsEmpty)
