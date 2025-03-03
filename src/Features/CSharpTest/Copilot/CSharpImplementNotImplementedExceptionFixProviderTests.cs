@@ -63,7 +63,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 });
         });
 
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             using System.Threading.Tasks;
 
@@ -105,9 +107,8 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 int Factorial(int number);
                 int ConstantValue { get; }
             }
-            """;
-
-        var fixedCode = """
+            """,
+            FixedCode = """
             using System;
             using System.Threading.Tasks;
 
@@ -151,12 +152,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 int Factorial(int number);
                 int ConstantValue { get; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
@@ -179,7 +175,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>((null, true)));
         });
 
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             using System.Threading.Tasks;
 
@@ -227,9 +225,8 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 Task SaveChangesAsync();
                 int DataCount { get; }
             }
-            """;
-
-        var fixedCode = """
+            """,
+            FixedCode = """
             using System;
             using System.Threading.Tasks;
 
@@ -283,12 +280,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 Task SaveChangesAsync();
                 int DataCount { get; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
@@ -312,7 +304,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     (new() { ["Implementation"] = "invalid code" }, false)));
         });
 
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
         using System;
 
         class C
@@ -322,9 +316,8 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 {|IDE3000:throw new NotImplementedException();|}
             }
         }
-        """;
-
-        var fixedCode = """
+        """,
+            FixedCode = """
         using System;
 
         class C
@@ -335,12 +328,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 throw new NotImplementedException();
             }
         }
-        """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+        """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
@@ -398,7 +386,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>((implementationSuggestion, false)));
         });
 
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class C
@@ -408,9 +398,8 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {|IDE3000:throw new NotImplementedException();|}
                 }
             }
-            """;
-
-        var fixedCode = implementationSuggestion?.TryGetValue("Message", out var message) == true
+            """,
+            FixedCode = implementationSuggestion?.TryGetValue("Message", out var message) == true
             ? $$"""
             using System;
 
@@ -434,12 +423,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     throw new NotImplementedException();
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();

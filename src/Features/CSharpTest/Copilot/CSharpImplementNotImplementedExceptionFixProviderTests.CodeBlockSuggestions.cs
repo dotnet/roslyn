@@ -54,7 +54,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>((new() { ["Implementation"] = replacementCodeBlock }, false)));
         });
 
-        var testCode = $$"""
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
             using System;
             using System.Threading.Tasks;
 
@@ -62,9 +64,8 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             {
                 {{notImplementedCodeBlock.TrimStart()}}
             }
-            """;
-
-        var fixedCode = $$"""
+            """,
+            FixedCode = $$"""
             using System;
             using System.Threading.Tasks;
 
@@ -72,12 +73,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             {
                 {{replacementCodeBlock.TrimStart()}}
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
