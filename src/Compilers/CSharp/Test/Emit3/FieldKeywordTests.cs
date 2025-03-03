@@ -11264,6 +11264,7 @@ class C<T>
         [Theory]
         [InlineData("#nullable disable")]
         [InlineData("#nullable disable warnings")]
+        [InlineData("#pragma warning disable 8603 // Possible null reference return.")]
         public void Nullable_NotResilient_AccessorWarningsAreDisabled_01(string directive)
         {
             var source = $$"""
@@ -11288,41 +11289,11 @@ class C<T>
             Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
-        [Fact]
-        public void Nullable_NotResilient_AccessorWarningsAreDisabled_02()
-        {
-            var source = """
-                #nullable enable
-
-                class C
-                {
-                    public string Prop
-                    {
-                #pragma warning disable 8603 // Possible null reference return.
-                        get => field;
-                        set => field = null;
-                    }
-                }
-                """;
-
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
-            comp.VerifyEmitDiagnostics(
-                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
-                //     public string Prop
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19),
-                // (9,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         set => field = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 24));
-
-            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
-        }
-
         [Theory]
         [InlineData("#nullable disable")]
         [InlineData("#nullable disable warnings")]
-        // TODO2: pragma
+        [InlineData("#pragma warning disable")]
+        [InlineData("#pragma warning disable 8603 // Possible null reference return.")]
         public void Nullable_Resilient_ChainedConstructor_01(string directive)
         {
             // Since the backing field is nullable, a chained constructor isn't expected to put it into non-null state.
@@ -11392,6 +11363,7 @@ class C<T>
         [Fact]
         public void Nullable_Explicit_ChainedConstructor_01()
         {
+            // Behavior is consistent with inferred nullable backing field compared with explicitly attributed backing field.
             var source = $$"""
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;

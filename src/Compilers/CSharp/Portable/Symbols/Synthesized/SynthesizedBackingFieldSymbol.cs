@@ -178,9 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var binder = getAccessor.TryGetBodyBinder() ?? throw ExceptionUtilities.UnexpectedValue(getAccessor);
             var boundGetAccessor = binder.BindMethodBody(getAccessor.SyntaxNode, BindingDiagnosticBag.Discarded);
 
-            var annotatedDiagnostics = DiagnosticBag.GetInstance();
-            NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, annotatedDiagnostics, getterNullResilienceData: (getAccessor, _property.BackingField, NullableAnnotation.Annotated));
-
+            var annotatedDiagnostics = nullableAnalyzeAndFilterDiagnostics(assumedNullableAnnotation: NullableAnnotation.Annotated);
             if (annotatedDiagnostics.IsEmptyWithoutResolution)
             {
                 // If the pass where the field was annotated results in no diagnostics at all, then the property is null-resilient and the not-annotated pass can be skipped.
@@ -188,9 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.Annotated;
             }
 
-            var notAnnotatedDiagnostics = DiagnosticBag.GetInstance();
-            NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, notAnnotatedDiagnostics, getterNullResilienceData: (getAccessor, _property.BackingField, NullableAnnotation.NotAnnotated));
-
+            var notAnnotatedDiagnostics = nullableAnalyzeAndFilterDiagnostics(assumedNullableAnnotation: NullableAnnotation.NotAnnotated);
             if (notAnnotatedDiagnostics.IsEmptyWithoutResolution)
             {
                 // annotated pass had diagnostics, and not-annotated pass had no diagnostics.
@@ -216,6 +212,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             annotatedDiagnostics.Free();
             return NullableAnnotation.Annotated;
+
+            DiagnosticBag nullableAnalyzeAndFilterDiagnostics(NullableAnnotation assumedNullableAnnotation)
+            {
+                var diagnostics = DiagnosticBag.GetInstance();
+                NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, diagnostics, getterNullResilienceData: (getAccessor, _property.BackingField, assumedNullableAnnotation));
+                if (diagnostics.IsEmptyWithoutResolution)
+                {
+                    return diagnostics;
+                }
+
+                var filteredDiagnostics = DiagnosticBag.GetInstance();
+                _ = DeclaringCompilation.FilterAndAppendAndFreeDiagnostics(filteredDiagnostics, ref diagnostics, cancellationToken: default);
+                return filteredDiagnostics;
+            }
         }
 #nullable disable
 
