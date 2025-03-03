@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class PragmaKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class PragmaKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public PragmaKeywordRecommender()
         : base(SyntaxKind.PragmaKeyword, isValidInPreprocessorContext: true)

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class RemoveKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class RemoveKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public RemoveKeywordRecommender()
         : base(SyntaxKind.RemoveKeyword)

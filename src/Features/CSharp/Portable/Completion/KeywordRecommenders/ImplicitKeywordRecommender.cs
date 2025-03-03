@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ImplicitKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class ImplicitKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     private static readonly ISet<SyntaxKind> s_validNonInterfaceMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class OrderByKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class OrderByKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public OrderByKeywordRecommender()
         : base(SyntaxKind.OrderByKeyword)

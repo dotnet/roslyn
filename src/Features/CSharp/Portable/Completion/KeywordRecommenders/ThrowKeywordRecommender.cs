@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ThrowKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class ThrowKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public ThrowKeywordRecommender()
         : base(SyntaxKind.ThrowKeyword)

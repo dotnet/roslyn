@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class LetKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class LetKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public LetKeywordRecommender()
         : base(SyntaxKind.LetKeyword)

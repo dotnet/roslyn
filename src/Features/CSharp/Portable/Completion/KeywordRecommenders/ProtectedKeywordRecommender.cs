@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ProtectedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class ProtectedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public ProtectedKeywordRecommender()
         : base(SyntaxKind.ProtectedKeyword)

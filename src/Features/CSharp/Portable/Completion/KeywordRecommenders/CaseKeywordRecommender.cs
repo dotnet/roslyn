@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class CaseKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class CaseKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public CaseKeywordRecommender()
         : base(SyntaxKind.CaseKeyword)

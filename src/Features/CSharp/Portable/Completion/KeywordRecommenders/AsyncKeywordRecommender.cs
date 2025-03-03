@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class AsyncKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class AsyncKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public AsyncKeywordRecommender()
         : base(SyntaxKind.AsyncKeyword, isValidInPreprocessorContext: false)

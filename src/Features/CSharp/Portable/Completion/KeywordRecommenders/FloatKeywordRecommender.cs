@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class FloatKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class FloatKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
 {
     public FloatKeywordRecommender()
         : base(SyntaxKind.FloatKeyword)

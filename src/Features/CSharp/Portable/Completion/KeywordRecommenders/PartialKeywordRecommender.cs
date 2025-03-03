@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class PartialKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class PartialKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public PartialKeywordRecommender()
         : base(SyntaxKind.PartialKeyword)

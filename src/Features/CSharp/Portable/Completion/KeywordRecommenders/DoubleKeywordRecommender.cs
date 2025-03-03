@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class DoubleKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class DoubleKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
 {
     public DoubleKeywordRecommender()
         : base(SyntaxKind.DoubleKeyword)

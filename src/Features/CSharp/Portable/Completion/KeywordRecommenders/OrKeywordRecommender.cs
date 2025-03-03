@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class OrKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class OrKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
     public OrKeywordRecommender()
         : base(SyntaxKind.OrKeyword)

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class LongKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class LongKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
 {
     public LongKeywordRecommender()
         : base(SyntaxKind.LongKeyword)
