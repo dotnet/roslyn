@@ -30,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonPropertyName("uri")]
         [JsonRequired]
         [JsonConverter(typeof(DocumentUriConverter))]
-        public Uri Uri
+        public DocumentUri Uri
         {
             get;
             set;
