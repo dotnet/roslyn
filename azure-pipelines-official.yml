@@ -211,6 +211,9 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
+        - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
+          displayName: Disable Real-time Monitoring
+          
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
