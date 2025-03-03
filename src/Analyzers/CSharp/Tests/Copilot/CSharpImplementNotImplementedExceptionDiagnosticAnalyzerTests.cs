@@ -18,7 +18,9 @@ public class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTests
     [Fact]
     public async Task TestThrowNotImplementedExceptionInStatement()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class C
@@ -28,11 +30,7 @@ public class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTests
                     {|IDE3000:throw new NotImplementedException();|}
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
@@ -41,18 +39,16 @@ public class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTests
     [Fact]
     public async Task TestThrowNotImplementedExceptionInExpression()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class C
             {
                 int P => {|IDE3000:throw new NotImplementedException()|};
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
@@ -61,7 +57,9 @@ public class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTests
     [Fact]
     public async Task TestDifferentFlavorsOfThrowNotImplementedException()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class C
@@ -127,11 +125,7 @@ public class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTests
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();

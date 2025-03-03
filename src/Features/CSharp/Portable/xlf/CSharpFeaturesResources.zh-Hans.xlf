@@ -198,8 +198,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Error_colon_Failed_to_parse_into_a_method_or_property">
-        <source>Error: Failed to parse into a method or property.</source>
-        <target state="new">Error: Failed to parse into a method or property.</target>
+        <source>Error: Failed to parse Copilot response into a method or property.</source>
+        <target state="new">Error: Failed to parse Copilot response into a method or property.</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_colon_Quota_exceeded">

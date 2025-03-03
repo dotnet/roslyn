@@ -74,10 +74,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {|IDE3000:throw new NotImplementedException("Add method not implemented");|}
                 }
 
-                public int Subtract(int a, int b) => {|IDE3000:throw new NotImplementedException("Subtract method not implemented");|}
+                public int Subtract(int a, int b) => {|IDE3000:throw new NotImplementedException("Subtract method not implemented")|};
 
-                public int Multiply(int a, int b)
-                {
+                public int Multiply(int a, int b) {
                     {|IDE3000:throw new NotImplementedException("Multiply method not implemented");|}
                 }
 
@@ -86,7 +85,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {|IDE3000:throw new NotImplementedException("Divide method not implemented");|}
                 }
 
-                public double CalculateSquareRoot(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented");|}
+                public double CalculateSquareRoot(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented")|};
 
                 public int Factorial(int number)
                 {
@@ -121,8 +120,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
                 public int Subtract(int a, int b) => a - b;
 
-                public int Multiply(int a, int b)
-                {
+                public int Multiply(int a, int b) {
                     return a * b;
                 }
 
@@ -451,7 +449,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     {
         var mockOptionsService = new Mock<ICopilotOptionsService>(MockBehavior.Strict);
         mockOptionsService
-            .Setup(service => service.IsImplementNotImplementedExceptionEnabledAsync())
+            .Setup(service => service.IsImplementNotImplementedExceptionEnabledAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         var copilotService = new Mock<ICopilotCodeAnalysisService>(MockBehavior.Strict);

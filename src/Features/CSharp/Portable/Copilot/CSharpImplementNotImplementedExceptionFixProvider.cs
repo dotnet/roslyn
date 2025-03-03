@@ -46,13 +46,7 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var cancellationToken = context.CancellationToken;
 
         if (document.GetLanguageService<ICopilotOptionsService>() is not { } optionsService ||
-            await optionsService.IsImplementNotImplementedExceptionEnabledAsync().ConfigureAwait(false) is false)
-        {
-            return;
-        }
-
-        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-            await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+            await optionsService.IsImplementNotImplementedExceptionEnabledAsync(cancellationToken).ConfigureAwait(false) is false)
         {
             return;
         }
@@ -64,10 +58,10 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         if (methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax)
         {
             var fix = DocumentChangeAction.New(
-                CSharpAnalyzersResources.Implement_with_Copilot,
-                async (_, cancellationToken) => await GetDocumentUpdater(context, null)(cancellationToken).ConfigureAwait(false),
-                (_, _) => Task.FromResult(context.Document),
-                nameof(CSharpAnalyzersResources.Implement_with_Copilot));
+                title: CSharpAnalyzersResources.Implement_with_Copilot,
+                createChangedDocument: async (_, cancellationToken) => await GetDocumentUpdater(context: context, diagnostic: null)(cancellationToken).ConfigureAwait(false),
+                createChangedDocumentPreview: (_, _) => Task.FromResult(context.Document),
+                equivalenceKey: nameof(CSharpAnalyzersResources.Implement_with_Copilot));
             context.RegisterCodeFix(fix, context.Diagnostics[0]);
         }
     }

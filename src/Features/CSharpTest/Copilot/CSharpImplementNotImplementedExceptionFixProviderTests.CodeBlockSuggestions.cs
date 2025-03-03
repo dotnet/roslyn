@@ -234,7 +234,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         // Property with NotImplementedException in expression-bodied member
         [
             """
-                public int TestProperty => {|IDE3000:throw new NotImplementedException();|}
+                public int TestProperty => {|IDE3000:throw new NotImplementedException()|};
             """
         ] =
         [
