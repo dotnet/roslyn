@@ -97,7 +97,7 @@ internal sealed class CSharpTextStructureNavigatorProvider(
                     contentStart++;
             }
 
-            var end = token.Span.End;
+            var end = Math.Max(contentStart, token.Span.End);
             var contentEnd = end;
 
             if (CharAt(contentEnd - 1) == '8')
