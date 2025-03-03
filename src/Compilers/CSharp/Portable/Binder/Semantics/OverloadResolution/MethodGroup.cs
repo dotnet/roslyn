@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -38,21 +37,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Methods.Add(method);
         }
 
-        internal void PopulateWithMethods(
+        internal void PopulateWithExtensionMethods(
             BoundExpression receiverOpt,
             ArrayBuilder<Symbol> members,
             ImmutableArray<TypeWithAnnotations> typeArguments,
-            bool isExtensionMethodGroup,
             LookupResultKind resultKind = LookupResultKind.Viable,
             DiagnosticInfo error = null)
         {
             this.PopulateHelper(receiverOpt, resultKind, error);
-            this.IsExtensionMethodGroup = isExtensionMethodGroup;
+            this.IsExtensionMethodGroup = true;
 
             foreach (var member in members)
             {
                 this.Methods.Add((MethodSymbol)member);
-                Debug.Assert(((MethodSymbol)member).IsExtensionMethod == isExtensionMethodGroup);
+                Debug.Assert(((MethodSymbol)member).IsExtensionMethod || member.ContainingType.IsExtension);
             }
 
             if (!typeArguments.IsDefault)
