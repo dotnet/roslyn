@@ -60,7 +60,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             public class TestService
             {
-{{notImplementedCodeBlock}}
+                {{notImplementedCodeBlock.TrimStart()}}
             }
             """;
 
@@ -70,7 +70,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             public class TestService
             {
-{{replacementCodeBlock}}
+                {{replacementCodeBlock.TrimStart()}}
             }
             """;
 
