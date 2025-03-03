@@ -11476,5 +11476,40 @@ class C<T>
             var metadataField = comp1.GetMember<FieldSymbol>("C.<Prop>k__BackingField");
             Assert.Equal(NullableAnnotation.NotAnnotated, metadataField.TypeWithAnnotations.NullableAnnotation);
         }
+
+        [Fact]
+        public void Nullable_DisallowNullField_NullableValueType()
+        {
+            var source = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    public C()
+                    {
+                        Prop = null; // 1
+                        Prop = 0;
+                    }
+
+                    [field: DisallowNull]
+                    public int? Prop
+                    {
+                        get => field;
+                    }
+                }
+                """;
+
+            var comp0 = CreateCompilation([source, DisallowNullAttributeDefinition]);
+            comp0.VerifyEmitDiagnostics(
+                // (8,16): warning CS8607: A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]
+                //         Prop = null; // 1
+                Diagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, "null").WithLocation(8, 16));
+
+            var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
+            Assert.False(sourceField.InfersNullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal("System.Int32?", sourceField.TypeWithAnnotations.ToTestDisplayString());
+        }
     }
 }
