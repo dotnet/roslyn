@@ -117,46 +117,37 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var memberSymbol = semanticModel.GetRequiredDeclaredSymbol(methodOrProperty, cancellationToken);
         var references = await FindReferencesAsync(document, memberSymbol, cancellationToken).ConfigureAwait(false);
-        MemberDeclarationSyntax replacement;
-
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
-        replacement = copilotService switch
-        {
-            null => AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Copilot_not_available),
-            _ => await GetReplacementFromCopilotServiceAsync(copilotService, document, throwNode, methodOrProperty, memberSymbol, semanticModel, references, cancellationToken).ConfigureAwait(false)
-        };
 
-        editor.ReplaceNode(methodOrProperty, replacement);
-    }
-
-    private static async Task<MemberDeclarationSyntax> GetReplacementFromCopilotServiceAsync(
-        ICopilotCodeAnalysisService copilotService,
-        Document document,
-        SyntaxNode throwNode,
-        MemberDeclarationSyntax methodOrProperty,
-        ISymbol memberSymbol,
-        SemanticModel semanticModel,
-        ImmutableArray<ReferencedSymbol> references,
-        CancellationToken cancellationToken)
-    {
         var (implementationSuggestion, isQuotaExceeded) = await copilotService.ImplementNotImplementedExceptionAsync(
             document, throwNode.Span, methodOrProperty, memberSymbol, semanticModel, references, cancellationToken).ConfigureAwait(false);
 
-        return isQuotaExceeded ? AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded) :
-            implementationSuggestion is null || !implementationSuggestion.TryGetValue("Implementation", out var implementation) || string.IsNullOrWhiteSpace(implementation)
-            ? AddCommentToMember(methodOrProperty, implementationSuggestion?.TryGetValue("Message", out var description) == true ? description : CSharpFeaturesResources.Error_colon_Could_not_complete_this_request) :
-            ParseImplementation(implementation, methodOrProperty);
-    }
+        MemberDeclarationSyntax replacement;
+        if (isQuotaExceeded)
+        {
+            replacement = AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded);
+        }
+        else if (implementationSuggestion == null
+            || !implementationSuggestion.TryGetValue("Implementation", out var implementation)
+            || string.IsNullOrWhiteSpace(implementation))
+        {
+            var message = implementationSuggestion?.TryGetValue("Message", out var description) == true
+                ? description
+                : CSharpFeaturesResources.Error_colon_Could_not_complete_this_request;
+            replacement = AddCommentToMember(methodOrProperty, message);
+        }
+        else
+        {
+            var parseOnce = SyntaxFactory.ParseMemberDeclaration(implementation, options: methodOrProperty.SyntaxTree.Options);
+            replacement = parseOnce is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax
+                ? parseOnce
+                    .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
+                    .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
+                    .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation)
+                : AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property);
+        }
 
-    private static MemberDeclarationSyntax ParseImplementation(string implementation, MemberDeclarationSyntax methodOrProperty)
-    {
-        var parseOnce = SyntaxFactory.ParseMemberDeclaration(implementation, options: methodOrProperty.SyntaxTree.Options);
-        return parseOnce is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax
-            ? parseOnce
-                .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
-                .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
-                .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation)
-            : AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property);
+        editor.ReplaceNode(methodOrProperty, replacement);
     }
 
     private static MemberDeclarationSyntax AddCommentToMember(MemberDeclarationSyntax member, string message)

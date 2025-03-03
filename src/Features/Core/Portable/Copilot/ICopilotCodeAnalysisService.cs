@@ -89,7 +89,6 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// <summary>
     /// Method to implement a <see cref="NotImplementedException"/> in a given <paramref name="syntaxNode"/>
     /// </summary>
-    /// <returns>A tuple containing a dictionary with implementation details and a boolean indicating if the quota has been exceeded.</returns>
     Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionAsync(
         Document document,
         TextSpan? span,

@@ -192,11 +192,6 @@
         <target state="translated">在解决方案中启用可为 null 的引用类型</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_colon_Copilot_not_available">
-        <source>Error: Copilot not available.</source>
-        <target state="new">Error: Copilot not available.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Error_colon_Could_not_complete_this_request">
         <source>Error: Could not complete this request.</source>
         <target state="new">Error: Could not complete this request.</target>
