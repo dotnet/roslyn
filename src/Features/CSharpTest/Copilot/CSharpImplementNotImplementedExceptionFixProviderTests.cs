@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
@@ -22,6 +23,8 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpImplementNotImplementedExceptionDiagnosticAnalyzer,
     CSharpImplementNotImplementedExceptionFixProvider>;
 
+[UseExportProvider]
+[Trait(Traits.Feature, Traits.Features.CopilotImplementNotImplementedException)]
 public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTests
 {
     [Fact]
@@ -68,29 +71,40 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             {
                 public int Add(int a, int b)
                 {
-                    {|IDE3000:throw new NotImplementedException("Add method not implemented")|};
+                    {|IDE3000:throw new NotImplementedException("Add method not implemented");|}
                 }
 
-                public int Subtract(int a, int b) => {|IDE3000:throw new NotImplementedException("Subtract method not implemented")|};
+                public int Subtract(int a, int b) => {|IDE3000:throw new NotImplementedException("Subtract method not implemented");|}
 
                 public int Multiply(int a, int b)
                 {
-                    {|IDE3000:throw new NotImplementedException("Multiply method not implemented")|};
+                    {|IDE3000:throw new NotImplementedException("Multiply method not implemented");|}
                 }
 
                 public double Divide(int a, int b)
                 {
-                    {|IDE3000:throw new NotImplementedException("Divide method not implemented")|};
+                    {|IDE3000:throw new NotImplementedException("Divide method not implemented");|}
                 }
 
-                public double CalculateSquareRoot(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented")|};
+                public double CalculateSquareRoot(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented");|}
 
                 public int Factorial(int number)
                 {
-                    {|IDE3000:throw new NotImplementedException("Factorial method not implemented")|};
+                    {|IDE3000:throw new NotImplementedException("Factorial method not implemented");|}
                 }
 
                 public int ConstantValue => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
+            }
+
+            public interface IMathService
+            {
+                int Add(int a, int b);
+                int Subtract(int a, int b);
+                int Multiply(int a, int b);
+                double Divide(int a, int b);
+                double CalculateSquareRoot(double number);
+                int Factorial(int number);
+                int ConstantValue { get; }
             }
             """;
 
@@ -128,6 +142,17 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
                 public int ConstantValue => 42;
             }
+
+            public interface IMathService
+            {
+                int Add(int a, int b);
+                int Subtract(int a, int b);
+                int Multiply(int a, int b);
+                double Divide(int a, int b);
+                double CalculateSquareRoot(double number);
+                int Factorial(int number);
+                int ConstantValue { get; }
+            }
             """;
 
         await new VerifyCS.Test
@@ -164,7 +189,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             {
                 public void AddData(string data)
                 {
-                    {|IDE3000:throw new NotImplementedException("AddData method not implemented")|};
+                    {|IDE3000:throw new NotImplementedException("AddData method not implemented");|}
                 }
 
                 public string GetData(int id) => {|IDE3000:throw new NotImplementedException()|};
@@ -173,7 +198,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 public void UpdateData(int id, string data)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
-                    {|IDE3000:throw new NotImplementedException("UpdateData method not implemented")|};
+                    {|IDE3000:throw new NotImplementedException("UpdateData method not implemented");|}
                 }
 
                 // Deletes data by ID
@@ -189,10 +214,20 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 /// <returns>A task representing the save operation</returns>
                 public Task SaveChangesAsync()
                 {
-                    {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented")|};
+                    {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
 
                 public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
+            }
+
+            public interface IDataService
+            {
+                void AddData(string data);
+                string GetData(int id);
+                void UpdateData(int id, string data);
+                void DeleteData(int id);
+                Task SaveChangesAsync();
+                int DataCount { get; }
             }
             """;
 
@@ -240,6 +275,16 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 /* Error: Quota exceeded. */
                 public int DataCount => throw new NotImplementedException("Property not implemented");
             }
+
+            public interface IDataService
+            {
+                void AddData(string data);
+                string GetData(int id);
+                void UpdateData(int id, string data);
+                void DeleteData(int id);
+                Task SaveChangesAsync();
+                int DataCount { get; }
+            }
             """;
 
         await new VerifyCS.Test
@@ -276,7 +321,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         {
             void M()
             {
-                {|IDE3000:throw new NotImplementedException()|};
+                {|IDE3000:throw new NotImplementedException();|}
             }
         }
         """;
@@ -362,7 +407,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             {
                 void M()
                 {
-                    {|IDE3000:throw new NotImplementedException()|};
+                    {|IDE3000:throw new NotImplementedException();|}
                 }
             }
             """;

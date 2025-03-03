@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Moq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot.UnitTests;
 
@@ -19,6 +20,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpImplementNotImplementedExceptionDiagnosticAnalyzer,
     CSharpImplementNotImplementedExceptionFixProvider>;
 
+[Trait(Traits.Feature, Traits.Features.CopilotImplementNotImplementedException)]
 public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTests
 {
     public static IEnumerable<object[]> TestMethodCodeBlockSuggestions()
@@ -58,7 +60,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             public class TestService
             {
-                {{notImplementedCodeBlock}}
+{{notImplementedCodeBlock}}
             }
             """;
 
@@ -68,7 +70,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             public class TestService
             {
-                {{replacementCodeBlock}}
+{{replacementCodeBlock}}
             }
             """;
 
@@ -86,160 +88,162 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         // Single statement with NotImplementedException
         [
             """
-            public void TestMethod()
-            {
-                {|IDE3000:throw new NotImplementedException()|};
-            }
+                public void TestMethod()
+                {
+                    {|IDE3000:throw new NotImplementedException();|}
+                }
             """
         ] =
         [
             """
-            public void TestMethod() => Console.WriteLine("Hello, World!");
+                public void TestMethod() => Console.WriteLine("Hello, World!");
             """,
             """
-            public void TestMethod()
-            {
-                Console.WriteLine("This is a single statement");
-            }
-            """,
-            """
-            public void TestMethod()
-            {
-                int x = 10;
-                int y = 20;
-                Console.WriteLine(x + y);
-            }
-            """,
-            """
-            public void TestMethod()
-            {
-                /* Comment before */
-                Console.WriteLine("First line");
-                /* Comment after */
-                Console.WriteLine("Second line");
-            }
-            """,
-            """
-            public void TestMethod()
-            {
-                // Initialize variables
-                int a = 5;
-                int b = 10;
-                // Perform calculation
-                int result = a + b;
-                Console.WriteLine(result);
-            }
-            """,
-            """
-            public void TestMethod()
-            {
-                var list = new List<int> { 1, 2, 3 };
-                foreach (var item in list)
+                public void TestMethod()
                 {
-                    Console.WriteLine(item);
+                    Console.WriteLine("This is a single statement");
                 }
-            }
             """,
             """
-            public void TestMethod()
-            {
-                try
+                public void TestMethod()
                 {
-                    // Try block
-                    int result = 10 / 0;
+                    int x = 10;
+                    int y = 20;
+                    Console.WriteLine(x + y);
                 }
-                catch (DivideByZeroException ex)
+            """,
+            """
+                public void TestMethod()
                 {
-                    Console.WriteLine(ex.Message);
+                    /* Comment before */
+                    Console.WriteLine("First line");
+                    /* Comment after */
+                    Console.WriteLine("Second line");
                 }
-            }
             """,
             """
-            public void TestMethod()
-            {
-                if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
+                public void TestMethod()
                 {
-                    Console.WriteLine("It's Friday!");
+                    // Initialize variables
+                    int a = 5;
+                    int b = 10;
+                    // Perform calculation
+                    int result = a + b;
+                    Console.WriteLine(result);
                 }
-                else
+            """,
+            """
+                public void TestMethod()
                 {
-                    Console.WriteLine("It's not Friday.");
+                    var list = new List<int> { 1, 2, 3 };
+                    foreach (var item in list)
+                    {
+                        Console.WriteLine(item);
+                    }
                 }
-            }
             """,
             """
-            public void TestMethod()
-            {
-                Console.WriteLine("Start"); // Comment at the end
-            }
+                public void TestMethod()
+                {
+                    try
+                    {
+                        // Try block
+                        int result = 10 / 0;
+                    }
+                    catch (DivideByZeroException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
             """,
             """
-            public void TestMethod()
-            {
-                /* Multi-line comment at the beginning */
-                Console.WriteLine("Middle");
-            }
+                public void TestMethod()
+                {
+                    if (DateTime.Now.DayOfWeek == DayOfWeek.Friday)
+                    {
+                        Console.WriteLine("It's Friday!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("It's not Friday.");
+                    }
+                }
             """,
             """
-            public void TestMethod()
-            {
-                Console.WriteLine("End"); /* Multi-line comment at the end */
-            }
+                public void TestMethod()
+                {
+                    Console.WriteLine("Start"); // Comment at the end
+                }
             """,
             """
-            public void TestMethod()
-            {
-                // Single-line comment at the beginning
-                Console.WriteLine("Middle");
-            }
+                public void TestMethod()
+                {
+                    /* Multi-line comment at the beginning */
+                    Console.WriteLine("Middle");
+                }
             """,
             """
-            public void TestMethod()
-            {
-                Console.WriteLine("End"); // Single-line comment at the end
-            }
+                public void TestMethod()
+                {
+                    Console.WriteLine("End"); /* Multi-line comment at the end */
+                }
             """,
             """
-            public void TestMethod()
-            {
-                Console.WriteLine("Hi");
-                throw new InvalidOperationException();
-            }
+                public void TestMethod()
+                {
+                    // Single-line comment at the beginning
+                    Console.WriteLine("Middle");
+                }
+            """,
+            """
+                public void TestMethod()
+                {
+                    Console.WriteLine("End"); // Single-line comment at the end
+                }
+            """,
+            """
+                public void TestMethod()
+                {
+                    Console.WriteLine("Hi");
+                    throw new InvalidOperationException();
+                }
             """
         ],
         // Async method with NotImplementedException
         [
             """
-            public async Task TestMethodAsync()
-            {
-                {|IDE3000:throw new NotImplementedException()|};
-            }
+                public async Task TestMethodAsync()
+                {
+                    {|IDE3000:throw new NotImplementedException();|}
+                }
             """
         ] =
         [
             """
-            public async Task TestMethodAsync()
-            {
-                await Task.Delay(1000);
-                Console.WriteLine("Async operation completed");
-            }
+                public async Task TestMethodAsync()
+                {
+                    await Task.Delay(1000);
+                    Console.WriteLine("Async operation completed");
+                }
             """,
             """
-            public async Task TestMethodAsync()
-                => await Task.Run(() => Console.WriteLine("Running async task"));
+                public async Task TestMethodAsync()
+                    => await Task.Run(() => Console.WriteLine("Running async task"));
             """,
         ],
         // Property with NotImplementedException in expression-bodied member
         [
             """
-            public int TestProperty => {|IDE3000:throw new NotImplementedException()|};
+                public int TestProperty => {|IDE3000:throw new NotImplementedException();|}
             """
         ] =
         [
-            "public int TestProperty => 42;",
             """
-            public int TestProperty
-                => DateTime.Now.Year;
+                public int TestProperty => 42;
+            """,
+            """
+                public int TestProperty
+                    => DateTime.Now.Year;
             """,
         ],
     };

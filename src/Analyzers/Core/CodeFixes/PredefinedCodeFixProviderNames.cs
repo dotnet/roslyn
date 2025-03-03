@@ -43,6 +43,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string ConvertToRecord = nameof(ConvertToRecord);
     public const string ConvertToTopLevelStatements = nameof(ConvertToTopLevelStatements);
     public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
+    public const string CopilotImplementNotImplementedException = nameof(CopilotImplementNotImplementedException);
     public const string CopilotSuggestions = nameof(CopilotSuggestions);
     public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
     public const string DeclareAsNullable = nameof(DeclareAsNullable);
@@ -68,7 +69,6 @@ internal static class PredefinedCodeFixProviderNames
     public const string GenerateVariable = nameof(GenerateVariable);
     public const string ImplementAbstractClass = nameof(ImplementAbstractClass);
     public const string ImplementInterface = nameof(ImplementInterface);
-    public const string ImplementNotImplementedException = nameof(ImplementNotImplementedException);
     public const string InlineDeclaration = nameof(InlineDeclaration);
     public const string InvokeDelegateWithConditionalAccess = nameof(InvokeDelegateWithConditionalAccess);
     public const string JsonDetection = nameof(JsonDetection);
