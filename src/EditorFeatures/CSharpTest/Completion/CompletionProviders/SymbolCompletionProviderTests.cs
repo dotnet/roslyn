@@ -15080,13 +15080,15 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         ]);
     }
 
-    [Fact]
-    public async Task PartialPropertyOrConstructor()
+    [Theory, CombinatorialData]
+    public async Task PartialPropertyOrConstructor(
+        [CombinatorialValues("class", "struct", "record", "record class", "record struct", "interface")] string typeKind,
+        [CombinatorialValues("", "public", "private", "static", "extern")] string modifiers)
     {
-        var markup = """
-            partial class C
+        var markup = $$"""
+            partial {{typeKind}} C
             {
-                partial $$
+                {{modifiers}} partial $$
             }
             """;
         await VerifyExpectedItemsAsync(markup, [
