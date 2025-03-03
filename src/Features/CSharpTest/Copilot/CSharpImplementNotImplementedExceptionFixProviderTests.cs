@@ -77,7 +77,7 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
                     {|IDE3000:throw new NotImplementedException("Add method not implemented")|};
                 }
 
-                public int Subtract(int a, int b) => [|throw new NotImplementedException("Subtract method not implemented")|}|];
+                public int Subtract(int a, int b) => {|IDE3000:throw new NotImplementedException("Subtract method not implemented")|};
 
                 public int Multiply(int a, int b)
                 {
@@ -89,7 +89,7 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
                     {|IDE3000:throw new NotImplementedException("Divide method not implemented")|};
                 }
 
-                public double CalculateSquareRoot(double number) => [|throw new NotImplementedException("CalculateSquareRoot method not implemented")|}|];
+                public double CalculateSquareRoot(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented")|};
 
                 public int Factorial(int number)
                 {
@@ -180,7 +180,7 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
                     {|IDE3000:throw new NotImplementedException("AddData method not implemented")|};
                 }
 
-                public string GetData(int id) => [|throw new NotImplementedException();|]
+                public string GetData(int id) => {|IDE3000:throw new NotImplementedException()|};
 
                 /* Updates the data for a given ID */
                 public void UpdateData(int id, string data)
@@ -193,7 +193,7 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
                 public void DeleteData(int id)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
-                    [|{|IDE3000:throw new NotImplementedException();|]
+                    {|IDE3000:throw new NotImplementedException();|}
                 }
 
                 /// <summary>
@@ -306,9 +306,9 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
 
         class C
         {
+            /* Error: Failed to parse into a method or property */
             void M()
             {
-                /* Error: Failed to parse into a method or property */
                 throw new NotImplementedException();
             }
         }
@@ -400,9 +400,9 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
 
             class C
             {
+                /* {{message}} */
                 void M()
                 {
-                    /* {{message}} */
                     throw new NotImplementedException();
                 }
             }
@@ -412,9 +412,9 @@ public sealed class CSharpImplementNotImplementedExceptionFixProviderTests
 
             class C
             {
+                /* Error: Could not complete this request. */
                 void M()
                 {
-                    /* Error: Could not complete this request. */
                     throw new NotImplementedException();
                 }
             }
