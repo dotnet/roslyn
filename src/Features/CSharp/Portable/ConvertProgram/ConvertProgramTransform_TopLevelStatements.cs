@@ -83,7 +83,7 @@ internal static partial class ConvertProgramTransform
             cancellationToken));
 
         return await removeImportsService.RemoveUnnecessaryImportsAsync(
-            documentWithImportsAdded, n => n.HasAnnotation(annotation), options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+            documentWithImportsAdded, n => n.HasAnnotation(annotation), cancellationToken).ConfigureAwait(false);
     }
 
     private static void AddUsingDirectives(NameSyntax name, SyntaxAnnotation annotation, ArrayBuilder<UsingDirectiveSyntax> directives)

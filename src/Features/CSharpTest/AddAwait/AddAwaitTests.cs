@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.AddAwa
 
 [Trait(Traits.Feature, Traits.Features.AddAwait)]
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
-public class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpAddAwaitCodeRefactoringProvider();
@@ -1606,6 +1606,91 @@ public class AddAwaitTests : AbstractCSharpCodeActionTest_NoEditor
             {
                 static async [||]Task Main(string[] args)
                 {
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66726")]
+    public async Task NotOnBindingExpression1()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            using System.Threading.Tasks;
+
+            class TestClass
+            {
+                private async Task MyTestMethod1Async(TestClass c)
+                {
+                    _ = c?.[|MyIntMethodAsync()|];
+                }
+
+                private Task<int> MyIntMethodAsync()
+                {
+                    return Task.FromResult(result: 1);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66726")]
+    public async Task NotOnBindingExpression2()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            using System.Threading.Tasks;
+
+            class TestClass
+            {
+                private TestClass C;
+
+                private async Task MyTestMethod1Async(TestClass c)
+                {
+                    _ = c?.C.[|MyIntMethodAsync()|];
+                }
+
+                private Task<int> MyIntMethodAsync()
+                {
+                    return Task.FromResult(result: 1);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66726")]
+    public async Task NotOnBindingExpression3()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            using System.Threading.Tasks;
+
+            class TestClass
+            {
+                private TestClass this[int i] => null;
+
+                private async Task MyTestMethod1Async(TestClass c)
+                {
+                    _ = c?[0].[|MyIntMethodAsync()|];
+                }
+
+                private Task<int> MyIntMethodAsync()
+                {
+                    return Task.FromResult(result: 1);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66726")]
+    public async Task NotOnBindingExpression4()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            using System.Threading.Tasks;
+
+            class TestClass
+            {
+                private Task<int> this[int i] => null;
+
+                private async Task MyTestMethod1Async(TestClass c)
+                {
+                    _ = c?[|[0]|];
                 }
             }
             """);

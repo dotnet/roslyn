@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -46,7 +47,7 @@ internal class ConvertToProgramMainCodeRefactoringProvider : CodeRefactoringProv
         if (!acceptableLocation.SourceSpan.IntersectsWith(position))
             return;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
         if (!CanOfferUseProgramMain(options.PreferTopLevelStatements, root, compilation, forAnalyzer: false))
@@ -54,7 +55,7 @@ internal class ConvertToProgramMainCodeRefactoringProvider : CodeRefactoringProv
 
         context.RegisterRefactoring(CodeAction.Create(
             CSharpAnalyzersResources.Convert_to_Program_Main_style_program,
-            c => ConvertToProgramMainAsync(document, options.AccessibilityModifiersRequired.Value, c),
+            c => ConvertToProgramMainAsync(document, options.AccessibilityModifiersRequired, c),
             nameof(CSharpAnalyzersResources.Convert_to_Program_Main_style_program),
             CodeActionPriority.Low));
     }

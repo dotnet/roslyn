@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2119,7 +2120,7 @@ class C
 }
 ";
 
-            var comp = CreateEmptyCompilation(source, new[] { MscorlibRefPortable });
+            var comp = CreateEmptyCompilation(source, [SystemRuntimePP7Ref]);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();

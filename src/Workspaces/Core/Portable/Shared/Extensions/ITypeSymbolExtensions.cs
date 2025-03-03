@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -172,62 +170,6 @@ internal static partial class ITypeSymbolExtensions
             select member;
 
         return explicitMatches.FirstOrDefault() ?? implicitMatches.FirstOrDefault();
-    }
-
-    [return: NotNullIfNotNull(parameterName: nameof(type))]
-    public static ITypeSymbol? RemoveUnavailableTypeParameters(
-        this ITypeSymbol? type,
-        Compilation compilation,
-        IEnumerable<ITypeParameterSymbol> availableTypeParameters)
-    {
-        return type?.RemoveUnavailableTypeParameters(compilation, availableTypeParameters.Select(t => t.Name).ToSet());
-    }
-
-    [return: NotNullIfNotNull(parameterName: nameof(type))]
-    private static ITypeSymbol? RemoveUnavailableTypeParameters(
-        this ITypeSymbol? type,
-        Compilation compilation,
-        ISet<string> availableTypeParameterNames)
-    {
-        return type?.Accept(new UnavailableTypeParameterRemover(compilation, availableTypeParameterNames));
-    }
-
-    [return: NotNullIfNotNull(parameterName: nameof(type))]
-    public static ITypeSymbol? RemoveAnonymousTypes(
-        this ITypeSymbol? type,
-        Compilation compilation)
-    {
-        return type?.Accept(new AnonymousTypeRemover(compilation));
-    }
-
-    [return: NotNullIfNotNull(parameterName: nameof(type))]
-    public static ITypeSymbol? RemoveUnnamedErrorTypes(
-        this ITypeSymbol? type,
-        Compilation compilation)
-    {
-        return type?.Accept(new UnnamedErrorTypeRemover(compilation));
-    }
-
-    [return: NotNullIfNotNull(parameterName: nameof(type))]
-    public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
-        this ITypeSymbol? type,
-        IDictionary<TType1, TType2> mapping,
-        Compilation compilation)
-        where TType1 : ITypeSymbol
-        where TType2 : ITypeSymbol
-    {
-        return type.SubstituteTypes(mapping, new CompilationTypeGenerator(compilation));
-    }
-
-    [return: NotNullIfNotNull(parameterName: nameof(type))]
-    public static ITypeSymbol? SubstituteTypes<TType1, TType2>(
-        this ITypeSymbol? type,
-        IDictionary<TType1, TType2> mapping,
-        ITypeGenerator typeGenerator)
-        where TType1 : ITypeSymbol
-        where TType2 : ITypeSymbol
-    {
-        return type?.Accept(new SubstituteTypesVisitor<TType1, TType2>(mapping, typeGenerator));
     }
 
     public static bool CanBeEnumerated(this ITypeSymbol type)

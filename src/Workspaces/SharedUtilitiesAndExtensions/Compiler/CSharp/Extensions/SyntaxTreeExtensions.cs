@@ -84,6 +84,7 @@ internal static partial class SyntaxTreeExtensions
         return token.GetAncestors<BaseTypeDeclarationSyntax>().Where(t => BaseTypeDeclarationContainsPosition(t, position));
     }
 
+    private static readonly Func<SyntaxKind, bool> s_isDot = k => k is SyntaxKind.DotToken;
     private static readonly Func<SyntaxKind, bool> s_isDotOrArrow = k => k is SyntaxKind.DotToken or SyntaxKind.MinusGreaterThanToken;
     private static readonly Func<SyntaxKind, bool> s_isDotOrArrowOrColonColon =
         k => k is SyntaxKind.DotToken or SyntaxKind.MinusGreaterThanToken or SyntaxKind.ColonColonToken;
@@ -97,6 +98,9 @@ internal static partial class SyntaxTreeExtensions
 
     public static bool IsRightOfDotOrArrow(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         => syntaxTree.IsRightOf(position, s_isDotOrArrow, cancellationToken);
+
+    public static bool IsRightOfDot(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        => syntaxTree.IsRightOf(position, s_isDot, cancellationToken);
 
     private static bool IsRightOf(
         this SyntaxTree syntaxTree, int position, Func<SyntaxKind, bool> predicate, CancellationToken cancellationToken)

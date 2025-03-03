@@ -110,9 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         RefKind IPropertySymbol.RefKind => _underlying.RefKind;
 
 #nullable enable
-        IPropertySymbol? IPropertySymbol.PartialDefinitionPart => (_underlying as SourcePropertySymbol)?.PartialDefinitionPart.GetPublicSymbol();
+        IPropertySymbol? IPropertySymbol.PartialDefinitionPart => _underlying.PartialDefinitionPart.GetPublicSymbol();
 
-        IPropertySymbol? IPropertySymbol.PartialImplementationPart => (_underlying as SourcePropertySymbol)?.PartialImplementationPart.GetPublicSymbol();
+        IPropertySymbol? IPropertySymbol.PartialImplementationPart => _underlying.PartialImplementationPart.GetPublicSymbol();
 
         bool IPropertySymbol.IsPartialDefinition => (_underlying as SourcePropertySymbol)?.IsPartialDefinition ?? false;
 #nullable disable

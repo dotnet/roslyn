@@ -20,15 +20,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.PassInCapturedVariables), Shared]
-internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     private const string CS8421 = nameof(CS8421); // A static local function can't contain a reference to <variable>.
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public PassInCapturedVariablesAsArgumentsCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS8421];
 

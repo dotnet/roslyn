@@ -49,7 +49,7 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
     private protected override Task BaseVerifyWorkerAsync(
         string code, int position,
         string expectedItemOrNull, string expectedDescriptionOrNull,
-        SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
+        SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool checkForAbsence,
         int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
         List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null,
@@ -57,31 +57,41 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
     {
         return base.VerifyWorkerAsync(
             code, position, expectedItemOrNull, expectedDescriptionOrNull,
-            sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
+            sourceCodeKind, usePreviousCharAsTrigger, deletedCharTrigger, checkForAbsence,
             glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
             displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options, skipSpeculation: skipSpeculation);
+    }
+
+    private protected override Task BaseVerifyWorkerAsync(
+        string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
+            SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
+        List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
+    {
+        return base.VerifyWorkerAsync(
+            code, position, usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionItem, sourceCodeKind,
+            expectedResults, matchingFilters, flags, options, skipSpeculation);
     }
 
     private protected override async Task VerifyWorkerAsync(
         string code, int position,
         string expectedItemOrNull, string expectedDescriptionOrNull,
-        SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger,
+        SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         bool checkForAbsence, int? glyph, int? matchPriority,
         bool? hasSuggestionItem, string displayTextSuffix, string displayTextPrefix, string inlineDescription = null,
         bool? isComplexTextEdit = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null,
         CompletionOptions options = null, bool skipSpeculation = false)
     {
-        await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags: null, options, skipSpeculation: skipSpeculation);
-        await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, options, skipSpeculation: skipSpeculation);
-        await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags: null, options);
+        await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags: null, options, skipSpeculation: skipSpeculation);
+        await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, options, skipSpeculation: skipSpeculation);
+        await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags: null, options);
 
         // Items cannot be partially written if we're checking for their absence,
         // or if we're verifying that the list will show up (without specifying an actual item)
         if (!checkForAbsence && expectedItemOrNull != null)
         {
-            await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags: null, options, skipSpeculation: skipSpeculation);
-            await VerifyInFrontOfComment_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, options, skipSpeculation: skipSpeculation);
-            await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags: null, options);
+            await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags: null, options, skipSpeculation: skipSpeculation);
+            await VerifyInFrontOfComment_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, options, skipSpeculation: skipSpeculation);
+            await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags: null, options);
         }
     }
 
@@ -89,7 +99,7 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
         => expectedItemOrNull[0] == '@' ? expectedItemOrNull.Substring(1, 1) : expectedItemOrNull[..1];
 
     private async Task VerifyInFrontOfCommentAsync(
-        string code, int position, string insertText, bool usePreviousCharAsTrigger,
+        string code, int position, string insertText, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
         int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
@@ -101,14 +111,14 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
 
         await base.VerifyWorkerAsync(
             code, position, expectedItemOrNull, expectedDescriptionOrNull,
-            sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
+            sourceCodeKind, usePreviousCharAsTrigger, deletedCharTrigger, checkForAbsence, glyph,
             matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix,
             inlineDescription, isComplexTextEdit, matchingFilters, flags: null,
             options, skipSpeculation: skipSpeculation);
     }
 
     private async Task VerifyInFrontOfCommentAsync(
-        string code, int position, bool usePreviousCharAsTrigger,
+        string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
         int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
@@ -116,14 +126,14 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
         List<CompletionFilter> matchingFilters, CompletionOptions options, bool skipSpeculation = false)
     {
         await VerifyInFrontOfCommentAsync(
-            code, position, string.Empty, usePreviousCharAsTrigger,
+            code, position, string.Empty, usePreviousCharAsTrigger, deletedCharTrigger,
             expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
             checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
             displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, options, skipSpeculation: skipSpeculation);
     }
 
     private protected async Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(
-        string code, int position, bool usePreviousCharAsTrigger,
+        string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
         int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
@@ -131,7 +141,7 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
         List<CompletionFilter> matchingFilters, CompletionOptions options, bool skipSpeculation = false)
     {
         await VerifyInFrontOfCommentAsync(
-            code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
+            code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger, deletedCharTrigger,
             expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
             checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
             displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, options, skipSpeculation: skipSpeculation);

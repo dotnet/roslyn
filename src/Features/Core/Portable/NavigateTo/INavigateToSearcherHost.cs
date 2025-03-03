@@ -31,7 +31,7 @@ internal interface IWorkspaceNavigateToSearcherHostService : IWorkspaceService
     ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
 }
 
-internal class DefaultNavigateToSearchHost(
+internal sealed class DefaultNavigateToSearchHost(
     Solution solution,
     IAsynchronousOperationListener asyncListener,
     CancellationToken disposalToken) : INavigateToSearcherHost

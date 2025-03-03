@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
             var actions = refactoring == null
-                ? ImmutableArray<CodeAction>.Empty
+                ? []
                 : refactoring.CodeActions.Select(n => n.action).AsImmutable();
             actions = MassageActions(actions);
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     document, span, fixAllScope.Value, CancellationToken.None).ConfigureAwait(false);
                 if (documentsAndSpansToFix.IsEmpty)
                 {
-                    return (ImmutableArray<CodeAction>.Empty, null);
+                    return ([], null);
                 }
             }
 
@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return (actions, actionToInvoke);
 
             var fixAllCodeAction = await GetFixAllFixAsync(actionToInvoke,
-                refactoring.Provider, refactoring.CodeActionOptionsProvider, document, span, fixAllScope.Value).ConfigureAwait(false);
+                refactoring.Provider, document, span, fixAllScope.Value).ConfigureAwait(false);
             if (fixAllCodeAction == null)
-                return (ImmutableArray<CodeAction>.Empty, null);
+                return ([], null);
 
             return (ImmutableArray.Create(fixAllCodeAction), fixAllCodeAction);
         }
@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         private static async Task<CodeAction> GetFixAllFixAsync(
             CodeAction originalCodeAction,
             CodeRefactoringProvider provider,
-            CodeActionOptionsProvider optionsProvider,
             Document document,
             TextSpan selectionSpan,
             FixAllScope scope)
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (fixAllProvider == null || !fixAllProvider.GetSupportedFixAllScopes().Contains(scope))
                 return null;
 
-            var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, optionsProvider, scope, originalCodeAction);
+            var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, scope, originalCodeAction);
             var fixAllContext = new FixAllContext(fixAllState, CodeAnalysisProgress.None, CancellationToken.None);
             return await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
         }
@@ -105,13 +104,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             var actions = ArrayBuilder<(CodeAction, TextSpan?)>.GetInstance();
 
-            var codeActionOptionsProvider = parameters.globalOptions?.IsEmpty() == false
-                ? CodeActionOptionsStorage.GetCodeActionOptionsProvider(workspace.GlobalOptions)
-                : CodeActionOptions.DefaultProvider;
-
-            var context = new CodeRefactoringContext(document, selectedOrAnnotatedSpan, (a, t) => actions.Add((a, t)), codeActionOptionsProvider, CancellationToken.None);
+            var context = new CodeRefactoringContext(document, selectedOrAnnotatedSpan, (a, t) => actions.Add((a, t)), CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);
-            var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable(), FixAllProviderInfo.Create(provider), codeActionOptionsProvider) : null;
+            var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable(), FixAllProviderInfo.Create(provider)) : null;
             actions.Free();
             return result;
         }

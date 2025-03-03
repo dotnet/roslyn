@@ -11,6 +11,10 @@ namespace Roslyn.Utilities
     {
         public static ImmutableArray<T> ToImmutableArray<T>(this HashSet<T> set)
         {
+            // [.. set] currently allocates, even for the empty case.  Workaround that until that is solved by the compiler.
+            if (set.Count == 0)
+                return [];
+
             return [.. set];
         }
 
@@ -27,19 +31,10 @@ namespace Roslyn.Utilities
             return ImmutableArray.Create<T>(items);
         }
 
-        public static ImmutableArray<T> TakeAsArray<T>(this ImmutableArray<T> array, int count)
-        {
-            var result = new FixedSizeArrayBuilder<T>(count);
-            for (var i = 0; i < count; i++)
-                result.Add(array[i]);
-
-            return result.MoveToImmutable();
-        }
-
         public static ImmutableArray<T> ToImmutableAndClear<T>(this ImmutableArray<T>.Builder builder)
         {
             if (builder.Count == 0)
-                return ImmutableArray<T>.Empty;
+                return [];
 
             if (builder.Count == builder.Capacity)
                 return builder.MoveToImmutable();

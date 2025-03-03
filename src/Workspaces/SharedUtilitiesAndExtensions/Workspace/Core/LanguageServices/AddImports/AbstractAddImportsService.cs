@@ -68,7 +68,7 @@ internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNames
         contextLocation ??= root;
 
         var applicableContainer = GetFirstApplicableContainer(contextLocation);
-        return applicableContainer.GetAncestorsOrThis<SyntaxNode>().ToImmutableArray();
+        return [.. applicableContainer.GetAncestorsOrThis<SyntaxNode>()];
     }
 
     private bool HasExistingImport(

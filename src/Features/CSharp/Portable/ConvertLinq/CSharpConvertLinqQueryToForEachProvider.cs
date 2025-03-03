@@ -243,7 +243,6 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
         /// Checks if the location of the query expression allows to convert it at least to a local function.
         /// It still does not guarantees that the conversion can be performed. There can be bail outs of later stages.
         /// </summary>
-        /// <returns></returns>
         private bool CanTryConvertToLocalFunction()
         {
             SyntaxNode currentNode = _source;
@@ -766,7 +765,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
 
                 // add an yield break to avoid throws after the return.
                 var yieldBreakStatement = YieldStatement(SyntaxKind.YieldBreakStatement);
-                documentUpdateInfo = new DocumentUpdateInfo(returnStatement, statements.Concat(new[] { yieldBreakStatement }));
+                documentUpdateInfo = new DocumentUpdateInfo(returnStatement, statements.Concat([yieldBreakStatement]));
                 return true;
             }
 
@@ -950,7 +949,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
             return false;
         }
 
-        private class QueryExpressionProcessingInfo
+        private sealed class QueryExpressionProcessingInfo
         {
             public Stack<CSharpSyntaxNode> Stack { get; private set; }
 

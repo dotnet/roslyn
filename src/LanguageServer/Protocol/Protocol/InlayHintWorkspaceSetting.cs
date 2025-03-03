@@ -8,9 +8,11 @@ namespace Roslyn.LanguageServer.Protocol
 {
     /// <summary>
     /// Class representing the workspace inlay hint client capabilities.
-    ///
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#inlayHintWorkspaceClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintWorkspaceClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
     internal class InlayHintWorkspaceSetting
     {
         /// <summary>

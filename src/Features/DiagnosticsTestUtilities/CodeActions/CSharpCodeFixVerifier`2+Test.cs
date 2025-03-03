@@ -38,12 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 // reasonable TLS protocol version for outgoing connections.
 #pragma warning disable CA5364 // Do Not Use Deprecated Security Protocols
 #pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable SYSLIB0014 // 'ServicePointManager' is obsolete
                 if (ServicePointManager.SecurityProtocol == (SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls))
 #pragma warning restore CS0618 // Type or member is obsolete
 #pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
                 {
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 }
+#pragma warning restore SYSLIB0014 // 'ServicePointManager' is obsolete
             }
 
             public Test()
@@ -68,13 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
             public new string FixedCode { set => base.FixedCode = value; }
 
-#if !CODE_STYLE
-            internal CodeActionOptionsProvider CodeActionOptions
-            {
-                get => _sharedState.CodeActionOptions;
-                set => _sharedState.CodeActionOptions = value;
-            }
-#endif
             /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
             public string? EditorConfig
             {
@@ -108,38 +103,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
                 return compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
             }
-
-#if !CODE_STYLE
-            protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions());
-
-            protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
-                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
-
-            protected override FixAllContext CreateFixAllContext(
-                Document? document,
-                TextSpan? diagnosticSpan,
-                Project project,
-                CodeFixProvider codeFixProvider,
-                FixAllScope scope,
-                string? codeActionEquivalenceKey,
-                IEnumerable<string> diagnosticIds,
-                DiagnosticSeverity minimumSeverity,
-                FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
-                CancellationToken cancellationToken)
-                => new(new FixAllState(
-                    fixAllProvider: NoOpFixAllProvider.Instance,
-                    diagnosticSpan,
-                    document,
-                    project,
-                    codeFixProvider,
-                    scope,
-                    codeActionEquivalenceKey,
-                    diagnosticIds,
-                    fixAllDiagnosticProvider,
-                    _sharedState.CodeActionOptions),
-                  CodeAnalysisProgress.None, cancellationToken);
-#endif
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
             {

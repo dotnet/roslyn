@@ -3,7 +3,7 @@
 ## Summary
 [summary]: #summary
 
-*Interceptors* are an experimental compiler feature planned to ship in .NET 8 (with support for C# only). The feature may be subject to breaking changes or removal in a future release.
+*Interceptors* is a C# compiler feature, first shipped experimentally in .NET 8, with stable support in .NET 9.0.2xx SDK and later.
 
 An *interceptor* is a method which can declaratively substitute a call to an *interceptable* method with a call to itself at compile time. This substitution occurs by having the interceptor declare the source locations of the calls that it intercepts. This provides a limited facility to change the semantics of existing code by adding new code to a compilation (e.g. in a source generator).
 
@@ -67,8 +67,6 @@ In addition to "ordinary" forms `M()` and `receiver.M()`, a call within a condit
 `[InterceptsLocation]` attributes included in source are emitted to the resulting assembly, just like other custom attributes.
 
 File-local declarations of this type (`file class InterceptsLocationAttribute`) are valid and usages are recognized by the compiler when they are within the same file and compilation. A generator which needs to declare this attribute should use a file-local declaration to ensure it doesn't conflict with other generators that need to do the same thing.
-
-In prior experimental releases of the feature, a well-known constructor signature `InterceptsLocation(string path, int line, int column)]` was also supported. Support for this constructor will be **dropped** prior to stable release of the feature.
 
 #### Location encoding
 
@@ -179,20 +177,53 @@ This allows generator authors to avoid *polluting lookup* with interceptors, hel
 
 We may also want to consider adjusting behavior of `[EditorBrowsable]` to work in the same compilation.
 
+### Struct receiver capture
+
+An interceptor whose `this` parameter takes a struct by-reference can generally be used to intercept a struct instance method call, assuming the methods are compatible per [Signature matching](#signature-matching). This includes situations where the receiver must be implicitly captured to temp before the invocation, even if such capture is not permitted when the interceptor is called directly. See also [12.8.9.3 Extension method invocations](https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/expressions.md#12893-extension-method-invocations) in the standard.
+
+
+```cs
+using System.Runtime.CompilerServices;
+
+struct S
+{
+    public void Original() { }
+}
+
+static class Program
+{
+    public static void Main()
+    {
+        new S().Original(); // L1: interception is valid, no errors.
+        new S().Interceptor(); // error CS1510: A ref or out value must be an assignable variable
+    }
+}
+
+static class D
+{
+    [InterceptsLocation(1, "..(refers to call to 'Original()' at L1)")]
+    public static void Interceptor(this ref S s)
+}
+```
+
+The reason we permit implicit receiver capture for the above intercepted call is: we want intercepting to be possible even when the interceptor author doesn't own the original receiver type. If we didn't do this, then intercepting `Original()` in the above example would only be possible by adding instance members to `struct S`.
+
 ### Editor experience
 
-Interceptors are treated like a post-compilation step in this design. Diagnostics are given for misuse of interceptors, but some diagnostics are only given in the command-line build and not in the IDE. There is limited traceability in the editor for which calls in a compilation are actually being intercepted. If this feature is brought forward past the experimental stage, this limitation will need to be re-examined.
+Interceptors are treated like a post-compilation step in this design. Diagnostics are given for misuse of interceptors, but some diagnostics are only given in the command-line build and not in the IDE. There is limited traceability in the editor for which calls in a compilation are actually being intercepted.
 
-There is an experimental public API `GetInterceptorMethod(this SemanticModel, InvocationExpressionSyntax, CancellationToken)` which enables analyzers to determine if a call is being intercepted, and if so, which method is intercepting the call. See https://github.com/dotnet/roslyn/issues/72093 for further details.
+`GetInterceptorMethod(this SemanticModel, InvocationExpressionSyntax, CancellationToken)` enables analyzers to determine if a call is being intercepted, and if so, which method is intercepting the call. See https://github.com/dotnet/roslyn/issues/72093 for further details.
 
 ### User opt-in
 
-To use interceptors, the user project must specify the property `<InterceptorsPreviewNamespaces>`. This is a list of namespaces which are allowed to contain interceptors.
+To use interceptors, the user project must specify the property `<InterceptorsNamespaces>`. This is a list of namespaces which are allowed to contain interceptors.
 ```xml
-<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Microsoft.AspNetCore.Http.Generated;MyLibrary.Generated</InterceptorsPreviewNamespaces>
+<InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.Http.Generated;MyLibrary.Generated</InterceptorsNamespaces>
 ```
 
-It's expected that each entry in the `InterceptorsPreviewNamespaces` list roughly corresponds to one source generator. Well-behaved components are expected to not insert interceptors into namespaces they do not own.
+It's expected that each entry in the `InterceptorsNamespaces` list roughly corresponds to one source generator. Well-behaved components are expected to not insert interceptors into namespaces they do not own.
+
+For compatibility, the property `<InterceptorsPreviewNamespaces>` can be used as an alias for `<InterceptorsNamespaces>`. If both properties have non-empty values, they will be concatenated together in the order `$(InterceptorsNamespaces);$(InterceptorsPreviewNamespaces)` when passed to the compiler.
 
 ### Implementation strategy
 

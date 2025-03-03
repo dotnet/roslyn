@@ -52,7 +52,6 @@ public class MakeAnonymousFunctionStaticTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -82,7 +81,6 @@ public class MakeAnonymousFunctionStaticTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             Options =
             {

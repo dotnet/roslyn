@@ -11,9 +11,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
 {
     internal sealed class AspNetCoreCSharpVirtualCharService
     {
-        private static readonly AspNetCoreCSharpVirtualCharService _instance =
-            new AspNetCoreCSharpVirtualCharService(CSharpVirtualCharService.Instance);
-
         private readonly IVirtualCharService _virtualCharService;
 
         private AspNetCoreCSharpVirtualCharService(IVirtualCharService virtualCharService)
@@ -22,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
         }
 
         /// <inheritdoc cref="CSharpVirtualCharService.Instance"/>
-        public static AspNetCoreCSharpVirtualCharService Instance => _instance;
+        public static AspNetCoreCSharpVirtualCharService Instance { get; } = new AspNetCoreCSharpVirtualCharService(CSharpVirtualCharService.Instance);
 
         /// <inheritdoc cref="IVirtualCharService.TryConvertToVirtualChars"/>
         public AspNetCoreVirtualCharSequence TryConvertToVirtualChars(SyntaxToken token)

@@ -12,10 +12,7 @@ namespace Roslyn.Utilities;
 /// disposing <see cref="Target"/> directly.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-internal interface IReferenceCountedDisposable<out T> : IDisposable
-#if !CODE_STYLE
-    , IAsyncDisposable
-#endif
+internal interface IReferenceCountedDisposable<out T> : IDisposable, IAsyncDisposable
     where T : class
 {
     /// <summary>

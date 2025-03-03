@@ -40,7 +40,7 @@ public class B { }";
             {
                 Workspace = new WorkspaceClientCapabilities()
                 {
-                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    DidChangeConfiguration = new DidChangeConfigurationClientCapabilities() { DynamicRegistration = true },
                     Configuration = false
                 }
             };
@@ -69,7 +69,7 @@ public class A { }";
             {
                 Workspace = new WorkspaceClientCapabilities()
                 {
-                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    DidChangeConfiguration = new DidChangeConfigurationClientCapabilities() { DynamicRegistration = true },
                     Configuration = true
                 }
             };
@@ -107,16 +107,17 @@ public class A { }";
         public void VerifyLspClientOptionNames()
         {
             var actualNames = DidChangeConfigurationNotificationHandler.SupportedOptions.Select(
-                DidChangeConfigurationNotificationHandler.GenerateFullNameForOption).OrderBy(name => name).ToArray();
-            // These options are persist in the LSP client. Please make sure also modify the LSP client code if these strings are changed.
+                DidChangeConfigurationNotificationHandler.GenerateFullNameForOption);
+            // These options are persisted by the LSP client. Please make sure also modify the LSP client code if these strings are changed.
             var expectedNames = new[]
             {
                 "symbol_search.dotnet_search_reference_assemblies",
-                "implement_type.dotnet_insertion_behavior",
-                "implement_type.dotnet_property_generation_behavior",
+                "type_members.dotnet_member_insertion_location",
+                "type_members.dotnet_property_generation_behavior",
                 "completion.dotnet_show_name_completion_suggestions",
                 "completion.dotnet_provide_regex_completions",
                 "completion.dotnet_show_completion_items_from_unimported_namespaces",
+                "completion.dotnet_trigger_completion_in_argument_lists",
                 "quick_info.dotnet_show_remarks_in_quick_info",
                 "navigation.dotnet_navigate_to_decompiled_sources",
                 "highlighting.dotnet_highlight_related_json_components",
@@ -143,14 +144,19 @@ public class A { }";
                 "background_analysis.dotnet_compiler_diagnostics_scope",
                 "code_lens.dotnet_enable_references_code_lens",
                 "code_lens.dotnet_enable_tests_code_lens",
+                "auto_insert.dotnet_enable_auto_insert",
                 "projects.dotnet_binary_log_path",
-                "projects.dotnet_enable_automatic_restore"
-            }.OrderBy(name => name);
+                "projects.dotnet_enable_automatic_restore",
+                "navigation.dotnet_navigate_to_source_link_and_embedded_sources",
+                "formatting.dotnet_organize_imports_on_format",
+            };
 
-            Assert.Equal(expectedNames, actualNames);
+            AssertEx.EqualOrDiff(
+                string.Join(Environment.NewLine, expectedNames),
+                string.Join(Environment.NewLine, actualNames));
         }
 
-        private static void VerifyValuesInServer(EditorTestWorkspace workspace, List<string> expectedValues)
+        private static void VerifyValuesInServer(LspTestWorkspace workspace, List<string> expectedValues)
         {
             var globalOptionService = workspace.GetService<IGlobalOptionService>();
             var supportedOptions = DidChangeConfigurationNotificationHandler.SupportedOptions;
@@ -238,7 +244,7 @@ public class A { }";
                 => value switch
                 {
                     null => "null",
-                    _ => value.ToString()
+                    _ => value.ToString()!
                 };
 
             private static string GenerateNonDefaultValue(IOption2 option)

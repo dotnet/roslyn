@@ -629,6 +629,86 @@ End Class",
             Assert.False(testGenerator._sourceExecuted)
         End Sub
 
+        <Fact>
+        Public Sub IncrementalGenerator_PostInit_AddEmbeddedAttributeSource_Adds()
+            Dim source = "
+Class C
+End Class
+"
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = CreateCompilation(source, parseOptions:=parseOptions)
+            compilation.VerifyDiagnostics()
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator1 = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
+                Sub(ctx)
+                    ctx.RegisterPostInitializationOutput(Sub(c) c.AddEmbeddedAttributeDefinition())
+                End Sub))
+
+            Dim generator2 = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator2(
+                Sub(ctx)
+                    ctx.RegisterPostInitializationOutput(Sub(c) c.AddEmbeddedAttributeDefinition())
+                End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator1, generator2), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
+            Dim outputCompilation As Compilation = Nothing
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, diagnostics)
+
+            For Each runResult In driver.GetRunResult().Results
+                Assert.Single(runResult.GeneratedSources)
+
+                Dim generatedSource = runResult.GeneratedSources(0)
+
+                Assert.Equal("Namespace Microsoft.CodeAnalysis
+    Friend NotInheritable Partial Class EmbeddedAttribute
+        Inherits Global.System.Attribute
+    End Class
+End Namespace", generatedSource.SourceText.ToString())
+                Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute.vb", generatedSource.HintName)
+            Next
+
+            outputCompilation.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub IncrementalGenerator_PostInit_AddEmbeddedAttributeSource_DoubleAdd_Throws()
+            Dim source = "
+Class C
+End Class
+"
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = CreateCompilation(source, parseOptions:=parseOptions)
+            compilation.VerifyDiagnostics()
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
+                Sub(ctx)
+                    ctx.RegisterPostInitializationOutput(
+                        Sub(c)
+                            c.AddEmbeddedAttributeDefinition()
+                            Assert.Throws(Of ArgumentException)("hintName", Sub() c.AddEmbeddedAttributeDefinition())
+                        End Sub)
+                End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+
+            Assert.Single(runResult.GeneratedSources)
+
+            Dim generatedSource = runResult.GeneratedSources(0)
+
+            Assert.Equal("Namespace Microsoft.CodeAnalysis
+    Friend NotInheritable Partial Class EmbeddedAttribute
+        Inherits Global.System.Attribute
+    End Class
+End Namespace", generatedSource.SourceText.ToString())
+            Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute.vb", generatedSource.HintName)
+        End Sub
+
         Shared Function GetCompilation(parseOptions As VisualBasicParseOptions, Optional source As String = "", Optional sourcePath As String = "") As Compilation
             If (String.IsNullOrWhiteSpace(source)) Then
                 source = "
@@ -721,7 +801,7 @@ End Class
         End Sub
 
         Shared Sub VerifyArgumentExceptionDiagnostic(diagnostic As Diagnostic, generatorName As String, message As String, parameterName As String, Optional initialization As Boolean = False)
-#If NETCOREAPP Then
+#If NET Then
             Dim expectedMessage = $"{message} (Parameter '{parameterName}')"
 #Else
             Dim expectedMessage = $"{message}{Environment.NewLine}Parameter name: {parameterName}"
@@ -749,11 +829,13 @@ End Class
 
         Public _receiver As Receiver = New Receiver()
 
+#Disable Warning BC40000
         Public Sub Initialize(context As GeneratorInitializationContext) Implements ISourceGenerator.Initialize
             context.RegisterForSyntaxNotifications(Function() _receiver)
         End Sub
 
         Public Sub Execute(context As GeneratorExecutionContext) Implements ISourceGenerator.Execute
+#Enable Warning BC40000
             context.AddSource("source.vb", "
 Public Class D
 End Class
@@ -801,6 +883,7 @@ End Class
             _initialized = True
         End Sub
 
+#Disable Warning BC40000
         Public Sub Initialize(context As GeneratorInitializationContext) Implements ISourceGenerator.Initialize
             _sourceInitialized = True
         End Sub
@@ -808,6 +891,7 @@ End Class
         Public Sub Execute(context As GeneratorExecutionContext) Implements ISourceGenerator.Execute
             _sourceExecuted = True
         End Sub
+#Enable Warning BC40000
 
     End Class
 

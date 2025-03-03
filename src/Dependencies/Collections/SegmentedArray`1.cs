@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Collections
             var ret = 0;
             for (var i = Length >= 8 ? Length - 8 : 0; i < Length; i++)
             {
-#if NETCOREAPP
+#if NET
                 ret = HashCode.Combine(comparer.GetHashCode(this[i]!), ret);
 #else
                 ret = unchecked((ret * (int)0xA5555529) + comparer.GetHashCode(this[i]!));

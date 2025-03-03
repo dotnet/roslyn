@@ -110,9 +110,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal TestParameters WithOptions(OptionsCollectionAlias options)
                 => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
 
-            internal TestParameters WithGlobalOptions(OptionsCollectionAlias globalOptions)
-                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-
             public TestParameters WithFixProviderData(object fixProviderData)
                 => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
 
@@ -408,7 +405,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             CompilationOptions compilationOptions = null,
             OptionsCollectionAlias options = null,
-            OptionsCollectionAlias globalOptions = null,
             object fixProviderData = null,
             ParseOptions parseOptions = null,
             string title = null,
@@ -416,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup,
-                new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, title: title, testHost: testHost));
+                new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData, index, priority, title: title, testHost: testHost));
         }
 
         internal Task TestInRegularAndScript1Async(
@@ -449,7 +445,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CompilationOptions compilationOptions = null,
             int index = 0,
             OptionsCollectionAlias options = null,
-            OptionsCollectionAlias globalOptions = null,
             object fixProviderData = null,
             CodeActionPriority? priority = null,
             TestHost testHost = TestHost.OutOfProcess)
@@ -457,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return TestAsync(
                 initialMarkup,
                 expectedMarkup,
-                new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, testHost: testHost));
+                new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData, index, priority, testHost: testHost));
         }
 
         private async Task TestAsync(
@@ -471,17 +466,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 parameters.treatPositionIndicatorsAsCode);
 
             const string UnnecessaryMarkupKey = "Unnecessary";
-            var unnecessarySpans = initialSpanMap.GetOrAdd(UnnecessaryMarkupKey, _ => ImmutableArray<TextSpan>.Empty);
+            var unnecessarySpans = initialSpanMap.GetOrAdd(UnnecessaryMarkupKey, _ => []);
 
             MarkupTestFile.GetSpans(
                 expectedMarkup,
                 out var expected, out var expectedSpanMap,
                 parameters.treatPositionIndicatorsAsCode);
 
-            var conflictSpans = expectedSpanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);
-            var renameSpans = expectedSpanMap.GetOrAdd("Rename", _ => ImmutableArray<TextSpan>.Empty);
-            var warningSpans = expectedSpanMap.GetOrAdd("Warning", _ => ImmutableArray<TextSpan>.Empty);
-            var navigationSpans = expectedSpanMap.GetOrAdd("Navigation", _ => ImmutableArray<TextSpan>.Empty);
+            var conflictSpans = expectedSpanMap.GetOrAdd("Conflict", _ => []);
+            var renameSpans = expectedSpanMap.GetOrAdd("Rename", _ => []);
+            var warningSpans = expectedSpanMap.GetOrAdd("Warning", _ => []);
+            var navigationSpans = expectedSpanMap.GetOrAdd("Navigation", _ => []);
 
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
             // Ideally this check would always run, but there are several hundred tests that would need to be
@@ -875,9 +870,9 @@ Consider using the title as the equivalence key instead of 'null'";
 
         protected static ImmutableArray<CodeAction> FlattenActions(ImmutableArray<CodeAction> codeActions)
         {
-            return codeActions.SelectMany(a => a.NestedActions.Length > 0
+            return [.. codeActions.SelectMany(a => a.NestedActions.Length > 0
                 ? a.NestedActions
-                : ImmutableArray.Create(a)).ToImmutableArray();
+                : [a])];
         }
 
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)

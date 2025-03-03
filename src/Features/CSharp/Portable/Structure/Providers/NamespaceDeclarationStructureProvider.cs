@@ -5,7 +5,7 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
@@ -15,12 +15,12 @@ internal class NamespaceDeclarationStructureProvider : AbstractSyntaxNodeStructu
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,
         NamespaceDeclarationSyntax namespaceDeclaration,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {
         // add leading comments
-        CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration, ref spans, options);
+        CSharpStructureHelpers.CollectCommentBlockSpans(namespaceDeclaration, spans, options);
 
         if (!namespaceDeclaration.OpenBraceToken.IsMissing &&
             !namespaceDeclaration.CloseBraceToken.IsMissing)
@@ -42,7 +42,7 @@ internal class NamespaceDeclarationStructureProvider : AbstractSyntaxNodeStructu
         // add any leading comments before the extern aliases and usings
         if (externsAndUsings.Count > 0)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), ref spans, options);
+            CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), spans, options);
         }
 
         spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
@@ -53,7 +53,7 @@ internal class NamespaceDeclarationStructureProvider : AbstractSyntaxNodeStructu
         if (!namespaceDeclaration.CloseBraceToken.IsMissing)
         {
             CSharpStructureHelpers.CollectCommentBlockSpans(
-                namespaceDeclaration.CloseBraceToken.LeadingTrivia, ref spans);
+                namespaceDeclaration.CloseBraceToken.LeadingTrivia, spans);
         }
     }
 }

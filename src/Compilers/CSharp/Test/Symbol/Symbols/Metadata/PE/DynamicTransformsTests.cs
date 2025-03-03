@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             _assembly = MetadataTestHelpers.GetSymbolsForReferences(
                 TestReferences.SymbolsTests.Metadata.DynamicAttributeLib,
-                TestMetadata.Net451.mscorlib)[0];
+                NetFramework.mscorlib)[0];
 
             _base0Class = _assembly.Modules[0].GlobalNamespace.GetMember<NamedTypeSymbol>("Base0");
             _base1Class = _assembly.Modules[0].GlobalNamespace.GetMember<NamedTypeSymbol>("Base1");

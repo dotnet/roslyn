@@ -439,7 +439,7 @@ namespace RoslynYield
         {
             // The incomplete statement is intended
             var text = "yield return int.";
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Script);
             comp.VerifyDiagnostics(
                 // (1,18): error CS1001: Identifier expected
                 // yield return int.
@@ -471,7 +471,7 @@ namespace RoslynYield
         public void TopLevelYieldBreak()
         {
             var text = "yield break;";
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Script);
             comp.VerifyDiagnostics(
                 // (1,1): error CS7020: You cannot use 'yield' in top-level script code
                 // yield break;
@@ -602,7 +602,7 @@ class Test<TKey, TValue>
         yield return new KeyValuePair<TKey, TValue>(kvp.Key, kvp.Value);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -636,7 +636,7 @@ class Test<TKey, TValue>
         yield return new KeyValuePair<TKey, TValue>(kvp, kvp.Value);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             comp.VerifyDiagnostics(
                 // (8,53): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<TKey, TValue>' to 'TKey'
                 //         yield return new KeyValuePair<TKey, TValue>(kvp, kvp.Value);
@@ -660,6 +660,90 @@ class Test<TKey, TValue>
             Assert.Null(symbolInfo.Symbol);
             Assert.Contains("System.Collections.Generic.KeyValuePair<TKey, TValue>..ctor(TKey key, TValue value)", symbolInfo.CandidateSymbols.Select(c => c.ToTestDisplayString()));
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_01()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+
+class Test1
+{
+    IEnumerable<T> M2<[Preserve1][Preserve2]T>(T x)
+    {
+        yield return x;
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<M2>d__0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_02()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+
+class Test1
+{
+    IEnumerable<int> M2([Preserve1][Preserve2][Preserve3]int x)
+    {
+        yield return x;
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<M2>d__0.x").GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<M2>d__0.<>3__x").GetAttributes().Select(a => a.ToString()));
+            }
         }
     }
 }

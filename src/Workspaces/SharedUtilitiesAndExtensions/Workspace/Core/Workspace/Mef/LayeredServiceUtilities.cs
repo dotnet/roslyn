@@ -20,21 +20,21 @@ internal static class LayeredServiceUtilities
     public static string GetAssemblyQualifiedServiceTypeName(Type type, string argName)
         => (type ?? throw new ArgumentNullException(argName)).AssemblyQualifiedName ?? throw new ArgumentException("Invalid service type", argName);
 
-    public static Lazy<TServiceInterface, TMetadata>? PickService<TServiceInterface, TMetadata>(
+    public static (Lazy<TServiceInterface, TMetadata>? lazyService, bool usesFactory) PickService<TServiceInterface, TMetadata>(
         Type serviceType,
         string? workspaceKind,
-        IEnumerable<Lazy<TServiceInterface, TMetadata>> services)
+        IEnumerable<(Lazy<TServiceInterface, TMetadata>? lazyService, bool usesFactory)> services)
         where TMetadata : ILayeredServiceMetadata
     {
-        Lazy<TServiceInterface, TMetadata>? service;
-        TemporaryArray<Lazy<TServiceInterface, TMetadata>> servicesOfMatchingType = new();
+        (Lazy<TServiceInterface, TMetadata>? lazyService, bool usesFactory) service;
+        TemporaryArray<(Lazy<TServiceInterface, TMetadata>? lazyService, bool usesFactory)> servicesOfMatchingType = new();
 
         // PERF: Hoist AssemblyQualifiedName out of the loop to avoid repeated string allocations.
         var assemblyQualifiedName = serviceType.AssemblyQualifiedName;
 
         foreach (var entry in services)
         {
-            if (entry.Metadata.ServiceType == assemblyQualifiedName)
+            if (entry.lazyService?.Metadata.ServiceType == assemblyQualifiedName)
             {
                 servicesOfMatchingType.Add(entry);
             }
@@ -42,8 +42,8 @@ internal static class LayeredServiceUtilities
 
 #if !CODE_STYLE
         // test layer overrides all other layers and workspace kinds:
-        service = servicesOfMatchingType.SingleOrDefault(static lz => lz.Metadata.Layer == ServiceLayer.Test);
-        if (service != null)
+        service = servicesOfMatchingType.SingleOrDefault(static lz => lz.lazyService?.Metadata.Layer == ServiceLayer.Test);
+        if (service.lazyService != null)
         {
             return service;
         }
@@ -51,8 +51,8 @@ internal static class LayeredServiceUtilities
         // If a service is exported for specific workspace kinds and the current workspace kind is among them, use it.
         if (workspaceKind != null)
         {
-            service = servicesOfMatchingType.SingleOrDefault(static (lz, workspaceKind) => lz.Metadata.WorkspaceKinds.Contains(workspaceKind), workspaceKind);
-            if (service != null)
+            service = servicesOfMatchingType.SingleOrDefault(static (lz, workspaceKind) => lz.lazyService?.Metadata.WorkspaceKinds.Contains(workspaceKind) ?? false, workspaceKind);
+            if (service.lazyService != null)
             {
                 return service;
             }
@@ -60,7 +60,7 @@ internal static class LayeredServiceUtilities
             // For backward compat check workspace kind specific service.
             // Workspace kind specific service should specify supported kinds in WorkspaceKinds.
             service = TryGetServiceByLayer(workspaceKind);
-            if (service != null)
+            if (service.lazyService != null)
             {
                 return service;
             }
@@ -69,16 +69,16 @@ internal static class LayeredServiceUtilities
         foreach (var layer in s_orderedProductLayers)
         {
             service = TryGetServiceByLayer(layer);
-            if (service != null)
+            if (service.lazyService != null)
             {
                 return service;
             }
         }
 
         // no service.
-        return null;
+        return default;
 
-        Lazy<TServiceInterface, TMetadata>? TryGetServiceByLayer(string layer)
-            => servicesOfMatchingType.SingleOrDefault(static (lz, layer) => lz.Metadata.WorkspaceKinds is [] && lz.Metadata.Layer == layer, layer);
+        (Lazy<TServiceInterface, TMetadata>? lazyService, bool usesFactory) TryGetServiceByLayer(string layer)
+            => servicesOfMatchingType.SingleOrDefault(static (lz, layer) => lz.lazyService?.Metadata.WorkspaceKinds is [] && lz.lazyService.Metadata.Layer == layer, layer);
     }
 }

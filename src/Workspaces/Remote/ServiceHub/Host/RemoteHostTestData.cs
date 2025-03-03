@@ -5,20 +5,19 @@
 using System;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Remote
-{
-    /// <summary>
-    /// Test hook used to pass test data to remote services.
-    /// </summary>
-    internal sealed class RemoteHostTestData
-    {
-        public readonly RemoteWorkspaceManager WorkspaceManager;
-        public readonly bool IsInProc;
+namespace Microsoft.CodeAnalysis.Remote;
 
-        public RemoteHostTestData(RemoteWorkspaceManager workspaceManager, bool isInProc)
-        {
-            WorkspaceManager = workspaceManager;
-            IsInProc = isInProc;
-        }
+/// <summary>
+/// Test hook used to pass test data to remote services.
+/// </summary>
+internal sealed class RemoteHostTestData
+{
+    public readonly RemoteWorkspaceManager WorkspaceManager;
+    public readonly bool IsInProc;
+
+    public RemoteHostTestData(RemoteWorkspaceManager workspaceManager, bool isInProc)
+    {
+        WorkspaceManager = workspaceManager;
+        IsInProc = isInProc;
     }
 }

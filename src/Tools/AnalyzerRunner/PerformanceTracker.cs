@@ -12,13 +12,13 @@ namespace AnalyzerRunner
     internal sealed class PerformanceTracker
     {
         private readonly Stopwatch _stopwatch;
-#if NETCOREAPP
+#if NET
         private readonly long _initialTotalAllocatedBytes;
 #endif
 
         public PerformanceTracker(Stopwatch stopwatch, long initialTotalAllocatedBytes)
         {
-#if NETCOREAPP
+#if NET
             _initialTotalAllocatedBytes = initialTotalAllocatedBytes;
 #endif
             _stopwatch = stopwatch;
@@ -26,7 +26,7 @@ namespace AnalyzerRunner
 
         public static PerformanceTracker StartNew(bool preciseMemory = true)
         {
-#if NETCOREAPP
+#if NET
             var initialTotalAllocatedBytes = GC.GetTotalAllocatedBytes(preciseMemory);
 #else
             var initialTotalAllocatedBytes = 0L;
@@ -37,7 +37,7 @@ namespace AnalyzerRunner
 
         public TimeSpan Elapsed => _stopwatch.Elapsed;
 
-#if NETCOREAPP
+#if NET
         public long AllocatedBytes => GC.GetTotalAllocatedBytes(true) - _initialTotalAllocatedBytes;
 #else
         public long AllocatedBytes => 0;
@@ -45,7 +45,7 @@ namespace AnalyzerRunner
 
         public string GetSummary(bool preciseMemory = true)
         {
-#if NETCOREAPP
+#if NET
             var elapsedTime = Elapsed;
             var allocatedBytes = GC.GetTotalAllocatedBytes(preciseMemory) - _initialTotalAllocatedBytes;
 

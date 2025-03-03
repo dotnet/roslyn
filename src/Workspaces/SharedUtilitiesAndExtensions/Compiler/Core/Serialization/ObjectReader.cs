@@ -73,7 +73,7 @@ internal sealed partial class ObjectReader : IDisposable
             // PipeReaderStream wraps any exception it throws in an AggregateException, which is not expected by
             // callers treating it as a normal stream. Unwrap and rethrow the inner exception for clarity.
             // https://github.com/dotnet/runtime/issues/70206
-#if NETCOREAPP
+#if NET
             ExceptionDispatchInfo.Throw(ex.InnerException);
 #else
             ExceptionDispatchInfo.Capture(ex.InnerException).Throw();

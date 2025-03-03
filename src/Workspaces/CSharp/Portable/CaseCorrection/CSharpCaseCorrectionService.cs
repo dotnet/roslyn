@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CaseCorrection;
 [ExportLanguageService(typeof(ICaseCorrectionService), LanguageNames.CSharp), Shared]
 internal class CSharpCaseCorrectionService : AbstractCaseCorrectionService
 {
+    public static int I { get; }
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpCaseCorrectionService()

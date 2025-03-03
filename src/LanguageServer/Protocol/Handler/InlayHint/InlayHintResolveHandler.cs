@@ -2,27 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Roslyn.LanguageServer.Protocol;
-using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 {
+    [ExportCSharpVisualBasicStatelessLspService(typeof(InlayHintResolveHandler)), Shared]
     [Method(Methods.InlayHintResolveName)]
-    internal sealed class InlayHintResolveHandler : ILspServiceDocumentRequestHandler<LSP.InlayHint, LSP.InlayHint>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class InlayHintResolveHandler(IGlobalOptionService globalOptions) : ILspServiceDocumentRequestHandler<LSP.InlayHint, LSP.InlayHint>
     {
-        private readonly InlayHintCache _inlayHintCache;
-
-        public InlayHintResolveHandler(InlayHintCache inlayHintCache)
-        {
-            _inlayHintCache = inlayHintCache;
-        }
-
         public bool MutatesSolutionState => false;
 
         public bool RequiresLSPSolution => true;
@@ -30,37 +30,56 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
         public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.InlayHint request)
             => GetInlayHintResolveData(request).TextDocument;
 
-        public async Task<LSP.InlayHint> HandleRequestAsync(LSP.InlayHint request, RequestContext context, CancellationToken cancellationToken)
+        public Task<LSP.InlayHint> HandleRequestAsync(LSP.InlayHint request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.GetRequiredDocument();
+            var options = globalOptions.GetInlineHintsOptions(document.Project.Language);
+            var inlayHintCache = context.GetRequiredService<InlayHintCache>();
             var resolveData = GetInlayHintResolveData(request);
-            var (cacheEntry, inlineHintToResolve) = GetCacheEntry(resolveData);
+            return ResolveInlayHintAsync(document, request, inlayHintCache, resolveData, options, cancellationToken);
+        }
 
+        internal static async Task<LSP.InlayHint> ResolveInlayHintAsync(
+            Document document,
+            LSP.InlayHint request,
+            InlayHintCache inlayHintCache,
+            InlayHintResolveData resolveData,
+            InlineHintsOptions options,
+            CancellationToken cancellationToken)
+        {
             var currentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-            var cachedSyntaxVersion = cacheEntry.SyntaxVersion;
+            var resolveSyntaxVersion = resolveData.SyntaxVersion;
 
-            if (currentSyntaxVersion != cachedSyntaxVersion)
+            if (currentSyntaxVersion.ToString() != resolveSyntaxVersion)
             {
-                throw new LocalRpcException($"Cached resolve version {cachedSyntaxVersion} does not match current version {currentSyntaxVersion}")
+                throw new LocalRpcException($"Request resolve version {resolveSyntaxVersion} does not match current version {currentSyntaxVersion}")
                 {
                     ErrorCode = LspErrorCodes.ContentModified
                 };
             }
 
-            var taggedText = await inlineHintToResolve.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
+            var inlineHintToResolve = GetCacheEntry(resolveData, inlayHintCache);
+            if (inlineHintToResolve is null)
+            {
+                // It is very possible that the cache no longer contains the hint being resolved (for example, multiple documents open side by side).
+                // Instead of throwing, we can recompute the hints since we've already verified above that the version has not changed.
+                var hints = await InlayHintHandler.CalculateInlayHintsAsync(document, resolveData.Range, options, resolveData.DisplayAllOverride, cancellationToken).ConfigureAwait(false);
+                inlineHintToResolve = hints[resolveData.ListIndex];
+            }
+
+            var taggedText = await inlineHintToResolve.Value.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
 
             request.ToolTip = ProtocolConversions.GetDocumentationMarkupContent(taggedText, document, true);
             return request;
         }
 
-        private (InlayHintCache.InlayHintCacheEntry CacheEntry, InlineHint InlineHintToResolve) GetCacheEntry(InlayHintResolveData resolveData)
+        private static InlineHint? GetCacheEntry(InlayHintResolveData resolveData, InlayHintCache inlayHintCache)
         {
-            var cacheEntry = _inlayHintCache.GetCachedEntry(resolveData.ResultId);
-            Contract.ThrowIfNull(cacheEntry, "Missing cache entry for inlay hint resolve request");
-            return (cacheEntry, cacheEntry.InlayHintMembers[resolveData.ListIndex]);
+            var cacheEntry = inlayHintCache.GetCachedEntry(resolveData.ResultId);
+            return cacheEntry?.InlayHintMembers[resolveData.ListIndex];
         }
 
-        private static InlayHintResolveData GetInlayHintResolveData(LSP.InlayHint inlayHint)
+        internal static InlayHintResolveData GetInlayHintResolveData(LSP.InlayHint inlayHint)
         {
             Contract.ThrowIfNull(inlayHint.Data);
             var resolveData = JsonSerializer.Deserialize<InlayHintResolveData>((JsonElement)inlayHint.Data, ProtocolConversions.LspJsonSerializerOptions);

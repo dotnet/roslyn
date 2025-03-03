@@ -239,8 +239,7 @@ internal static class ConvertToRecordEngine
             }
         }
 
-        var optionsProvider = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var lineFormattingOptions = optionsProvider.GetLineFormattingOptions();
+        var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var modifiedClassTrivia = GetModifiedClassTrivia(
             positionalParameterInfos, typeDeclaration, lineFormattingOptions);

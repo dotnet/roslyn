@@ -90,7 +90,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
 
         var selectedItems = await TestServices.ExtractInterfaceDialog.GetSelectedItemsAsync(HangMitigatingCancellationToken);
         Assert.Equal(
-            expected: new[] { "M1()", "M2()" },
+            expected: ["M1()", "M2()"],
             actual: selectedItems.Select(item => item.SymbolName));
 
         await TestServices.ExtractInterfaceDialog.ClickDeselectAllAsync(HangMitigatingCancellationToken);
@@ -102,7 +102,7 @@ public class CSharpExtractInterfaceDialog : AbstractEditorTest
 
         selectedItems = await TestServices.ExtractInterfaceDialog.GetSelectedItemsAsync(HangMitigatingCancellationToken);
         Assert.Equal(
-            expected: new[] { "M1()", "M2()" },
+            expected: ["M1()", "M2()"],
             actual: selectedItems.Select(item => item.SymbolName));
 
         await TestServices.ExtractInterfaceDialog.ClickCancelAsync(HangMitigatingCancellationToken);

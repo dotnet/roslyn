@@ -16,11 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
     Friend Module CompilationUnitSyntaxExtensions
         <Extension>
-        Public Function CanAddImportsStatements(contextNode As SyntaxNode, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Boolean
-            If contextNode.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing Then
-                Return False
-            End If
-
+        Public Function CanAddImportsStatements(
+                contextNode As SyntaxNode,
+                allowInHiddenRegions As Boolean,
+                cancellationToken As CancellationToken) As Boolean
             If allowInHiddenRegions Then
                 Return True
             End If

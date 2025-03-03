@@ -69,7 +69,7 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
 
         // Find the members that can be tested.
         var members = GetCandidatePropertiesAndFields(document, semanticModel, position, type);
-        members = members.WhereAsArray(m => m.IsEditorBrowsable(context.CompletionOptions.HideAdvancedMembers, semanticModel.Compilation));
+        members = members.WhereAsArray(m => m.IsEditorBrowsable(context.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation));
 
         if (memberAccess is null)
         {
@@ -86,7 +86,7 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
                 displayText: member.Name.EscapeIdentifier(),
                 displayTextSuffix: "",
                 insertionText: null,
-                symbols: ImmutableArray.Create(member),
+                symbols: [member],
                 contextPosition: context.Position,
                 rules: s_rules));
         }

@@ -128,7 +128,6 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
                     document,
                     requestedSpan.Span.ToTextSpan(),
                     diagnosticKind: _diagnosticKind,
-                    includeSuppressedDiagnostics: true,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // Copilot code analysis is a special analyzer that reports semantic correctness

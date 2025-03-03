@@ -6,9 +6,9 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal partial class ITypeSymbolExtensions
+internal static partial class ITypeSymbolExtensions
 {
-    private class MinimalAccessibilityVisitor : SymbolVisitor<Accessibility>
+    private sealed class MinimalAccessibilityVisitor : SymbolVisitor<Accessibility>
     {
         public static readonly SymbolVisitor<Accessibility> Instance = new MinimalAccessibilityVisitor();
 

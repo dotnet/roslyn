@@ -18,12 +18,10 @@ internal sealed partial class TemporaryStorageService
     {
         public TemporaryStorageIdentifier Identifier => identifier;
 
-        public UnmanagedMemoryStream ReadFromTemporaryStorage(CancellationToken cancellationToken)
+        public Stream ReadFromTemporaryStorage()
         {
-            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadStream, cancellationToken))
+            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadStream, CancellationToken.None))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 var info = new MemoryMappedInfo(memoryMappedFile, Identifier.Name, Identifier.Offset, Identifier.Size);
                 return info.CreateReadableStream();
             }

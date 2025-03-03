@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.UseCollectionExpression
 Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -37,7 +38,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Return TypeOf _objectCreationExpression.Initializer Is ObjectMemberInitializerSyntax
         End Function
 
-        Protected Overrides Function ValidateMatchesForCollectionExpression(matches As ArrayBuilder(Of Match(Of StatementSyntax)), cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
+                preMatches As ArrayBuilder(Of CollectionMatch(Of SyntaxNode)),
+                postMatches As ArrayBuilder(Of CollectionMatch(Of SyntaxNode)),
+                cancellationToken As CancellationToken) As Boolean
             ' Only called for collection expressions, which VB does not support
             Throw ExceptionUtilities.Unreachable()
         End Function

@@ -13,15 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders;
 /// <summary>
 /// Implements a code fix for file header diagnostics.
 /// </summary>
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FileHeader)]
-[Shared]
-internal class CSharpFileHeaderCodeFixProvider : AbstractFileHeaderCodeFixProvider
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FileHeader), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpFileHeaderCodeFixProvider() : AbstractFileHeaderCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpFileHeaderCodeFixProvider()
-    {
-    }
-
     protected override AbstractFileHeaderHelper FileHeaderHelper => CSharpFileHeaderHelper.Instance;
 }

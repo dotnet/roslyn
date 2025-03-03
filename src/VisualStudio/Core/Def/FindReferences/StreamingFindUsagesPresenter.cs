@@ -128,11 +128,14 @@ internal sealed partial class StreamingFindUsagesPresenter : IStreamingFindUsage
             return classificationFormatMapService.GetClassificationFormatMap("tooltip");
         });
 
-        _customColumns = columns.ToImmutableArray();
+        _customColumns = [.. columns];
     }
 
     public IClassificationFormatMap ClassificationFormatMap
         => _lazyClassificationFormatMap.Value;
+
+    private static bool IsPrimary(DefinitionItem definition)
+        => definition.Properties.ContainsKey(DefinitionItem.Primary);
 
     private static IEnumerable<ITableColumnDefinition> GetCustomColumns(IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
     {

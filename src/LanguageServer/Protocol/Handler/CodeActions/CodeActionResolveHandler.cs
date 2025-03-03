@@ -7,7 +7,6 @@ using System.Composition;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -76,11 +75,9 @@ internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.
 
         var document = context.GetRequiredTextDocument();
         var solution = document.Project.Solution;
-        var options = _globalOptions.GetCodeActionOptionsProvider();
         var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
             document,
             data.Range,
-            options,
             _codeFixService,
             _codeRefactoringService,
             fixAllScope: null,
@@ -99,7 +96,7 @@ internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.
         return codeAction;
     }
 
-    private static CodeActionResolveData GetCodeActionResolveData(LSP.CodeAction request)
+    internal static CodeActionResolveData GetCodeActionResolveData(LSP.CodeAction request)
     {
         var resolveData = JsonSerializer.Deserialize<CodeActionResolveData>((JsonElement)request.Data!, ProtocolConversions.LspJsonSerializerOptions);
         Contract.ThrowIfNull(resolveData, "Missing data for code action resolve request");

@@ -11,5 +11,5 @@ internal interface IUIContextActivationService
     /// <summary>
     /// Executes the specified action when the UIContext first becomes active, or immediately if it is already active
     /// </summary>
-    void ExecuteWhenActivated(Guid uiContext, Action action);
+    IDisposable ExecuteWhenActivated(Guid uiContext, Action action);
 }

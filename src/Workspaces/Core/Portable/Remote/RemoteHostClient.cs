@@ -19,6 +19,15 @@ internal abstract class RemoteHostClient : IDisposable
 {
     public abstract void Dispose();
 
+    public static Task WaitForClientCreationAsync(Workspace workspace, CancellationToken cancellationToken)
+    {
+        var service = workspace.Services.GetService<IRemoteHostClientProvider>();
+        if (service == null)
+            return Task.CompletedTask;
+
+        return service.WaitForClientCreationAsync(cancellationToken);
+    }
+
     public static Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
     {
         if (!RemoteSupportedLanguages.IsSupported(project.Language))

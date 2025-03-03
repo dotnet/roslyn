@@ -391,6 +391,7 @@ internal abstract class AbstractConvertAnonymousTypeToClassCodeRefactoringProvid
         });
 
         var assignmentStatements = generator.CreateAssignmentStatements(
+            generator.SyntaxGeneratorInternal,
             semanticModel, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
             addNullChecks: false, preferThrowExpression: false);
 

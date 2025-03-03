@@ -59,9 +59,10 @@ internal abstract partial class AbstractPartialMethodCompletionProvider : Abstra
         }
     }
 
-    protected override async Task<ISymbol> GenerateMemberAsync(ISymbol member, INamedTypeSymbol containingType, Document document, CompletionItem item, CancellationToken cancellationToken)
+    protected override async Task<ISymbol> GenerateMemberAsync(
+        Document document, CompletionItem item, Compilation compilation, ISymbol member, INamedTypeSymbol containingType, CancellationToken cancellationToken)
     {
-        var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
+        var syntaxFactory = document.GetRequiredLanguageService<SyntaxGenerator>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var method = (IMethodSymbol)member;

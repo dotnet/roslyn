@@ -17,11 +17,11 @@ public class CollectionExtensionsTest
     public void PushReverse1()
     {
         var stack = new Stack<int>();
-        stack.PushReverse(new int[] { 1, 2, 3 });
+        stack.PushReverse([1, 2, 3]);
         Assert.Equal(1, stack.Pop());
         Assert.Equal(2, stack.Pop());
         Assert.Equal(3, stack.Pop());
-        Assert.Equal(0, stack.Count);
+        Assert.Empty(stack);
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public class CollectionExtensionsTest
     {
         var stack = new Stack<int>();
         stack.PushReverse(Array.Empty<int>());
-        Assert.Equal(0, stack.Count);
+        Assert.Empty(stack);
     }
 
     [Fact]
@@ -37,10 +37,10 @@ public class CollectionExtensionsTest
     {
         var stack = new Stack<int>();
         stack.Push(3);
-        stack.PushReverse(new int[] { 1, 2 });
+        stack.PushReverse([1, 2]);
         Assert.Equal(1, stack.Pop());
         Assert.Equal(2, stack.Pop());
         Assert.Equal(3, stack.Pop());
-        Assert.Equal(0, stack.Count);
+        Assert.Empty(stack);
     }
 }

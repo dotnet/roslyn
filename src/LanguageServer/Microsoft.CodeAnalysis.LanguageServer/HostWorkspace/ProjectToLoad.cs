@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// <summary>
 /// The project path (and the guid if it game from a solution) of the project to load.
 /// </summary>
-internal record ProjectToLoad(string Path, string? ProjectGuid)
+internal record ProjectToLoad(string Path, string? ProjectGuid, bool ReportTelemetry)
 {
     public static IEqualityComparer<ProjectToLoad> Comparer = new ProjectToLoadComparer();
 

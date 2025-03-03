@@ -56,7 +56,7 @@ public class TextDocument
     /// <summary>
     /// A <see cref="IDocumentServiceProvider"/> associated with this document
     /// </summary>
-    internal IDocumentServiceProvider Services => State.Services;
+    internal IDocumentServiceProvider DocumentServiceProvider => State.DocumentServiceProvider;
 
     /// <summary>
     /// Get the current text for the document if it is already loaded and available.
@@ -90,8 +90,8 @@ public class TextDocument
     /// <summary>
     /// Gets the version of the document's text.
     /// </summary>
-    public Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken = default)
-        => State.GetTextVersionAsync(cancellationToken);
+    public async Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken = default)
+        => await State.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Fetches the current version for the document synchronously.

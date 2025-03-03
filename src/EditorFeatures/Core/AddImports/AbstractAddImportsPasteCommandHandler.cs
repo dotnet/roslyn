@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -152,16 +151,10 @@ internal abstract class AbstractAddImportsPasteCommandHandler(
         await TaskScheduler.Default;
 
         var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
-
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-        var options = new AddMissingImportsOptions(
-            CleanupOptions: cleanupOptions,
-            HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language));
-
         var textSpan = snapshotSpan.Span.ToTextSpan();
+
         var updatedDocument = await addMissingImportsService.AddMissingImportsAsync(
-            document, textSpan, options, backgroundWorkContext.GetCodeAnalysisProgress(), cancellationToken).ConfigureAwait(false);
+            document, textSpan, backgroundWorkContext.GetCodeAnalysisProgress(), cancellationToken).ConfigureAwait(false);
 
         if (updatedDocument is null)
         {

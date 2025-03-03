@@ -12,7 +12,9 @@ using Microsoft.CodeAnalysis.UseNullPropagation;
 namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseNullPropagation), Shared]
-internal class CSharpUseNullPropagationCodeFixProvider : AbstractUseNullPropagationCodeFixProvider<
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpUseNullPropagationCodeFixProvider() : AbstractUseNullPropagationCodeFixProvider<
     SyntaxKind,
     ExpressionSyntax,
     StatementSyntax,
@@ -27,12 +29,6 @@ internal class CSharpUseNullPropagationCodeFixProvider : AbstractUseNullPropagat
     ExpressionStatementSyntax,
     BracketedArgumentListSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpUseNullPropagationCodeFixProvider()
-    {
-    }
-
     protected override bool TryGetBlock(SyntaxNode? statement, [NotNullWhen(true)] out StatementSyntax? block)
     {
         if (statement is BlockSyntax statementBlock)

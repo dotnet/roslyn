@@ -13,9 +13,10 @@ namespace System
 {
     public readonly ref struct Span<T>
     {
-        private readonly T[] arr;
+        internal readonly T[] arr;
+        internal readonly int start;
 
-        public ref T this[int i] => ref arr[i];
+        public ref T this[int i] => ref arr[start + i];
         public override int GetHashCode() => 1;
         public int Length { get; }
         public bool IsEmpty => Length == 0;
@@ -34,12 +35,22 @@ namespace System
 
         public Span(T[] arr, int start, int length)
         {
-            this.arr = new T[length];
-            Array.Copy(arr, start, this.arr, 0, length);
+            if (start + length > arr?.Length)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            this.arr = arr;
+            this.start = start;
             this.Length = length;
         }
 
-        public void CopyTo(Span<T> other) { }
+        public static Span<T> Empty => default;
+
+        public void CopyTo(Span<T> other)
+        {
+            Array.Copy(arr, start, other.arr, other.start, Length);
+        }
 
         /// <summary>Gets an enumerator for this span.</summary>
         public Enumerator GetEnumerator() => new Enumerator(this);
@@ -90,8 +101,9 @@ namespace System
     public readonly ref struct ReadOnlySpan<T>
     {
         private readonly T[] arr;
+        private readonly int start;
 
-        public ref readonly T this[int i] => ref arr[i];
+        public ref readonly T this[int i] => ref arr[start + i];
         public override int GetHashCode() => 2;
         public int Length { get; }
         public bool IsEmpty => Length == 0;
@@ -110,12 +122,22 @@ namespace System
 
         public ReadOnlySpan(T[] arr, int start, int length)
         {
-            this.arr = new T[length];
-            Array.Copy(arr, start, this.arr, 0, length);
+            if (start + length > arr?.Length)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            this.arr = arr;
+            this.start = start;
             this.Length = length;
         }
 
-        public void CopyTo(Span<T> other) { }
+        public static ReadOnlySpan<T> Empty => default;
+
+        public void CopyTo(Span<T> other)
+        {
+            Array.Copy(arr, start, other.arr, other.start, Length);
+        }
 
         /// <summary>Gets an enumerator for this span.</summary>
         public Enumerator GetEnumerator() => new Enumerator(this);
@@ -162,6 +184,13 @@ namespace System
         public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
 
         public ReadOnlySpan<T> Slice(int offset, int length) => new ReadOnlySpan<T>(this.arr, offset, length);
+
+#nullable enable
+        public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> items) where TDerived : class?, T
+        {
+            return new ReadOnlySpan<T>(items.arr, items.start, items.Length);
+        }
+#nullable restore
     }
 
     public readonly ref struct SpanLike<T>
@@ -523,6 +552,8 @@ namespace System
         }
 
         public static ReadOnlySpan<char> AsSpan(this string text) => string.IsNullOrEmpty(text) ? default : new ReadOnlySpan<char>(text.ToCharArray());
+
+        public static Span<T> AsSpan<T>(this T[] array) => new Span<T>(array);
     }
 }";
     }

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
                                                                          ImmutableArray<Diagnostic>.Empty,
                                                                          ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
                                                                          ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
-                                                                         ImmutableArray<(string, string)>.Empty,
+                                                                         ImmutableDictionary<string, object>.Empty,
                                                                          exception: null,
                                                                          elapsedTime: TimeSpan.Zero);
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
                    ImmutableArray<Diagnostic>.Empty,
                    ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
                    ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
-                   ImmutableArray<(string, string)>.Empty,
+                   ImmutableDictionary<string, object>.Empty,
                    exception: null,
                    elapsedTime: TimeSpan.Zero)
         {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<Diagnostic> diagnostics,
             ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> executedSteps,
             ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps,
-            ImmutableArray<(string Key, string Value)> hostOutputs,
+            ImmutableDictionary<string, object> hostOutputs,
             Exception? exception,
             TimeSpan elapsedTime)
         {
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
                                           ImmutableArray<Diagnostic> diagnostics,
                                           ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> executedSteps,
                                           ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps,
-                                          ImmutableArray<(string Key, string Value)> hostOutputs,
+                                          ImmutableDictionary<string, object> hostOutputs,
                                           TimeSpan elapsedTime)
         {
             return new GeneratorState(this.PostInitTrees,
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis
                                       ImmutableArray.Create(error),
                                       ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
                                       ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
-                                      ImmutableArray<(string, string)>.Empty,
+                                      ImmutableDictionary<string, object>.Empty,
                                       exception,
                                       elapsedTime);
         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> OutputSteps { get; }
 
-        internal ImmutableArray<(string Key, string Value)> HostOutputs { get; }
+        internal ImmutableDictionary<string, object> HostOutputs { get; }
 
         internal bool RequiresPostInitReparse(ParseOptions parseOptions) => PostInitTrees.Any(static (t, parseOptions) => t.Tree.Options != parseOptions, parseOptions);
     }

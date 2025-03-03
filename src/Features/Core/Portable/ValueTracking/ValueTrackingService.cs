@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ValueTracking;
 
 [ExportWorkspaceService(typeof(IValueTrackingService)), Shared]
-internal partial class ValueTrackingService : IValueTrackingService
+internal sealed partial class ValueTrackingService : IValueTrackingService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

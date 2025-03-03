@@ -17,12 +17,15 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using IUIThreadOperationExecutor = Microsoft.VisualStudio.Utilities.IUIThreadOperationExecutor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
+
+using LastPresentedInfo = (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel? model, NavigationBarSelectedTypeAndMember selectedInfo);
 
 /// <summary>
 /// The controller for navigation bars.
@@ -47,7 +50,7 @@ internal partial class NavigationBarController : IDisposable
     /// skip doing that as the UI will already know about this.  This is only ever read or written from <see
     /// cref="_selectItemQueue"/>.  So we don't need to worry about any synchronization over it.
     /// </summary>
-    private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel? model, NavigationBarSelectedTypeAndMember selectedInfo) _lastPresentedInfo;
+    private LastPresentedInfo _lastPresentedInfo;
 
     /// <summary>
     /// Source of events that should cause us to update the nav bar model with new information.

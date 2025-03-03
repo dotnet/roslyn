@@ -13,18 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp.AliasAmbiguousType;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AliasAmbiguousType), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.FullyQualify)]
-internal class CSharpAliasAmbiguousTypeCodeFixProvider : AbstractAliasAmbiguousTypeCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpAliasAmbiguousTypeCodeFixProvider() : AbstractAliasAmbiguousTypeCodeFixProvider
 {
     /// <summary>
     /// 'reference' is an ambiguous reference between 'identifier' and 'identifier'
     /// </summary>
     private const string CS0104 = nameof(CS0104);
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpAliasAmbiguousTypeCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds
         => [CS0104];

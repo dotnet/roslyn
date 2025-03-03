@@ -36,7 +36,7 @@ internal sealed class CSharpConstructorSnippetProvider() : AbstractConstructorSn
         SyntaxKind.StaticKeyword,
     };
 
-    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = (CSharpSyntaxContext)context.SyntaxContext;
 

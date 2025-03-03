@@ -6,17 +6,17 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal partial class SymbolEquivalenceComparer
+internal sealed partial class SymbolEquivalenceComparer
 {
-    internal class SignatureTypeSymbolEquivalenceComparer(SymbolEquivalenceComparer symbolEquivalenceComparer) : IEqualityComparer<ITypeSymbol?>
+    internal sealed class SignatureTypeSymbolEquivalenceComparer(SymbolEquivalenceComparer symbolEquivalenceComparer) : IEqualityComparer<ITypeSymbol?>
     {
         public bool Equals(ITypeSymbol? x, ITypeSymbol? y)
             => this.Equals(x, y, null);
 
         public bool Equals(ITypeSymbol? x, ITypeSymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
-            => symbolEquivalenceComparer.GetEquivalenceVisitor(compareMethodTypeParametersByIndex: true, symbolEquivalenceComparer._objectAndDynamicCompareEqually).AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
+            => symbolEquivalenceComparer.GetEquivalenceVisitor(compareMethodTypeParametersByIndex: true).AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
 
         public int GetHashCode(ITypeSymbol? x)
-            => symbolEquivalenceComparer.GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: true, symbolEquivalenceComparer._objectAndDynamicCompareEqually).GetHashCode(x, currentHash: 0);
+            => symbolEquivalenceComparer.GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: true).GetHashCode(x, currentHash: 0);
     }
 }

@@ -9,9 +9,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal partial class SymbolEquivalenceComparer
+internal sealed partial class SymbolEquivalenceComparer
 {
-    internal class ParameterSymbolEqualityComparer(
+    internal sealed class ParameterSymbolEqualityComparer(
         SymbolEquivalenceComparer symbolEqualityComparer,
         bool distinguishRefFromOut) : IEqualityComparer<IParameterSymbol?>
     {

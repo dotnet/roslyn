@@ -20,17 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
             return (ICSCodeTypeLocation)ComAggregate.CreateAggregatedObject(result);
         }
 
-        private readonly string _externalLocation;
-
         private CodeTypeLocationExtender(string externalLocation)
-            => _externalLocation = externalLocation;
+            => ExternalLocation = externalLocation;
 
-        public string ExternalLocation
-        {
-            get
-            {
-                return _externalLocation;
-            }
-        }
+        public string ExternalLocation { get; }
     }
 }

@@ -10,9 +10,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.ExtractClass;
+using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
+using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -31,14 +34,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         public static async Task<LSP.CodeAction[]> GetVSCodeActionsAsync(
             CodeActionParams request,
             TextDocument document,
-            CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             bool hasVsLspCapability,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, fallbackOptions, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
+                document, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return [];
 
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                             codeActions.Add(GenerateVSCodeAction(
                                 request, documentText,
                                 suggestedAction: suggestedAction,
-                                codeActionKind: GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!),
+                                codeActionKind: GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!, suggestedAction),
                                 setPriority: set.Priority,
                                 applicableRange: set.ApplicableToSpan.HasValue ? ProtocolConversions.TextSpanToRange(set.ApplicableToSpan.Value, documentText) : null,
                                 currentSetNumber: currentSetNumber,
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                             codeActions.AddRange(GenerateCodeActions(
                                 request,
                                 suggestedAction,
-                                GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!)));
+                                GetCodeActionKindFromSuggestedActionCategoryName(set.CategoryName!, suggestedAction)));
                         }
                     }
                 }
@@ -93,7 +95,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         private static bool IsCodeActionNotSupportedByLSP(IUnifiedSuggestedAction suggestedAction)
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-            => suggestedAction.OriginalCodeAction is CodeActionWithOptions
+            // Exceptions are made for ExtractClass and ExtractInterface because we have OptionsServices which
+            // provide reasonable defaults without user interaction.
+            => (suggestedAction.OriginalCodeAction is CodeActionWithOptions
+                && suggestedAction.OriginalCodeAction is not ExtractInterfaceCodeAction
+                && suggestedAction.OriginalCodeAction is not ExtractClassWithDialogCodeAction)
             // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
             // https://github.com/dotnet/roslyn/issues/48698
             || suggestedAction.OriginalCodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange);
@@ -198,7 +204,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 {
                     CommandIdentifier = CodeActionsHandler.RunFixAllCodeActionCommandName,
                     Title = fixAllTitle,
-                    Arguments = [new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPath, fixAllFlavors.ToArray(), nestedCodeActions: null)]
+                    Arguments = [new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPath, [.. fixAllFlavors], nestedCodeActions: null)]
                 };
 
                 builder.Add(new LSP.CodeAction
@@ -207,7 +213,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     Command = command,
                     Kind = codeActionKind,
                     Diagnostics = diagnosticsForFix,
-                    Data = new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPath, fixAllFlavors.ToArray(), nestedCodeActions: null)
+                    Data = new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPath, [.. fixAllFlavors], nestedCodeActions: null)
                 });
             }
         }
@@ -305,14 +311,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         public static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             TextDocument document,
             LSP.Range selection,
-            CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             string? fixAllScope,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, fallbackOptions, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
+                document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return [];
 
@@ -321,8 +326,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 foreach (var suggestedAction in set.Actions)
                 {
-                    // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-                    if (suggestedAction.OriginalCodeAction is CodeActionWithOptions)
+                    if (IsCodeActionNotSupportedByLSP(suggestedAction))
                     {
                         continue;
                     }
@@ -383,7 +387,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
             TextDocument document,
-            CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             LSP.Range selection,
@@ -395,10 +398,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                 document.Project.Solution.Workspace, codeFixService, document, textSpan,
                 new DefaultCodeActionRequestPriorityProvider(),
-                fallbackOptions, cancellationToken).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, priority: null, fallbackOptions,
+                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, priority: null,
                 filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
             var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(
@@ -406,15 +409,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             return actionSets;
         }
 
-        private static CodeActionKind GetCodeActionKindFromSuggestedActionCategoryName(string categoryName)
+        private static CodeActionKind GetCodeActionKindFromSuggestedActionCategoryName(string categoryName, IUnifiedSuggestedAction suggestedAction)
             => categoryName switch
             {
                 UnifiedPredefinedSuggestedActionCategoryNames.CodeFix => CodeActionKind.QuickFix,
-                UnifiedPredefinedSuggestedActionCategoryNames.Refactoring => CodeActionKind.Refactor,
+                UnifiedPredefinedSuggestedActionCategoryNames.Refactoring => GetRefactoringKind(suggestedAction),
                 UnifiedPredefinedSuggestedActionCategoryNames.StyleFix => CodeActionKind.QuickFix,
                 UnifiedPredefinedSuggestedActionCategoryNames.ErrorFix => CodeActionKind.QuickFix,
                 _ => throw ExceptionUtilities.UnexpectedValue(categoryName)
             };
+
+        private static CodeActionKind GetRefactoringKind(IUnifiedSuggestedAction suggestedAction)
+        {
+            if (suggestedAction is not ICodeRefactoringSuggestedAction refactoringAction)
+                return CodeActionKind.Refactor;
+
+            return refactoringAction.CodeRefactoringProvider.Kind switch
+            {
+                CodeRefactoringKind.Extract => CodeActionKind.RefactorExtract,
+                CodeRefactoringKind.Inline => CodeActionKind.RefactorInline,
+                _ => CodeActionKind.Refactor,
+            };
+        }
 
         private static LSP.VSInternalPriorityLevel? UnifiedSuggestedActionSetPriorityToPriorityLevel(CodeActionPriority priority)
             => priority switch

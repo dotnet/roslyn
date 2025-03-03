@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationConstructorSymbol(
+internal sealed class CodeGenerationConstructorSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility accessibility,
@@ -27,9 +27,9 @@ internal class CodeGenerationConstructorSymbol(
            refKind: RefKind.None,
            explicitInterfaceImplementations: default,
            name: string.Empty,
-           typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+           typeParameters: [],
            parameters: parameters,
-           returnTypeAttributes: ImmutableArray<AttributeData>.Empty)
+           returnTypeAttributes: [])
 {
     public override MethodKind MethodKind => MethodKind.Constructor;
 

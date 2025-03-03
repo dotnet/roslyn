@@ -110,6 +110,19 @@ internal partial interface ISemanticFacts
 
     string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Gets the <see cref="IPreprocessingSymbol"/> that the given node involves.
+    /// The node's kind must match any of the following kinds:
+    /// <list type="bullet">
+    /// <item><see cref="ISyntaxKinds.IdentifierName"/>,</item>
+    /// <item><see cref="ISyntaxKinds.DefineDirectiveTrivia"/>, or</item>
+    /// <item><see cref="ISyntaxKinds.UndefDirectiveTrivia"/>.</item>
+    /// </list>
+    /// </summary>
+    IPreprocessingSymbol? GetPreprocessingSymbol(SemanticModel semanticModel, SyntaxNode node);
+
+    bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor);
+
 #if !CODE_STYLE
 
     /// <summary>

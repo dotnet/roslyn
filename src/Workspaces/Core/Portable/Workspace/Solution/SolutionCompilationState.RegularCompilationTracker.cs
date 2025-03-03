@@ -16,11 +16,12 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SolutionCompilationState
+    internal sealed partial class SolutionCompilationState
     {
         /// <summary>
         /// Tracks the changes made to a project and provides the facility to get a lazily built
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             private static readonly Func<ProjectState, string> s_logBuildCompilationAsync =
                 state => string.Join(",", state.AssemblyName, state.DocumentStates.Count);
 
-            private static readonly Lazy<Compilation?> s_lazyNullCompilation = new Lazy<Compilation?>(() => null);
+            private static readonly CancellableLazy<Compilation?> s_lazyNullCompilation = new CancellableLazy<Compilation?>((Compilation?)null);
 
             public ProjectState ProjectState { get; }
 
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis
                     var (compilationWithoutGeneratedDocuments, staleCompilationWithGeneratedDocuments) = state switch
                     {
                         InProgressState inProgressState => (inProgressState.LazyCompilationWithoutGeneratedDocuments, inProgressState.LazyStaleCompilationWithGeneratedDocuments),
-                        FinalCompilationTrackerState finalState => (new Lazy<Compilation>(() => finalState.CompilationWithoutGeneratedDocuments), new Lazy<Compilation?>(() => finalState.FinalCompilationWithGeneratedDocuments)),
+                        FinalCompilationTrackerState finalState => (new Lazy<Compilation>(() => finalState.CompilationWithoutGeneratedDocuments), new CancellableLazy<Compilation?>(finalState.FinalCompilationWithGeneratedDocuments)),
                         _ => throw ExceptionUtilities.UnexpectedValue(state.GetType()),
                     };
 
@@ -404,7 +405,7 @@ namespace Microsoft.CodeAnalysis
                         var translationAction = inProgressState.PendingTranslationActions[0];
 
                         var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
-                        var staleCompilationWithGeneratedDocuments = inProgressState.LazyStaleCompilationWithGeneratedDocuments.Value;
+                        var staleCompilationWithGeneratedDocuments = inProgressState.LazyStaleCompilationWithGeneratedDocuments.GetValue(cancellationToken);
 
                         // If staleCompilationWithGeneratedDocuments is the same as compilationWithoutGeneratedDocuments,
                         // then it means a prior run of generators didn't produce any files. In that case, we'll just make
@@ -476,7 +477,7 @@ namespace Microsoft.CodeAnalysis
                     var creationPolicy = inProgressState.CreationPolicy;
                     var generatorInfo = inProgressState.GeneratorInfo;
                     var compilationWithoutGeneratedDocuments = inProgressState.CompilationWithoutGeneratedDocuments;
-                    var staleCompilationWithGeneratedDocuments = inProgressState.LazyStaleCompilationWithGeneratedDocuments.Value;
+                    var staleCompilationWithGeneratedDocuments = inProgressState.LazyStaleCompilationWithGeneratedDocuments.GetValue(cancellationToken);
 
                     // Project is complete only if the following are all true:
                     //  1. HasAllInformation flag is set for the project
@@ -735,7 +736,7 @@ namespace Microsoft.CodeAnalysis
                     skeletonReferenceCacheToClone: _skeletonReferenceCache);
             }
 
-            public ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken)
+            public ICompilationTracker WithDoNotCreateCreationPolicy()
             {
                 var state = this.ReadState();
 
@@ -762,38 +763,36 @@ namespace Microsoft.CodeAnalysis
                     // partway through the logic in BuildInProgressStateFromNoCompilationStateAsync.  If so, move those
                     // parsed documents over to the new project state so we can preserve as much information as
                     // possible.
-
-                    // Note: this count may be inaccurate as parsing may be going on in the background.  However, it
-                    // acts as a reasonable lower bound for the number of documents we'll be adding.
-                    var alreadyParsedCount = this.ProjectState.DocumentStates.States.Count(static s => s.Value.TryGetSyntaxTree(out _));
-
-                    // Specifically an ImmutableArray.Builder as we can presize reasonably and we want to convert to an
-                    // ImmutableArray at the end.
-                    var documentsWithTreesBuilder = ImmutableArray.CreateBuilder<DocumentState>(alreadyParsedCount);
-                    var alreadyParsedTreesBuilder = ImmutableArray.CreateBuilder<SyntaxTree>(alreadyParsedCount);
+                    using var _1 = ArrayBuilder<DocumentState>.GetInstance(out var documentsWithTreesBuilder);
 
                     foreach (var documentState in this.ProjectState.DocumentStates.GetStatesInCompilationOrder())
                     {
-                        if (documentState.TryGetSyntaxTree(out var alreadyParsedTree))
-                        {
+                        if (documentState.TryGetSyntaxTree(out _))
                             documentsWithTreesBuilder.Add(documentState);
-                            alreadyParsedTreesBuilder.Add(alreadyParsedTree);
-                        }
                     }
 
                     // Transition us to a state that only has documents for the files we've already parsed.
+                    var documentsWithTrees = documentsWithTreesBuilder.ToImmutableAndClear();
                     var frozenProjectState = this.ProjectState
                         .RemoveAllNormalDocuments()
-                        .AddDocuments(documentsWithTreesBuilder.ToImmutableAndClear());
+                        .AddDocuments(documentsWithTrees);
 
                     // Defer creating these compilations.  It's common to freeze projects (as part of a solution freeze)
                     // that are then never examined.  Creating compilations can be a little costly, so this saves doing
                     // that to the point where it is truly needed.
-                    var alreadyParsedTrees = alreadyParsedTreesBuilder.ToImmutableAndClear();
-                    var lazyCompilationWithoutGeneratedDocuments = new Lazy<Compilation>(() => this.CreateEmptyCompilation().AddSyntaxTrees(alreadyParsedTrees));
+                    var lazyCompilationWithoutGeneratedDocuments = new Lazy<Compilation>(() =>
+                    {
+                        using var _ = ArrayBuilder<SyntaxTree>.GetInstance(documentsWithTrees.Length, out var alreadyParsedTrees);
+                        foreach (var documentState in documentsWithTrees)
+                        {
+                            if (documentState.TryGetSyntaxTree(out var alreadyParsedTree))
+                                alreadyParsedTrees.Add(alreadyParsedTree);
+                        }
 
-                    // Safe cast to appease NRT system.
-                    var lazyCompilationWithGeneratedDocuments = (Lazy<Compilation?>)lazyCompilationWithoutGeneratedDocuments!;
+                        return this.CreateEmptyCompilation().AddSyntaxTrees(alreadyParsedTrees);
+                    });
+
+                    var lazyCompilationWithGeneratedDocuments = new CancellableLazy<Compilation?>(cancellationToken => lazyCompilationWithoutGeneratedDocuments.Value);
 
                     return new RegularCompilationTracker(
                         frozenProjectState,
@@ -818,8 +817,12 @@ namespace Microsoft.CodeAnalysis
                     // us to a frozen state with that information.
                     var generatorInfo = inProgressState.GeneratorInfo;
                     var compilationWithoutGeneratedDocuments = inProgressState.LazyCompilationWithoutGeneratedDocuments;
-                    var compilationWithGeneratedDocuments = new Lazy<Compilation?>(() => compilationWithoutGeneratedDocuments.Value.AddSyntaxTrees(
-                        generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
+
+                    var compilationWithGeneratedDocuments = new CancellableLazy<Compilation?>(cancellationToken =>
+                    {
+                        var syntaxTrees = generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken));
+                        return compilationWithoutGeneratedDocuments.Value.AddSyntaxTrees(syntaxTrees);
+                    });
 
                     return new RegularCompilationTracker(
                         frozenProjectState,
@@ -872,7 +875,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var result in driverRunResult.Results)
                 {
-                    if (!IsGeneratorRunResultToIgnore(result))
+                    if (!result.Diagnostics.IsDefaultOrEmpty)
                     {
                         builder.AddRange(result.Diagnostics);
                     }
@@ -902,41 +905,11 @@ namespace Microsoft.CodeAnalysis
                 return state is FinalCompilationTrackerState finalState ? finalState.GeneratorInfo.Documents.GetState(documentId) : null;
             }
 
-            // HACK HACK HACK HACK around a problem introduced by https://github.com/dotnet/sdk/pull/24928. The Razor generator is
-            // controlled by a flag that lives in an .editorconfig file; in the IDE we generally don't run the generator and instead use
-            // the design-time files added through the legacy IDynamicFileInfo API. When we're doing Hot Reload we then
-            // remove those legacy files and remove the .editorconfig file that is supposed to disable the generator, for the Hot
-            // Reload pass we then are running the generator. This is done in the CompileTimeSolutionProvider.
-            //
-            // https://github.com/dotnet/sdk/pull/24928 introduced an issue where even though the Razor generator is being told to not
-            // run, it still runs anyways. As a tactical fix rather than reverting that PR, for Visual Studio 17.3 Preview 2 we are going
-            // to do a hack here which is to rip out generated files.
-
-            private bool IsGeneratorRunResultToIgnore(GeneratorRunResult result)
-            {
-                var globalOptions = this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions;
-
-                // This matches the implementation in https://github.com/chsienki/sdk/blob/4696442a24e3972417fb9f81f182420df0add107/src/RazorSdk/SourceGenerators/RazorSourceGenerator.RazorProviders.cs#L27-L28
-                var suppressGenerator = globalOptions.TryGetValue("build_property.SuppressRazorSourceGenerator", out var option) && option == "true";
-
-                if (!suppressGenerator)
-                    return false;
-
-                var generatorType = result.Generator.GetGeneratorType();
-                return generatorType.FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator" &&
-                       generatorType.Assembly.GetName().Name is "Microsoft.NET.Sdk.Razor.SourceGenerators" or
-                            "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators" or
-                            "Microsoft.CodeAnalysis.Razor.Compiler";
-            }
-
             public SkeletonReferenceCache GetClonedSkeletonReferenceCache()
                 => _skeletonReferenceCache.Clone();
 
             public Task<MetadataReference?> GetOrBuildSkeletonReferenceAsync(SolutionCompilationState compilationState, MetadataReferenceProperties properties, CancellationToken cancellationToken)
                 => _skeletonReferenceCache.GetOrBuildReferenceAsync(this, compilationState, properties, cancellationToken);
-
-            // END HACK HACK HACK HACK, or the setup of it at least; once this hack is removed the calls to IsGeneratorRunResultToIgnore
-            // need to be cleaned up.
 
             /// <summary>
             /// Validates the compilation is consistent and we didn't have a bug in producing it. This only runs under a feature flag.
@@ -961,9 +934,9 @@ namespace Microsoft.CodeAnalysis
 
                     ValidateCompilationTreesMatchesProjectState(inProgressState.CompilationWithoutGeneratedDocuments, projectState, generatorInfo: null);
 
-                    if (inProgressState.LazyStaleCompilationWithGeneratedDocuments.Value != null)
+                    if (inProgressState.LazyStaleCompilationWithGeneratedDocuments.GetValue(CancellationToken.None) is Compilation staleCompilationWithGeneratedDocuments)
                     {
-                        ValidateCompilationTreesMatchesProjectState(inProgressState.LazyStaleCompilationWithGeneratedDocuments.Value, projectState, inProgressState.GeneratorInfo);
+                        ValidateCompilationTreesMatchesProjectState(staleCompilationWithGeneratedDocuments, projectState, inProgressState.GeneratorInfo);
                     }
                 }
                 else
@@ -1035,7 +1008,6 @@ namespace Microsoft.CodeAnalysis
 
             private AsyncLazy<VersionStamp>? _lazyDependentVersion;
             private AsyncLazy<VersionStamp>? _lazyDependentSemanticVersion;
-            private AsyncLazy<Checksum>? _lazyDependentChecksum;
 
             public Task<VersionStamp> GetDependentVersionAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
@@ -1112,56 +1084,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return version;
-            }
-
-            public Task<Checksum> GetDependentChecksumAsync(
-                SolutionCompilationState compilationState, CancellationToken cancellationToken)
-            {
-                if (_lazyDependentChecksum == null)
-                {
-                    // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(
-                        ref _lazyDependentChecksum,
-                        AsyncLazy.Create(static (arg, c) =>
-                            arg.self.ComputeDependentChecksumAsync(arg.SolutionState, c),
-                            arg: (self: this, compilationState.SolutionState)),
-                        null);
-                }
-
-                return _lazyDependentChecksum.GetValueAsync(cancellationToken);
-            }
-
-            private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
-            {
-                using var _ = ArrayBuilder<Checksum>.GetInstance(out var tempChecksumArray);
-
-                // Get the checksum for the project itself.
-                var projectChecksum = await this.ProjectState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-                tempChecksumArray.Add(projectChecksum);
-
-                // Calculate a checksum this project and for each dependent project that could affect semantics for
-                // this project. Ensure that the checksum calculation orders the projects consistently so that we get
-                // the same checksum across sessions of VS.  Note: we use the project filepath+name as a unique way
-                // to reference a project.  This matches the logic in our persistence-service implemention as to how
-                // information is associated with a project.
-                var transitiveDependencies = solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(this.ProjectState.Id);
-                var orderedProjectIds = transitiveDependencies.OrderBy(id =>
-                {
-                    var depProject = solution.GetRequiredProjectState(id);
-                    return (depProject.FilePath, depProject.Name);
-                });
-
-                foreach (var projectId in orderedProjectIds)
-                {
-                    var referencedProject = solution.GetRequiredProjectState(projectId);
-
-                    // Note that these checksums should only actually be calculated once, if the project is unchanged
-                    // the same checksum will be returned.
-                    var referencedProjectChecksum = await referencedProject.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-                    tempChecksumArray.Add(referencedProjectChecksum);
-                }
-
-                return Checksum.Create(tempChecksumArray);
             }
 
             #endregion

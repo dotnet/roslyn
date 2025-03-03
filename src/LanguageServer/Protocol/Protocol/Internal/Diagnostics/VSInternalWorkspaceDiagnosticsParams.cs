@@ -19,16 +19,12 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public VSInternalDiagnosticParams[]? PreviousResults { get; set; }
 
-        /// <summary>
-        /// Gets or sets an optional token that a server can use to report work done progress.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName(Methods.WorkDoneTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public IProgress<VSInternalWorkspaceDiagnosticReport[]>? WorkDoneToken { get; set; }
+        public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
 
-        /// <summary>
-        /// Gets or sets an optional token that a server can use to report partial results (e.g. streaming) to the client.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName(Methods.PartialResultTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<VSInternalWorkspaceDiagnosticReport[]>? PartialResultToken { get; set; }

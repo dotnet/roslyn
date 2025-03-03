@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -420,8 +421,8 @@ internal partial class SyntacticClassificationTaggerProvider
 
             using var _ = Classifier.GetPooledList(out var classifiedSpans);
 
-            foreach (var span in spans)
-                AddClassifications(span);
+            for (var i = 0; i < spans.Count; i++)
+                AddClassifications(spans[i]);
 
             var typeMap = _taggerProvider._typeMap;
             foreach (var classifiedSpan in classifiedSpans)

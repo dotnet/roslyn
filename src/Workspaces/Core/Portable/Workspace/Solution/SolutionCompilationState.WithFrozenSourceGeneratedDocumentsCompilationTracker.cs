@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     /// <summary>
     /// An implementation of <see cref="ICompilationTracker"/> that takes a compilation from another compilation tracker
@@ -27,8 +27,6 @@ internal partial class SolutionCompilationState
     private sealed class WithFrozenSourceGeneratedDocumentsCompilationTracker : ICompilationTracker
     {
         private readonly TextDocumentStates<SourceGeneratedDocumentState> _replacementDocumentStates;
-
-        private AsyncLazy<Checksum>? _lazyDependentChecksum;
 
         /// <summary>
         /// The lazily-produced compilation that has the generated document updated. This is initialized by call to
@@ -75,10 +73,9 @@ internal partial class SolutionCompilationState
 
         public ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate)
         {
-            // TODO: This only needs to be implemented if a feature that operates from a source generated file then makes
-            // further mutations to that project, which isn't needed for now. This will be need to be fixed up when we complete
-            // https://github.com/dotnet/roslyn/issues/49533.
-            throw new NotImplementedException();
+            // We'll apply the translation to the underlying tracker, and then replace the documents again.
+            var underlyingTracker = this.UnderlyingTracker.Fork(newProject, translate);
+            return new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
         public ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
@@ -89,9 +86,9 @@ internal partial class SolutionCompilationState
                 : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
-        public ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken)
+        public ICompilationTracker WithDoNotCreateCreationPolicy()
         {
-            var underlyingTracker = this.UnderlyingTracker.WithDoNotCreateCreationPolicy(cancellationToken);
+            var underlyingTracker = this.UnderlyingTracker.WithDoNotCreateCreationPolicy();
             return underlyingTracker == this.UnderlyingTracker
                 ? this
                 : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
@@ -145,28 +142,6 @@ internal partial class SolutionCompilationState
 
         public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
             => UnderlyingTracker.GetDependentSemanticVersionAsync(compilationState, cancellationToken);
-
-        public Task<Checksum> GetDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
-        {
-            if (_lazyDependentChecksum == null)
-            {
-                var tmp = compilationState; // temp. local to avoid a closure allocation for the fast path
-                // note: solution is captured here, but it will go away once GetValueAsync executes.
-                Interlocked.CompareExchange(
-                    ref _lazyDependentChecksum,
-                    AsyncLazy.Create(static (arg, c) =>
-                        arg.self.ComputeDependentChecksumAsync(arg.tmp, c),
-                        arg: (self: this, tmp)),
-                    null);
-            }
-
-            return _lazyDependentChecksum.GetValueAsync(cancellationToken);
-        }
-
-        private async Task<Checksum> ComputeDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
-            => Checksum.Create(
-                await UnderlyingTracker.GetDependentChecksumAsync(compilationState, cancellationToken).ConfigureAwait(false),
-                (await _replacementDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false)).Checksum);
 
         public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
             SolutionCompilationState compilationState, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)

@@ -19,15 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedLocalFunction), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
-internal class CSharpRemoveUnusedLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpRemoveUnusedLocalFunctionCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     private const string CS8321 = nameof(CS8321); // The local function 'X' is declared but never used
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpRemoveUnusedLocalFunctionCodeFixProvider()
-    {
-    }
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds
         => [CS8321];

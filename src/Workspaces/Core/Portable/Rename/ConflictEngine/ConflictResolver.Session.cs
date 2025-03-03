@@ -27,7 +27,7 @@ internal static partial class ConflictResolver
     /// Helper class to track the state necessary for finding/resolving conflicts in a 
     /// rename session.
     /// </summary>
-    private class Session
+    private sealed class Session
     {
         // Set of All Locations that will be renamed (does not include non-reference locations that need to be checked for conflicts)
         private readonly SymbolicRenameLocations _renameLocationSet;
@@ -159,10 +159,9 @@ internal static partial class ConflictResolver
                         {
                             Contract.ThrowIfTrue(conflictLocations.Count != 0, "We're the first phase, so we should have no conflict locations yet");
 
-                            conflictLocations = conflictResolution.RelatedLocations
+                            conflictLocations = [.. conflictResolution.RelatedLocations
                                 .Where(loc => documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict && loc.IsReference)
-                                .Select(loc => new ConflictLocationInfo(loc))
-                                .ToImmutableHashSet();
+                                .Select(loc => new ConflictLocationInfo(loc))];
 
                             // If there were no conflicting locations in references, then the first conflict phase has to be skipped.
                             if (conflictLocations.Count == 0)
@@ -184,7 +183,7 @@ internal static partial class ConflictResolver
 
                         // Set the documents with conflicts that need to be processed in the next phase.
                         // Note that we need to get the conflictLocations here since we're going to remove some locations below if phase == 2
-                        documentIdsThatGetsAnnotatedAndRenamed = new HashSet<DocumentId>(conflictLocations.Select(l => l.DocumentId));
+                        documentIdsThatGetsAnnotatedAndRenamed = [.. conflictLocations.Select(l => l.DocumentId)];
 
                         if (phase == 2)
                         {
@@ -193,9 +192,7 @@ internal static partial class ConflictResolver
                                 .Where(l => (l.Type & RelatedLocationType.UnresolvedConflict) != 0)
                                 .Select(l => Tuple.Create(l.ComplexifiedTargetSpan, l.DocumentId)).Distinct();
 
-                            conflictLocations = conflictLocations
-                                .Where(l => !unresolvedLocations.Any(c => c.Item2 == l.DocumentId && c.Item1.Contains(l.OriginalIdentifierSpan)))
-                                .ToImmutableHashSet();
+                            conflictLocations = [.. conflictLocations.Where(l => !unresolvedLocations.Any(c => c.Item2 == l.DocumentId && c.Item1.Contains(l.OriginalIdentifierSpan)))];
                         }
 
                         // Clean up side effects from rename before entering the next phase
@@ -475,8 +472,7 @@ internal static partial class ConflictResolver
                 return null;
 
             var compilation = await currentProject.GetRequiredCompilationAsync(_cancellationToken).ConfigureAwait(false);
-            return ImmutableHashSet.CreateRange(
-                _nonConflictSymbolKeys.Select(s => s.Resolve(compilation).GetAnySymbol()).WhereNotNull());
+            return [.. _nonConflictSymbolKeys.Select(s => s.Resolve(compilation).GetAnySymbol()).WhereNotNull()];
         }
 
         private static bool IsConflictFreeChange(
@@ -539,8 +535,11 @@ internal static partial class ConflictResolver
 
                         hasConflict = true;
 
-                        var newLocationTasks = newReferencedSymbols.Select(async symbol => await GetSymbolLocationAsync(solution, symbol, _cancellationToken).ConfigureAwait(false));
-                        var newLocations = (await Task.WhenAll(newLocationTasks).ConfigureAwait(false)).WhereNotNull().Where(loc => loc.IsInSource);
+                        var newLocations = newReferencedSymbols
+                            .Select(symbol => GetSymbolLocation(solution, symbol, _cancellationToken))
+                            .WhereNotNull()
+                            .Where(loc => loc.IsInSource)
+                            .ToArray();
                         foreach (var originalReference in conflictAnnotation.RenameDeclarationLocationReferences.Where(loc => loc.IsSourceLocation))
                         {
                             var adjustedStartPosition = conflictResolution.GetAdjustedTokenStartingPosition(originalReference.TextSpan.Start, originalReference.DocumentId);
@@ -581,8 +580,7 @@ internal static partial class ConflictResolver
                             break;
                         }
 
-                        var newLocation = await GetSymbolLocationAsync(solution, symbol, _cancellationToken).ConfigureAwait(false);
-
+                        var newLocation = GetSymbolLocation(solution, symbol, _cancellationToken);
                         if (newLocation != null && conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex].IsSourceLocation)
                         {
                             // location was in source before, but not after rename

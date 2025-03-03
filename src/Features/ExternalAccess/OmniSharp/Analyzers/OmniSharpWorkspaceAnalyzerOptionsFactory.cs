@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers
     {
 #pragma warning disable IDE0060 // Remove unused parameter
         public static AnalyzerOptions Create(Solution solution, AnalyzerOptions options)
-            => new WorkspaceAnalyzerOptions(options, IdeAnalyzerOptions.CommonDefault);
+            => options;
 #pragma warning restore IDE0060 // Remove unused parameter
     }
 }

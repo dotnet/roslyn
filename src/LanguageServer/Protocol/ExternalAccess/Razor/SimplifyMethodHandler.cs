@@ -43,9 +43,16 @@ internal class SimplifyMethodHandler : ILspServiceDocumentRequestHandler<Simplif
         if (originalDocument is null)
             return null;
 
+        var textEdit = request.TextEdit;
+
+        return await GetSimplifiedEditsAsync(originalDocument, textEdit, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static async Task<TextEdit[]> GetSimplifiedEditsAsync(Document originalDocument, TextEdit textEdit, CancellationToken cancellationToken)
+    {
         // Create a temporary syntax tree that includes the text edit.
         var originalSourceText = await originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var pendingChange = ProtocolConversions.TextEditToTextChange(request.TextEdit, originalSourceText);
+        var pendingChange = ProtocolConversions.TextEditToTextChange(textEdit, originalSourceText);
         var newSourceText = originalSourceText.WithChanges(pendingChange);
         var originalTree = await originalDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var newTree = originalTree.WithChangedText(newSourceText);
@@ -57,11 +64,11 @@ internal class SimplifyMethodHandler : ILspServiceDocumentRequestHandler<Simplif
         var annotatedDocument = originalDocument.WithSyntaxRoot(annotatedSyntaxRoot);
 
         // Call to the Simplifier and pass back the edits.
-        var configOptions = await originalDocument.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await originalDocument.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         var simplificationService = originalDocument.Project.Services.GetRequiredService<ISimplificationService>();
         var options = simplificationService.GetSimplifierOptions(configOptions);
         var newDocument = await Simplifier.ReduceAsync(annotatedDocument, options, cancellationToken).ConfigureAwait(false);
         var changes = await newDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
-        return changes.Select(change => ProtocolConversions.TextChangeToTextEdit(change, originalSourceText)).ToArray();
+        return [.. changes.Select(change => ProtocolConversions.TextChangeToTextEdit(change, originalSourceText))];
     }
 }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static CSharpCompilation CreateCSharpCompilation(string sourceText)
         {
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(sourceText);
-            return CSharpCompilation.Create("goo.exe").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(syntaxTree);
+            return CSharpCompilation.Create("goo.exe").AddReferences(NetFramework.mscorlib).AddSyntaxTrees(syntaxTree);
         }
 
         private static void CheckDeclarationId(string expectedId, INamespaceOrTypeSymbol symbol, Compilation compilation)

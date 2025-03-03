@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,7 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExpressionBody), Shared]
-internal partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+internal sealed partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 
@@ -56,7 +54,7 @@ internal partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBasedCodeF
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var accessorLists = new HashSet<AccessorListSyntax>();
         foreach (var diagnostic in diagnostics)

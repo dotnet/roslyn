@@ -203,13 +203,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
         private static string ContainerStyleToString(ContainerElementStyle style)
         {
             var stringValue = style.ToString();
-            return string.Join(" Or ", stringValue.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(value => $"{nameof(ContainerElementStyle)}.{value}"));
+            return string.Join(" Or ", stringValue.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries).Select(value => $"{nameof(ContainerElementStyle)}.{value}"));
         }
 
         private static string TextRunStyleToString(ClassifiedTextRunStyle style)
         {
             var stringValue = style.ToString();
-            return string.Join(" Or ", stringValue.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(value => $"{nameof(ClassifiedTextRunStyle)}.{value}"));
+            return string.Join(" Or ", stringValue.Split([',', ' '], StringSplitOptions.RemoveEmptyEntries).Select(value => $"{nameof(ClassifiedTextRunStyle)}.{value}"));
         }
 
         private static string GetKnownClassification(string classification)

@@ -160,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                     CompilerOptions.OPTID_WARNASERRORLIST or
                     CompilerOptions.OPTID_WARNNOTASERRORLIST);
 
-                foreach (var warning in GetStringOption(compilerOptions, defaultValue: "").Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+                foreach (var warning in GetStringOption(compilerOptions, defaultValue: "").Split([' ', ',', ';'], StringSplitOptions.RemoveEmptyEntries))
                 {
                     var warningStringID = warning;
                     if (int.TryParse(warning, out var warningId))
@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             protected override ParseOptions ComputeParseOptionsWithHostValues(ParseOptions parseOptions)
             {
-                var symbols = GetStringOption(CompilerOptions.OPTID_CCSYMBOLS, defaultValue: "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                var symbols = GetStringOption(CompilerOptions.OPTID_CCSYMBOLS, defaultValue: "").Split([';'], StringSplitOptions.RemoveEmptyEntries);
 
                 // The base implementation of OptionsProcessor already tried this, but it didn't have the real documentation
                 // path so we have to do it a second time

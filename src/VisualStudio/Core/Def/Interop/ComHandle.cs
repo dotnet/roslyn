@@ -20,7 +20,6 @@ internal readonly struct ComHandle<THandle, TObject>
     where TObject : class, THandle
 {
     private readonly THandle _handle;
-    private readonly TObject _managedObject;
 
     /// <summary>
     /// Create an instance from a "ComObject" or from a managed object.
@@ -30,17 +29,17 @@ internal readonly struct ComHandle<THandle, TObject>
         if (handleOrManagedObject == null)
         {
             _handle = null;
-            _managedObject = null;
+            Object = null;
         }
         else if (Marshal.IsComObject(handleOrManagedObject))
         {
             _handle = handleOrManagedObject;
-            _managedObject = ComAggregate.GetManagedObject<TObject>(handleOrManagedObject);
+            Object = ComAggregate.GetManagedObject<TObject>(handleOrManagedObject);
         }
         else
         {
             _handle = (THandle)ComAggregate.TryGetWrapper(handleOrManagedObject);
-            _managedObject = (TObject)handleOrManagedObject;
+            Object = (TObject)handleOrManagedObject;
         }
     }
 
@@ -49,7 +48,7 @@ internal readonly struct ComHandle<THandle, TObject>
         if (handle == null && managedObject == null)
         {
             _handle = null;
-            _managedObject = null;
+            Object = null;
         }
         else
         {
@@ -62,7 +61,7 @@ internal readonly struct ComHandle<THandle, TObject>
             }
 
             _handle = handle;
-            _managedObject = managedObject;
+            Object = managedObject;
         }
     }
 
@@ -77,7 +76,7 @@ internal readonly struct ComHandle<THandle, TObject>
 
             if (_handle == null)
             {
-                return _managedObject;
+                return Object;
             }
             else
             {
@@ -89,13 +88,7 @@ internal readonly struct ComHandle<THandle, TObject>
     /// <summary>
     /// Return the managed object
     /// </summary>
-    public TObject Object
-    {
-        get
-        {
-            return _managedObject;
-        }
-    }
+    public TObject Object { get; }
 
     public ComHandle<TNewHandle, TNewObject> Cast<TNewHandle, TNewObject>()
         where TNewHandle : class

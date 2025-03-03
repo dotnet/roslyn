@@ -8,10 +8,12 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing a description for an error code.
-    ///
+    /// Class representing a description for an error code in a <see cref="Diagnostic"/>.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeDescription">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal class CodeDescription : IEquatable<CodeDescription>
     {
         /// <summary>

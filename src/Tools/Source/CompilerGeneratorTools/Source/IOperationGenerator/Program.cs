@@ -33,6 +33,4 @@ if (tree is null)
     return 1;
 }
 
-IOperationClassWriter.Write(tree, outFilePath);
-
-return 0;
+return IOperationClassWriter.Write(tree, outFilePath) ? 0 : 1;

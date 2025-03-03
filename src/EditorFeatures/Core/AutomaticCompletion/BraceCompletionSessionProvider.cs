@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion;
 [BracePair(LessAndGreaterThan.OpenCharacter, LessAndGreaterThan.CloseCharacter)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class BraceCompletionSessionProvider(
+internal sealed partial class BraceCompletionSessionProvider(
     IThreadingContext threadingContext,
     ITextBufferUndoManagerProvider undoManager,
     IEditorOperationsFactoryService editorOperationsFactoryService,
@@ -47,6 +47,10 @@ internal partial class BraceCompletionSessionProvider(
     public bool TryCreateSession(ITextView textView, SnapshotPoint openingPoint, char openingBrace, char closingBrace, out IBraceCompletionSession session)
     {
         _threadingContext.ThrowIfNotOnUIThread();
+
+        var responsiveCompletion = textView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId);
+        var cancellationToken = GetCancellationToken(responsiveCompletion);
+
         var textSnapshot = openingPoint.Snapshot;
         var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document != null)
@@ -54,18 +58,15 @@ internal partial class BraceCompletionSessionProvider(
             var editorSessionFactory = document.GetLanguageService<IBraceCompletionServiceFactory>();
             if (editorSessionFactory != null)
             {
-                // Brace completion is (currently) not cancellable.
-                var cancellationToken = CancellationToken.None;
-
                 var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
                 var editorSession = editorSessionFactory.TryGetService(parsedDocument, openingPoint, openingBrace, cancellationToken);
                 if (editorSession != null)
                 {
                     var undoHistory = _undoManager.GetTextBufferUndoManager(textView.TextBuffer).TextBufferUndoHistory;
                     session = new BraceCompletionSession(
-                        textView, openingPoint.Snapshot.TextBuffer, openingPoint, openingBrace, closingBrace,
-                        undoHistory, _editorOperationsFactoryService, _editorOptionsService,
-                        editorSession, _threadingContext);
+                        this, textView, openingPoint.Snapshot.TextBuffer,
+                        openingPoint, openingBrace, closingBrace,
+                        undoHistory, editorSession, responsiveCompletion);
                     return true;
                 }
             }
@@ -73,5 +74,18 @@ internal partial class BraceCompletionSessionProvider(
 
         session = null;
         return false;
+    }
+
+    private static CancellationToken GetCancellationToken(bool responsiveCompletion)
+    {
+        if (!responsiveCompletion)
+            return CancellationToken.None;
+
+        // Brace completion is cancellable if the user has the 'responsive completion' option enabled. 200 ms was
+        // chosen as the default timeout with the editor as a good balance of having enough time for computation,
+        // while canceling early enough to not be too disruptive.
+        var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.CancelAfter(200);
+        return cancellationTokenSource.Token;
     }
 }

@@ -7,30 +7,28 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(AwaitCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(AwaitCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(KeywordCompletionProvider))]
-[Shared]
-internal sealed class AwaitCompletionProvider : AbstractAwaitCompletionProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvider(CSharpSyntaxFacts.Instance)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public AwaitCompletionProvider()
-        : base(CSharpSyntaxFacts.Instance)
-    {
-    }
-
     internal override string Language => LanguageNames.CSharp;
+
     public override ImmutableHashSet<char> TriggerCharacters => CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
     protected override bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
@@ -39,7 +37,7 @@ internal sealed class AwaitCompletionProvider : AbstractAwaitCompletionProvider
     /// <summary>
     /// Gets the span start where async keyword should go.
     /// </summary>
-    protected override int GetSpanStart(SyntaxNode declaration)
+    protected override int GetAsyncKeywordInsertionPosition(SyntaxNode declaration)
     {
         return declaration switch
         {
@@ -55,24 +53,75 @@ internal sealed class AwaitCompletionProvider : AbstractAwaitCompletionProvider
         };
     }
 
-    protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
+    protected override TextChange? GetReturnTypeChange(SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken)
+    {
+        var existingReturnType = declaration switch
+        {
+            MethodDeclarationSyntax method => method.ReturnType,
+            LocalFunctionStatementSyntax local => local.ReturnType,
+            // Normally null as users don't common put return types on parenthesized lambdas.
+            ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ReturnType,
+            // No explicit return type on anonymous methods or simple lambdas.
+            AnonymousMethodExpressionSyntax anonymous => null,
+            SimpleLambdaExpressionSyntax simpleLambda => null,
+            _ => throw ExceptionUtilities.UnexpectedValue(declaration.Kind())
+        };
+
+        if (existingReturnType is null)
+            return null;
+
+        var newTypeName = GetNewTypeName(existingReturnType);
+
+        if (newTypeName is null)
+            return null;
+
+        return new TextChange(existingReturnType.Span, newTypeName);
+
+        string? GetNewTypeName(TypeSyntax existingReturnType)
+        {
+            // `void => Task`
+            if (existingReturnType is PredefinedTypeSyntax { Keyword: (kind: SyntaxKind.VoidKeyword) })
+                return nameof(Task);
+
+            // Don't change the return type if we don't understand it, or it already seems task-like.
+            var taskLikeTypes = new KnownTaskTypes(semanticModel.Compilation);
+            var returnType = semanticModel.GetTypeInfo(existingReturnType, cancellationToken).Type;
+            if (returnType is null or IErrorTypeSymbol || taskLikeTypes.IsTaskLike(returnType))
+                return null;
+
+            return $"{nameof(Task)}<{existingReturnType}>";
+        }
+    }
+
+    protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken leftToken, int position)
     {
         // In a case like
         //   someTask.$$
         //   await Test();
         // someTask.await Test() is parsed as a local function statement.
         // We skip this and look further up in the hierarchy.
-        var parent = token.Parent;
+        var parent = leftToken.Parent;
         if (parent == null)
             return null;
 
-        if (parent is QualifiedNameSyntax { Parent: LocalFunctionStatementSyntax localFunction } qualifiedName &&
-            localFunction.ReturnType == qualifiedName)
+        if (parent is NameSyntax { Parent: LocalFunctionStatementSyntax localFunction } name &&
+            localFunction.ReturnType == name)
         {
-            parent = localFunction;
+            parent = localFunction.GetRequiredParent();
         }
 
-        return parent.AncestorsAndSelf().FirstOrDefault(node => node.IsAsyncSupportingFunctionSyntax());
+        return parent.AncestorsAndSelf().FirstOrDefault(node =>
+        {
+            if (!node.IsAsyncSupportingFunctionSyntax())
+                return false;
+
+            // Ensure that if we were outside of the async-supporting-function that we don't return it as the thing to
+            // make async.  We want to make its parent async.
+            if (position > leftToken.FullSpan.End)
+                return node.Span.Contains(position);
+
+            return node.Span.IntersectsWith(position);
+        });
     }
 
     protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)

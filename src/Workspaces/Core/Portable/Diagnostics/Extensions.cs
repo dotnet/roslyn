@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal static partial class Extensions
 {
+    private static readonly ConditionalWeakTable<Project, AsyncLazy<Checksum>> s_projectToDiagnosticChecksum = new();
+
     public static async Task<ImmutableArray<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)
     {
         var result = ArrayBuilder<Diagnostic>.GetInstance();
@@ -81,7 +84,7 @@ internal static partial class Extensions
 
     private static string GetAssemblyQualifiedName(Type type)
     {
-        // AnalyzerFileReference now includes things like versions, public key as part of its identity. 
+        // AnalyzerFileReference now includes things like versions, public key as part of its identity.
         // so we need to consider them.
         return RoslynImmutableInterlocked.GetOrAdd(
             ref s_typeToAssemblyQualifiedName,
@@ -89,16 +92,23 @@ internal static partial class Extensions
             static type => type.AssemblyQualifiedName ?? throw ExceptionUtilities.UnexpectedValue(type));
     }
 
+    public static bool IsFeaturesAnalyzer(this AnalyzerReference reference)
+    {
+        var fileNameSpan = reference.FullPath.AsSpan(FileNameUtilities.IndexOfFileName(reference.FullPath));
+        return
+          fileNameSpan.Equals("Microsoft.CodeAnalysis.Features.dll".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+          fileNameSpan.Equals("Microsoft.CodeAnalysis.CSharp.Features.dll".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+          fileNameSpan.Equals("Microsoft.CodeAnalysis.VisualBasic.Features.dll".AsSpan(), StringComparison.OrdinalIgnoreCase);
+    }
+
     public static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>> ToResultBuilderMapAsync(
-        this AnalysisResult analysisResult,
+        this AnalysisResultPair analysisResult,
         ImmutableArray<Diagnostic> additionalPragmaSuppressionDiagnostics,
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
-        VersionStamp version,
-        Compilation compilation,
-        IEnumerable<DiagnosticAnalyzer> analyzers,
+        ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
+        ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
         SkippedHostAnalyzersInfo skippedAnalyzersInfo,
-        bool includeSuppressedDiagnostics,
         CancellationToken cancellationToken)
     {
         SyntaxTree? treeToAnalyze = null;
@@ -116,7 +126,7 @@ internal static partial class Extensions
         }
 
         var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>();
-        foreach (var analyzer in analyzers)
+        foreach (var analyzer in projectAnalyzers.ConcatFast(hostAnalyzers))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -125,7 +135,7 @@ internal static partial class Extensions
                 continue;
             }
 
-            var result = new DiagnosticAnalysisResultBuilder(project, version);
+            var result = new DiagnosticAnalysisResultBuilder(project);
             var diagnosticIdsToFilter = skippedAnalyzersInfo.FilteredDiagnosticIdsForAnalyzers.GetValueOrDefault(
                 analyzer,
                 []);
@@ -142,25 +152,25 @@ internal static partial class Extensions
                     case AnalysisKind.Syntax:
                         if (treeToAnalyze != null)
                         {
-                            if (analysisResult.SyntaxDiagnostics.TryGetValue(treeToAnalyze, out diagnosticsByAnalyzerMap))
+                            if (analysisResult.MergedSyntaxDiagnostics.TryGetValue(treeToAnalyze, out diagnosticsByAnalyzerMap))
                             {
-                                AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                                    treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                                AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
+                                    treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter);
                             }
                         }
-                        else if (analysisResult.AdditionalFileDiagnostics.TryGetValue(additionalFileToAnalyze!, out diagnosticsByAnalyzerMap))
+                        else if (analysisResult.MergedAdditionalFileDiagnostics.TryGetValue(additionalFileToAnalyze!, out diagnosticsByAnalyzerMap))
                         {
-                            AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                                tree: null, documentAnalysisScope.TextDocument.Id, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                            AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
+                                tree: null, documentAnalysisScope.TextDocument.Id, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter);
                         }
 
                         break;
 
                     case AnalysisKind.Semantic:
-                        if (analysisResult.SemanticDiagnostics.TryGetValue(treeToAnalyze!, out diagnosticsByAnalyzerMap))
+                        if (analysisResult.MergedSemanticDiagnostics.TryGetValue(treeToAnalyze!, out diagnosticsByAnalyzerMap))
                         {
-                            AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                                treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                            AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
+                                treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Semantic, diagnosticIdsToFilter);
                         }
 
                         break;
@@ -171,28 +181,28 @@ internal static partial class Extensions
             }
             else
             {
-                foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SyntaxDiagnostics)
+                foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.MergedSyntaxDiagnostics)
                 {
-                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                        tree, additionalDocumentId: null, span: null, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
+                        tree, additionalDocumentId: null, span: null, AnalysisKind.Syntax, diagnosticIdsToFilter);
                 }
 
-                foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.SemanticDiagnostics)
+                foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.MergedSemanticDiagnostics)
                 {
-                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                        tree, additionalDocumentId: null, span: null, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
+                        tree, additionalDocumentId: null, span: null, AnalysisKind.Semantic, diagnosticIdsToFilter);
                 }
 
-                foreach (var (file, diagnosticsByAnalyzerMap) in analysisResult.AdditionalFileDiagnostics)
+                foreach (var (file, diagnosticsByAnalyzerMap) in analysisResult.MergedAdditionalFileDiagnostics)
                 {
                     var additionalDocumentId = project.GetDocumentForFile(file);
                     var kind = additionalDocumentId != null ? AnalysisKind.Syntax : AnalysisKind.NonLocal;
-                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                        tree: null, additionalDocumentId, span: null, kind, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
+                        tree: null, additionalDocumentId, span: null, kind, diagnosticIdsToFilter);
                 }
 
-                AddAnalyzerDiagnosticsToResult(analyzer, analysisResult.CompilationDiagnostics, ref result, compilation,
-                    tree: null, additionalDocumentId: null, span: null, AnalysisKind.NonLocal, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                AddAnalyzerDiagnosticsToResult(analyzer, analysisResult.MergedCompilationDiagnostics, ref result,
+                    tree: null, additionalDocumentId: null, span: null, AnalysisKind.NonLocal, diagnosticIdsToFilter);
             }
 
             // Special handling for pragma suppression diagnostics.
@@ -204,16 +214,16 @@ internal static partial class Extensions
                     if (treeToAnalyze != null)
                     {
                         var diagnostics = additionalPragmaSuppressionDiagnostics.WhereAsArray(d => d.Location.SourceTree == treeToAnalyze);
-                        AddDiagnosticsToResult(diagnostics, ref result, compilation, treeToAnalyze, additionalDocumentId: null,
-                            documentAnalysisScope!.Span, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                        AddDiagnosticsToResult(diagnostics, ref result, treeToAnalyze, additionalDocumentId: null,
+                            documentAnalysisScope.Span, AnalysisKind.Semantic, diagnosticIdsToFilter);
                     }
                 }
                 else
                 {
                     foreach (var group in additionalPragmaSuppressionDiagnostics.GroupBy(d => d.Location.SourceTree!))
                     {
-                        AddDiagnosticsToResult(group.AsImmutable(), ref result, compilation, group.Key, additionalDocumentId: null,
-                            span: null, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                        AddDiagnosticsToResult(group.AsImmutable(), ref result, group.Key, additionalDocumentId: null,
+                            span: null, AnalysisKind.Semantic, diagnosticIdsToFilter);
                     }
                 }
 
@@ -229,39 +239,34 @@ internal static partial class Extensions
             DiagnosticAnalyzer analyzer,
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> diagnosticsByAnalyzer,
             ref DiagnosticAnalysisResultBuilder result,
-            Compilation compilation,
             SyntaxTree? tree,
             DocumentId? additionalDocumentId,
             TextSpan? span,
             AnalysisKind kind,
-            ImmutableArray<string> diagnosticIdsToFilter,
-            bool includeSuppressedDiagnostics)
+            ImmutableArray<string> diagnosticIdsToFilter)
         {
             if (diagnosticsByAnalyzer.TryGetValue(analyzer, out var diagnostics))
             {
-                AddDiagnosticsToResult(diagnostics, ref result, compilation,
-                    tree, additionalDocumentId, span, kind, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                AddDiagnosticsToResult(diagnostics, ref result,
+                    tree, additionalDocumentId, span, kind, diagnosticIdsToFilter);
             }
         }
 
         static void AddDiagnosticsToResult(
             ImmutableArray<Diagnostic> diagnostics,
             ref DiagnosticAnalysisResultBuilder result,
-            Compilation compilation,
             SyntaxTree? tree,
             DocumentId? additionalDocumentId,
             TextSpan? span,
             AnalysisKind kind,
-            ImmutableArray<string> diagnosticIdsToFilter,
-            bool includeSuppressedDiagnostics)
+            ImmutableArray<string> diagnosticIdsToFilter)
         {
             if (diagnostics.IsEmpty)
             {
                 return;
             }
 
-            diagnostics = diagnostics.Filter(diagnosticIdsToFilter, includeSuppressedDiagnostics, span);
-            Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
+            diagnostics = diagnostics.Filter(diagnosticIdsToFilter, span);
 
             switch (kind)
             {
@@ -293,28 +298,25 @@ internal static partial class Extensions
 
     /// <summary>
     /// Filters out the diagnostics with the specified <paramref name="diagnosticIdsToFilter"/>.
-    /// If <paramref name="includeSuppressedDiagnostics"/> is false, filters out suppressed diagnostics.
     /// If <paramref name="filterSpan"/> is non-null, filters out diagnostics with location outside this span.
     /// </summary>
     public static ImmutableArray<Diagnostic> Filter(
         this ImmutableArray<Diagnostic> diagnostics,
         ImmutableArray<string> diagnosticIdsToFilter,
-        bool includeSuppressedDiagnostics,
         TextSpan? filterSpan = null)
     {
-        if (diagnosticIdsToFilter.IsEmpty && includeSuppressedDiagnostics && !filterSpan.HasValue)
+        if (diagnosticIdsToFilter.IsEmpty && !filterSpan.HasValue)
         {
             return diagnostics;
         }
 
         return diagnostics.RemoveAll(diagnostic =>
             diagnosticIdsToFilter.Contains(diagnostic.Id) ||
-            !includeSuppressedDiagnostics && diagnostic.IsSuppressed ||
             filterSpan.HasValue && !filterSpan.Value.IntersectsWith(diagnostic.Location.SourceSpan));
     }
 
-    public static async Task<(AnalysisResult result, ImmutableArray<Diagnostic> additionalDiagnostics)> GetAnalysisResultAsync(
-        this CompilationWithAnalyzers compilationWithAnalyzers,
+    public static async Task<(AnalysisResultPair? analysisResult, ImmutableArray<Diagnostic> additionalDiagnostics)> GetAnalysisResultAsync(
+        this CompilationWithAnalyzersPair compilationWithAnalyzers,
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
         DiagnosticAnalyzerInfoCache analyzerInfoCache,
@@ -326,8 +328,8 @@ internal static partial class Extensions
         return (result, additionalDiagnostics);
     }
 
-    private static async Task<AnalysisResult> GetAnalysisResultAsync(
-        CompilationWithAnalyzers compilationWithAnalyzers,
+    private static async Task<AnalysisResultPair?> GetAnalysisResultAsync(
+        CompilationWithAnalyzersPair compilationWithAnalyzers,
         DocumentAnalysisScope? documentAnalysisScope,
         CancellationToken cancellationToken)
     {
@@ -336,7 +338,8 @@ internal static partial class Extensions
             return await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        Debug.Assert(documentAnalysisScope.Analyzers.ToSet().IsSubsetOf(compilationWithAnalyzers.Analyzers));
+        Debug.Assert(documentAnalysisScope.ProjectAnalyzers.ToSet().IsSubsetOf(compilationWithAnalyzers.ProjectAnalyzers));
+        Debug.Assert(documentAnalysisScope.HostAnalyzers.ToSet().IsSubsetOf(compilationWithAnalyzers.HostAnalyzers));
 
         switch (documentAnalysisScope.Kind)
         {
@@ -344,16 +347,16 @@ internal static partial class Extensions
                 if (documentAnalysisScope.TextDocument is Document document)
                 {
                     var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    return await compilationWithAnalyzers.GetAnalysisResultAsync(tree, documentAnalysisScope.Span, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                    return await compilationWithAnalyzers.GetAnalysisResultAsync(tree, documentAnalysisScope.Span, documentAnalysisScope.ProjectAnalyzers, documentAnalysisScope.HostAnalyzers, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    return await compilationWithAnalyzers.GetAnalysisResultAsync(documentAnalysisScope.AdditionalFile, documentAnalysisScope.Span, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                    return await compilationWithAnalyzers.GetAnalysisResultAsync(documentAnalysisScope.AdditionalFile, documentAnalysisScope.Span, documentAnalysisScope.ProjectAnalyzers, documentAnalysisScope.HostAnalyzers, cancellationToken).ConfigureAwait(false);
                 }
 
             case AnalysisKind.Semantic:
                 var model = await ((Document)documentAnalysisScope.TextDocument).GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                return await compilationWithAnalyzers.GetAnalysisResultAsync(model, documentAnalysisScope.Span, documentAnalysisScope.Analyzers, cancellationToken).ConfigureAwait(false);
+                return await compilationWithAnalyzers.GetAnalysisResultAsync(model, documentAnalysisScope.Span, documentAnalysisScope.ProjectAnalyzers, documentAnalysisScope.HostAnalyzers, cancellationToken).ConfigureAwait(false);
 
             default:
                 throw ExceptionUtilities.UnexpectedValue(documentAnalysisScope.Kind);
@@ -361,16 +364,18 @@ internal static partial class Extensions
     }
 
     private static async Task<ImmutableArray<Diagnostic>> GetPragmaSuppressionAnalyzerDiagnosticsAsync(
-        this CompilationWithAnalyzers compilationWithAnalyzers,
+        this CompilationWithAnalyzersPair compilationWithAnalyzers,
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
         DiagnosticAnalyzerInfoCache analyzerInfoCache,
         CancellationToken cancellationToken)
     {
-        var analyzers = documentAnalysisScope?.Analyzers ?? compilationWithAnalyzers.Analyzers;
-        var suppressionAnalyzer = analyzers.OfType<IPragmaSuppressionsAnalyzer>().FirstOrDefault();
+        var hostAnalyzers = documentAnalysisScope?.HostAnalyzers ?? compilationWithAnalyzers.HostAnalyzers;
+        var suppressionAnalyzer = hostAnalyzers.OfType<IPragmaSuppressionsAnalyzer>().FirstOrDefault();
         if (suppressionAnalyzer == null)
             return [];
+
+        RoslynDebug.AssertNotNull(compilationWithAnalyzers.HostCompilationWithAnalyzers);
 
         if (documentAnalysisScope != null)
         {
@@ -379,24 +384,24 @@ internal static partial class Extensions
 
             using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
             await AnalyzeDocumentAsync(
-                compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                compilationWithAnalyzers.HostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
                 document, documentAnalysisScope.Span, diagnosticsBuilder.Add, cancellationToken).ConfigureAwait(false);
             return diagnosticsBuilder.ToImmutableAndClear();
         }
         else
         {
-            if (compilationWithAnalyzers.AnalysisOptions.ConcurrentAnalysis)
+            if (compilationWithAnalyzers.ConcurrentAnalysis)
             {
                 return await ProducerConsumer<Diagnostic>.RunParallelAsync(
                     source: project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken),
                     produceItems: static async (document, callback, args, cancellationToken) =>
                     {
-                        var (compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer) = args;
+                        var (hostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer) = args;
                         await AnalyzeDocumentAsync(
-                            compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                            hostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
                             document, span: null, callback, cancellationToken).ConfigureAwait(false);
                     },
-                    args: (compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer),
+                    args: (compilationWithAnalyzers.HostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer),
                     cancellationToken).ConfigureAwait(false);
             }
             else
@@ -405,7 +410,7 @@ internal static partial class Extensions
                 await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken))
                 {
                     await AnalyzeDocumentAsync(
-                        compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                        compilationWithAnalyzers.HostCompilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
                         document, span: null, diagnosticsBuilder.Add, cancellationToken).ConfigureAwait(false);
                 }
 
@@ -414,7 +419,7 @@ internal static partial class Extensions
         }
 
         static async Task AnalyzeDocumentAsync(
-            CompilationWithAnalyzers compilationWithAnalyzers,
+            CompilationWithAnalyzers hostCompilationWithAnalyzers,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
             IPragmaSuppressionsAnalyzer suppressionAnalyzer,
             Document document,
@@ -424,7 +429,79 @@ internal static partial class Extensions
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             await suppressionAnalyzer.AnalyzeAsync(
-                semanticModel, span, compilationWithAnalyzers, analyzerInfoCache.GetDiagnosticDescriptors, reportDiagnostic, cancellationToken).ConfigureAwait(false);
+                semanticModel, span, hostCompilationWithAnalyzers, analyzerInfoCache.GetDiagnosticDescriptors, reportDiagnostic, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Calculates a checksum that contains a project's checksum along with a checksum for each of the project's 
+    /// transitive dependencies.
+    /// </summary>
+    /// <remarks>
+    /// This checksum calculation can be used for cases where a feature needs to know if the semantics in this project
+    /// changed.  For example, for diagnostics or caching computed semantic data. The goal is to ensure that changes to
+    /// <list type="bullet">
+    ///    <item>Files inside the current project</item>
+    ///    <item>Project properties of the current project</item>
+    ///    <item>Visible files in referenced projects</item>
+    ///    <item>Project properties in referenced projects</item>
+    /// </list>
+    /// are reflected in the metadata we keep so that comparing solutions accurately tells us when we need to recompute
+    /// semantic work.   
+    /// 
+    /// <para>This method of checking for changes has a few important properties that differentiate it from other methods of determining project version.
+    /// <list type="bullet">
+    ///    <item>Changes to methods inside the current project will be reflected to compute updated diagnostics.
+    ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> does not change as it only returns top level changes.</item>
+    ///    <item>Reloading a project without making any changes will re-use cached diagnostics.
+    ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> changes as the project is removed, then added resulting in a version change.</item>
+    /// </list>   
+    /// </para>
+    /// This checksum is also affected by the <see cref="SourceGeneratorExecutionVersion"/> for this project.
+    /// As such, it is not usable across different sessions of a particular host.
+    /// </remarks>
+    public static Task<Checksum> GetDiagnosticChecksumAsync(this Project? project, CancellationToken cancellationToken)
+    {
+        if (project is null)
+            return SpecializedTasks.Default<Checksum>();
+
+        var lazyChecksum = s_projectToDiagnosticChecksum.GetValue(
+            project,
+            static project => AsyncLazy.Create(
+                static (project, cancellationToken) => ComputeDiagnosticChecksumAsync(project, cancellationToken),
+                project));
+
+        return lazyChecksum.GetValueAsync(cancellationToken);
+
+        static async Task<Checksum> ComputeDiagnosticChecksumAsync(Project project, CancellationToken cancellationToken)
+        {
+            var solution = project.Solution;
+
+            using var _ = ArrayBuilder<Checksum>.GetInstance(out var tempChecksumArray);
+
+            // Mix in the SG information for this project.  That way if it changes, we will have a different
+            // checksum (since semantics could have changed because of this).
+            if (solution.CompilationState.SourceGeneratorExecutionVersionMap.Map.TryGetValue(project.Id, out var executionVersion))
+                tempChecksumArray.Add(executionVersion.Checksum);
+
+            // Get the checksum for the project itself.  Note: this will normally be cached.  As such, even if we
+            // have a different Project instance (due to a change in an unrelated project), this will be fast to
+            // compute and return.
+            var projectChecksum = await project.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            tempChecksumArray.Add(projectChecksum);
+
+            // Calculate a checksum this project and for each dependent project that could affect semantics for this
+            // project. We order the projects guid so that we are resilient to the underlying in-memory graph structure
+            // changing this arbitrarily.
+            foreach (var projectRef in project.ProjectReferences.OrderBy(r => r.ProjectId.Id))
+            {
+                // Note that these checksums should only actually be calculated once, if the project is unchanged
+                // the same checksum will be returned.
+                tempChecksumArray.Add(await GetDiagnosticChecksumAsync(
+                    solution.GetProject(projectRef.ProjectId), cancellationToken).ConfigureAwait(false));
+            }
+
+            return Checksum.Create(tempChecksumArray);
         }
     }
 }

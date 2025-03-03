@@ -164,8 +164,7 @@ public partial class FixAllContext : IFixAllContext
                 scope,
                 codeActionEquivalenceKey,
                 PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
-                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
-                CodeActionOptions.DefaultProvider),
+                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider))),
               CodeAnalysisProgress.None, cancellationToken)
     {
     }
@@ -200,8 +199,7 @@ public partial class FixAllContext : IFixAllContext
                 scope,
                 codeActionEquivalenceKey,
                 PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
-                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
-                CodeActionOptions.DefaultProvider),
+                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider))),
               CodeAnalysisProgress.None, cancellationToken)
     {
         if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
@@ -250,8 +248,8 @@ public partial class FixAllContext : IFixAllContext
             var diagnostics = await getDiagnosticsTask.ConfigureAwait(false);
             if (diagnostics != null)
             {
-                return diagnostics.Where(d => d != null && diagnosticIds.Contains(d.Id)
-                    && (filterSpan == null || filterSpan.Value.Contains(d.Location.SourceSpan))).ToImmutableArray();
+                return [.. diagnostics.Where(d => d != null && diagnosticIds.Contains(d.Id)
+                    && (filterSpan == null || filterSpan.Value.Contains(d.Location.SourceSpan)))];
             }
         }
 

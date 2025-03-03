@@ -20,6 +20,7 @@
              Focusable="False"
              UseLayoutRounding="True"
              Cursor="Arrow"
+             Visibility="{Binding Path=Visibility}"
              x:Name="control">
 
     <UserControl.Resources>

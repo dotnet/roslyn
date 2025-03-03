@@ -7,19 +7,18 @@ using System.Text.Json.Serialization;
 namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
-/// Class representing the registration options for hover support.
-///
+/// Subclass of <see cref="HoverOptions"/> that allows scoping the registration.
+/// <para>
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#hoverRegistrationOptions">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
 internal class HoverRegistrationOptions : HoverOptions, ITextDocumentRegistrationOptions
 {
     /// <summary>
-    /// Gets or sets the document filters for this registration option.
+    /// A document selector to identify the scope of the registration. If set to
+    /// null the document selector provided on the client side will be used.
     /// </summary>
     [JsonPropertyName("documentSelector")]
-    public DocumentFilter[]? DocumentSelector
-    {
-        get;
-        set;
-    }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentFilter[]? DocumentSelector { get; set; }
 }

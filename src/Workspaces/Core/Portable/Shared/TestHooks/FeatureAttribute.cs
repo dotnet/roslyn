@@ -16,6 +16,7 @@ internal static class FeatureAttribute
     public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
     public const string CodeLens = nameof(CodeLens);
     public const string CodeModel = nameof(CodeModel);
+    public const string ColorScheme = nameof(ColorScheme);
     public const string CompletionSet = nameof(CompletionSet);
     public const string CopilotSuggestions = nameof(CopilotSuggestions);
     public const string DesignerAttributes = nameof(DesignerAttributes);
@@ -29,6 +30,7 @@ internal static class FeatureAttribute
     public const string ExtractMethod = nameof(ExtractMethod);
     public const string FindReferences = nameof(FindReferences);
     public const string SemanticSearch = nameof(SemanticSearch);
+    public const string GenerateDocumentation = nameof(GenerateDocumentation);
     public const string GlobalOperation = nameof(GlobalOperation);
     public const string GoToBase = nameof(GoToBase);
     public const string GoToDefinition = nameof(GoToDefinition);

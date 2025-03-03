@@ -37,12 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 // reasonable TLS protocol version for outgoing connections.
 #pragma warning disable CA5364 // Do Not Use Deprecated Security Protocols
 #pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable SYSLIB0014 // 'ServicePointManager' is obsolete
                 if (ServicePointManager.SecurityProtocol == (SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls))
 #pragma warning restore CS0618 // Type or member is obsolete
 #pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
                 {
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 }
+#pragma warning restore SYSLIB0014 // 'ServicePointManager' is obsolete
             }
 
             public Test()
@@ -86,16 +88,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 var parseOptions = (VisualBasicParseOptions)base.CreateParseOptions();
                 return parseOptions.WithLanguageVersion(LanguageVersion);
             }
-
-#if !CODE_STYLE
-
-            protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions());
-
-            protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
-                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
-
-#endif
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
             {

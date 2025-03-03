@@ -38,17 +38,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 // reasonable TLS protocol version for outgoing connections.
 #pragma warning disable CA5364 // Do Not Use Deprecated Security Protocols
 #pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable SYSLIB0014 // 'ServicePointManager' is obsolete
                 if (ServicePointManager.SecurityProtocol == (SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls))
 #pragma warning restore CS0618 // Type or member is obsolete
 #pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
                 {
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 }
+#pragma warning restore SYSLIB0014 // 'ServicePointManager' is obsolete
             }
 
             public Test()
             {
                 _sharedState = new SharedVerifierState(this, DefaultFileExt);
+                this.FixedState.InheritanceMode = StateInheritanceMode.AutoInherit;
             }
 
             /// <summary>
@@ -65,14 +68,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
             public new string FixedCode { set => base.FixedCode = value; }
-
-#if !CODE_STYLE
-            internal CodeActionOptionsProvider CodeActionOptions
-            {
-                get => _sharedState.CodeActionOptions;
-                set => _sharedState.CodeActionOptions = value;
-            }
-#endif
 
             /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
             public string? EditorConfig
@@ -118,13 +113,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
 #if !CODE_STYLE
-
-            protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions());
-
-            protected override CodeRefactoringContext CreateCodeRefactoringContext(Document document, TextSpan span, Action<CodeAction> registerRefactoring, CancellationToken cancellationToken)
-                => new CodeRefactoringContext(document, span, (action, textSpan) => registerRefactoring(action), _sharedState.CodeActionOptions, cancellationToken);
-
             /// <summary>
             /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.OutOfProcess"/> if unspecified.
             /// </summary>

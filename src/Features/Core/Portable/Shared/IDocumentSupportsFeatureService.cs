@@ -21,7 +21,7 @@ internal interface IDocumentSupportsFeatureService : IWorkspaceService
 }
 
 [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), ServiceLayer.Default), Shared]
-internal class DefaultDocumentSupportsFeatureService : IDocumentSupportsFeatureService
+internal sealed class DefaultDocumentSupportsFeatureService : IDocumentSupportsFeatureService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IGenerateVariableService), LanguageNames.CSharp), Shared]
-internal partial class CSharpGenerateVariableService :
+internal sealed partial class CSharpGenerateVariableService :
     AbstractGenerateVariableService<CSharpGenerateVariableService, SimpleNameSyntax, ExpressionSyntax>
 {
     [ImportingConstructor]

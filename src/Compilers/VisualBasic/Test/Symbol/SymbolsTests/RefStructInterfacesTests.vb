@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim comp = CreateCompilation("", targetFramework:=s_targetFrameworkSupportingByRefLikeGenerics)
             Assert.True(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefLikeGenerics))
 
-            comp = CreateCompilation("", targetFramework:=TargetFramework.DesktopLatestExtended)
+            comp = CreateCompilation("", targetFramework:=TargetFramework.Mscorlib461Extended)
             Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.ByRefLikeGenerics))
 
             comp = CreateCompilation("", targetFramework:=TargetFramework.Net80)

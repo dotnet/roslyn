@@ -35,16 +35,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
 [Name(PredefinedCommandHandlerNames.OrganizeDocument)]
 [method: ImportingConstructor]
 [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class OrganizeDocumentCommandHandler(
+internal sealed class OrganizeDocumentCommandHandler(
     IThreadingContext threadingContext,
-    IGlobalOptionService globalOptions,
     IAsynchronousOperationListenerProvider listenerProvider) :
     ICommandHandler<OrganizeDocumentCommandArgs>,
     ICommandHandler<SortImportsCommandArgs>,
     ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.OrganizeDocument);
 
     public string DisplayName => EditorFeaturesResources.Organize_Document;
@@ -127,7 +125,7 @@ internal class OrganizeDocumentCommandHandler(
         if (!subjectBuffer.TryGetWorkspace(out var workspace))
             return;
 
-        var snapshotSpan = textView.GetTextElementSpan(caretPoint.Value);
+        var snapshotSpan = textView.GetTextElementSpan(textView.Caret.Position.BufferPosition);
 
         var indicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
         using var backgroundWorkContext = indicatorFactory.Create(
@@ -141,7 +139,7 @@ internal class OrganizeDocumentCommandHandler(
 
         await TaskScheduler.Default;
 
-        var currentDocument = await getCurrentDocumentAsync(snapshotSpan.Snapshot, backgroundWorkContext).ConfigureAwait(false);
+        var currentDocument = await getCurrentDocumentAsync(caretPoint.Value.Snapshot, backgroundWorkContext).ConfigureAwait(false);
         if (currentDocument is null)
             return;
 
@@ -175,7 +173,7 @@ internal class OrganizeDocumentCommandHandler(
             async (document, cancellationToken) =>
             {
                 var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
-                var options = await document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
                 return await organizeImportsService.OrganizeImportsAsync(document, options, cancellationToken).ConfigureAwait(false);
             });
 
@@ -193,8 +191,8 @@ internal class OrganizeDocumentCommandHandler(
                 var removeImportsService = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
                 var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
 
-                var newDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
-                var options = await document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+                var newDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
                 return await organizeImportsService.OrganizeImportsAsync(newDocument, options, cancellationToken).ConfigureAwait(false);
             });
 }

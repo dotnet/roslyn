@@ -241,9 +241,10 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_TooManyUserStrings { get; }
         public abstract int ERR_PeWritingFailure { get; }
         public abstract int ERR_ModuleEmitFailure { get; }
-        public abstract int ERR_EncUpdateFailedMissingAttribute { get; }
+        public abstract int ERR_EncUpdateFailedMissingSymbol { get; }
         public abstract int ERR_InvalidDebugInfo { get; }
         public abstract int ERR_FunctionPointerTypesInAttributeNotSupported { get; }
+        public abstract int ERR_DataSectionStringLiteralHashCollision { get; }
 
         // Generators:
         public abstract int WRN_GeneratorFailedDuringInitialization { get; }

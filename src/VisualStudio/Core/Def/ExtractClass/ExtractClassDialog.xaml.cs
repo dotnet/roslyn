@@ -6,6 +6,7 @@
 
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -17,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass;
 internal partial class ExtractClassDialog : DialogWindow
 {
     public string OK => ServicesVSResources.OK;
-    public string Cancel => ServicesVSResources.Cancel;
+    public string Cancel => EditorFeaturesResources.Cancel;
     public string SelectMembers => ServicesVSResources.Select_members_colon;
     public string ExtractClassTitle => ViewModel.Title;
     public ExtractClassViewModel ViewModel { get; }

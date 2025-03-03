@@ -30,6 +30,12 @@ internal interface IOpenTextBufferEventListener
     void OnCloseDocument(string moniker);
 
     /// <summary>
+    /// Triggered when a document is saved.
+    /// </summary>
+    /// <param name="moniker">the moniker of the saved document.</param>
+    void OnSaveDocument(string moniker);
+
+    /// <summary>
     /// Triggered when a document context is refreshed with a new hierarchy.
     /// </summary>
     /// <param name="moniker">the moniker of the document that changed.</param>

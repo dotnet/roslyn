@@ -6,10 +6,11 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 
 namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 internal record ProjectSystemHostInfo(
     ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> DynamicFileInfoProviders,
-    IProjectSystemDiagnosticSource DiagnosticSource,
-    IHostDiagnosticAnalyzerProvider HostDiagnosticAnalyzerProvider);
+    IHostDiagnosticAnalyzerProvider HostDiagnosticAnalyzerProvider,
+    ImmutableArray<IAnalyzerAssemblyRedirector> AnalyzerAssemblyRedirectors);

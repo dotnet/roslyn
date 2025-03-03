@@ -17,6 +17,6 @@ internal abstract partial class AbstractSyntaxTreeFactoryService : ISyntaxTreeFa
     public abstract ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
     public abstract bool OptionsDifferOnlyByPreprocessorDirectives(ParseOptions options1, ParseOptions options2);
     public abstract ParseOptions TryParsePdbParseOptions(IReadOnlyDictionary<string, string> metadata);
-    public abstract SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, SyntaxNode root);
+    public abstract SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, SourceText text, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, SyntaxNode root);
     public abstract SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
 }

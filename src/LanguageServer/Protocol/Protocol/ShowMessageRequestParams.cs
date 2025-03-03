@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents parameter sent with window/showMessageRequest requests.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#showMessageRequestParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class ShowMessageRequestParams : ShowMessageParams
     {

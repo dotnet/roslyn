@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(PartialMethodCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(OverrideCompletionProvider))]
 [Shared]
-internal partial class PartialMethodCompletionProvider : AbstractPartialMethodCompletionProvider
+internal sealed partial class PartialMethodCompletionProvider : AbstractPartialMethodCompletionProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -61,10 +61,10 @@ internal partial class PartialMethodCompletionProvider : AbstractPartialMethodCo
             ?? throw ExceptionUtilities.UnexpectedValue(token);
     }
 
-    protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
+    protected override TextSpan GetTargetSelectionSpan(SyntaxNode caretTarget)
     {
         var methodDeclaration = (MethodDeclarationSyntax)caretTarget;
-        return CompletionUtilities.GetTargetCaretPositionForMethod(methodDeclaration);
+        return CompletionUtilities.GetTargetSelectionSpanForInsertedMember(methodDeclaration);
     }
 
     protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)

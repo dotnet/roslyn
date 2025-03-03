@@ -3252,7 +3252,7 @@ public class Class1
         var result = await GetResponse();
     }
 }";
-            CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugDll).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef }, options: TestOptions.DebugDll).VerifyEmitDiagnostics(
                 // (10,28): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
                 //         var result = await GetResponse();
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "GetResponse()").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(10, 28)
@@ -4434,7 +4434,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (8,17): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
@@ -4459,7 +4459,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (8,20): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
@@ -4489,7 +4489,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib45AndCSharp(source1, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilationWithMscorlib461AndCSharp(source1, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
 
             comp1.VerifyEmitDiagnostics(
                 // (10,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
@@ -4500,7 +4500,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(10, 28)
                 );
 
-            comp1 = CreateCompilationWithMscorlib45AndCSharp(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
+            comp1 = CreateCompilationWithMscorlib461AndCSharp(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
 
             comp1.VerifyEmitDiagnostics(
                 // (10,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
@@ -4525,14 +4525,14 @@ class C
 }
 ";
 
-            var comp2 = CreateCompilationWithMscorlib45AndCSharp(source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp2 = CreateCompilationWithMscorlib461AndCSharp(source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp2, expectedOutput:
 @"
 True
 ").VerifyDiagnostics();
 
-            comp2 = CreateCompilationWithMscorlib45AndCSharp(source2, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
+            comp2 = CreateCompilationWithMscorlib461AndCSharp(source2, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp2, expectedOutput:
 @"
@@ -4561,7 +4561,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (8,30): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
@@ -4590,7 +4590,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (8,39): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
@@ -4635,7 +4635,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45AndCSharp(source);
+            var compilation = CreateCompilationWithMscorlib461AndCSharp(source);
 
             CompileAndVerify(compilation, expectedOutput:
 @"op_Implicit
@@ -11693,6 +11693,43 @@ public class C
             AssertEx.Equal("dynamic", operation.Type.ToTestDisplayString());
 
             CompileAndVerify(comp1, expectedOutput: "123").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_01()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+class Test1
+{
+    dynamic M2<[Preserve1][Preserve2]T>(T x, dynamic y)
+    {
+        return y.M(x);
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>o__0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
         }
     }
 }

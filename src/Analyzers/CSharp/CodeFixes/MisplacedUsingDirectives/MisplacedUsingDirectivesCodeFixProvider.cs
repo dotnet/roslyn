@@ -13,11 +13,14 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -25,12 +28,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives;
 
+using static SyntaxFactory;
+
 /// <summary>
 /// Implements a code fix for all misplaced using statements.
 /// </summary>
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MoveMisplacedUsingDirectives)]
-[Shared]
-internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixProvider
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MoveMisplacedUsingDirectives), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvider
 {
     private static readonly SyntaxAnnotation s_usingPlacementCodeFixAnnotation = new(nameof(s_usingPlacementCodeFixAnnotation));
 
@@ -39,12 +45,6 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
     /// </summary>
     private static readonly SyntaxAnnotation s_warningAnnotation = WarningAnnotation.Create(
         CSharpAnalyzersResources.Warning_colon_Moving_using_directives_may_change_code_meaning);
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public MisplacedUsingDirectivesCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId];
 
@@ -62,12 +62,12 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
         var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
-        var simplifierOptions = options.GetSimplifierOptions();
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = new CSharpSimplifierOptions(configOptions);
 
         // Read the preferred placement option and verify if it can be applied to this code file. There are cases
         // where we will not be able to fix the diagnostic and the user will need to resolve it manually.
-        var (placement, preferPreservation) = DeterminePlacement(compilationUnit, options.UsingDirectivePlacement);
+        var (placement, preferPreservation) = DeterminePlacement(compilationUnit, configOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement));
         if (preferPreservation)
             return;
 
@@ -151,7 +151,7 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
 
         var newCompilationUnit = placement == AddImportPlacement.InsideNamespace
             ? MoveUsingsInsideNamespace(compilationUnitWithoutHeader)
-            : MoveUsingsOutsideNamespaces(compilationUnitWithoutHeader);
+            : MoveUsingsOutsideNamespaces(compilationUnitWithoutHeader, ignoringAliases: placement == AddImportPlacement.OutsideNamespaceIgnoringAliases);
 
         // Re-attach the header now that using have been moved and LeadingTrivia is no longer being altered.
         var newCompilationUnitWithHeader = AddFileHeader(newCompilationUnit, fileHeader);
@@ -215,11 +215,13 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
         return compilationUnitWithoutBlankLine.ReplaceNode(namespaceDeclaration, namespaceDeclarationWithUsings);
     }
 
-    private static CompilationUnitSyntax MoveUsingsOutsideNamespaces(CompilationUnitSyntax compilationUnit)
+    private static CompilationUnitSyntax MoveUsingsOutsideNamespaces(
+        CompilationUnitSyntax compilationUnit, bool ignoringAliases)
     {
         var namespaceDeclarations = compilationUnit.Members.OfType<BaseNamespaceDeclarationSyntax>();
         var namespaceDeclarationMap = namespaceDeclarations.ToDictionary(
-            namespaceDeclaration => namespaceDeclaration, RemoveUsingsFromNamespace);
+            namespaceDeclaration => namespaceDeclaration,
+            namespaceDeclaration => RemoveUsingsFromNamespace(namespaceDeclaration, ignoringAliases));
 
         // Replace the namespace declarations in the compilation with the ones without using directives.
         var compilationUnitWithReplacedNamespaces = compilationUnit.ReplaceNodes(
@@ -229,7 +231,7 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
         var usingsToAdd = namespaceDeclarationMap.Values.SelectMany(result => result.usingsFromNamespace)
             .Select(directive => directive.WithAdditionalAnnotations(Formatter.Annotation, s_warningAnnotation));
 
-        var (deduplicatedUsings, orphanedTrivia) = RemoveDuplicateUsings(compilationUnit.Usings, usingsToAdd.ToImmutableArray());
+        var (deduplicatedUsings, orphanedTrivia) = RemoveDuplicateUsings(compilationUnit.Usings, [.. usingsToAdd]);
 
         // Update the compilation unit with the usings from the namespace declaration.
         var newUsings = compilationUnitWithReplacedNamespaces.Usings.AddRange(deduplicatedUsings);
@@ -249,23 +251,33 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
     }
 
     private static (BaseNamespaceDeclarationSyntax namespaceWithoutUsings, ImmutableArray<UsingDirectiveSyntax> usingsFromNamespace) RemoveUsingsFromNamespace(
-        BaseNamespaceDeclarationSyntax usingContainer)
+        BaseNamespaceDeclarationSyntax usingContainer, bool ignoringAliases)
     {
         var namespaceDeclarations = usingContainer.Members.OfType<BaseNamespaceDeclarationSyntax>();
         var namespaceDeclarationMap = namespaceDeclarations.ToDictionary(
-            namespaceDeclaration => namespaceDeclaration, namespaceDeclaration => RemoveUsingsFromNamespace(namespaceDeclaration));
+            namespaceDeclaration => namespaceDeclaration,
+            namespaceDeclaration => RemoveUsingsFromNamespace(namespaceDeclaration, ignoringAliases));
 
         // Get the using directives from the namespaces.
         var usingsFromNamespaces = namespaceDeclarationMap.Values.SelectMany(result => result.usingsFromNamespace);
-        var allUsings = usingContainer.Usings.AsEnumerable().Concat(usingsFromNamespaces).ToImmutableArray();
+        var usings = ignoringAliases
+            ? usingContainer.Usings.Where(u => u.Alias is null)
+            : usingContainer.Usings;
+        var allUsings = usings.Concat(usingsFromNamespaces).ToImmutableArray();
 
         // Replace the namespace declarations in the compilation with the ones without using directives.
         var namespaceDeclarationWithReplacedNamespaces = usingContainer.ReplaceNodes(
             namespaceDeclarations, (node, _) => namespaceDeclarationMap[node].namespaceWithoutUsings);
 
         // Remove usings and fix leading trivia for namespace declaration.
-        var namespaceDeclarationWithoutUsings = namespaceDeclarationWithReplacedNamespaces.WithUsings(default);
-        var namespaceDeclarationWithoutBlankLine = RemoveLeadingBlankLinesFromFirstMember(namespaceDeclarationWithoutUsings);
+        var namespaceDeclarationWithoutUsings = namespaceDeclarationWithReplacedNamespaces
+            .WithUsings(ignoringAliases
+                ? List(namespaceDeclarationWithReplacedNamespaces.Usings.Where(u => u.Alias != null))
+                : default);
+
+        var namespaceDeclarationWithoutBlankLine = namespaceDeclarationWithoutUsings.Usings.Count == 0
+            ? RemoveLeadingBlankLinesFromFirstMember(namespaceDeclarationWithoutUsings)
+            : namespaceDeclarationWithoutUsings;
 
         return (namespaceDeclarationWithoutBlankLine, allUsings);
     }
@@ -374,7 +386,7 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
         var placement = styleOption.Value;
         var preferPreservation = styleOption.Notification == NotificationOption2.None;
 
-        if (preferPreservation || placement == AddImportPlacement.OutsideNamespace)
+        if (preferPreservation || placement != AddImportPlacement.InsideNamespace)
             return (placement, preferPreservation);
 
         // Determine if we can safely apply the InsideNamespace preference.

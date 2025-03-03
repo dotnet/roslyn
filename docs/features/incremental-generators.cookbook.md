@@ -124,6 +124,17 @@ wrapper around `StringBuilder` that will keep track of indent level and prepend 
 [this](https://github.com/dotnet/roslyn/issues/52914#issuecomment-1732680995) conversation on the performance of `NormalizeWhitespace` for more examples, performance
 measurements, and discussion on why we don't believe that `SyntaxNode`s are a good abstraction for this use case.
 
+### Put `Microsoft.CodeAnalysis.EmbeddedAttribute` on generated marker types
+
+Users might depend on your generator in multiple projects in the same solution, and these projects will often have `InternalsVisibleTo` applied. This means that your
+`internal` marker attributes may be defined in multiple projects, and the compiler will warn about this. While this doesn't block compilation, it can be irritating to
+users. To avoid this, mark such attributes with `Microsoft.CodeAnalysis.EmbeddedAttribute`; when the compiler sees this attribute on a type from separate assembly or
+project, it will not include that type in lookup results. To ensure that `Microsoft.CodeAnalysis.EmbeddedAttribute` is available in the compilation, call the
+`AddEmbeddedAttributeDefinition` helper method in your `RegisterPostInitializationOutput` callback.
+
+Another option is to provide an assembly in your nuget package that defines your marker attributes, but this can be more difficult to author. We recommend the
+`EmbeddedAttribute` approach, unless you need to support versions of Roslyn lower than 4.14.
+
 ## Designs
 
 This section is broken down by user scenarios, with general solutions listed first, and more specific examples later on.
@@ -157,11 +168,14 @@ public class CustomGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(static postInitializationContext => {
+            postInitializationContext.AddEmbeddedAttributeDefinition();
             postInitializationContext.AddSource("myGeneratedFile.cs", SourceText.From("""
                 using System;
+                using Microsoft.CodeAnalysis;
 
                 namespace GeneratedNamespace
                 {
+                    [Embedded]
                     internal sealed class GeneratedAttribute : Attribute
                     {
                     }
@@ -208,6 +222,15 @@ public class FileTransformGenerator : IIncrementalGenerator
 }
 ```
 
+Items need to be included in your csproj files by using the `AdditionalFiles` ItemGroup:
+
+```xml
+<ItemGroup>
+    <AdditionalFiles Include="file1.xml" />
+    <AdditionalFiles Include="file2.xml" />
+<ItemGroup>
+```
+
 ### Augment user code
 
 **User scenario:** As a generator author I want to be able to inspect and augment a user's code with new functionality.
@@ -223,7 +246,7 @@ Provide that attribute in a `RegisterPostInitializationOutput` step. Register fo
 ```csharp
 public partial class UserClass
 {
-    [Generate]
+    [GeneratedNamespace.Generated]
     public partial void UserMethod();
 }
 ```
@@ -235,16 +258,18 @@ public class AugmentingGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(static postInitializationContext =>
+            postInitializationContext.AddEmbeddedAttributeDefinition();
             postInitializationContext.AddSource("myGeneratedFile.cs", SourceText.From("""
                 using System;
+                using Microsoft.CodeAnalysis;
                 namespace GeneratedNamespace
                 {
-                    [AttributeUsage(AttributeTargets.Method)]
+                    [AttributeUsage(AttributeTargets.Method), Embedded]
                     internal sealed class GeneratedAttribute : Attribute
                     {
                     }
                 }
-                """, Encoding.UTF8));
+                """, Encoding.UTF8)));
 
         var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName: "GeneratedNamespace.GeneratedAttribute",
@@ -544,7 +569,7 @@ Now, consider that the generator author wants to optionally allow opting in/out 
 This value of `MyGenerator_EnableLogging` will be emitted to a generated analyzer config file, for each of the additional files in the compilation, with an item name of `build_metadata.AdditionalFiles.MyGenerator_EnableLogging`. The generator can read this value in the context of each additional file:
 
 ```cs
-context.AdditionalFilesProvider
+context.AdditionalTextsProvider
        .Combine(context.AnalyzerConfigOptionsProvider)
        .Select((pair, ctx) =>
            pair.Right.GetOptions(pair.Left).TryGetValue("build_metadata.AdditionalFiles.MyGenerator_EnableLogging", out var perFileLoggingSwitch)
@@ -677,14 +702,16 @@ public class AutoImplementGenerator : IIncrementalGenerator
     {
         context.RegisterPostInitializationOutput(ctx =>
         {
+            ctx.AddEmbeddedAttributeDefinition();
             //Generate the AutoImplementProperties Attribute
             const string autoImplementAttributeDeclarationCode = $$"""
 // <auto-generated/>
 using System;
+using Microsoft.CodeAnalysis;
 namespace {{AttributeNameSpace}};
 
-[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
-sealed class {{AttributeClassName}} : Attribute
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false), Embedded]
+internal sealed class {{AttributeClassName}} : Attribute
 {
     public Type[] InterfacesTypes { get; }
     public {{AttributeClassName}}(params Type[] interfacesTypes)

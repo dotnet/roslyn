@@ -4,19 +4,22 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
+    using System;
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class which represents the parameter that is sent with textDocument/formatting message.
-    ///
+    /// Parameter for the 'textDocument/formatting' request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentFormattingParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class DocumentFormattingParams : ITextDocumentParams
+    internal class DocumentFormattingParams : ITextDocumentParams, IWorkDoneProgressParams
     {
         /// <summary>
         /// Gets or sets the identifier for the text document to be formatted.
         /// </summary>
         [JsonPropertyName("textDocument")]
+        [JsonRequired]
         public TextDocumentIdentifier TextDocument
         {
             get;
@@ -27,10 +30,16 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the formatting options.
         /// </summary>
         [JsonPropertyName("options")]
+        [JsonRequired]
         public FormattingOptions Options
         {
             get;
             set;
         }
+
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.WorkDoneTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
     }
 }

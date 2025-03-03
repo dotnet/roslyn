@@ -2032,6 +2032,46 @@ public sealed partial class LiteralExpressionSyntax : ExpressionSyntax
     public LiteralExpressionSyntax WithToken(SyntaxToken token) => Update(token);
 }
 
+/// <summary>Class which represents the syntax node for a field expression.</summary>
+/// <remarks>
+/// <para>This node is associated with the following syntax kinds:</para>
+/// <list type="bullet">
+/// <item><description><see cref="SyntaxKind.FieldExpression"/></description></item>
+/// </list>
+/// </remarks>
+public sealed partial class FieldExpressionSyntax : ExpressionSyntax
+{
+
+    internal FieldExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+      : base(green, parent, position)
+    {
+    }
+
+    /// <summary>SyntaxToken representing the field keyword.</summary>
+    public SyntaxToken Token => new SyntaxToken(this, ((InternalSyntax.FieldExpressionSyntax)this.Green).token, Position, 0);
+
+    internal override SyntaxNode? GetNodeSlot(int index) => null;
+
+    internal override SyntaxNode? GetCachedSlot(int index) => null;
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFieldExpression(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFieldExpression(this);
+
+    public FieldExpressionSyntax Update(SyntaxToken token)
+    {
+        if (token != this.Token)
+        {
+            var newNode = SyntaxFactory.FieldExpression(token);
+            var annotations = GetAnnotations();
+            return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+        }
+
+        return this;
+    }
+
+    public FieldExpressionSyntax WithToken(SyntaxToken token) => Update(token);
+}
+
 /// <summary>Class which represents the syntax node for MakeRef expression.</summary>
 /// <remarks>
 /// <para>This node is associated with the following syntax kinds:</para>

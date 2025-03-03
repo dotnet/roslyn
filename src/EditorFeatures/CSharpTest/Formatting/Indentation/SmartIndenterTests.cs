@@ -2646,7 +2646,7 @@ if(languages == null || languages.Length == 0)
 }";
 
         AssertSmartIndentInProjection(markup,
-            expectedIndentation: 16);
+            expectedIndentation: 24);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530948"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
@@ -3451,7 +3451,7 @@ namespace NS
     {
         var optionsSet = options != null
                 ? new[] { options }
-                : new[] { TestOptions.Regular, TestOptions.Script };
+                : [TestOptions.Regular, TestOptions.Script];
 
         foreach (var option in optionsSet)
         {
@@ -3507,7 +3507,7 @@ namespace NS
     {
         var optionsSet = options != null
             ? new[] { options }
-            : new[] { TestOptions.Regular, TestOptions.Script };
+            : [TestOptions.Regular, TestOptions.Script];
 
         foreach (var option in optionsSet)
         {
@@ -3536,7 +3536,7 @@ namespace NS
     {
         var optionsSet = options != null
             ? new[] { options }
-            : new[] { TestOptions.Regular, TestOptions.Script };
+            : [TestOptions.Regular, TestOptions.Script];
 
         foreach (var option in optionsSet)
         {

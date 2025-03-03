@@ -84,7 +84,7 @@ internal partial class InputInProcess
         var searchBox = Assert.IsAssignableFrom<Control>(Keyboard.FocusedElement);
         // Validate the focused control against the "old" search experience as well as the 
         // all-in-one search experience.
-        Assert.Contains(searchBox.Name, new[] { "PART_SearchBox", "SearchBoxControl" });
+        Assert.Contains(searchBox.Name, (string[])["PART_SearchBox", "SearchBoxControl"]);
 
         // AbstractSendKeys runs synchronously, so switch to a background thread before the call
         await TaskScheduler.Default;

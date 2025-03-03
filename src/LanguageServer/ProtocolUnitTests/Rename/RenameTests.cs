@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
         {
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRenameAsync(bool mutatingLspWorkspace)
         {
             var markup =
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
             AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRename_InvalidIdentifierAsync(bool mutatingLspWorkspace)
         {
             var markup =
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
             Assert.Null(results);
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRename_WithLinkedFilesAsync(bool mutatingLspWorkspace)
         {
             var markup =
@@ -101,7 +101,7 @@ $@"<Workspace>
             AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRename_WithLinkedFilesAndPreprocessorAsync(bool mutatingLspWorkspace)
         {
             var markup =
@@ -147,7 +147,7 @@ $@"<Workspace>
             AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
         }
 
-        [WpfTheory, CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRename_WithMappedFileAsync(bool mutatingLspWorkspace)
         {
             var markup =
@@ -182,8 +182,8 @@ $@"<Workspace>
 
             var documentEdit = results.DocumentChanges.Value.First.Single();
             Assert.Equal(expectedMappedDocument, documentEdit.TextDocument.Uri);
-            Assert.Equal(expectedMappedRanges, documentEdit.Edits.Select(edit => edit.Range));
-            Assert.True(documentEdit.Edits.All(edit => edit.NewText == renameText));
+            Assert.Equal(expectedMappedRanges, documentEdit.Edits.Select(edit => edit.Unify().Range));
+            Assert.True(documentEdit.Edits.All(edit => edit.Unify().NewText == renameText));
         }
 
         private static LSP.RenameParams CreateRenameParams(LSP.Location location, string newName)

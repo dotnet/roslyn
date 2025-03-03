@@ -1679,7 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (name == null)
-                FilterNotReferenceable(results);
+                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: 0);
 
             return results.ToImmutableAndFree();
         }
@@ -1794,24 +1794,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// symbols were reinferred. This should only be called when nullable semantic analysis is enabled.
         /// </summary>
         internal abstract Symbol RemapSymbolIfNecessaryCore(Symbol symbol);
-
-        private static void FilterNotReferenceable(ArrayBuilder<ISymbol> sealedResults)
-        {
-            var writeIndex = 0;
-            for (var i = 0; i < sealedResults.Count; i++)
-            {
-                var symbol = sealedResults[i];
-                if (symbol.CanBeReferencedByName)
-                {
-                    if (writeIndex != i)
-                        sealedResults[writeIndex] = symbol;
-
-                    writeIndex++;
-                }
-            }
-
-            sealedResults.Count = writeIndex;
-        }
 
         /// <summary>
         /// Determines if the symbol is accessible from the specified location. 
@@ -4312,11 +4294,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // we want to get the symbol that overload resolution chose for M, not the whole method group M.
                         var conversion = (BoundConversion)boundNodeForSyntacticParent;
 
-                        var method = conversion.SymbolOpt;
+                        MethodSymbol method = null;
+                        if (conversion.ConversionKind == ConversionKind.MethodGroup)
+                        {
+                            method = conversion.SymbolOpt;
+                        }
+                        else if (conversion.Operand is BoundConversion { ConversionKind: ConversionKind.MethodGroup } nestedMethodGroupConversion)
+                        {
+                            method = nestedMethodGroupConversion.SymbolOpt;
+                        }
+
                         if ((object)method != null)
                         {
-                            Debug.Assert(conversion.ConversionKind == ConversionKind.MethodGroup);
-
                             if (conversion.IsExtensionMethod)
                             {
                                 method = ReducedExtensionMethodSymbol.Create(method);
@@ -5240,7 +5229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lineNumberOneIndexed = lineSpan.Line + 1;
             var characterNumberOneIndexed = lineSpan.Character + 1;
 
-            return new InterceptableLocation1(checksum, path, nameSyntax.Position, lineNumberOneIndexed, characterNumberOneIndexed);
+            return new InterceptableLocation1(checksum, path, Compilation.Options.SourceReferenceResolver, nameSyntax.Position, lineNumberOneIndexed, characterNumberOneIndexed);
         }
 #nullable disable
 

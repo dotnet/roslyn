@@ -70,7 +70,7 @@ internal static class AspNetCoreAddPackageCodeAction
         // Determine what text actually changed. Note: this may be empty if the file already had that import in it.
         var textChanges = await cleanedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
-        return textChanges.ToImmutableArray();
+        return [.. textChanges];
     }
 
     private static async Task<Document> AddImportAsync(Document document, int position, SyntaxGenerator generator, SyntaxNode importDirective, CancellationToken cancellationToken)

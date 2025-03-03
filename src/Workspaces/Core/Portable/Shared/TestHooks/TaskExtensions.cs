@@ -4,8 +4,8 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -36,13 +36,12 @@ internal static partial class TaskExtensions
 
         return CompletesTrackingOperationSlow(task, token);
 
-        static Task CompletesTrackingOperationSlow(Task task, IDisposable token)
+        static async Task CompletesTrackingOperationSlow(Task task, IDisposable token)
         {
-            return task.SafeContinueWith(
-                t => token.Dispose(),
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
+            using (token)
+            {
+                await task.NoThrowAwaitableInternal(captureContext: false);
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 /// Represents a collection of <see cref="CodeFix"/>es supplied by a given fix provider
 /// (such as <see cref="CodeFixProvider"/> or <see cref="IConfigurationFixProvider"/>).
 /// </summary>
-internal class CodeFixCollection(
+internal sealed class CodeFixCollection(
     object provider,
     TextSpan span,
     ImmutableArray<CodeFix> fixes,

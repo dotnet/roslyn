@@ -92,7 +92,7 @@ internal abstract class AbstractObjectCreationCompletionProvider<TSyntaxContext>
                 return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
         }
 
-        if (!type.IsEditorBrowsable(options.HideAdvancedMembers, context.SemanticModel.Compilation))
+        if (!type.IsEditorBrowsable(options.MemberDisplayOptions.HideAdvancedMembers, context.SemanticModel.Compilation))
             return SpecializedTasks.EmptyImmutableArray<SymbolAndSelectionInfo>();
 
         // In the case of array creation, we don't offer a preselected/hard-selected item because

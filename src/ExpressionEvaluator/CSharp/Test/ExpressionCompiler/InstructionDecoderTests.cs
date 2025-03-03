@@ -7,9 +7,9 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -402,6 +402,144 @@ class C
             Assert.Equal("System.Action<System.Func<object>>", GetReturnTypeName(source, "C.M1", [typeof(object)]));
         }
 
+        [Fact]
+        public void GetCompactName_Members()
+        {
+            var source = """
+                using System;
+                namespace System.Runtime.CompilerServices
+                {
+                    public class IsExternalInit { }
+                }
+                class C
+                {
+                    static C() { }
+                    C(int x) { }
+                    ~C() { }
+                    object F() => null;
+                    object P1 { get; }
+                    object P2 { set { } }
+                    object P3 { init { } }
+                    object this[int i] { get { return null; } set { } }
+                    event EventHandler E;
+                    public static C operator+(C c) => c;
+                    public static implicit operator int(C c) => 0;
+                    public static explicit operator string(C c) => "";
+                }
+                static class E
+                {
+                    static void M(this string x) { }
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var containingType = compilation.GlobalNamespace.GetTypeMember("C");
+            VerifyMethodName(compilation, containingType.GetMethod("F"), "C.F()", "F");
+            VerifyMethodName(compilation, containingType.GetMethod("get_P1"), "C.P1.get()", "P1");
+            VerifyMethodName(compilation, containingType.GetMethod("set_P2"), "C.P2.set(value)", "P2");
+            VerifyMethodName(compilation, containingType.GetMethod("set_P3"), "C.P3.init(value)", "P3");
+            VerifyMethodName(compilation, containingType.GetMethod("get_Item"), "C.this[int].get(i)", "this[]");
+            VerifyMethodName(compilation, containingType.GetMethod("set_Item"), "C.this[int].set(i, value)", "this[]");
+            VerifyMethodName(compilation, containingType.GetMethod("add_E"), "C.E.add(value)", "E");
+            VerifyMethodName(compilation, containingType.GetMethod("remove_E"), "C.E.remove(value)", "E");
+            VerifyMethodName(compilation, compilation.GlobalNamespace.GetTypeMember("E").GetMethod("M"), "E.M(x)", "M");
+            VerifyMethodName(compilation, containingType.GetMethod(".cctor"), "C.C()", "C");
+            VerifyMethodName(compilation, containingType.GetMethod(".ctor"), "C.C(x)", "C");
+            VerifyMethodName(compilation, containingType.GetMethod("Finalize"), "C.~C()", "~C");
+            VerifyMethodName(compilation, containingType.GetMethod("op_UnaryPlus"), "C.operator +(c)", "operator +");
+            VerifyMethodName(compilation, containingType.GetMethod("op_Implicit"), "C.implicit operator int(c)", "implicit operator int");
+            VerifyMethodName(compilation, containingType.GetMethod("op_Explicit"), "C.explicit operator string(c)", "explicit operator string");
+        }
+
+        [Fact]
+        public void GetCompactName_GenericMethod()
+        {
+            var source = """
+                using System;
+                class A<T>
+                {
+                    public struct B<U>
+                    {
+                        static void M<V>(T t, U u, V v) { }
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var instructionDecoder = CSharpInstructionDecoder.Instance;
+            var method = GetConstructedMethod(
+                compilation,
+                (PEMethodSymbol)compilation.GlobalNamespace.GetTypeMember("A").GetTypeMember("B").GetMethod("M"),
+                ["object", "int", "string"],
+                instructionDecoder);
+            var actualName = instructionDecoder.GetName(method, includeParameterTypes: false, includeParameterNames: true);
+            var actualCompactName = instructionDecoder.GetCompactName(method);
+            Assert.Equal("A<object>.B<int>.M<string>(t, u, v)", actualName);
+            Assert.Equal("M", actualCompactName);
+        }
+
+        [Fact]
+        public void GetCompactName_ExplicitImplementation()
+        {
+            var source = """
+                using System;
+                interface I
+                {
+                    object F();
+                    object P { get; }
+                    object this[int i] { get; }
+                    event EventHandler E;
+                }
+                class C : I
+                {
+                    object I.F() => null;
+                    object I.P => null;
+                    object I.this[int i] => null;
+                    event EventHandler I.E { add { } remove { } }
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var containingType = compilation.GlobalNamespace.GetTypeMember("C");
+            VerifyMethodName(compilation, containingType.GetMethod("I.F"), "C.I.F()", "I.F");
+            VerifyMethodName(compilation, containingType.GetMethod("I.get_P"), "C.I.P.get()", "I.P");
+            VerifyMethodName(compilation, containingType.GetMethod("I.get_Item"), "C.I.get_Item(i)", "I.get_Item");
+            VerifyMethodName(compilation, containingType.GetMethod("I.add_E"), "C.I.E.add(value)", "I.E");
+        }
+
+        [Fact]
+        public void GetCompactName_NestedFunctions()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Func<string> f1 = () => args[0];
+                        string f2() => args[1];
+                        _ = f1();
+                        _ = f2();
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source);
+            var containingType = compilation.GlobalNamespace.GetTypeMember("Program").GetTypeMember("<>c__DisplayClass0_0");
+            VerifyMethodName(compilation, containingType.GetMethod("<Main>b__0"), "Program.Main.AnonymousMethod__0()", "<Main>b__0");
+            VerifyMethodName(compilation, containingType.GetMethod("<Main>g__f2|1"), "Program.Main.__f2|1()", "<Main>g__f2|1");
+        }
+
+        private void VerifyMethodName(CSharpCompilation compilation, MethodSymbol method, string expectedName, string expectedCompactName)
+        {
+            var instructionDecoder = CSharpInstructionDecoder.Instance;
+            method = GetConstructedMethod(
+                compilation,
+                (PEMethodSymbol)method,
+                null,
+                instructionDecoder);
+            var actualName = instructionDecoder.GetName(method, includeParameterTypes: false, includeParameterNames: true);
+            var actualCompactName = instructionDecoder.GetCompactName(method);
+            Assert.Equal(expectedName, actualName);
+            Assert.Equal(expectedCompactName, actualCompactName);
+        }
+
         private string GetName(string source, string methodName, DkmVariableInfoFlags argumentFlags, Type[] typeArguments = null, string[] argumentValues = null)
         {
             var serializedTypeArgumentNames = typeArguments?.Select(t => t?.AssemblyQualifiedName).ToArray();
@@ -414,7 +552,12 @@ class C
                 "Unexpected argumentFlags", "argumentFlags = {0}", argumentFlags);
 
             var instructionDecoder = CSharpInstructionDecoder.Instance;
-            var method = GetConstructedMethod(source, methodName, typeArguments, instructionDecoder);
+            var compilation = CreateCompilation(source);
+            var method = GetConstructedMethod(
+                compilation,
+                (PEMethodSymbol)GetMethodOrTypeBySignature(compilation, methodName),
+                typeArguments,
+                instructionDecoder);
 
             var includeParameterTypes = argumentFlags.Includes(DkmVariableInfoFlags.Types);
             var includeParameterNames = argumentFlags.Includes(DkmVariableInfoFlags.Names);
@@ -435,26 +578,34 @@ class C
         {
             var instructionDecoder = CSharpInstructionDecoder.Instance;
             var serializedTypeArgumentNames = typeArguments?.Select(t => t?.AssemblyQualifiedName).ToArray();
-            var method = GetConstructedMethod(source, methodName, serializedTypeArgumentNames, instructionDecoder);
+            var compilation = CreateCompilation(source);
+            var method = GetConstructedMethod(
+                compilation,
+                (PEMethodSymbol)GetMethodOrTypeBySignature(compilation, methodName),
+                serializedTypeArgumentNames,
+                instructionDecoder);
 
             return instructionDecoder.GetReturnTypeName(method);
         }
 
-        private MethodSymbol GetConstructedMethod(string source, string methodName, string[] serializedTypeArgumentNames, CSharpInstructionDecoder instructionDecoder)
+        private CSharpCompilation CreateCompilation(string source)
         {
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: nameof(InstructionDecoderTests));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: nameof(InstructionDecoderTests));
             var runtime = CreateRuntimeInstance(compilation);
             var moduleInstances = runtime.Modules;
             var blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
-            compilation = blocks.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies);
-            var frame = (PEMethodSymbol)GetMethodOrTypeBySignature(compilation, methodName);
+            return blocks.ToCompilation(new ModuleId(id: default, compilation.AssemblyName), MakeAssemblyReferencesKind.AllAssemblies);
+        }
 
+        private MethodSymbol GetConstructedMethod(CSharpCompilation compilation, PEMethodSymbol frame, string[] serializedTypeArgumentNames, CSharpInstructionDecoder instructionDecoder)
+        {
             // Once we have the method token, we want to look up the method (again)
             // using the same helper as the product code.  This helper will also map
             // async/iterator "MoveNext" methods to the original source method.
             MethodSymbol method = compilation.GetSourceMethod(
-                ((PEModuleSymbol)frame.ContainingModule).Module.GetModuleVersionIdOrThrow(),
+                new ModuleId(((PEModuleSymbol)frame.ContainingModule).Module.GetModuleVersionIdOrThrow(), compilation.AssemblyName),
                 frame.Handle);
+
             if (serializedTypeArgumentNames != null)
             {
                 Assert.NotEmpty(serializedTypeArgumentNames);

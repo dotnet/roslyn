@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -13,12 +15,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer,
+    CSharpRemoveUnusedValuesCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
 public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
@@ -36,16 +43,49 @@ public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBased
             new CodeStyleOption2<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption2.Suggestion));
 
     // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
-    private Task TestDiagnosticMissingAsync(string initialMarkup, ParseOptions? parseOptions = null)
-        => TestDiagnosticMissingAsync(initialMarkup, options: null, parseOptions);
-    private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
-        => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions: null, expectedDiagnostics);
-    private Task TestDiagnosticMissingAsync(string initialMarkup, OptionsCollection? options, ParseOptions? parseOptions = null)
-        => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true));
-    private Task TestDiagnosticsAsync(string initialMarkup, OptionsCollection options, params DiagnosticDescription[] expectedDiagnostics)
-        => TestDiagnosticsAsync(initialMarkup, options, parseOptions: null, expectedDiagnostics);
-    private Task TestDiagnosticsAsync(string initialMarkup, OptionsCollection? options, ParseOptions? parseOptions, params DiagnosticDescription[] expectedDiagnostics)
-        => TestDiagnosticsAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true), expectedDiagnostics);
+    private static Task TestDiagnosticMissingAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup)
+        => TestDiagnosticMissingAsync(initialMarkup, options: null);
+    private static Task TestDiagnosticsAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup)
+        => TestDiagnosticsAsync(initialMarkup, options: null);
+    private static async Task TestDiagnosticMissingAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, OptionsCollection? options)
+    {
+        var test = new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            TestCode = initialMarkup,
+            DisabledDiagnostics =
+            {
+                IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
+                IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId,
+            },
+        };
+
+        if (options is not null)
+            test.Options.AddRange(options);
+
+        await test.RunAsync();
+    }
+
+    private static async Task TestDiagnosticsAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup, OptionsCollection? options)
+    {
+        var test = new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.Preview,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            TestCode = initialMarkup,
+            DisabledDiagnostics =
+            {
+                IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId,
+                IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId,
+            },
+        };
+
+        if (options is not null)
+            test.Options.AddRange(options);
+
+        await test.RunAsync();
+    }
 
     [Fact]
     public async Task Parameter_Used()
@@ -54,7 +94,7 @@ public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBased
             """
             class C
             {
-                void M(int [|p|])
+                void M(int p)
                 {
                     var x = p;
                 }
@@ -69,12 +109,11 @@ public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBased
             """
             class C
             {
-                void M(int [|p|])
+                void M(int {|IDE0060:p|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Theory]
@@ -86,7 +125,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             $$"""
             {{typeAccessibility}} class C
             {
-                {{methodAccessibility}} void M(int [|p|])
+                {{methodAccessibility}} void M(int p)
                 {
                 }
             }
@@ -106,12 +145,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             $$"""
             {{typeAccessibility}} class C
             {
-                {{methodAccessibility}} void M(int [|p|])
+                {{methodAccessibility}} void M(int {|IDE0060:p|})
                 {
                 }
             }
-            """, NonPublicMethodsOnly,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """, NonPublicMethodsOnly);
     }
 
     [Fact]
@@ -124,7 +162,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p|])
+                void M(int p)
                 {
                     var x = p;
                 }
@@ -139,13 +177,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p|])
+                void M(int {|IDE0060:p|})
                 {
                     p = 1;
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -155,14 +192,13 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p|])
+                void M(int {|IDE0060:p|})
                 {
                     p = 1;
                     var x = p;
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -172,7 +208,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p|], bool flag)
+                void M(int {|IDE0060:p|}, bool flag)
                 {
                     if (flag)
                     {
@@ -186,8 +222,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                     var x = p;
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -197,7 +232,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p|], bool flag, bool flag2)
+                void M(int p, bool flag, bool flag2)
                 {
                     if (flag)
                     {
@@ -224,12 +259,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p|] = 0)
+                void M(int {|IDE0060:p|} = 0)
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -239,12 +273,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class B
             {
-                protected B(int p) { }
+                protected B(int _) { }
             }
 
             class C: B
             {
-                C(int [|p|])
+                C(int p)
                 : base(p)
                 {
                 }
@@ -259,12 +293,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class B
             {
-                protected B(int p) { }
+                protected B(int _) { }
             }
 
             class C: B
             {
-                C(int [|p|])
+                C(int p)
                 : base(0)
                 {
                     var x = p;
@@ -280,12 +314,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class B
             {
-                protected B(int p) { }
+                protected B(int _) { }
             }
 
             class C: B
             {
-                C(int [|p|])
+                C(int p)
                 : base(p)
                 {
                     var x = p;
@@ -304,13 +338,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 void M(int y)
                 {
                     LocalFunction(y);
-                    void LocalFunction(int [|p|])
+                    void LocalFunction(int {|IDE0060:p|})
                     {
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -323,13 +356,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 void M()
                 {
                     LocalFunction(0);
-                    void LocalFunction(int [|p|])
+                    void LocalFunction(int {|IDE0060:p|})
                     {
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -342,7 +374,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 void M()
                 {
                     LocalFunction(0);
-                    void LocalFunction(int [|_|])
+                    void LocalFunction(int _)
                     {
                     }
                 }
@@ -362,7 +394,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 void M()
                 {
                     M2(LocalFunction);
-                    void LocalFunction(int [|p|])
+                    void LocalFunction(int p)
                     {
                     }
                 }
@@ -382,7 +414,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private static Action<int> M(object [|p|] = null, Action<object> myDelegate)
+                private static Action<int> M(object p, Action<object> myDelegate)
                 {
                     return d => { myDelegate(p); };
                 }
@@ -401,13 +433,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private static Action M(object [|p|])
+                private static Action M(object {|IDE0060:p|})
                 {
                     return () => { };
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -421,15 +452,14 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private static void M(object [|p|])
+                private static void M(object {|IDE0060:p|})
                 {
                     M2(() => { });
                 }
 
-                private static void M2(Action a) { }
+                private static void M2(Action _) { }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -441,14 +471,14 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private static void M(object [|p|])
+                private static void M(object p)
                 {
                     M2(() => { M3(p); });
                 }
 
-                private static void M2(Action a) { }
+                private static void M2(Action _) { }
 
-                private static void M3(object o) { }
+                private static void M3(object _) { }
             }
             """);
     }
@@ -462,12 +492,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private static void M(object [|p|])
+                private static void M(object p)
                 {
                     M2(() => { M3(out p); });
                 }
 
-                private static void M2(Action a) { }
+                private static void M2(Action _) { }
 
                 private static void M3(out object o) { o = null; }
             }
@@ -484,16 +514,15 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                public static void M1(object [|p|])
+                public static void M1(object {|IDE0060:p|})
                 {
                     M2(x => x.M3());
                 }
 
-                private static C M2(Expression<Func<C, int>> a) { return null; }
+                private static C M2(Expression<Func<C, int>> _) { return null; }
                 private int M3() { return 0; }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
@@ -506,13 +535,13 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                public static void M1(object [|p|])
+                public static void M1(object p)
                 {
                     M2(x => x.M3(p));
                 }
 
-                private static C M2(Expression<Func<C, int>> a) { return null; }
-                private int M3(object o) { return 0; }
+                private static C M2(Expression<Func<C, int>> _) { return null; }
+                private int M3(object _) { return 0; }
             }
             """);
     }
@@ -527,12 +556,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                public static void M1(object [|p|])
+                public static void M1(object p)
                 {
                     M2(x => x.M3(out p));
                 }
 
-                private static C M2(Expression<Func<C, int>> a) { return null; }
+                private static C M2(Expression<Func<C, int>> _) { return null; }
                 private int M3(out object o) { o = null; return 0; }
             }
             """);
@@ -549,8 +578,8 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private Action _field;
-                private static void M(object [|p|])
+                private static Action _field;
+                private static void M(object p)
                 {
                     _field = () => { Console.WriteLine(p); };
                 }
@@ -569,7 +598,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 private static readonly object s_gate = new object();
 
-                public static C M(object [|p|], bool flag, C c1, C c2)
+                public static C M(object p, int flag, C c1, C c2)
                 {
                     C c;
                     lock (s_gate)
@@ -581,7 +610,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                     return c;
                 }
 
-                private void M2(object p) { }
+                private void M2(object _) { }
             }
             """);
     }
@@ -597,7 +626,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 void M(int y)
                 {
-                    Action<int> myLambda = [|p|] =>
+                    Action<int> myLambda = p =>
                     {
                     };
 
@@ -618,7 +647,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 void M(int y)
                 {
-                    Action<int> myLambda = [|_|] =>
+                    Action<int> myLambda = _ =>
                     {
                     };
 
@@ -639,7 +668,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 void M(int y)
                 {
-                    Action<int, int> myLambda = ([|_|], _) =>
+                    Action<int, int> myLambda = (_, _) =>
                     {
                     };
 
@@ -660,7 +689,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 void M(int y)
                 {
-                    void local([|_|], _)
+                    void local(int _1, int _2)
                     {
                     }
 
@@ -679,7 +708,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                void M([|_|], _)
+                void M(int _1, int _2)
                 {
                 }
 
@@ -701,7 +730,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 void M(int y)
                 {
                     LocalFunction(y);
-                    void LocalFunction(int [|p|])
+                    void LocalFunction(int p)
                     {
                         var x = p;
                     }
@@ -721,10 +750,10 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 void M(int y)
                 {
-                    Action<int> myLambda = [|p|] =>
+                    Action<int> myLambda = p =>
                     {
                         var x = p;
-                    }
+                    };
 
                     myLambda(y);
                 }
@@ -739,7 +768,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p = 0|])
+                void M(int p = 0)
                 {
                     var x = p;
                 }
@@ -754,12 +783,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(in int [|p|])
+                void M(in int {|IDE0060:p|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -769,12 +797,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int {|IDE0060:p|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -784,7 +811,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int p)
                 {
                     p = 0;
                 }
@@ -799,7 +826,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int p)
                 {
                     var x = p;
                 }
@@ -814,7 +841,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int p)
                 {
                     var x = p;
                     p = 1;
@@ -830,7 +857,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int p)
                 {
                     p = 1;
                     var x = p;
@@ -846,7 +873,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(ref int [|p|])
+                void M(ref int p)
                 {
                     p = 0;
                     p = 1;
@@ -862,12 +889,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(out int [|p|])
+                void {|CS0177:M|}(out int {|IDE0060:p|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact]
@@ -877,7 +903,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(out int [|p|])
+                void M(out int p)
                 {
                     p = 0;
                 }
@@ -892,7 +918,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(out int [|p|])
+                void M(out int p)
                 {
                     p = 0;
                     var x = p;
@@ -908,7 +934,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(out int [|p|])
+                void M(out int p)
                 {
                     p = 0;
                     p = 1;
@@ -925,7 +951,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             class C
             {
                 [System.Runtime.InteropServices.DllImport(nameof(M))]
-                static extern void M(int [|p|]);
+                static extern void M(int p);
             }
             """);
     }
@@ -937,7 +963,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             abstract class C
             {
-                protected abstract void M(int [|p|]);
+                protected abstract void M(int p);
             }
             """);
     }
@@ -949,7 +975,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                protected virtual void M(int [|p|])
+                protected virtual void M(int p)
                 {
                 }
             }
@@ -971,7 +997,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class D : C
             {
-                protected override void M(int [|p|])
+                protected override void M(int p)
                 {
                 }
             }
@@ -989,7 +1015,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             }
             class C: I
             {
-                public void M(int [|p|])
+                public void M(int p)
                 {
                 }
             }
@@ -1007,7 +1033,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             }
             class C: I
             {
-                void I.M(int [|p|])
+                void I.M(int p)
                 {
                 }
             }
@@ -1021,7 +1047,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                int this[int [|p|]]
+                int this[int p]
                 {
                     get { return 0; }
                 }
@@ -1036,7 +1062,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|p|])
+                void M(int p)
                 {
             #if DEBUG
                     System.Console.WriteLine(p);
@@ -1053,7 +1079,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                public void MyHandler(object [|obj|], System.EventArgs args)
+                public void MyHandler(object obj, System.EventArgs args)
                 {
                 }
             }
@@ -1067,7 +1093,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                public void MyHandler(object obj, System.EventArgs [|args|])
+                public void MyHandler(object obj, System.EventArgs args)
                 {
                 }
             }
@@ -1092,7 +1118,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                     c.myDel += Handler;
                 }
 
-                void Handler(int [|x|])
+                void Handler(int x)
                 {
                 }
             }
@@ -1110,7 +1136,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 {
                 }
 
-                public void MyHandler(object [|obj|], CustomEventArgs args)
+                public void MyHandler(object obj, CustomEventArgs args)
                 {
                 }
             }
@@ -1131,7 +1157,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             class C
             {
                 {{attribute}}
-                void M(int [|p|])
+                void M(int p)
                 {
                 }
             }
@@ -1153,7 +1179,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             class C
             {
                 [{{attributeNamespace}}.{{attributeName}}()]
-                public C(int [|p|])
+                public C(int p)
                 {
                 }
             }
@@ -1180,7 +1206,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 private readonly NonSerializable _nonSerializable;
 
-                public CustomSerializingType(SerializationInfo info, StreamingContext [|context|])
+                public CustomSerializingType(SerializationInfo info, StreamingContext context)
                 {
                     _nonSerializable = new NonSerializable(info.GetString("KEY"));
                 }
@@ -1240,6 +1266,42 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         Assert.Equal("Parameter 'p5' can be removed; its initial value is never used", sortedDiagnostics[4].GetMessage());
     }
 
+    [Theory]
+    [InlineData("int[]")]
+    [InlineData("Span<int>")]
+    public async Task Parameter_ArrayLikeUsedForReading(string arrayLikeType)
+    {
+        await TestDiagnosticMissingAsync(
+            $$"""
+            using System;
+            class C
+            {
+                void M({{arrayLikeType}} p)
+                {
+                    var x = p[0];
+                }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("int[]")]
+    [InlineData("Span<int>")]
+    public async Task Parameter_ArrayLikeUsedForWriting(string arrayLikeType)
+    {
+        await TestDiagnosticMissingAsync(
+            $$"""
+            using System;
+            class C
+            {
+                void M({{arrayLikeType}} p)
+                {
+                    p[0] = new();
+                }
+            }
+            """);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32287")]
     public async Task Parameter_DeclarationPatternWithNullDeclaredSymbol()
     {
@@ -1247,7 +1309,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(object [|o|])
+                void M(object o)
                 {
                     if (o is int _)
                     {
@@ -1264,7 +1326,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                [|void M(int _, char _1, C _3)|]
+                void M(int _, char _1, C _3)
                 {
                 }
             }
@@ -1278,12 +1340,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|x|])
+                void M(int x)
                 {
                     // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
                     Invoke<string>(() => x);
 
-                    T Invoke<T>(Func<T> a) { return a(); }
+                    T Invoke<T>({|CS0246:Func<T>|} a) { return a(); }
                 }
             }
             """);
@@ -1296,16 +1358,15 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                void M(int [|x|])
+                void M(int {|IDE0060:x|})
                 {
                     // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type.
                     Invoke<string>(() => 0);
 
-                    T Invoke<T>(Func<T> a) { return a(); }
+                    T Invoke<T>({|CS0246:Func<T>|} a) { return a(); }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32973")]
@@ -1319,7 +1380,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 {
                     return LocalFunction(out x);
 
-                    bool LocalFunction(out int [|y|])
+                    bool LocalFunction(out int y)
                     {
                         y = 0;
                         return true;
@@ -1340,14 +1401,13 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 {
                     return LocalFunction(ref x);
 
-                    bool LocalFunction(ref int [|y|])
+                    bool LocalFunction(ref int {|IDE0060:y|})
                     {
                         return true;
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32973")]
@@ -1361,7 +1421,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 {
                     return LocalFunction(ref x);
 
-                    bool LocalFunction(ref int [|y|])
+                    bool LocalFunction(ref int y)
                     {
                         y = 0;
                         return true;
@@ -1378,12 +1438,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             class C
             {
-                public static void M(C [|x|])
+                public static void M(C x)
                 {
                     x ??= new C();
                 }
             }
-            """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34301")]
@@ -1397,13 +1457,12 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 {
                     LocalFunc(0);
 
-                    void LocalFunc<T>(T [|value|])
+                    void LocalFunc<T>(T {|IDE0060:value|})
                     {
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36715")]
@@ -1415,7 +1474,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                void M(object [|value|])
+                void M(object {|IDE0060:value|})
                 {
                     try
                     {
@@ -1434,21 +1493,20 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                     }
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36715")]
     public async Task GenericLocalFunction_03()
     {
-        await TestDiagnosticsAsync(
+        await TestDiagnosticMissingAsync(
             """
             using System;
             using System.Collections.Generic;
 
             class C
             {
-                void M(object [|value|])
+                void M(object value)
                 {
                     Func<object, IEnumerable<object>> myDel = LocalFunc;
                     try
@@ -1488,7 +1546,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 private readonly Task<I> task;
 
-                public C(Task<I> [|task|])
+                public C(Task<I> task)
                 {
                     this.task = task;
                     Task.Run(async () => (await task).MyAction += myAction);
@@ -1544,7 +1602,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             public partial class C
             {
-                private void M(int [|x|])
+                private void M(int x)
                 {
                 }
             }
@@ -1568,7 +1626,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             public partial class C
             {
                 [System.CodeDom.Compiler.GeneratedCodeAttribute("", "")]
-                private void M(int [|x|])
+                private void M(int x)
                 {
                 }
             }
@@ -1588,7 +1646,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             public partial class C
             {
-                public partial void M(int [|x|])
+                public partial void M(int x)
                 {
                 }
             }
@@ -1602,7 +1660,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             public partial class C
             {
-                public partial void M(int [|x|]);
+                partial void M(int x);
             }
             """);
     }
@@ -1614,7 +1672,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             public class C
             {
-                public void M[|(int )|]
+                public void M(int {|CS1001:)|}
                 {
                 }
             }
@@ -1630,7 +1688,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private void Goo(int [|i|])
+                private void Goo(int i)
                 {
                     throw new NotImplementedException();
                 }
@@ -1647,7 +1705,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private void Goo(int [|i|])
+                private void Goo(int i)
                     => throw new NotImplementedException();
             }
             """);
@@ -1662,7 +1720,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                public C(int [|i|])
+                public C(int i)
                     => throw new NotImplementedException();
             }
             """);
@@ -1677,7 +1735,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private int Goo(int [|i|])
+                private int Goo(int i)
                     => throw new NotImplementedException();
             }
             """);
@@ -1692,7 +1750,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private int Goo(int [|i|])
+                private int Goo(int i)
                 {
                     throw new NotImplementedException();
                 }
@@ -1709,14 +1767,13 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private void Goo(int [|i|])
+                private void Goo(int {|IDE0060:i|})
                 {
                     throw new NotImplementedException();
                     return;
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41236")]
@@ -1728,14 +1785,13 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
 
             class C
             {
-                private void Goo(int [|i|])
+                private void Goo(int {|IDE0060:i|})
                 {
                     if (true)
                         throw new NotImplementedException();
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47142")]
@@ -1752,12 +1808,11 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             record A
             {
-                public A(int [|X|])
+                public A(int {|IDE0060:X|})
                 {
                 }
             }
-            """,
-Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47142")]
@@ -1766,7 +1821,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         await TestDiagnosticMissingAsync(
             """
             record A(int X);
-            record B(int X, int [|Y|]) : A(X);
+            record B(int X, int Y) : A(X);
             """);
     }
 
@@ -1776,7 +1831,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         await TestDiagnosticMissingAsync(
             """
             public record Base(int I) { }
-            public record Derived(string [|S|]) : Base(42) { }
+            public record Derived(string S) : Base(42) { }
             """);
     }
 
@@ -1805,7 +1860,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 public object MarshalNativeToManaged(IntPtr pNativeData)
                     => throw new NotImplementedException();
 
-                public static ICustomMarshaler GetInstance(string [|s|])
+                public static ICustomMarshaler GetInstance(string s)
                     => null;
             }
             """);
@@ -1818,7 +1873,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             public class Class
             {
-                public void Method(int [|x|]) => throw new System.Exception();
+                public void Method(int x) => throw new System.Exception();
             }
             """);
     }
@@ -1830,7 +1885,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             public class Class
             {
-                public void Method(int [|x|])
+                public void Method(int x)
                 {
                     throw new System.Exception();
                 }
@@ -1845,7 +1900,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             public class Class
             {
-                public Class(int [|x|])
+                public Class(int x)
                 {
                     throw new System.Exception();
                 }
@@ -1860,7 +1915,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             public class Class
             {
-                public Class(int [|x|]) => throw new System.Exception();
+                public Class(int x) => throw new System.Exception();
             }
             """);
     }
@@ -1874,7 +1929,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             {
                 public void Method()
                 {
-                    void LocalMethod(int [|x|]) => throw new System.Exception();
+                    void LocalMethod(int x) => throw new System.Exception();
                 }
             }
             """);
@@ -1887,7 +1942,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             using System;
 
-            class C(int [|a100|])
+            class C(int a100)
             {
             }
             """);
@@ -1900,7 +1955,7 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
             """
             using System;
 
-            class C(int [|a100|]) : Object()
+            class C(int a100) : Object()
             {
                 int M1() => a100;
             }
@@ -1913,11 +1968,118 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
         await TestDiagnosticsAsync("""
             class C
             {
-                void M(int [|x|])
+                void M(int {|IDE0060:x|})
                 {
                     const string y = nameof(C);
                 }
             }
-            """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
+    public async Task TestInterpolatedStringHandler_TwoIntParameters_FirstParameter()
+    {
+        await TestDiagnosticMissingAsync("""
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler(int literalLength, int formattedCount)
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
+    public async Task TestInterpolatedStringHandler_TwoIntParameters_SecondParameter()
+    {
+        await TestDiagnosticMissingAsync("""
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler(int literalLength, int formattedCount)
+                {
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
+    [MemberData(nameof(NonIntTypes))]
+    public async Task TestInterpolatedStringHandler_TwoParameters_FirstNonIntParameter(string nonIntType)
+    {
+        await TestDiagnosticsAsync($$"""
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler({{nonIntType}} {|IDE0060:literalLength|}, int formattedCount)
+                {
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
+    [MemberData(nameof(NonIntTypes))]
+    public async Task TestInterpolatedStringHandler_TwoParameters_SecondNonIntParameter(string nonIntType)
+    {
+        await TestDiagnosticsAsync($$"""
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler(int literalLength, {{nonIntType}} {|IDE0060:formattedCount|})
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
+    public async Task TestInterpolatedStringHandler_OneIntParameter()
+    {
+        await TestDiagnosticMissingAsync("""
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler(int literalLength)
+                {
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
+    [MemberData(nameof(NonIntTypes))]
+    public async Task TestInterpolatedStringHandler_OneNonIntParameter(string nonIntType)
+    {
+        await TestDiagnosticsAsync($$"""
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler({{nonIntType}} {|IDE0060:p|})
+                {
+                }
+            }
+            """);
+    }
+
+    public static IEnumerable<object[]> NonIntTypes()
+    {
+        yield return ["byte"];
+        yield return ["long"];
+        yield return ["object"];
+        yield return ["string"];
     }
 }

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
     Public Class SyntaxGeneratorTests
         Private _g As SyntaxGenerator
 
-        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestMetadata.Net451.mscorlib, TestMetadata.Net451.System})
+        Private ReadOnly _emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={NetFramework.mscorlib, NetFramework.System})
 
         Private ReadOnly _ienumerableInt As INamedTypeSymbol
 
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
         End Property
 
         Public Shared Function Compile(code As String) As Compilation
-            Return VisualBasicCompilation.Create("test").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
+            Return VisualBasicCompilation.Create("test").AddReferences(NetFramework.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
         End Function
 
         Private Shared Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
@@ -2285,7 +2285,7 @@ End Class
 
         Private Sub CheckAddRemoveAttribute(declaration As SyntaxNode)
             Dim initialAttributes = Generator.GetAttributes(declaration)
-            Assert.Equal(0, initialAttributes.Count)
+            Assert.Empty(initialAttributes)
 
             Dim withAttribute = Generator.AddAttributes(declaration, Generator.Attribute("a"))
             Dim attrsAdded = Generator.GetAttributes(withAttribute)
@@ -2293,7 +2293,7 @@ End Class
 
             Dim withoutAttribute = Generator.RemoveNode(withAttribute, attrsAdded(0))
             Dim attrsRemoved = Generator.GetAttributes(withoutAttribute)
-            Assert.Equal(0, attrsRemoved.Count)
+            Assert.Empty(attrsRemoved)
         End Sub
 
         <Fact>
@@ -3226,7 +3226,7 @@ End Class").Members(0)
 
             Dim baseListN = Generator.GetBaseAndInterfaceTypes(classN)
             Assert.NotNull(baseListN)
-            Assert.Equal(0, baseListN.Count)
+            Assert.Empty(baseListN)
         End Sub
 
         <Fact>

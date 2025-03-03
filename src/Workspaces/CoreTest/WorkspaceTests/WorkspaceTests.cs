@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var ws = new NoChangesAllowedWorkspace();
             var projectId = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
 
-            var newSolution = ws.CurrentSolution.WithAnalyzerReferences(new[] { new TestAnalyzerReference() });
+            var newSolution = ws.CurrentSolution.WithAnalyzerReferences([new TestAnalyzerReference()]);
 
             Assert.Equal(WorkspacesResources.Adding_analyzer_references_is_not_supported,
                 Assert.Throws<NotSupportedException>(() => ws.TryApplyChanges(newSolution)).Message);

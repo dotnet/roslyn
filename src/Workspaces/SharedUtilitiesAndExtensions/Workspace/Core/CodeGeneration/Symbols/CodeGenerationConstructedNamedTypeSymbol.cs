@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
+internal sealed class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
 {
     private readonly CodeGenerationNamedTypeSymbol _constructedFrom;
     private readonly ImmutableArray<ITypeSymbol> _typeArguments;
@@ -87,7 +87,7 @@ internal class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstract
     public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
     {
         // TODO(cyrusn): construct these.
-        return ImmutableArray.CreateRange(_constructedFrom.TypeMembers.Cast<INamedTypeSymbol>());
+        return [.. _constructedFrom.TypeMembers.Cast<INamedTypeSymbol>()];
     }
 
     public override TypeKind TypeKind => _constructedFrom.TypeKind;

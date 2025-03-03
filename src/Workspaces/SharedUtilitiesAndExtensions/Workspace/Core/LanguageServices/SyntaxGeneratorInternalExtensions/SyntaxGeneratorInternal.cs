@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Editing;
 
@@ -20,7 +22,15 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
 {
     public abstract ISyntaxFacts SyntaxFacts { get; }
 
+    public abstract SyntaxTrivia CarriageReturnLineFeed { get; }
+    public abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
+
     public abstract SyntaxTrivia EndOfLine(string text);
+    public abstract SyntaxTrivia SingleLineComment(string text);
+
+    public abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
+
+    public abstract bool SupportsThrowExpression();
 
     /// <summary>
     /// Creates a statement that declares a single local variable with an optional initializer.
@@ -94,6 +104,10 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
 
     public abstract SyntaxNode IsNotTypeExpression(SyntaxNode expression, SyntaxNode type);
 
+    internal static bool ParameterIsScoped(IParameterSymbol symbol)
+        => symbol is { RefKind: RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter, ScopedKind: ScopedKind.ScopedRef }
+                  or { RefKind: RefKind.None, Type.IsRefLikeType: true, ScopedKind: ScopedKind.ScopedValue };
+
     #region Patterns
 
     public abstract bool SupportsPatterns(ParseOptions options);
@@ -113,4 +127,32 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
     public abstract SyntaxNode UnaryPattern(SyntaxToken operatorToken, SyntaxNode pattern);
 
     #endregion
+
+    public abstract SyntaxNode DefaultExpression(ITypeSymbol type);
+    public abstract SyntaxNode DefaultExpression(SyntaxNode type);
+
+    public abstract SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression);
+
+    public SyntaxNode CastExpression(ITypeSymbol type, SyntaxNode expression)
+        => CastExpression(TypeExpression(type), expression);
+
+    public SyntaxNode TypeExpression(ITypeSymbol typeSymbol)
+        => TypeExpression(typeSymbol, RefKind.None);
+
+    public abstract SyntaxNode TypeExpression(ITypeSymbol typeSymbol, RefKind refKind);
+
+    public abstract SyntaxNode BitwiseOrExpression(SyntaxNode left, SyntaxNode right);
+
+    public SyntaxNode MemberAccessExpression(SyntaxNode? expression, SyntaxNode memberName)
+    {
+        return MemberAccessExpressionWorker(expression, memberName)
+            .WithAdditionalAnnotations(Simplifier.Annotation);
+    }
+
+    public abstract SyntaxNode MemberAccessExpressionWorker(SyntaxNode? expression, SyntaxNode memberName);
+    public abstract SyntaxNode IdentifierName(string identifier);
+
+    public abstract SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression);
+    public SyntaxNode ConvertExpression(ITypeSymbol type, SyntaxNode expression)
+        => ConvertExpression(TypeExpression(type), expression);
 }

@@ -12,6 +12,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
@@ -32,8 +33,6 @@ internal abstract class VsInteractiveWindowProvider
     private readonly VisualStudioWorkspace _vsWorkspace;
     private readonly IViewClassifierAggregatorService _classifierAggregator;
     private readonly IContentTypeRegistryService _contentTypeRegistry;
-    private readonly IInteractiveWindowCommandsFactory _commandsFactory;
-    private readonly ImmutableArray<IInteractiveWindowCommand> _commands;
 
     // TODO: support multi-instance windows
     // single instance of the Interactive Window
@@ -52,10 +51,10 @@ internal abstract class VsInteractiveWindowProvider
         _classifierAggregator = classifierAggregator;
         _contentTypeRegistry = contentTypeRegistry;
         _vsWorkspace = workspace;
-        _commands = GetApplicableCommands(commands, coreContentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName,
+        Commands = GetApplicableCommands(commands, coreContentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName,
             specializedContentType: InteractiveWindowContentTypes.CommandContentTypeName);
         _vsInteractiveWindowFactory = interactiveWindowFactory;
-        _commandsFactory = commandsFactory;
+        CommandsFactory = commandsFactory;
     }
 
     protected abstract CSharpInteractiveEvaluator CreateInteractiveEvaluator(
@@ -69,21 +68,9 @@ internal abstract class VsInteractiveWindowProvider
     protected abstract string Title { get; }
     protected abstract FunctionId InteractiveWindowFunctionId { get; }
 
-    protected IInteractiveWindowCommandsFactory CommandsFactory
-    {
-        get
-        {
-            return _commandsFactory;
-        }
-    }
+    protected IInteractiveWindowCommandsFactory CommandsFactory { get; }
 
-    protected ImmutableArray<IInteractiveWindowCommand> Commands
-    {
-        get
-        {
-            return _commands;
-        }
-    }
+    protected ImmutableArray<IInteractiveWindowCommand> Commands { get; }
 
     public void Create(int instanceId)
     {
@@ -196,6 +183,6 @@ internal abstract class VsInteractiveWindowProvider
             }
         }
 
-        return interactiveCommands.ToImmutableArray();
+        return [.. interactiveCommands];
     }
 }

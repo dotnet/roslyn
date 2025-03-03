@@ -8,15 +8,18 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Initialization options for semantic tokens support.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal class SemanticTokensOptions : IWorkDoneProgressOptions
     {
         /// <summary>
         /// Gets or sets a legend describing how semantic token types and modifiers are encoded in responses.
         /// </summary>
         [JsonPropertyName("legend")]
+        [JsonRequired]
         public SemanticTokensLegend Legend { get; set; }
 
         /// <summary>
@@ -33,9 +36,7 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, SemanticTokensFullOptions>? Full { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether work done progress is supported.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName("workDoneProgress")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WorkDoneProgress { get; init; }

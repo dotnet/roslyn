@@ -7,12 +7,14 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class which represents default properties associated with the entire completion list.
+    /// Represents default values of <see cref="CompletionItem"/> properties for items
+    /// is the completion list that do not provide a value for those properties.
     /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
     internal class CompletionListItemDefaults
     {
         /// <summary>
-        /// Gets or sets the default commit character set.
+        /// A default commit character set.
         /// </summary>
         [JsonPropertyName("commitCharacters")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -23,7 +25,7 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the default edit range.
+        /// A default edit range.
         /// </summary>
         [JsonPropertyName("editRange")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -34,7 +36,7 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the default <see cref="InsertTextFormat"/>.
+        /// A default <see cref="InsertTextFormat"/>.
         /// </summary>
         [JsonPropertyName("insertTextFormat")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -45,7 +47,7 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the default <see cref="InsertTextMode"/>.
+        /// A default <see cref="InsertTextMode"/>.
         /// </summary>
         [JsonPropertyName("insertTextMode")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -56,7 +58,7 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the default completion item data.
+        /// A completion item data value.
         /// </summary>
         [JsonPropertyName("data")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
