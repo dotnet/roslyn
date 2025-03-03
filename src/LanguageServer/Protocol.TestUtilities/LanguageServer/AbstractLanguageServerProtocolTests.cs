@@ -810,6 +810,12 @@ namespace Roslyn.Test.Utilities
                 await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
             }
 
+            internal async Task WaitForSourceGeneratorsAsync()
+            {
+                var operations = TestWorkspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+                await operations.WaitAllAsync(TestWorkspace, [FeatureAttribute.Workspace, FeatureAttribute.SourceGenerators]);
+            }
+
             internal RequestExecutionQueue<RequestContext>.TestAccessor? GetQueueAccessor() => _languageServer.Value.GetTestAccessor().GetQueueAccessor();
 
             internal LspWorkspaceManager.TestAccessor GetManagerAccessor() => GetRequiredLspService<LspWorkspaceManager>().GetTestAccessor();
