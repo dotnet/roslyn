@@ -10,13 +10,8 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class AsyncKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class AsyncKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.AsyncKeyword, isValidInPreprocessorContext: false)
 {
-    public AsyncKeywordRecommender()
-        : base(SyntaxKind.AsyncKeyword, isValidInPreprocessorContext: false)
-    {
-    }
-
     private static readonly ISet<SyntaxKind> s_validLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
         SyntaxKind.StaticKeyword,
