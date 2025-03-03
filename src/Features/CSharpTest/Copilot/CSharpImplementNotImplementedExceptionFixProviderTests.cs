@@ -56,7 +56,8 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                         ? "public int ConstantValue => 42;\n"
                         : string.Empty;
 
-                    return (new() { ["Implementation"] = implementation }, false); });
+                    return (new() { ["Implementation"] = implementation }, false);
+                });
         });
 
         var testCode = """
