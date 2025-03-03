@@ -11319,6 +11319,140 @@ class C<T>
             Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
+        [Theory]
+        [InlineData("#nullable disable")]
+        [InlineData("#nullable disable warnings")]
+        // TODO2: pragma
+        public void Nullable_Resilient_ChainedConstructor_01(string directive)
+        {
+            // Since the backing field is nullable, a chained constructor isn't expected to put it into non-null state.
+            // The property has maybe-null state in "caller" constructor since it shares a slot with the field.
+            var source = $$"""
+                #nullable enable
+
+                class C
+                {
+                    public C(bool ignored) { Prop = "a"; }
+                    public C() : this(false)
+                    {
+                        Prop.ToString(); // 1
+                    }
+
+                    public string Prop
+                    {
+                {{directive}}
+                        get => field;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (8,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(8, 9));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Resilient_ChainedConstructor_02()
+        {
+            var source = $$"""
+                #nullable enable
+
+                class C
+                {
+                    public C(bool ignored) { Prop = "a"; }
+                    public C() : this(false)
+                    {
+                        Prop.ToString(); // 1
+                    }
+
+                    public string Prop
+                    {
+                        get => field!;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (8,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(8, 9));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Explicit_ChainedConstructor_01()
+        {
+            var source = $$"""
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    public C(bool ignored) { Prop = "a"; }
+                    public C() : this(false)
+                    {
+                        Prop.ToString(); // 1
+                    }
+
+                    [field: MaybeNull]
+                    public string Prop
+                    {
+                        get => field!;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (9,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(9, 9));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.False(prop.BackingField.InfersNullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_NotResilient_ChainedConstructor_01()
+        {
+            // Backing field is non-nullable, so chaining a constructor puts it into non-null state.
+            var source = $$"""
+                #nullable enable
+
+                class C
+                {
+                    public C(bool ignored) { Prop = "a"; }
+                    public C() : this(false)
+                    {
+                        Prop.ToString();
+                    }
+
+                    public string Prop
+                    {
+                        get => field;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
         [Fact]
         public void Nullable_Resilient_NullForgivingOperator()
         {
