@@ -11,12 +11,14 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -633,6 +635,94 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
+    internal async Task TestDocumentDiagnosticsUpdatesSourceGeneratorDiagnostics(bool useVSDiagnostics, bool mutatingLspWorkspace, SourceGeneratorExecutionPreference executionPreference)
+    {
+        var markup = """
+            public {|insert:|}class C
+            {
+                public int F => _field;
+            }
+            """;
+
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+            markup, mutatingLspWorkspace, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+
+        // Set execution mode preference.
+        var configService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<TestWorkspaceConfigurationService>();
+        configService.Options = new WorkspaceConfigurationOptions(SourceGeneratorExecution: executionPreference);
+
+        var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+        // Add a generator to the solution that reports a diagnostic if the text matches original markup
+        var generator = new CallbackGenerator(onInit: (_) => { }, onExecute: context =>
+        {
+            var tree = context.Compilation.SyntaxTrees.Single();
+            var text = tree.GetText(CancellationToken.None).ToString();
+            if (text.Contains("public partial class C"))
+            {
+                context.AddSource("blah", """
+                    public partial class C
+                    {
+                        private readonly int _field = 1;
+                    }
+                    """);
+            }
+        });
+
+        testLspServer.TestWorkspace.OnAnalyzerReferenceAdded(
+            document.Project.Id,
+            new TestGeneratorReference(generator));
+        await testLspServer.WaitForSourceGeneratorsAsync();
+
+        await OpenDocumentAsync(testLspServer, document);
+
+        // First diagnostic request should report a diagnostic since the generator does not produce any source (text does not match).
+        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+        var diagnostic = AssertEx.Single(results.Single().Diagnostics);
+        Assert.Equal("CS0103", diagnostic.Code);
+
+        // Update the text to include the text trigger the source generator relies on.
+        var textLocation = testLspServer.GetLocations()["insert"].Single();
+
+        var textEdit = new LSP.TextEdit { Range = textLocation.Range, NewText = "partial " };
+        if (mutatingLspWorkspace)
+        {
+            // In the mutating workspace, we just need to update the LSP text (which will flow into the workspace).
+            await testLspServer.ReplaceTextAsync(textLocation.Uri, (textEdit.Range, textEdit.NewText));
+            await WaitForWorkspaceOperationsAsync(testLspServer.TestWorkspace);
+        }
+        else
+        {
+            // In the non-mutating workspace, we need to ensure that both the workspace and LSP view of the world are updated.
+            var workspaceText = await document.GetTextAsync(CancellationToken.None);
+            var textChange = ProtocolConversions.TextEditToTextChange(textEdit, workspaceText);
+            await testLspServer.TestWorkspace.ChangeDocumentAsync(document.Id, workspaceText.WithChanges(textChange));
+            await testLspServer.ReplaceTextAsync(textLocation.Uri, (textEdit.Range, textEdit.NewText));
+        }
+
+        await testLspServer.WaitForSourceGeneratorsAsync();
+        results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+
+        if (executionPreference == SourceGeneratorExecutionPreference.Automatic)
+        {
+            // In automatic mode, the diagnostic should be immediately removed as the source generator ran and produced the required field.
+            Assert.Empty(results.Single().Diagnostics!);
+        }
+        else
+        {
+            // In balanced mode, the diagnostic should remain until there is a manual source generator run that updates the sg text.
+            diagnostic = AssertEx.Single(results.Single().Diagnostics);
+            Assert.Equal("CS0103", diagnostic.Code);
+
+            testLspServer.TestWorkspace.EnqueueUpdateSourceGeneratorVersion(document.Project.Id, forceRegeneration: false);
+            await testLspServer.WaitForSourceGeneratorsAsync();
+
+            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+            Assert.Empty(results.Single().Diagnostics!);
+        }
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestDocumentDiagnosticsIncludesSourceGeneratorDiagnostics(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var markup = "// Hello, World";
@@ -641,7 +731,10 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
-        var generator = new DiagnosticProducingGenerator(context => Location.Create(context.Compilation.SyntaxTrees.Single(), new TextSpan(0, 10)));
+        var generator = new DiagnosticProducingGenerator(context =>
+        {
+            return Location.Create(context.Compilation.SyntaxTrees.Single(), new TextSpan(0, 10));
+        });
 
         testLspServer.TestWorkspace.OnAnalyzerReferenceAdded(
             document.Project.Id,

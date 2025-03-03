@@ -7584,7 +7584,7 @@ public class Derived : Base
 
     [Theory]
     [CombinatorialData]
-    public void TupleWithRequiredFields_TupleExpressonSyntax(bool setsRequiredMembers)
+    public void TupleWithRequiredFields_TupleExpressionSyntax(bool setsRequiredMembers)
     {
         var comp = CreateCompilation(new[] { """
             #pragma warning disable CS0219 // Unused local
