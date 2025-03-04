@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // This map will hold either a single BaseService instance, or an ImmutableArray<BaseService>.Builder.
             var baseServiceMap = new Dictionary<string, object>();
 
-            var clientLanguageServerManager = new ClientLanguageServerManager(jsonRpc);
+            var clientLanguageServerManager = new ClientLanguageServerManager(jsonRpc, logger);
             var lifeCycleManager = new LspServiceLifeCycleManager(clientLanguageServerManager);
 
             AddService<IClientLanguageServerManager>(clientLanguageServerManager);
