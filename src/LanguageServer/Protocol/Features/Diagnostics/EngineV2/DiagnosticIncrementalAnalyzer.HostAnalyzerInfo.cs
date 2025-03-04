@@ -97,8 +97,7 @@ internal partial class DiagnosticAnalyzerService
 
     private sealed class HostAnalyzerInfo
     {
-        private const int FileContentLoadAnalyzerPriority = -4;
-        private const int GeneratorDiagnosticsPlaceholderAnalyzerPriority = -3;
+        private const int FileContentLoadAnalyzerPriority = -3;
         private const int BuiltInCompilerPriority = -2;
         private const int RegularDiagnosticAnalyzerPriority = -1;
 
@@ -146,7 +145,6 @@ internal partial class DiagnosticAnalyzerService
             return state switch
             {
                 FileContentLoadAnalyzer _ => FileContentLoadAnalyzerPriority,
-                GeneratorDiagnosticsPlaceholderAnalyzer _ => GeneratorDiagnosticsPlaceholderAnalyzerPriority,
                 DocumentDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
                 ProjectDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
                 _ => RegularDiagnosticAnalyzerPriority,
