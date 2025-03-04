@@ -3437,75 +3437,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (!argument.HasAnyErrors)
-                {
-                    var argRefKind = analyzedArguments.RefKind(arg);
-
-                    if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
-                    {
-                        // Disallow using `ref readonly` parameters with no or `in` argument modifier,
-                        // same as older versions of the compiler would (since they would see the parameter as `ref`).
-                        if (argRefKind is RefKind.None or RefKind.In &&
-                            getCorrespondingParameter(in result, parameters, arg).RefKind == RefKind.RefReadOnlyParameter)
-                        {
-                            var available = CheckFeatureAvailability(argument.Syntax, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics);
-                            Debug.Assert(!available);
-                        }
-                    }
-                    else
-                    {
-                        var argNumber = invokedAsExtensionMethod ? arg : arg + 1;
-
-                        // Warn for `ref`/`in` or None/`ref readonly` mismatch.
-                        if (argRefKind == RefKind.Ref)
-                        {
-                            if (getCorrespondingParameter(in result, parameters, arg).RefKind == RefKind.In)
-                            {
-                                Debug.Assert(argNumber > 0);
-                                // The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
-                                diagnostics.Add(
-                                    ErrorCode.WRN_BadArgRef,
-                                    argument.Syntax,
-                                    argNumber);
-                            }
-                        }
-                        else if (argRefKind == RefKind.None &&
-                            getCorrespondingParameter(in result, parameters, arg).RefKind == RefKind.RefReadOnlyParameter)
-                        {
-                            if (!this.CheckValueKind(argument.Syntax, argument, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
-                            {
-                                Debug.Assert(argNumber >= 0); // can be 0 for receiver of extension method
-                                // Argument {0} should be a variable because it is passed to a 'ref readonly' parameter
-                                diagnostics.Add(
-                                    ErrorCode.WRN_RefReadonlyNotVariable,
-                                    argument.Syntax,
-                                    argNumber);
-                            }
-                            else if (!invokedAsExtensionMethod || arg != 0)
-                            {
-                                Debug.Assert(argNumber > 0);
-                                if (this.CheckValueKind(argument.Syntax, argument, BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
-                                {
-                                    // Argument {0} should be passed with 'ref' or 'in' keyword
-                                    diagnostics.Add(
-                                        ErrorCode.WRN_ArgExpectedRefOrIn,
-                                        argument.Syntax,
-                                        argNumber);
-                                }
-                                else
-                                {
-                                    // Argument {0} should be passed with the 'in' keyword
-                                    diagnostics.Add(
-                                        ErrorCode.WRN_ArgExpectedIn,
-                                        argument.Syntax,
-                                        argNumber);
-                                }
-                            }
-                        }
-                    }
-                }
-
                 int paramNum = result.ParameterFromArgument(arg);
+                CheckArgumentRefKind(analyzedArguments.RefKind(arg), argument, arg, parameters[paramNum], invokedAsExtensionMethod, diagnostics);
 
                 if (expanded && paramNum == parameters.Length - 1)
                 {
@@ -3936,6 +3869,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constantValueOpt: null,
                     handlerType,
                     hasErrors || interpolatedString.HasErrors);
+            }
+        }
+
+        private void CheckArgumentRefKind(RefKind argRefKind, BoundExpression argument, int arg, ParameterSymbol parameter,
+            bool invokedAsExtensionMethod, BindingDiagnosticBag diagnostics)
+        {
+            if (argument.HasAnyErrors)
+            {
+                return;
+            }
+
+            if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefReadonlyParameters))
+            {
+                // Disallow using `ref readonly` parameters with no or `in` argument modifier,
+                // same as older versions of the compiler would (since they would see the parameter as `ref`).
+                if (argRefKind is RefKind.None or RefKind.In && parameter.RefKind == RefKind.RefReadOnlyParameter)
+                {
+                    var available = CheckFeatureAvailability(argument.Syntax, MessageID.IDS_FeatureRefReadonlyParameters, diagnostics);
+                    Debug.Assert(!available);
+                }
+            }
+            else
+            {
+                // PROTOTYPE consider removing or adjusting the reported argument position
+                var argNumber = invokedAsExtensionMethod ? arg : arg + 1;
+
+                // Warn for `ref`/`in` or None/`ref readonly` mismatch.
+                if (argRefKind == RefKind.Ref)
+                {
+                    if (parameter.RefKind == RefKind.In)
+                    {
+                        Debug.Assert(argNumber > 0);
+                        // The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                        diagnostics.Add(
+                            ErrorCode.WRN_BadArgRef,
+                            argument.Syntax,
+                            argNumber);
+                    }
+                }
+                else if (argRefKind == RefKind.None && parameter.RefKind == RefKind.RefReadOnlyParameter)
+                {
+                    if (!this.CheckValueKind(argument.Syntax, argument, BindValueKind.RefersToLocation, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                    {
+                        Debug.Assert(argNumber >= 0); // can be 0 for receiver of extension method
+                                                      // Argument {0} should be a variable because it is passed to a 'ref readonly' parameter
+                        diagnostics.Add(
+                            ErrorCode.WRN_RefReadonlyNotVariable,
+                            argument.Syntax,
+                            argNumber);
+                    }
+                    else if (!invokedAsExtensionMethod || arg != 0)
+                    {
+                        Debug.Assert(argNumber > 0);
+                        if (this.CheckValueKind(argument.Syntax, argument, BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded))
+                        {
+                            // Argument {0} should be passed with 'ref' or 'in' keyword
+                            diagnostics.Add(
+                                ErrorCode.WRN_ArgExpectedRefOrIn,
+                                argument.Syntax,
+                                argNumber);
+                        }
+                        else
+                        {
+                            // Argument {0} should be passed with the 'in' keyword
+                            diagnostics.Add(
+                                ErrorCode.WRN_ArgExpectedIn,
+                                argument.Syntax,
+                                argNumber);
+                        }
+                    }
+                }
             }
         }
 #nullable disable
@@ -8014,6 +8018,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (extensionMember)
             {
                 case PropertySymbol propertySymbol:
+                    Debug.Assert(extensionMember.ContainingType.ExtensionParameter is not null);
+                    if (receiver is not BoundTypeExpression)
+                    {
+                        receiver = CreateConversion(receiver, extensionMember.ContainingType.ExtensionParameter.Type, diagnostics);
+                    }
+
                     return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
 
                 case NamedTypeSymbol namedTypeSymbol:
@@ -8322,7 +8332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(extensionMethodArguments.Names.Count == 0);
             Debug.Assert(extensionMethodArguments.RefKinds.Count == 0);
 
-            extensionMethodArguments.IsExtensionMethodInvocation = true;
+            extensionMethodArguments.IncludesReceiverAsArgument = true;
             extensionMethodArguments.Arguments.Add(receiver);
             extensionMethodArguments.Arguments.AddRange(originalArguments.Arguments);
 
@@ -8469,7 +8479,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        // PROTOTYPE revisit handling of use-site diagnostics (some are currently put in the returned MethodGroupResolution and others are collected separately)
         protected MethodGroupResolution ResolveExtension(
             SyntaxNode expression,
             string memberName,
@@ -8493,151 +8502,55 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var firstResult = new MethodGroupResolution();
             AnalyzedArguments? actualArguments = null;
+            var lookupResult = LookupResult.GetInstance();
+            var classicExtensionLookupResult = LookupResult.GetInstance();
+
+            // PROTOTYPE we need to lookup on combined arity of extension declaration and extension method
+            int arity = typeArgumentsWithAnnotations.IsDefault ? 0 : typeArgumentsWithAnnotations.Length;
+            var lookupOptions = (arity == 0) ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
+            if (analyzedArguments is not null)
+            {
+                lookupOptions |= LookupOptions.MustBeInvocableIfMember;
+            }
 
             foreach (var scope in new ExtensionScopes(this))
             {
-                // PROTOTYPE we are temporarily prioritizing new extension members over classic extension methods, instead of mixing them
-                if (tryResolveExtensionMember(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
-                    options, returnRefKind, in callingConvention, returnType, ref useSiteInfo, scope,
-                    out MethodGroupResolution extensionResult))
-                {
-                    if (extensionResult.IsNonMethodExtensionMember(out _))
-                    {
-                        firstResult.Free();
-                        return extensionResult;
-                    }
-
-                    // If the search in the current scope resulted in any applicable method from an extension type
-                    // (regardless of whether a best applicable method could be determined) then our search is complete.
-                    // Otherwise, store aside the first non-applicable result and continue searching for an applicable result.
-                    if (extensionResult.HasAnyApplicableMethod)
-                    {
-                        firstResult.Free();
-                        return extensionResult;
-                    }
-                    else if (firstResult.IsEmpty)
-                    {
-                        firstResult = extensionResult;
-                    }
-                    else
-                    {
-                        // Neither the first result, nor applicable. No need to save result.
-                        extensionResult.Free();
-                    }
-                }
-
-                if (tryResolveExtensionMethod(this, expression, memberName, analyzedArguments, left, typeArgumentsWithAnnotations,
-                    options, returnRefKind, returnType, in callingConvention, ref useSiteInfo, scope,
-                    ref actualArguments, out MethodGroupResolution extensionMethodResult))
-                {
-                    // If the search in the current scope resulted in any applicable method (regardless of whether a best
-                    // applicable method could be determined) then our search is complete. Otherwise, store aside the
-                    // first non-applicable result and continue searching for an applicable result.
-                    if (extensionMethodResult.HasAnyApplicableMethod)
-                    {
-                        firstResult.Free();
-                        actualArguments?.Free();
-                        return extensionMethodResult;
-                    }
-                    else if (firstResult.IsEmpty)
-                    {
-                        firstResult = extensionMethodResult;
-                    }
-                    else
-                    {
-                        // Neither the first result, nor applicable. No need to save result.
-                        extensionMethodResult.Free();
-                    }
-                }
-            }
-
-            Debug.Assert((actualArguments == null) || !firstResult.IsEmpty);
-            actualArguments?.Free();
-
-            return firstResult;
-
-            static bool tryResolveExtensionMember(Binder binder, SyntaxNode expression, string memberName, AnalyzedArguments? analyzedArguments, BoundExpression left,
-                ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, OverloadResolution.Options options, RefKind returnRefKind, in CallingConventionInfo callingConvention,
-                TypeSymbol? returnType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ExtensionScope scope, out MethodGroupResolution extensionResult)
-            {
-                var lookupResult = LookupResult.GetInstance();
-
-                int arity = typeArgumentsWithAnnotations.IsDefault ? 0 : typeArgumentsWithAnnotations.Length;
-                var lookupOptions = (arity == 0) ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
-                if (analyzedArguments is not null)
-                {
-                    lookupOptions |= LookupOptions.MustBeInvocableIfMember;
-                }
+                lookupResult.Clear();
+                classicExtensionLookupResult.Clear();
 
                 scope.Binder.LookupExtensionMembersInSingleBinder(
                     lookupResult, left.Type!, memberName, arity,
-                    basesBeingResolved: null, lookupOptions, originalBinder: binder, ref useSiteInfo);
+                    basesBeingResolved: null, lookupOptions, originalBinder: this, ref useSiteInfo);
+
+                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, useSiteInfo.AccumulatesDependencies);
+
+                CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                this.LookupExtensionMethods(classicExtensionLookupResult, scope, memberName, arity, ref classicExtensionUseSiteInfo);
+                diagnostics.Add(expression, classicExtensionUseSiteInfo);
+
+                lookupResult.MergeEqual(classicExtensionLookupResult);
 
                 if (!lookupResult.IsMultiViable)
                 {
-                    lookupResult.Free();
-                    extensionResult = default;
-                    return false;
+                    diagnostics.Free();
+                    continue;
                 }
 
                 var members = ArrayBuilder<Symbol>.GetInstance();
-
-                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: useSiteInfo.AccumulatesDependencies);
-
-                Symbol? symbol = binder.GetSymbolOrMethodOrPropertyGroupStrict(lookupResult, expression, memberName, arity, members, diagnostics, qualifierOpt: null);
+                Symbol? symbol = this.GetSymbolOrMethodOrPropertyGroupStrict(lookupResult, expression, memberName, arity, members, diagnostics, qualifierOpt: null);
                 if (symbol is not null)
                 {
+                    firstResult.Free();
+                    actualArguments?.Free();
                     lookupResult.Free();
+                    classicExtensionLookupResult.Free();
                     members.Free();
-                    extensionResult = new MethodGroupResolution(symbol, LookupResultKind.Viable, diagnostics.ToReadOnlyAndFree());
-                    return true;
-                }
-
-                if (members[0].Kind is not SymbolKind.Method)
-                {
-                    lookupResult.Free();
-                    members.Free();
-                    diagnostics.Free();
-                    extensionResult = default;
-                    return false;
+                    return new MethodGroupResolution(symbol, LookupResultKind.Viable, diagnostics.ToReadOnlyAndFree());
                 }
 
                 var methodGroup = MethodGroup.GetInstance();
-                methodGroup.PopulateWithMethods(left, members, typeArgumentsWithAnnotations, isExtensionMethodGroup: false, resultKind: lookupResult.Kind);
+                methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, resultKind: lookupResult.Kind);
                 members.Free();
-
-                if (analyzedArguments is null)
-                {
-                    lookupResult.Free();
-                    extensionResult = new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
-                    return true;
-                }
-
-                extensionResult = resolveOverloads(binder, methodGroup, analyzedArguments, options, returnType, returnRefKind, in callingConvention, expression, diagnostics);
-                diagnostics.Free();
-                return true;
-            }
-
-            static bool tryResolveExtensionMethod(
-                Binder binder,
-                SyntaxNode expression,
-                string methodName,
-                AnalyzedArguments? analyzedArguments,
-                BoundExpression left,
-                ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
-                OverloadResolution.Options options,
-                RefKind returnRefKind,
-                TypeSymbol? returnType,
-                in CallingConventionInfo callingConvention,
-                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-                ExtensionScope scope,
-                ref AnalyzedArguments? actualArguments,
-                out MethodGroupResolution result)
-            {
-                var methodGroup = MethodGroup.GetInstance();
-
-                var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: useSiteInfo.AccumulatesDependencies);
-                binder.PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, expression, left, methodName, typeArgumentsWithAnnotations, diagnostics);
 
                 if (analyzedArguments == null)
                 {
@@ -8645,14 +8558,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // we can still prune the inapplicable extension methods using the receiver type
                     for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
                     {
-                        if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type, binder.Compilation) == null)
+                        if (methodGroup.Methods[i].IsExtensionMethod
+                            && (object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type, this.Compilation) == null)
+                        {
                             methodGroup.Methods.RemoveAt(i);
+                        }
+                        // PROTOTYPE we'll want to do the same for new extension methods, once we remove the "compatible extension" logic
                     }
 
                     if (methodGroup.Methods.Count != 0)
                     {
-                        result = new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
-                        return true;
+                        firstResult.Free();
+                        actualArguments?.Free();
+                        lookupResult.Free();
+                        classicExtensionLookupResult.Free();
+                        return new MethodGroupResolution(methodGroup, diagnostics.ToReadOnlyAndFree());
                     }
                 }
 
@@ -8660,8 +8580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     methodGroup.Free();
                     diagnostics.Free();
-                    result = default;
-                    return false;
+                    continue;
                 }
 
                 if (actualArguments == null)
@@ -8672,10 +8591,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CombineExtensionMethodArguments(left, analyzedArguments, actualArguments);
                 }
 
-                result = resolveOverloads(binder, methodGroup, actualArguments, options, returnType, returnRefKind, in callingConvention, expression, diagnostics);
+                var extensionMethodResult = resolveOverloads(this, methodGroup, actualArguments, options, returnType, returnRefKind, in callingConvention, expression, diagnostics);
                 diagnostics.Free();
-                return true;
+
+                // If the search in the current scope resulted in any applicable method (regardless of whether a best
+                // applicable method could be determined) then our search is complete. Otherwise, store aside the
+                // first non-applicable result and continue searching for an applicable result.
+                if (extensionMethodResult.HasAnyApplicableMethod)
+                {
+                    firstResult.Free();
+                    actualArguments?.Free();
+                    lookupResult.Free();
+                    classicExtensionLookupResult.Free();
+                    return extensionMethodResult;
+                }
+                else if (firstResult.IsEmpty)
+                {
+                    firstResult = extensionMethodResult;
+                }
+                else
+                {
+                    // Neither the first result, nor applicable. No need to save result.
+                    extensionMethodResult.Free();
+                }
             }
+
+            Debug.Assert((actualArguments == null) || !firstResult.IsEmpty);
+            lookupResult.Free();
+            classicExtensionLookupResult.Free();
+
+            return firstResult;
 
             static MethodGroupResolution resolveOverloads(Binder binder, MethodGroup methodGroup, AnalyzedArguments actualArguments, OverloadResolution.Options options,
                 TypeSymbol? returnType, RefKind returnRefKind, in CallingConventionInfo callingConvention, SyntaxNode expression, BindingDiagnosticBag diagnostics)
@@ -8747,7 +8692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out wasError, qualifierOpt: null);
                 Debug.Assert((object)symbol == null);
                 Debug.Assert(members.Count > 0);
-                methodGroup.PopulateWithMethods(left, members, typeArgumentsWithAnnotations, isExtensionMethodGroup: true, lookupResult.Kind);
+                methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, lookupResult.Kind);
                 members.Free();
             }
 

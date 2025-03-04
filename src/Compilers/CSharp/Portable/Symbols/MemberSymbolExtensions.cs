@@ -77,6 +77,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal static bool GetIsNewExtensionMember(this Symbol member)
+        {
+            switch (member.Kind)
+            {
+                case SymbolKind.Method:
+                case SymbolKind.Property:
+                    return member.ContainingSymbol is TypeSymbol { IsExtension: true };
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
+            }
+        }
+
         /// <summary>
         /// Get the ref kinds of the parameters of a member symbol.  Should be a method, property, or event.
         /// </summary>
