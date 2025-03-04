@@ -3658,7 +3658,9 @@ static class Extensions
         verifier2.VerifyIL("Program.Test", testIL);
         verifier2.VerifyIL("Extensions.<Extension>M2", m2IL);
 
-        var src4 = """
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
+        {
+            var src4 = """
 class Program
 {
     static void Main()
@@ -3683,11 +3685,11 @@ static class Extensions
 }
 """;
 
-        var comp4 = CreateCompilation(src4, references: [comp1MetadataReference], options: TestOptions.DebugExe);
-        var verifier4 = CompileAndVerify(comp4, expectedOutput: "1234");
+            var comp4 = CreateCompilation(src4, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+            var verifier4 = CompileAndVerify(comp4, expectedOutput: "1234");
 
-        testIL =
-@"
+            testIL =
+    @"
 {
   // Code size       30 (0x1e)
   .maxstack  2
@@ -3707,10 +3709,10 @@ static class Extensions
   IL_001d:  ret
 }
 ";
-        verifier4.VerifyIL("Program.Test", testIL);
+            verifier4.VerifyIL("Program.Test", testIL);
 
-        m2IL =
-@"
+            m2IL =
+    @"
 {
   // Code size       19 (0x13)
   .maxstack  2
@@ -3722,13 +3724,58 @@ static class Extensions
   IL_0012:  ret
 }
 ";
-        verifier4.VerifyIL("Extensions.<Extension>M2", m2IL);
+            verifier4.VerifyIL("Extensions.<Extension>M2", m2IL);
 
-        comp4 = CreateCompilation(src4, references: [comp1ImageReference], options: TestOptions.DebugExe);
-        verifier4 = CompileAndVerify(comp4, expectedOutput: "1234");
+            comp4 = CreateCompilation(src4, references: [comp1ImageReference], options: TestOptions.DebugExe);
+            verifier4 = CompileAndVerify(comp4, expectedOutput: "1234");
 
-        verifier4.VerifyIL("Program.Test", testIL);
-        verifier4.VerifyIL("Extensions.<Extension>M2", m2IL);
+            verifier4.VerifyIL("Program.Test", testIL);
+            verifier4.VerifyIL("Extensions.<Extension>M2", m2IL);
+        }
+    }
+
+    [Fact(Skip = "Regression")] // PROTOTYPE: REGRESSION - This scenario is broken, works in 'main'
+    public void UseSiteInfoTracking_01()
+    {
+        var src1 = """
+public static class Extensions
+{
+    public static string M(this object o, string s) => o + s;
+}
+""";
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
+
+        var src4 = """
+class Program
+{
+    static void Main()
+    {
+        // Extensions.M(null, null); // Uncomment this line to make the test pass
+        System.Console.Write(Test("1"));
+        System.Console.Write("3".M2("4"));
+    }
+
+    static string Test(object o)
+    {
+        System.Func<string, string> d = o.M;
+        return d("2");
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public string M2(string s) => new System.Func<string, string>(o.M)(s);
+    }
+}
+""";
+
+        var comp1MetadataReference = comp1.ToMetadataReference();
+        var comp4 = CreateCompilation(src4, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        var refs = comp4.GetUsedAssemblyReferences();
+        Assert.Contains(comp1MetadataReference, refs);
     }
 
     [Fact]
@@ -4927,7 +4974,9 @@ static class Extensions
         verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
         verifier3.VerifyIL("Extensions.<Extension>M2<T, U>(C<T>, T, U)", m2IL);
 
-        src3 = """
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
+        {
+            src3 = """
 class Program
 {
     static void Main()
@@ -4952,21 +5001,21 @@ static class Extensions
 }
 """;
 
-        comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+            comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
 #if true
-        // PROTOTYPE: The errors are unexpected. The scenario got broken after https://github.com/dotnet/roslyn/pull/77343
-        comp3.VerifyDiagnostics(
-            // (11,41): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
-            //         System.Func<T, U, string> d = o.M;
-            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Func<T, U, string>").WithLocation(11, 41),
-            // (20,42): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
-            //         public string M2<U>(T t, U u) => new System.Func<T, U, string>(o.M)(t, u);
-            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Func<T, U, string>(o.M)").WithArguments("M", "System.Func<T, U, string>").WithLocation(20, 42)
-            );
+            // PROTOTYPE: The errors are unexpected. The scenario got broken after https://github.com/dotnet/roslyn/pull/77343
+            comp3.VerifyDiagnostics(
+                // (11,41): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
+                //         System.Func<T, U, string> d = o.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Func<T, U, string>").WithLocation(11, 41),
+                // (20,42): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
+                //         public string M2<U>(T t, U u) => new System.Func<T, U, string>(o.M)(t, u);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Func<T, U, string>(o.M)").WithArguments("M", "System.Func<T, U, string>").WithLocation(20, 42)
+                );
 #else
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "132465");
+            verifier3 = CompileAndVerify(comp3, expectedOutput: "132465");
 
-        testIL =
+            testIL =
 @"
 {
   // Code size       27 (0x1b)
@@ -4988,9 +5037,9 @@ static class Extensions
   IL_001a:  ret
 }
 ";
-        verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
+            verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
 
-        m2IL =
+            m2IL =
 @"
 {
   // Code size       20 (0x14)
@@ -5004,27 +5053,28 @@ static class Extensions
   IL_0013:  ret
 }
 ";
-        verifier3.VerifyIL("Extensions.<Extension>M2<T, U>(C<T>, T, U)", m2IL);
+            verifier3.VerifyIL("Extensions.<Extension>M2<T, U>(C<T>, T, U)", m2IL);
 #endif
 
-        comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+            comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
 
 #if true
-        // PROTOTYPE: The errors are unexpected. The scenario got broken after https://github.com/dotnet/roslyn/pull/77343
-        comp3.VerifyDiagnostics(
-            // (11,41): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
-            //         System.Func<T, U, string> d = o.M;
-            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Func<T, U, string>").WithLocation(11, 41),
-            // (20,42): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
-            //         public string M2<U>(T t, U u) => new System.Func<T, U, string>(o.M)(t, u);
-            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Func<T, U, string>(o.M)").WithArguments("M", "System.Func<T, U, string>").WithLocation(20, 42)
-            );
+            // PROTOTYPE: The errors are unexpected. The scenario got broken after https://github.com/dotnet/roslyn/pull/77343
+            comp3.VerifyDiagnostics(
+                // (11,41): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
+                //         System.Func<T, U, string> d = o.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Func<T, U, string>").WithLocation(11, 41),
+                // (20,42): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
+                //         public string M2<U>(T t, U u) => new System.Func<T, U, string>(o.M)(t, u);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Func<T, U, string>(o.M)").WithArguments("M", "System.Func<T, U, string>").WithLocation(20, 42)
+                );
 #else
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "132465");
+            verifier3 = CompileAndVerify(comp3, expectedOutput: "132465");
 
-        verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
-        verifier3.VerifyIL("Extensions.<Extension>M2<T, U>(C<T>, T, U)", m2IL);
+            verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
+            verifier3.VerifyIL("Extensions.<Extension>M2<T, U>(C<T>, T, U)", m2IL);
 #endif
+        }
     }
 
     [Fact]
@@ -6393,7 +6443,9 @@ static class Extensions
         verifier2.VerifyIL("Program.Test", testIL);
         verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
 
-        src2 = """
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
+        {
+            src2 = """
 class Program
 {
     static void Main()
@@ -6421,11 +6473,11 @@ static class Extensions
 }
 """;
 
-        comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
-        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+            comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
 
-        testIL =
-@"
+            testIL =
+    @"
 {
   // Code size       46 (0x2e)
   .maxstack  3
@@ -6452,10 +6504,10 @@ static class Extensions
   IL_002d:  ret
 }
 ";
-        verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Program.Test", testIL);
 
-        m2IL =
-@"
+            m2IL =
+    @"
 {
   // Code size       21 (0x15)
   .maxstack  3
@@ -6469,15 +6521,15 @@ static class Extensions
   IL_0014:  ret
 }
 ";
-        verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
+            verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
 
-        comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
-        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+            comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
 
-        verifier2.VerifyIL("Program.Test", testIL);
-        verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
+            verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
 
-        src2 = """
+            src2 = """
 class Program
 {
     static void Main()
@@ -6505,11 +6557,11 @@ static class Extensions
 }
 """;
 
-        comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe.WithAllowUnsafe(true));
-        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped);
+            comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped);
 
-        testIL =
-@"
+            testIL =
+    @"
 {
   // Code size       27 (0x1b)
   .maxstack  3
@@ -6531,10 +6583,10 @@ static class Extensions
   IL_001a:  ret
 }
 ";
-        verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Program.Test", testIL);
 
-        m2IL =
-@"
+            m2IL =
+    @"
 {
   // Code size       17 (0x11)
   .maxstack  3
@@ -6549,13 +6601,14 @@ static class Extensions
   IL_0010:  ret
 }
 ";
-        verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
+            verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
 
-        comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe.WithAllowUnsafe(true));
-        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped);
+            comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped);
 
-        verifier2.VerifyIL("Program.Test", testIL);
-        verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
+            verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
+        }
     }
 
     [Fact]

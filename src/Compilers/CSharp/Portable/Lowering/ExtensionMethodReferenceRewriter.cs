@@ -174,20 +174,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static BoundNode VisitDelegateCreationExpression(BoundTreeRewriter rewriter, BoundDelegateCreationExpression node)
         {
-            return updateDelegateCreation(node, VisitMethodSymbolWithExtensionRewrite(rewriter, node.MethodOpt), (BoundExpression)rewriter.Visit(node.Argument), rewriter.VisitType(node.Type));
+            var methodOpt = VisitMethodSymbolWithExtensionRewrite(rewriter, node.MethodOpt);
+            var argument = (BoundExpression)rewriter.Visit(node.Argument);
+            var type = rewriter.VisitType(node.Type);
+            bool isExtensionMethod = node.IsExtensionMethod;
 
-            static BoundNode updateDelegateCreation(BoundDelegateCreationExpression node, MethodSymbol? methodOpt, BoundExpression argument, TypeSymbol type)
+            if (!isExtensionMethod && argument is not BoundTypeExpression && methodOpt?.IsStatic == true)
             {
-                bool isExtensionMethod = node.IsExtensionMethod;
-
-                if (!isExtensionMethod && argument is not BoundTypeExpression && methodOpt?.IsStatic == true)
-                {
-                    Debug.Assert(node.MethodOpt!.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() == (object)methodOpt.OriginalDefinition);
-                    isExtensionMethod = true;
-                }
-
-                return node.Update(argument, methodOpt, isExtensionMethod, node.WasTargetTyped, type);
+                Debug.Assert(node.MethodOpt!.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() == (object)methodOpt.OriginalDefinition);
+                isExtensionMethod = true;
             }
+
+            return node.Update(argument, methodOpt, isExtensionMethod, node.WasTargetTyped, type);
         }
 
         public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
