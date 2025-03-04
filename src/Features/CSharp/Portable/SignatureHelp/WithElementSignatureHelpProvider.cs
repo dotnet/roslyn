@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,10 +20,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
-[ExportSignatureHelpProvider("ObjectCreationExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
+[ExportSignatureHelpProvider("WithElementSignatureHelpProvider", LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : AbstractCSharpSignatureHelpProvider
+internal sealed partial class WithElementSignatureHelpProvider() : AbstractCSharpSignatureHelpProvider
 {
     public override bool IsTriggerCharacter(char ch)
         => ch is '(' or ',';
@@ -28,7 +31,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
     public override bool IsRetriggerCharacter(char ch)
         => ch == ')';
 
-    private async Task<BaseObjectCreationExpressionSyntax?> TryGetObjectCreationExpressionAsync(
+    private async Task<WithElementSyntax?> TryGetWithElementAsync(
         Document document,
         int position,
         SignatureHelpTriggerReason triggerReason,
@@ -38,7 +41,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         if (!CommonSignatureHelpUtilities.TryGetSyntax(
-                root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out BaseObjectCreationExpressionSyntax? expression))
+                root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out WithElementSyntax? expression))
         {
             return null;
         }
@@ -50,9 +53,9 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
     }
 
     private bool IsTriggerToken(SyntaxToken token)
-        => SignatureHelpUtilities.IsTriggerParenOrComma<BaseObjectCreationExpressionSyntax>(token, IsTriggerCharacter);
+        => SignatureHelpUtilities.IsTriggerParenOrComma<WithElementSyntax>(token, IsTriggerCharacter);
 
-    private static bool IsArgumentListToken(BaseObjectCreationExpressionSyntax expression, SyntaxToken token)
+    private static bool IsArgumentListToken(WithElementSyntax expression, SyntaxToken token)
     {
         return expression.ArgumentList != null &&
             expression.ArgumentList.Span.Contains(token.SpanStart) &&
@@ -62,18 +65,49 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
     protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var objectCreationExpression = await TryGetObjectCreationExpressionAsync(
+        var withElement = await TryGetWithElementAsync(
             document, position, triggerInfo.TriggerReason, cancellationToken).ConfigureAwait(false);
-        if (objectCreationExpression is not { ArgumentList: not null })
+        if (withElement?.Parent is not CollectionExpressionSyntax collectionExpression)
             return null;
 
-        var semanticModel = await document.ReuseExistingSpeculativeModelAsync(objectCreationExpression, cancellationToken).ConfigureAwait(false);
-        if (semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type is not INamedTypeSymbol type)
+        var semanticModel = await document.ReuseExistingSpeculativeModelAsync(withElement, cancellationToken).ConfigureAwait(false);
+        if (semanticModel.GetTypeInfo(collectionExpression, cancellationToken).Type is not INamedTypeSymbol type)
             return null;
 
         var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
         if (within == null)
             return null;
+
+        var ilistOfTType = semanticModel.Compilation.IListOfTType();
+        var icollectionOfTType = semanticModel.Compilation.ICollectionOfTType();
+        var listOfTType = semanticModel.Compilation.ListOfTType();
+
+        var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(withElement.ArgumentList);
+        var argumentState = await GetCurrentArgumentStateAsync(
+            document, position, textSpan, cancellationToken).ConfigureAwait(false);
+
+        var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
+        var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
+
+        // When the type is IList<T> or ICollection<T>, we can provide a signature help item for the `(int capacity)`
+        // constructor of List<T>, as that's what the compiler will call into.
+        if (Equals(ilistOfTType, type.OriginalDefinition) ||
+            Equals(icollectionOfTType, type.OriginalDefinition))
+        {
+            if (listOfTType is null)
+                return null;
+
+            var constructedListType = listOfTType.Construct(type.TypeArguments.Single());
+            var constructor = constructedListType.InstanceConstructors.FirstOrDefault(
+                m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Int32, Name: "capacity" }]);
+            if (constructor is null)
+                return null;
+
+            var item = ObjectCreationExpressionSignatureHelpProvider.ConvertNormalTypeConstructor(
+                constructor, withElement.SpanStart, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService);
+            return CreateSignatureHelpItems(
+                [item], textSpan, argumentState, selectedItemIndex: 0, parameterIndexOverride: -1);
+        }
 
         if (type.TypeKind == TypeKind.Delegate)
             return await GetItemsWorkerForDelegateAsync(document, position, objectCreationExpression, type, cancellationToken).ConfigureAwait(false);
@@ -98,7 +132,7 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
         var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
 
         var items = methods.SelectAsArray(c =>
-            ConvertNormalTypeConstructor(c, objectCreationExpression.SpanStart, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
+            ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
 
         var selectedItem = TryGetSelectedIndex(methods, currentSymbol);
 
@@ -135,9 +169,9 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : 
     private async Task<SignatureHelpState?> GetCurrentArgumentStateAsync(
         Document document, int position, TextSpan currentSpan, CancellationToken cancellationToken)
     {
-        var expression = await TryGetObjectCreationExpressionAsync(
+        var expression = await TryGetWithElementAsync(
             document, position, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken).ConfigureAwait(false);
-        if (expression is { ArgumentList: not null } &&
+        if (expression != null &&
             currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
         {
             return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);
