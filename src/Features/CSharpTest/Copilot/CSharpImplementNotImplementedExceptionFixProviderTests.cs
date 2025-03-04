@@ -158,6 +158,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     }
 
     [Fact]
+    // TODO: FIX
     public async Task QuotaExceeded_VariousForms_NotifiesAsComment()
     {
         await new CustomCompositionCSharpTest
@@ -281,7 +282,8 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         .RunAsync();
     }
 
-    // [Fact]
+    [Fact]
+    // TODO: FIX
     public async Task ReceivesInvalidCode_NotifiesAsComment()
     {
         await new CustomCompositionCSharpTest
@@ -324,10 +326,11 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         .RunAsync();
     }
 
-    //[Theory]
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    private async Task ReplacementNode_Null_NotifiesWithComment(bool withEmptyMessage)
+    // TODO: FIX
+    public async Task ReplacementNode_Null_NotifiesWithComment(bool withEmptyMessage)
     {
         await TestHandlesInvalidReplacementNode(
             new()
@@ -338,11 +341,12 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             });
     }
 
-    //[Theory]
+    [Theory]
     [InlineData("Invalid code")]
     [InlineData(" ")]
     [InlineData("")]
-    private async Task ReplacementNode_Invalid_NotifiedWithDefault(string invalidCode)
+    // TODO: FIX
+    public async Task ReplacementNode_Invalid_NotifiedWithDefault(string invalidCode)
     {
         await TestHandlesInvalidReplacementNode(
             new()
@@ -413,8 +417,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         protected override Task<Workspace> CreateWorkspaceImplAsync()
         {
             _testComposition = FeaturesTestCompositions.Features
-                .AddParts(typeof(TestCopilotOptionsService))
-                .AddParts(typeof(TestCopilotCodeAnalysisService));
+                .AddParts([typeof(TestCopilotOptionsService), typeof(TestCopilotCodeAnalysisService)]);
             _testWorkspace = new TestWorkspace(_testComposition);
 
             // Trigger the action if it's set
