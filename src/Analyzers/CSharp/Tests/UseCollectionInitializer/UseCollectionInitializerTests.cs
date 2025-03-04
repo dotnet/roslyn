@@ -1828,7 +1828,7 @@ public sealed partial class UseCollectionInitializerTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75214")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77416")]
     public async Task TestNoCollectionExpressionForBlockingCollection()
     {
         await new VerifyCS.Test
