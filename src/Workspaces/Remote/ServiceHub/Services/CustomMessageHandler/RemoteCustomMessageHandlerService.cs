@@ -14,6 +14,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CustomMessageHandler;
+using Microsoft.CodeAnalysis.Remote.CustomMessageHandler;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -119,9 +120,17 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                 var executeMethod = handler.GetType().GetMethod(executeMethodName, BindingFlags.Public | BindingFlags.Instance)
                     ?? throw new InvalidOperationException($"Cannot find method {executeMethodName} in type {typeFullName} assembly {assemblyPath}.");
 
+                // CustomMessage.Message references positions in CustomMessage.TextDocument.
+                // LinePositionConverter allows the serialization/deserialization of these indexes into LinePosition objects.
+                JsonSerializerOptions jsonSerializerOptions = new();
+                if (document is not null)
+                {
+                    jsonSerializerOptions.Converters.Add(LinePositionConverter.Instance);
+                }
+
                 // Deserialize the message into the expected TRequest type.
                 var requestType = executeMethod.GetParameters()[0].ParameterType;
-                var message = JsonSerializer.Deserialize(jsonMessage, requestType);
+                var message = JsonSerializer.Deserialize(jsonMessage, requestType, jsonSerializerOptions);
 
                 // Invoke the execute method.
                 object?[] parameters = document is null
@@ -138,7 +147,7 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
 
                 // Serialize the TResponse and return it to the extension.
                 var responseType = resultProperty.PropertyType;
-                var responseJson = JsonSerializer.Serialize(result, responseType);
+                var responseJson = JsonSerializer.Serialize(result, responseType, jsonSerializerOptions);
 
                 return responseJson;
             }
