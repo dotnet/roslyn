@@ -41,6 +41,8 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
     where TBinaryExpressionSyntax : TExpressionSyntax
     where TSimplifierOptions : SimplifierOptions
 {
+    private const string s_throwIfNullName = "ThrowIfNull";
+
     protected abstract bool CanOffer(SyntaxNode body);
     protected abstract bool PrefersThrowExpression(TSimplifierOptions options);
     protected abstract string EscapeResourceString(string input);
@@ -300,7 +302,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
                         TargetMethod:
                         {
                             ContainingType.Name: nameof(ArgumentNullException),
-                            Name: "ThrowIfNull",
+                            Name: s_throwIfNullName,
                         },
                         Arguments: [{ Value: var argumentValue }, ..]
                     }
@@ -406,10 +408,29 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
     }
 
     private TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter, TSimplifierOptions options)
-        => CreateParameterCheckIfStatement(
+    {
+        var argumentNullExceptionType = semanticModel.Compilation.ArgumentNullExceptionType();
+        if (parameter.Type.IsReferenceType && argumentNullExceptionType != null)
+        {
+            var throwIfNullMethod = argumentNullExceptionType
+                .GetMembers()
+                .OfType<IMethodSymbol>()
+                .FirstOrDefault(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Object }, ..]);
+            if (throwIfNullMethod != null)
+            {
+                return (TStatementSyntax)generator.ExpressionStatement(generator.InvocationExpression(
+                    generator.MemberAccessExpression(
+                        generator.TypeExpression(argumentNullExceptionType),
+                        s_throwIfNullName),
+                    generator.IdentifierName(parameter.Name)));
+            }
+        }
+
+        return CreateParameterCheckIfStatement(
             (TExpressionSyntax)generator.CreateNullCheckExpression(generator.SyntaxGeneratorInternal, semanticModel, parameter.Name),
             (TStatementSyntax)generator.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter),
             options);
+    }
 
     private TStatementSyntax CreateStringCheckStatement(
         Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, string methodName, TSimplifierOptions options)

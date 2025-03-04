@@ -105,6 +105,36 @@ public class AddParameterCheckTests
     }
 
     [Fact]
+    public async Task TestSimpleReferenceType_ThrowIfNull()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public C([||]string s)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    public C(string s)
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestSimpleReferenceType_CSharp6()
     {
         await new VerifyCS.Test
