@@ -76,6 +76,8 @@ internal abstract partial class AbstractNavigateToSearchService
                     var (patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemsFound) = args;
                     await SearchSingleDocumentAsync(
                         documentAndSpan.document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet,
+                        // This is the entry point when a user is in a document searching for symbols in that document.
+                        // We want to search this document regardless of whether it is generated code or not.
                         searchGeneratedCode: true,
                         item =>
                         {
