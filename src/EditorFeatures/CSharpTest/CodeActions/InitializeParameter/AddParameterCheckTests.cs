@@ -572,40 +572,42 @@ public class AddParameterCheckTests
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string a, string b, string c)
-    {{
-        if (string.IsNullOrEmpty(a))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+            class C
+            {
+                public C(string a, string b, string c)
+                {
+                    if (string.IsNullOrEmpty(a))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(a));
-        }}
+                               """)}}", nameof(a));
+                    }
 
-        if (string.IsNullOrEmpty(b))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("""
+                    if (string.IsNullOrEmpty(b))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("""
                                         "
                                         """, """
                                         \"
-                                        """)}"", nameof(b));
-        }}
+                                        """)}}", nameof(b));
+                    }
 
-        if (string.IsNullOrEmpty(c))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                    if (string.IsNullOrEmpty(c))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
                                                  "
                                                  """, """
                                                  \"
-                                                 """)}"", nameof(c));
-        }}
-    }}
-}}",
+                                                 """)}}", nameof(c));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();

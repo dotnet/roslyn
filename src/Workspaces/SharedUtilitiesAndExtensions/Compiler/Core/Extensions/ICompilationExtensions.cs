@@ -69,6 +69,9 @@ internal static class ICompilationExtensions
         return builder.ToImmutableAndFree();
     }
 
+    public static INamedTypeSymbol? ArgumentExceptionType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ArgumentException).FullName!);
+
     public static INamedTypeSymbol? ArgumentNullExceptionType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
 

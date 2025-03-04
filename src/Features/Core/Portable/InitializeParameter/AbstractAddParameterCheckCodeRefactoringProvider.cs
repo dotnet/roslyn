@@ -109,12 +109,12 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         {
             result.Add(CodeAction.Create(
                 FeaturesResources.Add_string_IsNullOrEmpty_check,
-                cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), simplifierOptions, cancellationToken),
+                cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, "NullOrEmpty", simplifierOptions, cancellationToken),
                 nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)));
 
             result.Add(CodeAction.Create(
                 FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
-                cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), simplifierOptions, cancellationToken),
+                cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, "NullOrWhiteSpace", simplifierOptions, cancellationToken),
                 nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)));
         }
 
@@ -362,13 +362,13 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         SyntaxNode functionDeclaration,
         IMethodSymbol method,
         IBlockOperation? blockStatementOpt,
-        string methodName,
+        string methodNameSuffix,
         TSimplifierOptions options,
         CancellationToken cancellationToken)
     {
         return await AddNullCheckStatementAsync(
             document, parameter, functionDeclaration, method, blockStatementOpt,
-            (s, g) => CreateStringCheckStatement(s.Compilation, g, parameter, methodName, options),
+            (s, g) => CreateStringCheckStatement(s.Compilation, g, parameter, methodNameSuffix, options),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -413,7 +413,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         if (parameter.Type.IsReferenceType && argumentNullExceptionType != null)
         {
             var throwIfNullMethod = argumentNullExceptionType
-                .GetMembers()
+                .GetMembers(s_throwIfNullName)
                 .OfType<IMethodSymbol>()
                 .FirstOrDefault(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Object }, ..]);
             if (throwIfNullMethod != null)
@@ -433,17 +433,37 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
     }
 
     private TStatementSyntax CreateStringCheckStatement(
-        Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, string methodName, TSimplifierOptions options)
+        Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, string methodNameSuffix, TSimplifierOptions options)
     {
+        var argumentExceptionType = compilation.ArgumentExceptionType();
+        if (argumentExceptionType != null)
+        {
+            var throwMethodName = "ThrowIf" + methodNameSuffix;
+            var throwIfNullMethod = argumentExceptionType
+                .GetMembers(throwMethodName)
+                .OfType<IMethodSymbol>()
+                .FirstOrDefault(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_String }, ..]);
+            if (throwIfNullMethod != null)
+            {
+                return (TStatementSyntax)generator.ExpressionStatement(generator.InvocationExpression(
+                    generator.MemberAccessExpression(
+                        generator.TypeExpression(argumentExceptionType),
+                        throwMethodName),
+                    generator.IdentifierName(parameter.Name)));
+            }
+        }
+
         var stringType = compilation.GetSpecialType(SpecialType.System_String);
 
         // generates: if (string.IsXXX(s)) throw new ArgumentException("message", nameof(s))
+        var isMethodName = "Is" + methodNameSuffix;
         var condition = (TExpressionSyntax)generator.InvocationExpression(
-                            generator.MemberAccessExpression(
-                                generator.TypeExpression(stringType),
-                                generator.IdentifierName(methodName)),
-                            generator.Argument(generator.IdentifierName(parameter.Name)));
-        var throwStatement = (TStatementSyntax)generator.ThrowStatement(CreateArgumentException(compilation, generator, parameter, methodName));
+            generator.MemberAccessExpression(
+                generator.TypeExpression(stringType),
+                generator.IdentifierName(isMethodName)),
+            generator.Argument(generator.IdentifierName(parameter.Name)));
+        var throwStatement = (TStatementSyntax)generator.ThrowStatement(
+            CreateArgumentException(compilation, generator, parameter, isMethodName));
 
         return CreateParameterCheckIfStatement(condition, throwStatement, options);
     }
