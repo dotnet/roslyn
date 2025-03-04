@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="AbsolutePathExpected">
         <source>Absolute path expected</source>
-        <target state="new">Absolute path expected</target>
+        <target state="translated">Caminho absoluto esperado</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="After">
         <source>After</source>
-        <target state="new">After</target>
+        <target state="translated">Após</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="TODO_Unmerged_change_from_project_0">
         <source>TODO: Unmerged change from project '{0}'</source>
-        <target state="new">TODO: Unmerged change from project '{0}'</target>
+        <target state="translated">TODO: Alteração não mesclada do projeto "{0}"</target>
         <note>{Locked="TODO"}</note>
       </trans-unit>
       <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">

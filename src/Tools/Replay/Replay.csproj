@@ -11,12 +11,8 @@
     <Compile Include="..\..\Compilers\Core\CommandLine\CompilerServerLogger.cs" />
     <Compile Include="..\..\Compilers\Core\CommandLine\NativeMethods.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\CommitHashAttribute.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" />
     <Compile Include="..\..\Compilers\Shared\BuildServerConnection.cs" />
     <Compile Include="..\..\Compilers\Shared\NamedPipeUtil.cs" />
     <Compile Include="..\..\Compilers\Shared\RuntimeHostInfo.cs" />
@@ -36,4 +32,6 @@
     <PackageReference Include="Basic.CompilerLog.Util" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
+
+  <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

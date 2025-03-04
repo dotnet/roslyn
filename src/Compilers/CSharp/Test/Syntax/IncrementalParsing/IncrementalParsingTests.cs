@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -104,27 +105,35 @@ public class C {
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.MethodDeclaration,
-                            SyntaxKind.PredefinedType,
-                            SyntaxKind.VoidKeyword);
+                            SyntaxKind.IdentifierToken);
         }
 
-        private static void TestDiffsInOrder(ImmutableArray<SyntaxNodeOrToken> diffs, params SyntaxKind[] kinds)
+        private static void TestDiffsInOrder(ImmutableArray<SyntaxNodeOrToken> diffs, params SyntaxKind[] expectedKinds)
         {
-            Assert.InRange(diffs.Length, 0, kinds.Length);
-
-            int diffI = 0;
-            foreach (var kind in kinds)
+            if (diffs.Length != expectedKinds.Length)
             {
-                if (diffI < diffs.Length && diffs[diffI].IsKind(kind))
+                Assert.Fail(getMessage());
+            }
+
+            for (int i = 0; i < diffs.Length; i++)
+            {
+                if (!diffs[i].IsKind(expectedKinds[i]))
                 {
-                    diffI++;
+                    Assert.Fail(getMessage());
                 }
             }
 
-            // all diffs must be consumed.
-            Assert.Equal(diffI, diffs.Length);
+            string getMessage()
+            {
+                var builder = PooledStringBuilder.GetInstance();
+                builder.Builder.AppendLine("Actual:");
+                foreach (var diff in diffs)
+                {
+                    builder.Builder.AppendLine($"SyntaxKind.{diff.Kind()},");
+                }
+
+                return builder.ToStringAndFree();
+            }
         }
 
         [Fact]
@@ -140,8 +149,7 @@ public class C {
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.IdentifierToken,
-                            SyntaxKind.ConstructorDeclaration);
+                            SyntaxKind.IdentifierToken);
         }
 
         [Fact]
@@ -226,7 +234,6 @@ public class C {
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
                             SyntaxKind.MethodDeclaration,
-                            SyntaxKind.PredefinedType,
                             SyntaxKind.IdentifierToken);
         }
 
@@ -294,11 +301,8 @@ class C { void N() { } }
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
                             SyntaxKind.ClassKeyword,
-                            SyntaxKind.IdentifierToken,
                             SyntaxKind.MethodDeclaration,
-                            SyntaxKind.PredefinedType,
                             SyntaxKind.IdentifierToken,
-                            SyntaxKind.ParameterList,
                             SyntaxKind.Block,
                             SyntaxKind.EndOfFileToken);
         }
@@ -377,7 +381,6 @@ class C { void c() { } }
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,  // class declaration on edge before change
                             SyntaxKind.MethodDeclaration,
-                            SyntaxKind.PredefinedType,
                             SyntaxKind.Block,
                             SyntaxKind.ClassDeclaration,  // class declaration on edge after change
                             SyntaxKind.ClassKeyword,      // edge of change and directives different
@@ -421,7 +424,6 @@ class C { void c() { } }
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,  // class declaration on edge before change
                             SyntaxKind.MethodDeclaration,
-                            SyntaxKind.PredefinedType,
                             SyntaxKind.Block,
                             SyntaxKind.ClassDeclaration,  // class declaration on edge after change
                             SyntaxKind.ClassKeyword,      // edge of change and directives different
@@ -442,11 +444,9 @@ class C { void c() { } }
                             SyntaxKind.GlobalStatement,
                             SyntaxKind.Block,
                             SyntaxKind.OpenBraceToken,
-                            SyntaxKind.EmptyStatement,
                             SyntaxKind.LocalDeclarationStatement,
                             SyntaxKind.VariableDeclaration,
                             SyntaxKind.PointerType,
-                            SyntaxKind.IdentifierName,
                             SyntaxKind.VariableDeclarator,
                             SyntaxKind.SemicolonToken,       // missing
                             SyntaxKind.CloseBraceToken);      // missing
@@ -464,11 +464,9 @@ class C { void c() { } }
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.GlobalStatement,
-                            SyntaxKind.EmptyStatement,
                             SyntaxKind.GlobalStatement,
                             SyntaxKind.ExpressionStatement,
                             SyntaxKind.MultiplyExpression,
-                            SyntaxKind.IdentifierName,
                             SyntaxKind.IdentifierName,
                             SyntaxKind.SemicolonToken);
         }

@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;

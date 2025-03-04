@@ -12,6 +12,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;

@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor;

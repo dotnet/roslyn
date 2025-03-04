@@ -147,17 +147,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Adding_or_moving_0_of_1_requires_restarting_the_application">
         <source>Adding or moving {0} of {1} requires restarting the application.</source>
-        <target state="new">Adding or moving {0} of {1} requires restarting the application.</target>
+        <target state="translated">Добавление или {0} {1} требует перезапуска приложения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_or_moving_0_of_1_with_explicit_or_sequential_layout_requires_restarting_the_application">
         <source>Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</source>
-        <target state="new">Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</target>
+        <target state="translated">Добавление или перемещение {0} из {1} с явной или последовательной компоновкой требует перезапуска приложения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application">
         <source>Adding or moving {0} of a COM interface requires restarting the application.</source>
-        <target state="new">Adding or moving {0} of a COM interface requires restarting the application.</target>
+        <target state="translated">Чтобы добавить или {0} com-интерфейса, необходимо перезапустить приложение.</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -337,7 +337,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
         <source>Cannot determine valid range of statements to extract</source>
-        <target state="new">Cannot determine valid range of statements to extract</target>
+        <target state="translated">Невозможно определить допустимый диапазон операторов для извлечения</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_include_class_0_in_character_range">
@@ -467,12 +467,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application">
         <source>Changing the signature of {0} requires restarting the application.</source>
-        <target state="new">Changing the signature of {0} requires restarting the application.</target>
+        <target state="translated">Изменение подписи {0} требует перезапуска приложения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Changing the signature of {0} requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">Для изменения подписи {0} требуется перезапустить приложение, так как это не поддерживается средой выполнения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -537,7 +537,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Conflict_s_detected">
         <source>Conflict(s) detected.</source>
-        <target state="new">Conflict(s) detected.</target>
+        <target state="translated">Обнаружены конфликты.</target>
         <note />
       </trans-unit>
       <trans-unit id="Constructors_not_allowed">
@@ -559,6 +559,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Convert number</source>
         <target state="translated">Преобразовать число</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_field_property">
+        <source>Convert to 'field' property</source>
+        <target state="new">Convert to 'field' property</target>
+        <note>{Locked="field"} "field" is C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
@@ -852,7 +857,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Generate_constructor_from_members">
         <source>Generate constructor from members...</source>
-        <target state="new">Generate constructor from members...</target>
+        <target state="translated">Создать конструктор из элементов...</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -1095,11 +1100,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Метод "{0}" должен быть статическим и неуниверсалным</target>
         <note />
       </trans-unit>
-      <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
-        <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
-        <target state="translated">Метод "{0}" должен иметь один параметр типа "{1}" и возвращать "{2}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
         <target state="translated">Прочие файлы</target>
@@ -1192,7 +1192,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Move_declaration_near_reference_may_change_semantics">
         <source>Move declaration near reference (may change semantics)</source>
-        <target state="new">Move declaration near reference (may change semantics)</target>
+        <target state="translated">Переместить объявление рядом со ссылкой (может изменить семантику)</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -1267,12 +1267,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="No_valid_statement_range_to_extract">
         <source>No valid statement range to extract</source>
-        <target state="new">No valid statement range to extract</target>
+        <target state="translated">Отсутствует допустимый диапазон операторов для извлечения</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
-        <target state="new">Not all code paths return</target>
+        <target state="translated">Не все пути к коду возвращают значения</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -1322,7 +1322,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Pull_0_up_to">
         <source>Pull '{0}' up to ...</source>
-        <target state="new">Pull '{0}' up to ...</target>
+        <target state="translated">Извлечь "{0}" до ...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
@@ -2612,12 +2612,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Simplify_member_access_0">
         <source>Simplify member access '{0}'</source>
-        <target state="new">Simplify member access '{0}'</target>
+        <target state="translated">Упрощение доступа для членов "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
-        <target state="new">Simplify name '{0}'</target>
+        <target state="translated">Упрощение имени "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_Imports_or_usings">
@@ -2700,9 +2700,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Сборка анализатора "{0}" ссылается на версию "{1}" компилятора, являющуюся более новой, чем версия "{2}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
-        <source>The query does not specify '{0}' method or top-level function</source>
-        <target state="translated">В запросе не указан метод "{0}" или функция верхнего уровня</target>
+      <trans-unit id="The_query_does_not_specify_0_top_level_function">
+        <source>The query does not specify '{0}' top-level function</source>
+        <target state="new">The query does not specify '{0}' top-level function</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_query_specifies_multiple_top_level_functions_1">
+        <source>The query specifies multiple top-level functions '{1}'</source>
+        <target state="new">The query specifies multiple top-level functions '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2745,9 +2750,19 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Слишком много закрывающих круглых скобок</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
+        <source>Top-level function '{0}' must have a single parameter</source>
+        <target state="new">Top-level function '{0}' must have a single parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">Завершающая запятая не разрешена</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_is_not_among_supported_types_1">
+        <source>Type '{0}' is not among supported types: {1}</source>
+        <target state="new">Type '{0}' is not among supported types: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">
@@ -2762,7 +2777,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Unable_to_create_0">
         <source>Unable to create '{0}'</source>
-        <target state="new">Unable to create '{0}'</target>
+        <target state="translated">Не удается создать "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
@@ -3473,7 +3488,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="new">&lt;class name&gt;</target>
+        <target state="translated">&lt;имя класса&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
@@ -3659,7 +3674,7 @@ The "f" standard format specifier represents a combination of the long date ("D"
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="new">&lt;interface name&gt;</target>
+        <target state="translated">&lt;имя интерфейса&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
@@ -3782,7 +3797,7 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="new">&lt;namespace name&gt;</target>
+        <target state="translated">&lt;имя пространства имен&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="overload">
@@ -4812,7 +4827,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Add_null_checks">
         <source>Add _null checks</source>
-        <target state="needs-review-translation">Добавить проверки значений NULL</target>
+        <target state="translated">Добавить проверки значений _null</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_operators">

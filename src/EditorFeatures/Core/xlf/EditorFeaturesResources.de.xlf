@@ -17,6 +17,11 @@
         <target state="translated">Änderungen werden übernommen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset">
+        <source>Chat limit reached, [upgrade now] or wait for the limit to reset.</source>
+        <target state="translated">Das Chatlimit wurde erreicht, [upgrade now] oder warten Sie, bis das Limit zurückgesetzt wurde.</target>
+        <note>The text surrounded by "[" and "]" characters will be hyperlinked. Please ensure the localized text still has "[" and "]" characters.</note>
+      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Berechnen von "Kapselungsfeld"-Informationen</target>

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
             var dllPath = GenerateDll(reservedCharacter, out var assemblyName);
 
-            await using var testServer = await TestLspServer.CreateAsync(new Roslyn.LanguageServer.Protocol.ClientCapabilities(), TestOutputLogger, MefCacheDirectory.Path, includeDevKitComponents: true, [dllPath]);
+            await using var testServer = await TestLspServer.CreateAsync(new Roslyn.LanguageServer.Protocol.ClientCapabilities(), LoggerFactory, MefCacheDirectory.Path, includeDevKitComponents: true, [dllPath]);
 
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             var assembly = Assert.Single(assemblies, a => a.GetName().Name == assemblyName);

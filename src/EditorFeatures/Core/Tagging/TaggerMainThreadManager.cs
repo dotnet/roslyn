@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 using TaggerUIData = (bool isVisible, Microsoft.VisualStudio.Text.SnapshotPoint? caretPosition, Roslyn.Utilities.OneOrMany<Microsoft.VisualStudio.Text.SnapshotSpan> spansToTag);

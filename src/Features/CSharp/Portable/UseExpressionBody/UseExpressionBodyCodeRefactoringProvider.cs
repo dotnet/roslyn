@@ -58,12 +58,10 @@ internal sealed class UseExpressionBodyCodeRefactoringProvider() : SyntaxEditorB
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, textSpan, cancellationToken) = context;
-        if (textSpan.Length > 0)
-            return;
 
         var position = textSpan.Start;
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var node = root.FindToken(position).Parent!;
+        var node = root.FindNode(textSpan);
 
         var containingLambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
         if (containingLambda != null &&
