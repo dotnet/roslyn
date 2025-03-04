@@ -2332,8 +2332,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialPropertyMissingAccessor = 9252,
         ERR_PartialPropertyUnexpectedAccessor = 9253,
         ERR_PartialPropertyInitMismatch = 9254,
-        ERR_PartialPropertyTypeDifference = 9255,
-        WRN_PartialPropertySignatureDifference = 9256,
+        ERR_PartialMemberTypeDifference = 9255,
+        WRN_PartialMemberSignatureDifference = 9256,
         ERR_PartialPropertyRequiredDifference = 9257,
 
         WRN_FieldIsAmbiguous = 9258,
@@ -2361,6 +2361,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VariableDeclarationNamedField = 9273,
 
         ERR_DataSectionStringLiteralHashCollision = 9274,
+
+        ERR_PartialMemberMissingImplementation = 9275,
+        ERR_PartialMemberMissingDefinition = 9276,
+        ERR_PartialMemberDuplicateDefinition = 9277,
+        ERR_PartialMemberDuplicateImplementation = 9278,
+        ERR_PartialEventInitializer = 9279,
+        ERR_PartialConstructorInitializer = 9280,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

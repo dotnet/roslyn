@@ -1672,6 +1672,16 @@
         <target state="translated">Параметр params должен иметь допустимый тип коллекции.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialConstructorInitializer">
+        <source>'{0}': only the implementing declaration of a partial constructor can have an initializer</source>
+        <target state="new">'{0}': only the implementing declaration of a partial constructor can have an initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialEventInitializer">
+        <source>'{0}': partial event cannot have initializer</source>
+        <target state="new">'{0}': partial event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
         <source>Both partial member declarations must have identical accessibility modifiers.</source>
         <target state="translated">У обоих объявлений частичного члена должны быть идентичные модификаторы доступа.</target>
@@ -1682,9 +1692,29 @@
         <target state="translated">У частичного члена не может быть модификатора "abstract"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateDefinition">
+        <source>Partial member '{0}' may not have multiple defining declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateImplementation">
+        <source>Partial member '{0}' may not have multiple implementing declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
         <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
         <target state="translated">Оба определения частичного члена "{0}" и "{1}" должны использовать одинаковые имена элементов кортежа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingDefinition">
+        <source>Partial member '{0}' must have a definition part.</source>
+        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingImplementation">
+        <source>Partial member '{0}' must have an implementation part.</source>
+        <target state="new">Partial member '{0}' must have an implementation part.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
@@ -1710,6 +1740,11 @@
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
         <target state="translated">У объявлений частичного члена должны совпадать возвращаемые значения "ref".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberTypeDifference">
+        <source>Both partial member declarations must have the same type.</source>
+        <target state="new">Both partial member declarations must have the same type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -1780,11 +1815,6 @@
       <trans-unit id="ERR_PartialPropertyRequiredDifference">
         <source>Both partial property declarations must be required or neither may be required</source>
         <target state="translated">Оба объявления частичного члена должны быть обязательными или оба не должны быть обязательными</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialPropertyTypeDifference">
-        <source>Both partial property declarations must have the same type.</source>
-        <target state="translated">Оба объявления частичного свойства должны быть одинакового типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
@@ -2537,6 +2567,11 @@
         <target state="translated">коллекции params</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
+        <source>partial events and constructors</source>
+        <target state="new">partial events and constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="translated">позиционные поля в записях</target>
@@ -3192,14 +3227,14 @@
         <target state="translated">У параметра есть модификатор params в лямбде, но не в типе целевого делегата.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialPropertySignatureDifference">
-        <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="translated">У объявлений частичного свойства "{0}" и "{1}" разные сигнатуры.</target>
+      <trans-unit id="WRN_PartialMemberSignatureDifference">
+        <source>Partial member declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial member declarations '{0}' and '{1}' have signature differences.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
-        <source>Partial property declarations have signature differences.</source>
-        <target state="translated">У объявлений частичного свойств и разные сигнатуры.</target>
+      <trans-unit id="WRN_PartialMemberSignatureDifference_Title">
+        <source>Partial member declarations have signature differences.</source>
+        <target state="new">Partial member declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -6710,8 +6745,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="translated">Модификатор "partial" может использоваться только перед ключевыми словами "class", "record", "struct" и "interface", а также перед возвращаемым типом метода или свойства.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
+        <target state="needs-review-translation">Модификатор "partial" может использоваться только перед ключевыми словами "class", "record", "struct" и "interface", а также перед возвращаемым типом метода или свойства.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

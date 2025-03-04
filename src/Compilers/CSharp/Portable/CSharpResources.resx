@@ -1171,7 +1171,7 @@
     <value>Cannot implicitly convert type '{0}' to '{1}'. An explicit conversion exists (are you missing a cast?)</value>
   </data>
   <data name="ERR_PartialMisplaced" xml:space="preserve">
-    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</value>
+    <value>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</value>
   </data>
   <data name="ERR_ImportedCircularBase" xml:space="preserve">
     <value>Imported type '{0}' is invalid. It contains a circular base type dependency.</value>
@@ -7983,14 +7983,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialPropertyInitMismatch" xml:space="preserve">
     <value>Property accessor '{0}' must be '{1}' to match the definition part</value>
   </data>
-  <data name="ERR_PartialPropertyTypeDifference" xml:space="preserve">
-    <value>Both partial property declarations must have the same type.</value>
+  <data name="ERR_PartialMemberTypeDifference" xml:space="preserve">
+    <value>Both partial member declarations must have the same type.</value>
   </data>
-  <data name="WRN_PartialPropertySignatureDifference" xml:space="preserve">
-    <value>Partial property declarations '{0}' and '{1}' have signature differences.</value>
+  <data name="WRN_PartialMemberSignatureDifference" xml:space="preserve">
+    <value>Partial member declarations '{0}' and '{1}' have signature differences.</value>
   </data>
-  <data name="WRN_PartialPropertySignatureDifference_Title" xml:space="preserve">
-    <value>Partial property declarations have signature differences.</value>
+  <data name="WRN_PartialMemberSignatureDifference_Title" xml:space="preserve">
+    <value>Partial member declarations have signature differences.</value>
   </data>
   <data name="ERR_PartialPropertyRequiredDifference" xml:space="preserve">
     <value>Both partial property declarations must be required or neither may be required</value>
@@ -8049,5 +8049,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DataSectionStringLiteralHashCollision" xml:space="preserve">
     <value>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</value>
+  </data>
+  <data name="IDS_FeaturePartialEventsAndConstructors" xml:space="preserve">
+    <value>partial events and constructors</value>
+  </data>
+  <data name="ERR_PartialMemberMissingImplementation" xml:space="preserve">
+    <value>Partial member '{0}' must have an implementation part.</value>
+  </data>
+  <data name="ERR_PartialMemberMissingDefinition" xml:space="preserve">
+    <value>Partial member '{0}' must have a definition part.</value>
+  </data>
+  <data name="ERR_PartialMemberDuplicateDefinition" xml:space="preserve">
+    <value>Partial member '{0}' may not have multiple defining declarations.</value>
+  </data>
+  <data name="ERR_PartialMemberDuplicateImplementation" xml:space="preserve">
+    <value>Partial member '{0}' may not have multiple implementing declarations.</value>
+  </data>
+  <data name="ERR_PartialEventInitializer" xml:space="preserve">
+    <value>'{0}': partial event cannot have initializer</value>
+  </data>
+  <data name="ERR_PartialConstructorInitializer" xml:space="preserve">
+    <value>'{0}': only the implementing declaration of a partial constructor can have an initializer</value>
   </data>
 </root>

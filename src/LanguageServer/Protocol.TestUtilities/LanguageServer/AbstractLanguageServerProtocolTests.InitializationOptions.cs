@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
@@ -29,6 +30,7 @@ namespace Roslyn.Test.Utilities
             internal string? Locale { get; init; } = null;
             internal IEnumerable<DiagnosticAnalyzer>? AdditionalAnalyzers { get; init; } = null;
             internal IJsonRpcMessageFormatter? ClientMessageFormatter { get; init; } = null;
+            internal ParseOptions? ParseOptions { get; init; } = null;
         }
     }
 }

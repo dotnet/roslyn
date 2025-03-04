@@ -1743,16 +1743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool isMemberInCompleteMemberList(MembersAndInitializers? membersAndInitializers, Symbol member)
             {
-                switch (member)
-                {
-                    case MethodSymbol method:
-                        member = method.PartialDefinitionPart ?? method;
-                        break;
-                    case PropertySymbol property:
-                        member = property.PartialDefinitionPart ?? property;
-                        break;
-                }
-
+                member = member.GetPartialDefinitionPart() ?? member;
                 return membersAndInitializers?.NonTypeMembers.Contains(m => m == (object)member) == true;
             }
         }
@@ -3701,14 +3692,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 mergePartialProperties(nonTypeMembers, currentProperty, prevProperty, diagnostics);
                                 break;
 
+                            case (SourceConstructorSymbol { IsStatic: false } currentConstructor, SourceConstructorSymbol { IsStatic: false } prevConstructor):
+                                Debug.Assert(pair.Key.Equals(WellKnownMemberNames.InstanceConstructorName.AsMemory()));
+                                mergePartialConstructors(nonTypeMembers, currentConstructor, prevConstructor, diagnostics);
+                                break;
+
+                            case (SourceEventSymbol currentEvent, SourceEventSymbol prevEvent):
+                                mergePartialEvents(nonTypeMembers, currentEvent, prevEvent, diagnostics);
+                                break;
+
                             case (SourcePropertyAccessorSymbol, SourcePropertyAccessorSymbol):
-                                break; // accessor symbols and their diagnostics are handled by processing the associated property
+                            case (SourceEventAccessorSymbol, SourceEventAccessorSymbol):
+                                break; // accessor symbols and their diagnostics are handled by processing the associated member
 
                             default:
                                 // This is an error scenario. We simply don't merge the symbols in this case and a duplicate name diagnostic is reported separately.
-                                // One way this case can be reached is if type contains both `public partial int P { get; }` and `public partial int P_get();`.
-                                Debug.Assert(symbol is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol);
-                                Debug.Assert(prev is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol);
+                                // One way this case can be reached is if type contains both `public partial int P { get; }` and `public partial int get_P();`.
+                                Debug.Assert(symbol is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol or SourceEventAccessorSymbol);
+                                Debug.Assert(prev is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol or SourceEventAccessorSymbol);
                                 break;
                         }
                     }
@@ -3746,8 +3747,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             break;
 
+                        case SourceConstructorSymbol constructor:
+                            if (constructor.OtherPartOfPartial is null)
+                            {
+                                diagnostics.Add(
+                                    constructor.IsPartialDefinition ? ErrorCode.ERR_PartialMemberMissingImplementation : ErrorCode.ERR_PartialMemberMissingDefinition,
+                                    constructor.GetFirstLocation(),
+                                    constructor);
+                            }
+                            break;
+
+                        case SourceEventSymbol ev:
+                            if (ev.OtherPartOfPartial is null)
+                            {
+                                diagnostics.Add(
+                                    ev.IsPartialDefinition ? ErrorCode.ERR_PartialMemberMissingImplementation : ErrorCode.ERR_PartialMemberMissingDefinition,
+                                    ev.GetFirstLocation(),
+                                    ev);
+                            }
+                            break;
+
+                        case SourceEventAccessorSymbol:
                         case SourcePropertyAccessorSymbol:
-                            break; // diagnostics for missing partial accessors are handled in 'mergePartialProperties'.
+                            break; // diagnostics for missing partial accessors are handled in 'mergePartialProperties'/'mergePartialEvents'.
 
                         default:
                             throw ExceptionUtilities.UnexpectedValue(symbol);
@@ -3847,6 +3869,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return property.DeclaredBackingField?.HasInitializer == true;
                 }
             }
+
+            static void mergePartialConstructors(ArrayBuilder<Symbol> nonTypeMembers, SourceConstructorSymbol currentConstructor, SourceConstructorSymbol prevConstructor, BindingDiagnosticBag diagnostics)
+            {
+                if (currentConstructor.IsPartialImplementation &&
+                    (prevConstructor.IsPartialImplementation || (prevConstructor.OtherPartOfPartial is { } otherImplementation && !ReferenceEquals(otherImplementation, currentConstructor))))
+                {
+                    // A partial constructor may not have multiple implementing declarations
+                    diagnostics.Add(ErrorCode.ERR_PartialMemberDuplicateImplementation, currentConstructor.GetFirstLocation(), currentConstructor);
+                }
+                else if (currentConstructor.IsPartialDefinition &&
+                    (prevConstructor.IsPartialDefinition || (prevConstructor.OtherPartOfPartial is { } otherDefinition && !ReferenceEquals(otherDefinition, currentConstructor))))
+                {
+                    // A partial constructor may not have multiple defining declarations
+                    diagnostics.Add(ErrorCode.ERR_PartialMemberDuplicateDefinition, currentConstructor.GetFirstLocation(), currentConstructor);
+                }
+                else
+                {
+                    FixPartialConstructor(nonTypeMembers, prevConstructor, currentConstructor);
+                }
+            }
+
+            static void mergePartialEvents(ArrayBuilder<Symbol> nonTypeMembers, SourceEventSymbol currentEvent, SourceEventSymbol prevEvent, BindingDiagnosticBag diagnostics)
+            {
+                if (currentEvent.IsPartialImplementation &&
+                    (prevEvent.IsPartialImplementation || (prevEvent.OtherPartOfPartial is { } otherImplementation && !ReferenceEquals(otherImplementation, currentEvent))))
+                {
+                    // A partial event may not have multiple implementing declarations
+                    diagnostics.Add(ErrorCode.ERR_PartialMemberDuplicateImplementation, currentEvent.GetFirstLocation(), currentEvent);
+                }
+                else if (currentEvent.IsPartialDefinition &&
+                    (prevEvent.IsPartialDefinition || (prevEvent.OtherPartOfPartial is { } otherDefinition && !ReferenceEquals(otherDefinition, currentEvent))))
+                {
+                    // A partial event may not have multiple defining declarations
+                    diagnostics.Add(ErrorCode.ERR_PartialMemberDuplicateDefinition, currentEvent.GetFirstLocation(), currentEvent);
+                }
+                else
+                {
+                    mergeAccessors(nonTypeMembers, (SourceEventAccessorSymbol?)currentEvent.AddMethod, (SourceEventAccessorSymbol?)prevEvent.AddMethod);
+                    mergeAccessors(nonTypeMembers, (SourceEventAccessorSymbol?)currentEvent.RemoveMethod, (SourceEventAccessorSymbol?)prevEvent.RemoveMethod);
+                    FixPartialEvent(nonTypeMembers, prevEvent, currentEvent);
+                }
+
+                static void mergeAccessors(ArrayBuilder<Symbol> nonTypeMembers, SourceEventAccessorSymbol? currentAccessor, SourceEventAccessorSymbol? prevAccessor)
+                {
+                    if (currentAccessor?.IsPartialImplementation == true)
+                    {
+                        Remove(nonTypeMembers, currentAccessor);
+                    }
+                    else if (prevAccessor?.IsPartialImplementation == true)
+                    {
+                        Remove(nonTypeMembers, prevAccessor);
+                    }
+                }
+            }
         }
 
         /// <summary>Links together the definition and implementation parts of a partial method. Removes implementation part from <paramref name="nonTypeMembers"/>.</summary>
@@ -3896,6 +3972,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourcePropertySymbol.InitializePartialPropertyParts(definition, implementation);
 
             // a partial property is represented in the member list by its definition part:
+            Remove(nonTypeMembers, implementation);
+        }
+
+        /// <summary>Links together the definition and implementation parts of a partial constructor. Removes implementation part from <paramref name="nonTypeMembers"/>.</summary>
+        private static void FixPartialConstructor(ArrayBuilder<Symbol> nonTypeMembers, SourceConstructorSymbol part1, SourceConstructorSymbol part2)
+        {
+            SourceConstructorSymbol definition;
+            SourceConstructorSymbol implementation;
+            if (part1.IsPartialDefinition)
+            {
+                definition = part1;
+                implementation = part2;
+            }
+            else
+            {
+                definition = part2;
+                implementation = part1;
+            }
+
+            SourceConstructorSymbol.InitializePartialConstructorParts(definition, implementation);
+
+            // a partial constructor is represented in the member list by its definition part:
+            Remove(nonTypeMembers, implementation);
+        }
+
+        /// <summary>Links together the definition and implementation parts of a partial event. Removes implementation part from <paramref name="nonTypeMembers"/>.</summary>
+        private static void FixPartialEvent(ArrayBuilder<Symbol> nonTypeMembers, SourceEventSymbol part1, SourceEventSymbol part2)
+        {
+            SourceEventSymbol definition;
+            SourceEventSymbol implementation;
+            if (part1.IsPartialDefinition)
+            {
+                definition = part1;
+                implementation = part2;
+            }
+            else
+            {
+                definition = part2;
+                implementation = part1;
+            }
+
+            SourceEventSymbol.InitializePartialEventParts(definition, implementation);
+
+            // a partial event is represented in the member list by its definition part:
             Remove(nonTypeMembers, implementation);
         }
 
@@ -5195,8 +5315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     }
                                 }
 
-                                Debug.Assert((object)@event.AddMethod != null);
-                                Debug.Assert((object)@event.RemoveMethod != null);
+                                Debug.Assert(@event.IsPartial || @event.AddMethod is not null);
+                                Debug.Assert(@event.IsPartial || @event.RemoveMethod is not null);
 
                                 AddAccessorIfAvailable(builder.NonTypeMembersWithPartialImplementations, @event.AddMethod);
                                 AddAccessorIfAvailable(builder.NonTypeMembersWithPartialImplementations, @event.RemoveMethod);

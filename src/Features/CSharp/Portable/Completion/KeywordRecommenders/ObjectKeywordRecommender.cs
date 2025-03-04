@@ -41,7 +41,7 @@ internal sealed class ObjectKeywordRecommender() : AbstractSpecialTypePreselecti
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
                 validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                canBePartial: true,
                 cancellationToken: cancellationToken);
     }
 

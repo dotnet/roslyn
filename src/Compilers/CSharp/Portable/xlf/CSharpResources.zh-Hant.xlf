@@ -1672,6 +1672,16 @@
         <target state="translated">params 參數必須具有有效的集合型別</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialConstructorInitializer">
+        <source>'{0}': only the implementing declaration of a partial constructor can have an initializer</source>
+        <target state="new">'{0}': only the implementing declaration of a partial constructor can have an initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialEventInitializer">
+        <source>'{0}': partial event cannot have initializer</source>
+        <target state="new">'{0}': partial event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
         <source>Both partial member declarations must have identical accessibility modifiers.</source>
         <target state="translated">兩個部分成員宣告都必須具有完全相同的協助工具修飾元。</target>
@@ -1682,9 +1692,29 @@
         <target state="translated">部分成員不能有 'abstract' 修飾元</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateDefinition">
+        <source>Partial member '{0}' may not have multiple defining declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateImplementation">
+        <source>Partial member '{0}' may not have multiple implementing declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
         <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
         <target state="translated">兩個部份成員宣告 '{0}' 和 '{1}' 都必須使用相同的 Tuple 元素名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingDefinition">
+        <source>Partial member '{0}' must have a definition part.</source>
+        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingImplementation">
+        <source>Partial member '{0}' must have an implementation part.</source>
+        <target state="new">Partial member '{0}' must have an implementation part.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
@@ -1710,6 +1740,11 @@
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
         <target state="translated">部分成員宣告必須有相符的參考傳回值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberTypeDifference">
+        <source>Both partial member declarations must have the same type.</source>
+        <target state="new">Both partial member declarations must have the same type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -1780,11 +1815,6 @@
       <trans-unit id="ERR_PartialPropertyRequiredDifference">
         <source>Both partial property declarations must be required or neither may be required</source>
         <target state="translated">兩個部分屬性宣告都必須是必要項，或者都不是必要項</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialPropertyTypeDifference">
-        <source>Both partial property declarations must have the same type.</source>
-        <target state="translated">兩個部分屬性宣告都必須有相同型別。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
@@ -2537,6 +2567,11 @@
         <target state="translated">參數集合</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
+        <source>partial events and constructors</source>
+        <target state="new">partial events and constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="translated">記錄中的位置欄位</target>
@@ -3192,14 +3227,14 @@
         <target state="translated">參數在 Lambda 中具有參數修飾元，但不在目標委派類型中。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialPropertySignatureDifference">
-        <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="translated">部分屬性宣告 '{0}' 和 '{1}' 有簽章差異。</target>
+      <trans-unit id="WRN_PartialMemberSignatureDifference">
+        <source>Partial member declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial member declarations '{0}' and '{1}' have signature differences.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
-        <source>Partial property declarations have signature differences.</source>
-        <target state="translated">部分屬性宣告有簽章差異。</target>
+      <trans-unit id="WRN_PartialMemberSignatureDifference_Title">
+        <source>Partial member declarations have signature differences.</source>
+        <target state="new">Partial member declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -6709,8 +6744,8 @@ strument:TestCoverage      產生檢測要收集
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="translated">'partial' 修飾元只能直接出現在 'class'、'record'、'struct'、'interface' 或方法或屬性傳回型別之前。</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
+        <target state="needs-review-translation">'partial' 修飾元只能直接出現在 'class'、'record'、'struct'、'interface' 或方法或屬性傳回型別之前。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

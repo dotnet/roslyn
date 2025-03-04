@@ -313,7 +313,13 @@ namespace Roslyn.Test.Utilities
             var workspace = CreateWorkspace(lspOptions, workspaceKind: null, mutatingLspWorkspace, composition);
 
             workspace.InitializeDocuments(
-                LspTestWorkspace.CreateWorkspaceElement(languageName, files: markups, fileContainingFolders: lspOptions.DocumentFileContainingFolders, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups, commonReferences: commonReferences),
+                LspTestWorkspace.CreateWorkspaceElement(
+                    languageName,
+                    parseOptions: lspOptions.ParseOptions,
+                    files: markups,
+                    fileContainingFolders: lspOptions.DocumentFileContainingFolders,
+                    sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups,
+                    commonReferences: commonReferences),
                 openDocuments: false);
 
             return CreateTestLspServerAsync(workspace, lspOptions, languageName);

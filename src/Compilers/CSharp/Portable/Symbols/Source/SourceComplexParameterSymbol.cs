@@ -471,12 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ImmutableArray<ParameterSymbol> implParameters = this.ContainingSymbol switch
-                {
-                    SourceMemberMethodSymbol { PartialImplementationPart.Parameters: { } parameters } => parameters,
-                    SourcePropertySymbol { PartialImplementationPart.Parameters: { } parameters } => parameters,
-                    _ => default
-                };
+                ImmutableArray<ParameterSymbol> implParameters = this.ContainingSymbol.GetPartialImplementationPart()?.GetParameters() ?? default;
 
                 if (implParameters.IsDefault)
                 {
@@ -492,12 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ImmutableArray<ParameterSymbol> defParameters = this.ContainingSymbol switch
-                {
-                    SourceMemberMethodSymbol { PartialDefinitionPart.Parameters: { } parameters } => parameters,
-                    SourcePropertySymbol { PartialDefinitionPart.Parameters: { } parameters } => parameters,
-                    _ => default
-                };
+                ImmutableArray<ParameterSymbol> defParameters = this.ContainingSymbol.GetPartialDefinitionPart()?.GetParameters() ?? default;
 
                 if (defParameters.IsDefault)
                 {

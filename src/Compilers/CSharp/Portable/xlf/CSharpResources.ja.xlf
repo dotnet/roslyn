@@ -1672,6 +1672,16 @@
         <target state="translated">params パラメーターには有効なコレクションの種類が必要です</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialConstructorInitializer">
+        <source>'{0}': only the implementing declaration of a partial constructor can have an initializer</source>
+        <target state="new">'{0}': only the implementing declaration of a partial constructor can have an initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialEventInitializer">
+        <source>'{0}': partial event cannot have initializer</source>
+        <target state="new">'{0}': partial event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
         <source>Both partial member declarations must have identical accessibility modifiers.</source>
         <target state="translated">両方の部分メンバー宣言には、同じアクセシビリティ修飾子を指定する必要があります。</target>
@@ -1682,9 +1692,29 @@
         <target state="translated">部分メンバーに 'abstract' 修飾子を指定することはできません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateDefinition">
+        <source>Partial member '{0}' may not have multiple defining declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateImplementation">
+        <source>Partial member '{0}' may not have multiple implementing declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
         <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
         <target state="translated">部分メンバー宣言 '{0}' および '{1}' は、どちらも同じタプル要素名を使用する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingDefinition">
+        <source>Partial member '{0}' must have a definition part.</source>
+        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingImplementation">
+        <source>Partial member '{0}' must have an implementation part.</source>
+        <target state="new">Partial member '{0}' must have an implementation part.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
@@ -1710,6 +1740,11 @@
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
         <target state="translated">部分メンバーの宣言には、一致する ref 戻り値が必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberTypeDifference">
+        <source>Both partial member declarations must have the same type.</source>
+        <target state="new">Both partial member declarations must have the same type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -1780,11 +1815,6 @@
       <trans-unit id="ERR_PartialPropertyRequiredDifference">
         <source>Both partial property declarations must be required or neither may be required</source>
         <target state="translated">両方の部分プロパティ宣言を必須にするか、どちらも必須にしないようにする必要があります</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialPropertyTypeDifference">
-        <source>Both partial property declarations must have the same type.</source>
-        <target state="translated">両方の部分プロパティ宣言の型が同じである必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
@@ -2537,6 +2567,11 @@
         <target state="translated">params コレクション</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
+        <source>partial events and constructors</source>
+        <target state="new">partial events and constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="translated">レコード内の位置指定フィールド</target>
@@ -3192,14 +3227,14 @@
         <target state="translated">パラメーターにラムダの params 修飾子がありますが、ターゲット デリゲート型にはありません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialPropertySignatureDifference">
-        <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="translated">部分プロパティ宣言 '{0}' と '{1}' には、シグネチャの違いがあります。</target>
+      <trans-unit id="WRN_PartialMemberSignatureDifference">
+        <source>Partial member declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial member declarations '{0}' and '{1}' have signature differences.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
-        <source>Partial property declarations have signature differences.</source>
-        <target state="translated">部分プロパティの宣言には、シグネチャの違いがあります。</target>
+      <trans-unit id="WRN_PartialMemberSignatureDifference_Title">
+        <source>Partial member declarations have signature differences.</source>
+        <target state="new">Partial member declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -6709,8 +6744,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="translated">'partial' 修飾子は、'class'、'record'、'struct'、'interface'、またはメソッドまだはプロパティの戻り値の型の直前にのみ指定できます。</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
+        <target state="needs-review-translation">'partial' 修飾子は、'class'、'record'、'struct'、'interface'、またはメソッドまだはプロパティの戻り値の型の直前にのみ指定できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

@@ -318,6 +318,17 @@ public sealed class EventKeywordRecommenderTests : KeywordRecommenderTests
             """, absent: false, options: TestOptions.RegularPreview);
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestPartialMember(
+        [CombinatorialValues("class", "record", "struct", "interface")] string kind)
+    {
+        await VerifyKeywordAsync(
+            $$"""
+            {{kind}} C {
+               partial $$
+            """);
+    }
+
     [Fact]
     public async Task TestNotAfterPartial()
         => await VerifyAbsenceAsync(@"partial $$");
