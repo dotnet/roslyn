@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -71,7 +69,7 @@ internal sealed partial class WithElementSignatureHelpProvider() : AbstractCShar
             return null;
 
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(withElement, cancellationToken).ConfigureAwait(false);
-        if (semanticModel.GetTypeInfo(collectionExpression, cancellationToken).Type is not INamedTypeSymbol type)
+        if (semanticModel.GetTypeInfo(collectionExpression, cancellationToken).Type is not INamedTypeSymbol collectionExpressionType)
             return null;
 
         var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
@@ -80,7 +78,6 @@ internal sealed partial class WithElementSignatureHelpProvider() : AbstractCShar
 
         var ilistOfTType = semanticModel.Compilation.IListOfTType();
         var icollectionOfTType = semanticModel.Compilation.ICollectionOfTType();
-        var listOfTType = semanticModel.Compilation.ListOfTType();
 
         var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(withElement.ArgumentList);
         var argumentState = await GetCurrentArgumentStateAsync(
@@ -89,15 +86,25 @@ internal sealed partial class WithElementSignatureHelpProvider() : AbstractCShar
         var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
         var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
 
-        // When the type is IList<T> or ICollection<T>, we can provide a signature help item for the `(int capacity)`
-        // constructor of List<T>, as that's what the compiler will call into.
-        if (Equals(ilistOfTType, type.OriginalDefinition) ||
-            Equals(icollectionOfTType, type.OriginalDefinition))
+        return TryGetInterfaceItems() ??
+            TryGetCollectionBuilderItems() ??
+            await TryGetInstanceConstructorItemsAsync().ConfigureAwait(false);
+
+        SignatureHelpItems? TryGetInterfaceItems()
         {
+            // When the type is IList<T> or ICollection<T>, we can provide a signature help item for the `(int capacity)`
+            // constructor of List<T>, as that's what the compiler will call into.
+            if (!Equals(ilistOfTType, collectionExpressionType.OriginalDefinition) &&
+                !Equals(icollectionOfTType, collectionExpressionType.OriginalDefinition))
+            {
+                return null;
+            }
+
+            var listOfTType = semanticModel.Compilation.ListOfTType();
             if (listOfTType is null)
                 return null;
 
-            var constructedListType = listOfTType.Construct(type.TypeArguments.Single());
+            var constructedListType = listOfTType.Construct(collectionExpressionType.TypeArguments.Single());
             var constructor = constructedListType.InstanceConstructors.FirstOrDefault(
                 m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Int32, Name: "capacity" }]);
             if (constructor is null)
@@ -109,61 +116,77 @@ internal sealed partial class WithElementSignatureHelpProvider() : AbstractCShar
                 [item], textSpan, argumentState, selectedItemIndex: 0, parameterIndexOverride: -1);
         }
 
-        if (type.TypeKind == TypeKind.Delegate)
-            return await GetItemsWorkerForDelegateAsync(document, position, objectCreationExpression, type, cancellationToken).ConfigureAwait(false);
+        SignatureHelpItems? TryGetCollectionBuilderItems()
+        {
+            // If the type has a [CollectionBuilder(typeof(...), "...")] attribute on it, find the method it points to, and
+            // produce the synthesized signature help items for it (e.g. without the ReadOnlySpan<T> parameter).
+            var readonlySpanOfTType = semanticModel.Compilation.ReadOnlySpanOfTType();
+            var attribute = collectionExpressionType.GetAttributes().FirstOrDefault(
+                a => a.AttributeClass.IsCollectionBuilderAttribute());
+            if (attribute is { ConstructorArguments: [{ Value: INamedTypeSymbol builderType }, { Value: string builderMethodName }] })
+            {
+                var builderMethod = builderType
+                    .GetMembers(builderMethodName)
+                    .OfType<IMethodSymbol>()
+                    .Where(m =>
+                        m.IsStatic && m.Parameters.Length >= 1 &&
+                        m.Arity == collectionExpressionType.Arity &&
+                        (Equals(m.Parameters[0].Type.OriginalDefinition, readonlySpanOfTType) ||
+                         Equals(m.Parameters.Last().Type.OriginalDefinition, readonlySpanOfTType)))
+                    .FirstOrDefault();
 
-        // Get the candidate methods.  Consider the constructor's containing type to be the "through type" instance
-        // (which matches the compiler's logic in Binder.IsConstructorAccessible), to ensure that we do not see
-        // protected constructors in derived types (but continue to see them in nested types).
-        var methods = type.InstanceConstructors
-            .WhereAsArray(c => c.IsAccessibleWithin(within: within, throughType: c.ContainingType))
-            .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
-            .Sort(semanticModel, objectCreationExpression.SpanStart);
+                if (builderMethod != null)
+                {
+                    var constructedBuilderMethod = builderMethod.Construct([.. collectionExpressionType.TypeArguments]);
+                    var slicedParameters = Equals(constructedBuilderMethod.Parameters[0].Type.OriginalDefinition, readonlySpanOfTType)
+                        ? builderMethod.Parameters[1..]
+                        : builderMethod.Parameters[..^1];
 
-        if (methods.IsEmpty)
+                    var slicedMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
+                        constructedBuilderMethod,
+                        parameters: slicedParameters);
+                    var item = AbstractOrdinaryMethodSignatureHelpProvider.ConvertMethodGroupMethod(
+                        document, slicedMethod, withElement.SpanStart, semanticModel);
+
+                    var (_, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, withElement.ArgumentList.Arguments)
+                        .TryFindParameterIndexIfCompatibleMethod(slicedMethod);
+
+                    return CreateSignatureHelpItems(
+                        [item], textSpan, argumentState, selectedItemIndex: 0, parameterIndexOverride);
+                }
+            }
+
             return null;
+        }
 
-        // guess the best candidate if needed and determine parameter index
-        var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
-            .RefineOverloadAndPickParameter(semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken), methods);
+        async Task<SignatureHelpItems?> TryGetInstanceConstructorItemsAsync()
+        {
+            var methods = collectionExpressionType.InstanceConstructors
+                .WhereAsArray(c => c.IsAccessibleWithin(within: within, throughType: c.ContainingType))
+                .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
+                .Sort(semanticModel, withElement.SpanStart);
 
-        // present items and select
-        var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
-        var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
+            if (methods.IsEmpty)
+                return null;
 
-        var items = methods.SelectAsArray(c =>
-            ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
+            // guess the best candidate if needed and determine parameter index
+            //
+            // Can add this back in once the compiler supports getting the SymbolInfo for a WithElement.
+            // 
+            // var (currentSymbol, parameterIndexOverride) = new LightweightOverloadResolution(semanticModel, position, withElement.ArgumentList.Arguments)
+            //    .RefineOverloadAndPickParameter(semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken), methods);
 
-        var selectedItem = TryGetSelectedIndex(methods, currentSymbol);
+            var items = methods.SelectAsArray(c =>
+                ObjectCreationExpressionSignatureHelpProvider.ConvertNormalTypeConstructor(
+                    c, withElement.SpanStart, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService));
 
-        var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
-        var argumentState = await GetCurrentArgumentStateAsync(
-            document, position, textSpan, cancellationToken).ConfigureAwait(false);
-        return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem, parameterIndexOverride);
-    }
+            var selectedItem = TryGetSelectedIndex(methods, currentSymbol: null);
 
-    private async Task<SignatureHelpItems?> GetItemsWorkerForDelegateAsync(Document document, int position, BaseObjectCreationExpressionSyntax objectCreationExpression,
-        INamedTypeSymbol type, CancellationToken cancellationToken)
-    {
-        var semanticModel = await document.ReuseExistingSpeculativeModelAsync(objectCreationExpression, cancellationToken).ConfigureAwait(false);
-        Debug.Assert(type.TypeKind == TypeKind.Delegate);
-        Debug.Assert(objectCreationExpression.ArgumentList is not null);
-
-        var invokeMethod = type.DelegateInvokeMethod;
-        if (invokeMethod is null)
-            return null;
-
-        // determine parameter index
-        var parameterIndexOverride = new LightweightOverloadResolution(semanticModel, position, objectCreationExpression.ArgumentList.Arguments)
-            .FindParameterIndexIfCompatibleMethod(invokeMethod);
-
-        // present item and select
-        var structuralTypeDisplayService = document.Project.Services.GetRequiredService<IStructuralTypeDisplayService>();
-        var items = ConvertDelegateTypeConstructor(objectCreationExpression, invokeMethod, semanticModel, structuralTypeDisplayService, position);
-        var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
-        var argumentState = await GetCurrentArgumentStateAsync(
-            document, position, textSpan, cancellationToken).ConfigureAwait(false);
-        return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItemIndex: 0, parameterIndexOverride);
+            var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(withElement.ArgumentList);
+            var argumentState = await GetCurrentArgumentStateAsync(
+                document, position, textSpan, cancellationToken).ConfigureAwait(false);
+            return CreateSignatureHelpItems(items, textSpan, argumentState, selectedItem, parameterIndexOverride: -1);
+        }
     }
 
     private async Task<SignatureHelpState?> GetCurrentArgumentStateAsync(
