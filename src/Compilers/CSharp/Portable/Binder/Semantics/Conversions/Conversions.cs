@@ -188,12 +188,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
+                // PROTOTYPE: Test type with indexer but no constructor callable with no arguments. Should be a conversion error rather than subsequent binding error.
                 if (!_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
 
-                if (elements.Length > 0 &&
+                // PROTOTYPE: Test collection type that does not include an indexer, and where element type is some KeyValuePair<,>.
+                if (object.ReferenceEquals(elementType.OriginalDefinition, Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)) &&
+                    Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
+                    _binder.HasCollectionExpressionApplicableIndexer(syntax, targetType, out _, BindingDiagnosticBag.Discarded))
+                {
+                    collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
+                }
+                else if (elements.Length > 0 &&
                     !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;

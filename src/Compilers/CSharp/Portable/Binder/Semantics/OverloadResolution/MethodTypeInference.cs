@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in argument.Elements)
             {
-                // PROTOTYPE: Handle input type inference for key:value elements.
+                // PROTOTYPE: Handle output type inference for key:value elements.
                 if (element is BoundExpression expression)
                 {
                     MakeOutputTypeInferences(binder, expression, targetElementType, ref useSiteInfo);

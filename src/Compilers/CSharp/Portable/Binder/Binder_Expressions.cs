@@ -6582,6 +6582,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        private BoundExpression BindKeyValuePairAddMethod(
+            KeyValuePairElementSyntax syntax,
+            BoundKeyValuePairElement element,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BindingDiagnosticBag diagnostics)
+        {
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            analyzedArguments.Arguments.Add(element.Key);
+            var left = BindIndexerAccess(syntax, implicitReceiver, analyzedArguments, diagnostics);
+            analyzedArguments.Free();
+            if (left is BoundIndexerAccess indexerAccess)
+            {
+                left = indexerAccess.Update(AccessorKind.Set);
+            }
+            return BindAssignment(syntax, left, element.Value, isRef: false, diagnostics);
+        }
+
         private BoundCollectionExpressionSpreadElement BindCollectionExpressionSpreadElementAddMethod(
             SpreadElementSyntax syntax,
             BoundCollectionExpressionSpreadElement element,
