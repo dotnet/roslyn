@@ -30,7 +30,7 @@ public class AddParameterCheckTests
     }
 
     [Fact]
-    public async Task TestSimpleReferenceType_AlreadyNullChecked()
+    public async Task TestSimpleReferenceType_AlreadyNullChecked1()
     {
         var testCode = """
             using System;
@@ -50,6 +50,27 @@ public class AddParameterCheckTests
         {
             LanguageVersion = LanguageVersion.CSharp11,
             TestCode = testCode
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleReferenceType_AlreadyNullChecked2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public C([||]string s)
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
     }
 

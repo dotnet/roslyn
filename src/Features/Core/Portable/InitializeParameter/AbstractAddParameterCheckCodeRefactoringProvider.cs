@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter;
 
@@ -279,6 +277,9 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
                 if (IsIfNullCheck(statement, parameter))
                     return false;
 
+                if (IsThrowIfNullInvocation(statement, parameter))
+                    return false;
+
                 if (ContainsNullCoalesceCheck(
                         syntaxFacts, semanticModel, statement,
                         parameter, cancellationToken))
@@ -289,6 +290,28 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         }
 
         return true;
+
+        static bool IsThrowIfNullInvocation(IOperation statement, IParameterSymbol parameter)
+        {
+            if (statement is IExpressionStatementOperation
+                {
+                    Operation: IInvocationOperation
+                    {
+                        TargetMethod:
+                        {
+                            ContainingType.Name: nameof(ArgumentNullException),
+                            Name: "ThrowIfNull",
+                        },
+                        Arguments: [{ Value: var argumentValue }, ..]
+                    }
+                })
+            {
+                return argumentValue.UnwrapImplicitConversion() is IParameterReferenceOperation parameterReference &&
+                    parameter.Equals(parameterReference.Parameter);
+            }
+
+            return false;
+        }
     }
 
     private static bool IsStringCheck(IOperation condition, IParameterSymbol parameter)
