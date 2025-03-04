@@ -9342,25 +9342,15 @@ static class Program
                     {
                         Dictionary<int, int> d;
                         d = [default];
+                        d.Report();
                         d = [new KeyValuePair<int, int>(1, 2)];
+                        d.Report();
                         d = [3:4];
+                        d.Report();
                     }
                 }
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (7,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[default]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 13),
-                // (8,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [new KeyValuePair<int, int>(1, 2)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[new KeyValuePair<int, int>(1, 2)]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(8, 13),
-                // (9,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[3:4]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(9, 13),
-                // (9,14): error CS9275: Collection expression type 'Dictionary<int, int>' does not support key-value pair elements.
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "3:4").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(9, 14));
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[[0, 0]], [[1, 2]], [[3, 4]], ");
         }
 
         [Fact]
@@ -27508,7 +27498,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics(
                 // (4,52): error CS9215: Collection expression type 'Dictionary<string, object>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //     Dictionary<string, object> Config => /*<bind>*/[
@@ -38548,8 +38538,10 @@ partial class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
-        [Fact]
-        public void Add_ParamsArray_01()
+        [Theory]
+        [CombinatorialData]
+        public void Add_ParamsArray_01(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
@@ -38578,7 +38570,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ");
 
@@ -38627,8 +38622,10 @@ partial class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
-        [Fact]
-        public void Add_ParamsCollection_01()
+        [Theory]
+        [CombinatorialData]
+        public void Add_ParamsCollection_01(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
@@ -38657,7 +38654,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ").VerifyDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,

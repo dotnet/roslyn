@@ -863,18 +863,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
             BoundValuePlaceholder? collectionBuilderSpanPlaceholder = null;
 
-            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
             {
+                if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
+                {
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, diagnostics, syntax: syntax);
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
+                }
+
                 if (targetType is NamedTypeSymbol namedType &&
                     HasParamsCollectionTypeInProgress(namedType, out NamedTypeSymbol? inProgress, out MethodSymbol? inProgressConstructor))
                 {
                     Debug.Assert(inProgressConstructor is not null);
                     diagnostics.Add(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, syntax, inProgress, inProgressConstructor.OriginalDefinition);
+                    // PROTOTYPE: None of these early return calls are freeing builder.
                     return BindCollectionExpressionForErrorRecovery(node, namedType, inConversion: true, diagnostics);
                 }
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
 
+                // PROTOTYPE: Test ImplementsIEnumerableWithIndexer target with collection arguments..
                 // Bind collection creation with arguments.
                 foreach (var element in elements)
                 {
@@ -907,10 +916,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(syntax, targetType))
                 {
+                    // PROTOTYPE: Do we have similar cycles with indexer parameters?
                     diagnostics.Add(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, syntax, targetType);
                     return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                 }
 
+                // PROTOTYPE: Do we need a special AddMethodBinder for indexers as well?
                 var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, targetType, this);
                 foreach (var element in elements)
                 {
@@ -921,23 +932,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Handled above.
                             continue;
                         case BoundCollectionExpressionSpreadElement spreadElement:
-                            convertedElement = BindCollectionExpressionSpreadElementAddMethod(
-                                (SpreadElementSyntax)spreadElement.Syntax,
-                                spreadElement,
-                                collectionInitializerAddMethodBinder,
-                                implicitReceiver,
-                                diagnostics);
+                            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+                            {
+                                convertedElement = BindCollectionExpressionSpreadElementAddMethod(
+                                    (SpreadElementSyntax)spreadElement.Syntax,
+                                    spreadElement,
+                                    collectionInitializerAddMethodBinder,
+                                    implicitReceiver,
+                                    diagnostics);
+                            }
+                            else
+                            {
+                                // PROTOTYPE: Implement.
+                                throw ExceptionUtilities.UnexpectedValue(element);
+                            }
                             break;
-                        case BoundKeyValuePairElement:
-                            throw ExceptionUtilities.UnexpectedValue(element);
+                        case BoundKeyValuePairElement keyValuePairElement:
+                            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+                            {
+                                throw ExceptionUtilities.UnexpectedValue(element);
+                            }
+                            else
+                            {
+                                convertedElement = BindKeyValuePairAddMethod(
+                                    (KeyValuePairElementSyntax)keyValuePairElement.Syntax,
+                                    keyValuePairElement,
+                                    implicitReceiver,
+                                    diagnostics);
+                            }
+                            break;
                         default:
-                            convertedElement = BindCollectionInitializerElementAddMethod(
-                                element.Syntax,
-                                ImmutableArray.Create((BoundExpression)element),
-                                hasEnumerableInitializerType: true,
-                                collectionInitializerAddMethodBinder,
-                                diagnostics,
-                                implicitReceiver);
+                            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+                            {
+                                convertedElement = BindCollectionInitializerElementAddMethod(
+                                    element.Syntax,
+                                    ImmutableArray.Create((BoundExpression)element),
+                                    hasEnumerableInitializerType: true,
+                                    collectionInitializerAddMethodBinder,
+                                    diagnostics,
+                                    implicitReceiver);
+                            }
+                            else
+                            {
+                                // PROTOTYPE: Implement.
+                                throw ExceptionUtilities.UnexpectedValue(element);
+                            }
                             break;
                     }
                     builder.Add(convertedElement);
@@ -959,8 +998,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         GenerateImplicitConversionError(diagnostics, Compilation, syntax, dictionaryConversion, dictionaryType, targetType);
                     }
-
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, diagnostics, syntax: syntax);
+                }
+                if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
+                {
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
                     _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
@@ -1427,13 +1468,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        internal bool HasCollectionExpressionApplicableIndexer(SyntaxNode syntax, TypeSymbol targetType, out ImmutableArray<PropertySymbol> indexers, BindingDiagnosticBag diagnostics)
+        {
+            var lookupResult = LookupResult.GetInstance();
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            // PROTOTYPE: We're not checking indexer matches expected key and value types.
+            // PROTOTYPE: Test ref returning indexer.
+            // PROTOTYPE: Test explicit interface implementation.
+            // PROTOTYPE: Test member on base type.
+            // PROTOTYPE: Test with missing indexer, multiple indexers, readonly/writeonly indexer, different member kind, etc.
+            LookupMembersWithFallback(lookupResult, targetType, WellKnownMemberNames.Indexer, arity: 0, ref useSiteInfo);
+            diagnostics.Add(syntax, useSiteInfo); // PROTOTYPE: Test.
+            indexers = lookupResult.SingleSymbolOrDefault is PropertySymbol property ? [property] : [];
+            lookupResult.Free();
+            return indexers.Length > 0;
+        }
+
         internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, out ImmutableArray<MethodSymbol> addMethods, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!targetType.IsDynamic());
 
             NamedTypeSymbol? namedType = targetType as NamedTypeSymbol;
 
-            if (namedType is not null && HasParamsCollectionTypeInProgress(namedType, out _, out _))
+            if (namedType is not null && HasParamsCollectionTypeInProgress(namedType, out _, out _)) // PROTOTYPE: Test cycles with params for indexers.
             {
                 // We are in a cycle. Optimistically assume we have the right Add to break the cycle
                 addMethods = [];

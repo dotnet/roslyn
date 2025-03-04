@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         return VisitCollectionInitializerCollectionExpression(node, node.Type);
+                    case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
+                        // PROTOTYPE: Implement.
+                        //return CreateAndPopulateDictionary(node, ((NamedTypeSymbol)node.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics, node.Elements);
+                        goto default;
                     case CollectionExpressionTypeKind.Array:
                     case CollectionExpressionTypeKind.Span:
                     case CollectionExpressionTypeKind.ReadOnlySpan:
@@ -1295,6 +1299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceType = (NamedTypeSymbol)expression.Type;
             if (!ConversionsBase.IsKeyValuePairType(_compilation, sourceType, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out var sourceKeyType, out var sourceValueType))
             {
+                // PROTOTYPE: Are we testing an expression element with dynamic type?
                 throw ExceptionUtilities.UnexpectedValue(expression.Type);
             }
 
