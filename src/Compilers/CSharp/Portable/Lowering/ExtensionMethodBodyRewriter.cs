@@ -178,6 +178,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ExtensionMethodReferenceRewriter.VisitCall(this, node);
         }
 
+        public override BoundNode? VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
+        {
+            return ExtensionMethodReferenceRewriter.VisitDelegateCreationExpression(this, node);
+        }
+
+        public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
+        {
+            return ExtensionMethodReferenceRewriter.VisitFunctionPointerLoad(this, node);
+        }
+
         // PROTOTYPE: Handle deep recursion on long chain of binary operators, etc.
     }
 }

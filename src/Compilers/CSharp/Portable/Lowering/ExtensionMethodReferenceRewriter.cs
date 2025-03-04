@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return updateCall(
                     node,
-                    rewriter.VisitMethodSymbol(node.Method),
+                    VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method),
                     rewriter.VisitSymbols(node.OriginalMethodsOpt),
                     rewrittenReceiver,
                     rewriter.VisitList(node.Arguments),
@@ -93,37 +94,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool invokedAsExtensionMethod,
                 TypeSymbol type)
             {
-                if (method.OriginalDefinition.ContainingSymbol is NamedTypeSymbol { IsExtension: true } declaringTypeDefinition &&
-                    method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is MethodSymbol implementationMethod)
+                if (receiverOpt is not null && arguments.Length == method.ParameterCount - 1)
                 {
-                    method = implementationMethod.AsMember(method.ContainingSymbol.ContainingType).
-                        ConstructIfGeneric(method.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations));
+                    Debug.Assert(boundCall.Method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() == (object)method.OriginalDefinition);
+                    Debug.Assert(!boundCall.Method.IsStatic);
 
-                    if (receiverOpt is not null && arguments.Length == method.ParameterCount - 1)
+                    var receiverRefKind = method.Parameters[0].RefKind;
+
+                    if (argumentRefKinds.IsDefault)
                     {
-                        var receiverRefKind = method.Parameters[0].RefKind;
-
-                        if (argumentRefKinds.IsDefault)
+                        if (receiverRefKind != RefKind.None)
                         {
-                            if (receiverRefKind != RefKind.None)
-                            {
-                                var builder = ArrayBuilder<RefKind>.GetInstance(method.ParameterCount, RefKind.None);
-                                builder[0] = argumentRefKindFromReceiverRefKind(receiverRefKind);
-                                argumentRefKinds = builder.ToImmutableAndFree();
-                            }
+                            var builder = ArrayBuilder<RefKind>.GetInstance(method.ParameterCount, RefKind.None);
+                            builder[0] = argumentRefKindFromReceiverRefKind(receiverRefKind);
+                            argumentRefKinds = builder.ToImmutableAndFree();
                         }
-                        else
-                        {
-                            argumentRefKinds = argumentRefKinds.Insert(0, argumentRefKindFromReceiverRefKind(receiverRefKind)); // PROTOTYPE: Test this code path
-                        }
-
-                        invokedAsExtensionMethod = true;
-
-                        Debug.Assert(receiverOpt.Type!.Equals(method.Parameters[0].Type, TypeCompareKind.ConsiderEverything));
-
-                        arguments = arguments.Insert(0, receiverOpt);
-                        receiverOpt = null;
                     }
+                    else
+                    {
+                        argumentRefKinds = argumentRefKinds.Insert(0, argumentRefKindFromReceiverRefKind(receiverRefKind)); // PROTOTYPE: Test this code path
+                    }
+
+                    invokedAsExtensionMethod = true;
+
+                    Debug.Assert(receiverOpt.Type!.Equals(method.Parameters[0].Type, TypeCompareKind.ConsiderEverything));
+
+                    arguments = arguments.Insert(0, receiverOpt);
+                    receiverOpt = null;
                 }
 
                 return boundCall.Update(
@@ -149,6 +146,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE: public override BoundNode? VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
+        [return: NotNullIfNotNull(nameof(method))]
+        private static MethodSymbol? VisitMethodSymbolWithExtensionRewrite(BoundTreeRewriter rewriter, MethodSymbol? method)
+        {
+            if (method is { OriginalDefinition.ContainingSymbol: NamedTypeSymbol { IsExtension: true } declaringTypeDefinition } &&
+                method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is MethodSymbol implementationMethod)
+            {
+                method = implementationMethod.AsMember(method.ContainingSymbol.ContainingType).
+                    ConstructIfGeneric(method.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations));
+            }
+
+            return rewriter.VisitMethodSymbol(method);
+        }
+
+        [return: NotNullIfNotNull(nameof(method))]
+        public override MethodSymbol? VisitMethodSymbol(MethodSymbol? method)
+        {
+            Debug.Assert(method is not { OriginalDefinition.ContainingSymbol: NamedTypeSymbol { IsExtension: true } } ||
+                         method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is null);
+            return base.VisitMethodSymbol(method);
+        }
+
+        public override BoundNode? VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
+        {
+            return VisitDelegateCreationExpression(this, node);
+        }
+
+        public static BoundNode VisitDelegateCreationExpression(BoundTreeRewriter rewriter, BoundDelegateCreationExpression node)
+        {
+            var methodOpt = VisitMethodSymbolWithExtensionRewrite(rewriter, node.MethodOpt);
+            var argument = (BoundExpression)rewriter.Visit(node.Argument);
+            var type = rewriter.VisitType(node.Type);
+            bool isExtensionMethod = node.IsExtensionMethod;
+
+            if (!isExtensionMethod && argument is not BoundTypeExpression && methodOpt?.IsStatic == true)
+            {
+                Debug.Assert(node.MethodOpt!.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() == (object)methodOpt.OriginalDefinition);
+                isExtensionMethod = true;
+            }
+
+            return node.Update(argument, methodOpt, isExtensionMethod, node.WasTargetTyped, type);
+        }
+
+        public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
+        {
+            return VisitFunctionPointerLoad(this, node);
+        }
+
+        public static BoundNode VisitFunctionPointerLoad(BoundTreeRewriter rewriter, BoundFunctionPointerLoad node)
+        {
+            MethodSymbol targetMethod = VisitMethodSymbolWithExtensionRewrite(rewriter, node.TargetMethod);
+            TypeSymbol? constrainedToTypeOpt = rewriter.VisitType(node.ConstrainedToTypeOpt);
+            TypeSymbol? type = rewriter.VisitType(node.Type);
+            return node.Update(targetMethod, constrainedToTypeOpt, type);
+        }
     }
 }
