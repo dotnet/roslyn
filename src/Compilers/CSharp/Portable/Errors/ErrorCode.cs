@@ -2362,13 +2362,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DataSectionStringLiteralHashCollision = 9274,
 
-        // PROTOTYPE: compact
-        ERR_PartialMemberMissingImplementation = 9400,
-        ERR_PartialMemberMissingDefinition = 9401,
-        ERR_PartialMemberDuplicateDefinition = 9402,
-        ERR_PartialMemberDuplicateImplementation = 9403,
-        ERR_PartialEventInitializer = 9404,
-        ERR_PartialConstructorInitializer = 9405,
+        ERR_PartialMemberMissingImplementation = 9275,
+        ERR_PartialMemberMissingDefinition = 9276,
+        ERR_PartialMemberDuplicateDefinition = 9277,
+        ERR_PartialMemberDuplicateImplementation = 9278,
+        ERR_PartialEventInitializer = 9279,
+        ERR_PartialConstructorInitializer = 9280,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

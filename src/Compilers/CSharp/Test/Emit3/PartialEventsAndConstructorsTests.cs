@@ -49,7 +49,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (6,17): error CS0751: A partial member must be declared within a partial type
             //         partial F() => new();
             Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "F").WithLocation(6, 17),
-            // (6,17): error CS9401: Partial member 'partial.partial()' must have a definition part.
+            // (6,17): error CS9276: Partial member 'partial.partial()' must have a definition part.
             //         partial F() => new();
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "F").WithArguments("partial.partial()").WithLocation(6, 17),
             // (6,24): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -115,7 +115,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (3,13): error CS0751: A partial member must be declared within a partial type
             //     partial F() => new();
             Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "F").WithLocation(3, 13),
-            // (3,13): error CS9401: Partial member 'C.C()' must have a definition part.
+            // (3,13): error CS9276: Partial member 'C.C()' must have a definition part.
             //     partial F() => new();
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "F").WithArguments("C.C()").WithLocation(3, 13),
             // (3,20): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
@@ -306,7 +306,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             class @partial;
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,13): error CS9401: Partial member 'C.C()' must have a definition part.
+            // (3,13): error CS9276: Partial member 'C.C()' must have a definition part.
             //     partial C() => new partial();
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C").WithArguments("C.C()").WithLocation(3, 13));
     }
@@ -322,10 +322,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,33): error CS9400: Partial member 'C.E' must have an implementation part.
+            // (3,33): error CS9275: Partial member 'C.E' must have an implementation part.
             //     partial event System.Action E;
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("C.E").WithLocation(3, 33),
-            // (4,13): error CS9400: Partial member 'C.C()' must have an implementation part.
+            // (4,13): error CS9275: Partial member 'C.C()' must have an implementation part.
             //     partial C();
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C").WithArguments("C.C()").WithLocation(4, 13));
     }
@@ -341,10 +341,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,33): error CS9401: Partial member 'C.E' must have a definition part.
+            // (3,33): error CS9276: Partial member 'C.E' must have a definition part.
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "E").WithArguments("C.E").WithLocation(3, 33),
-            // (4,13): error CS9401: Partial member 'C.C()' must have a definition part.
+            // (4,13): error CS9276: Partial member 'C.C()' must have a definition part.
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C").WithArguments("C.C()").WithLocation(4, 13));
     }
@@ -367,19 +367,19 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (4,33): error CS9402: Partial member 'C.E' may not have multiple defining declarations.
+            // (4,33): error CS9277: Partial member 'C.E' may not have multiple defining declarations.
             //     partial event System.Action E;
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateDefinition, "E").WithArguments("C.E").WithLocation(4, 33),
             // (4,33): error CS0102: The type 'C' already contains a definition for 'E'
             //     partial event System.Action E;
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(4, 33),
-            // (5,33): error CS9402: Partial member 'C.F' may not have multiple defining declarations.
+            // (5,33): error CS9277: Partial member 'C.F' may not have multiple defining declarations.
             //     partial event System.Action F;
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateDefinition, "F").WithArguments("C.F").WithLocation(5, 33),
             // (5,33): error CS0102: The type 'C' already contains a definition for 'F'
             //     partial event System.Action F;
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "F").WithArguments("C", "F").WithLocation(5, 33),
-            // (7,13): error CS9402: Partial member 'C.C()' may not have multiple defining declarations.
+            // (7,13): error CS9277: Partial member 'C.C()' may not have multiple defining declarations.
             //     partial C();
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateDefinition, "C").WithArguments("C.C()").WithLocation(7, 13),
             // (7,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
@@ -403,10 +403,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (4,33): error CS9403: Partial member 'C.E' may not have multiple implementing declarations.
+            // (4,33): error CS9278: Partial member 'C.E' may not have multiple implementing declarations.
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "E").WithArguments("C.E").WithLocation(4, 33),
-            // (6,13): error CS9403: Partial member 'C.C()' may not have multiple implementing declarations.
+            // (6,13): error CS9278: Partial member 'C.C()' may not have multiple implementing declarations.
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "C").WithArguments("C.C()").WithLocation(6, 13),
             // (8,33): error CS0102: The type 'C' already contains a definition for 'E'
@@ -435,16 +435,16 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (4,33): error CS9403: Partial member 'C.E' may not have multiple implementing declarations.
+            // (4,33): error CS9278: Partial member 'C.E' may not have multiple implementing declarations.
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "E").WithArguments("C.E").WithLocation(4, 33),
-            // (6,13): error CS9403: Partial member 'C.C()' may not have multiple implementing declarations.
+            // (6,13): error CS9278: Partial member 'C.C()' may not have multiple implementing declarations.
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "C").WithArguments("C.C()").WithLocation(6, 13),
             // (8,33): error CS0102: The type 'C' already contains a definition for 'E'
             //     partial event System.Action E;
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(8, 33),
-            // (9,33): error CS9402: Partial member 'C.E' may not have multiple defining declarations.
+            // (9,33): error CS9277: Partial member 'C.E' may not have multiple defining declarations.
             //     partial event System.Action E;
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateDefinition, "E").WithArguments("C.E").WithLocation(9, 33),
             // (9,33): error CS0102: The type 'C' already contains a definition for 'E'
@@ -453,7 +453,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (10,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
             //     partial C();
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(10, 13),
-            // (11,13): error CS9402: Partial member 'C.C()' may not have multiple defining declarations.
+            // (11,13): error CS9277: Partial member 'C.C()' may not have multiple defining declarations.
             //     partial C();
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateDefinition, "C").WithArguments("C.C()").WithLocation(11, 13),
             // (11,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
@@ -473,7 +473,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,33): error CS9400: Partial member 'C.E' must have an implementation part.
+            // (3,33): error CS9275: Partial member 'C.E' must have an implementation part.
             //     partial event System.Action E;
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("C.E").WithLocation(3, 33),
             // (3,33): error CS0082: Type 'C' already reserves a member called 'add_E' with the same parameter types
@@ -502,25 +502,25 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (4,33): error CS9402: Partial member 'C.E' may not have multiple defining declarations.
+            // (4,33): error CS9277: Partial member 'C.E' may not have multiple defining declarations.
             //     partial event System.Action E;
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateDefinition, "E").WithArguments("C.E").WithLocation(4, 33),
             // (4,33): error CS0102: The type 'C' already contains a definition for 'E'
             //     partial event System.Action E;
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(4, 33),
-            // (6,13): error CS9402: Partial member 'C.C()' may not have multiple defining declarations.
+            // (6,13): error CS9277: Partial member 'C.C()' may not have multiple defining declarations.
             //     partial C();
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateDefinition, "C").WithArguments("C.C()").WithLocation(6, 13),
             // (6,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
             //     partial C();
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(6, 13),
-            // (9,33): error CS9403: Partial member 'C.E' may not have multiple implementing declarations.
+            // (9,33): error CS9278: Partial member 'C.E' may not have multiple implementing declarations.
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "E").WithArguments("C.E").WithLocation(9, 33),
             // (9,33): error CS0102: The type 'C' already contains a definition for 'E'
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(9, 33),
-            // (11,13): error CS9403: Partial member 'C.C()' may not have multiple implementing declarations.
+            // (11,13): error CS9278: Partial member 'C.C()' may not have multiple implementing declarations.
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "C").WithArguments("C.C()").WithLocation(11, 13),
             // (11,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
@@ -547,7 +547,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (6,26): error CS0065: 'C.E': event property must have both add and remove accessors
             //     partial event Action E { remove { } }
             Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E").WithLocation(6, 26),
-            // (6,26): error CS9403: Partial member 'C.E' may not have multiple implementing declarations.
+            // (6,26): error CS9278: Partial member 'C.E' may not have multiple implementing declarations.
             //     partial event Action E { remove { } }
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "E").WithArguments("C.E").WithLocation(6, 26),
             // (6,26): error CS0102: The type 'C' already contains a definition for 'E'
@@ -579,7 +579,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,33): error CS9404: 'C.E': partial event cannot have initializer
+            // (3,33): error CS9279: 'C.E': partial event cannot have initializer
             //     partial event System.Action E = null;
             Diagnostic(ErrorCode.ERR_PartialEventInitializer, "E").WithArguments("C.E").WithLocation(3, 33),
             // (3,33): warning CS0414: The field 'C.E' is assigned but its value is never used
@@ -599,7 +599,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,36): error CS9404: 'C.F': partial event cannot have initializer
+            // (3,36): error CS9279: 'C.F': partial event cannot have initializer
             //     partial event System.Action E, F = null;
             Diagnostic(ErrorCode.ERR_PartialEventInitializer, "F").WithArguments("C.F").WithLocation(3, 36),
             // (3,36): warning CS0414: The field 'C.F' is assigned but its value is never used
@@ -619,13 +619,13 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,33): error CS9404: 'C.E': partial event cannot have initializer
+            // (3,33): error CS9279: 'C.E': partial event cannot have initializer
             //     partial event System.Action E = null, F = null;
             Diagnostic(ErrorCode.ERR_PartialEventInitializer, "E").WithArguments("C.E").WithLocation(3, 33),
             // (3,33): warning CS0414: The field 'C.E' is assigned but its value is never used
             //     partial event System.Action E = null, F = null;
             Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E").WithArguments("C.E").WithLocation(3, 33),
-            // (3,43): error CS9404: 'C.F': partial event cannot have initializer
+            // (3,43): error CS9279: 'C.F': partial event cannot have initializer
             //     partial event System.Action E = null, F = null;
             Diagnostic(ErrorCode.ERR_PartialEventInitializer, "F").WithArguments("C.F").WithLocation(3, 43),
             // (3,43): warning CS0414: The field 'C.F' is assigned but its value is never used
@@ -776,7 +776,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,13): error CS9400: Partial member 'C.C()' must have an implementation part.
+            // (3,13): error CS9275: Partial member 'C.C()' must have an implementation part.
             //     partial C();
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C").WithArguments("C.C()").WithLocation(3, 13),
             // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
@@ -794,7 +794,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,13): error CS9401: Partial member 'C.C()' must have a definition part.
+            // (3,13): error CS9276: Partial member 'C.C()' must have a definition part.
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C").WithArguments("C.C()").WithLocation(3, 13),
             // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
@@ -815,7 +815,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,13): error CS9401: Partial member 'C.C()' must have a definition part.
+            // (3,13): error CS9276: Partial member 'C.C()' must have a definition part.
             //     partial C() : this() { }
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C").WithArguments("C.C()").WithLocation(3, 13),
             // (3,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
@@ -885,7 +885,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (3,33): error CS0751: A partial member must be declared within a partial type
             //     partial event System.Action E;
             Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "E").WithLocation(3, 33),
-            // (5,33): error CS9401: Partial event 'C.F' must have a definition part.
+            // (5,33): error CS9276: Partial event 'C.F' must have a definition part.
             //     partial event System.Action F { add { } remove { } }
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "F").WithArguments("C.F").WithLocation(5, 33),
             // (5,33): error CS0751: A partial member must be declared within a partial type
@@ -941,7 +941,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,33): error CS9400: Partial member 'I.E' must have an implementation part.
+            // (3,33): error CS9275: Partial member 'I.E' must have an implementation part.
             //     partial event System.Action E;
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("I.E").WithLocation(3, 33));
     }
@@ -1013,13 +1013,13 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (7,35): error CS0071: An explicit interface implementation of an event must use event accessor syntax
             //     partial event System.Action I.E;
             Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "E").WithLocation(7, 35),
-            // (7,35): error CS9401: Partial member 'C.I.E' must have a definition part.
+            // (7,35): error CS9276: Partial member 'C.I.E' must have a definition part.
             //     partial event System.Action I.E;
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "E").WithArguments("C.I.E").WithLocation(7, 35),
             // (7,35): error CS0754: A partial member may not explicitly implement an interface member
             //     partial event System.Action I.E;
             Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "E").WithLocation(7, 35),
-            // (8,35): error CS9403: Partial member 'C.I.E' may not have multiple implementing declarations.
+            // (8,35): error CS9278: Partial member 'C.I.E' may not have multiple implementing declarations.
             //     partial event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "E").WithArguments("C.I.E").WithLocation(8, 35),
             // (8,35): error CS0102: The type 'C' already contains a definition for 'I.E'
@@ -1043,7 +1043,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (4,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            // (4,17): error CS9280: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
             //     partial C() : this(2);
             Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": this(2)").WithArguments("C.C()").WithLocation(4, 17));
     }
@@ -1061,7 +1061,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (4,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            // (4,17): error CS9280: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
             //     partial C() : this(1);
             Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": this(1)").WithArguments("C.C()").WithLocation(4, 17));
     }
@@ -1099,7 +1099,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (9,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            // (9,17): error CS9280: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
             //     partial C() : base(2);
             Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": base(2)").WithArguments("C.C()").WithLocation(9, 17));
     }
@@ -1123,7 +1123,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (8,13): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'B.B(int)'
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("x", "B.B(int)").WithLocation(8, 13),
-            // (9,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            // (9,17): error CS9280: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
             //     partial C() : base(1);
             Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": base(1)").WithArguments("C.C()").WithLocation(9, 17));
     }
@@ -1145,7 +1145,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (10,17): error CS9405: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
+            // (10,17): error CS9280: 'C.C()': only the implementing declaration of a partial constructor can have an initializer
             //     partial C() : base(1);
             Diagnostic(ErrorCode.ERR_PartialConstructorInitializer, ": base(1)").WithArguments("C.C()").WithLocation(10, 17));
     }
@@ -1313,7 +1313,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,33): error CS9400: Partial member 'C.E' must have an implementation part.
+            // (3,33): error CS9275: Partial member 'C.E' must have an implementation part.
             //     partial event System.Action E;
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("C.E").WithLocation(3, 33),
             // (4,32): error CS0102: The type 'C' already contains a definition for 'E'
@@ -1322,7 +1322,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (4,32): warning CS0626: Method, operator, or accessor 'C.E.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
             //     extern event System.Action E;
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "E").WithArguments("C.E.remove").WithLocation(4, 32),
-            // (6,13): error CS9400: Partial member 'C.C()' must have an implementation part.
+            // (6,13): error CS9275: Partial member 'C.C()' must have an implementation part.
             //     partial C();
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C").WithArguments("C.C()").WithLocation(6, 13),
             // (7,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
@@ -1347,19 +1347,19 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,40): error CS9401: Partial member 'C.E' must have a definition part.
+            // (3,40): error CS9276: Partial member 'C.E' must have a definition part.
             //     extern partial event System.Action E;
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "E").WithArguments("C.E").WithLocation(3, 40),
-            // (4,33): error CS9403: Partial member 'C.E' may not have multiple implementing declarations.
+            // (4,33): error CS9278: Partial member 'C.E' may not have multiple implementing declarations.
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "E").WithArguments("C.E").WithLocation(4, 33),
             // (4,33): error CS0102: The type 'C' already contains a definition for 'E'
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(4, 33),
-            // (6,20): error CS9401: Partial member 'C.C()' must have a definition part.
+            // (6,20): error CS9276: Partial member 'C.C()' must have a definition part.
             //     extern partial C();
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C").WithArguments("C.C()").WithLocation(6, 20),
-            // (7,13): error CS9403: Partial member 'C.C()' may not have multiple implementing declarations.
+            // (7,13): error CS9278: Partial member 'C.C()' may not have multiple implementing declarations.
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_PartialMemberDuplicateImplementation, "C").WithArguments("C.C()").WithLocation(7, 13),
             // (7,13): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
@@ -2352,10 +2352,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,13): error CS9400: Partial member 'C1.C1(string)' must have an implementation part.
+            // (3,13): error CS9275: Partial member 'C1.C1(string)' must have an implementation part.
             //     partial C1(string x);
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C1").WithArguments("C1.C1(string)").WithLocation(3, 13),
-            // (4,13): error CS9401: Partial member 'C1.C1(int)' must have a definition part.
+            // (4,13): error CS9276: Partial member 'C1.C1(int)' must have a definition part.
             //     partial C1(int x) { }
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C1").WithArguments("C1.C1(int)").WithLocation(4, 13),
             // (9,13): warning CS9256: Partial member declarations 'C2.C2(dynamic x)' and 'C2.C2(object x)' have signature differences.
@@ -2364,10 +2364,10 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (14,13): error CS8142: Both partial member declarations, 'C3.C3((int X, int Y))' and 'C3.C3((int A, int B))', must use the same tuple element names.
             //     partial C3((int A, int B) x) { }
             Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "C3").WithArguments("C3.C3((int X, int Y))", "C3.C3((int A, int B))").WithLocation(14, 13),
-            // (18,13): error CS9400: Partial member 'C4.C4((int X, int Y))' must have an implementation part.
+            // (18,13): error CS9275: Partial member 'C4.C4((int X, int Y))' must have an implementation part.
             //     partial C4((int X, int Y) x);
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C4").WithArguments("C4.C4((int X, int Y))").WithLocation(18, 13),
-            // (19,13): error CS9401: Partial member 'C4.C4((string A, string B))' must have a definition part.
+            // (19,13): error CS9276: Partial member 'C4.C4((string A, string B))' must have a definition part.
             //     partial C4((string A, string B) x) { }
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C4").WithArguments("C4.C4((string A, string B))").WithLocation(19, 13));
     }
@@ -2683,25 +2683,25 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (3,13): error CS9400: Partial member 'C1.C1(int)' must have an implementation part.
+            // (3,13): error CS9275: Partial member 'C1.C1(int)' must have an implementation part.
             //     partial C1(int x);
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C1").WithArguments("C1.C1(int)").WithLocation(3, 13),
-            // (4,13): error CS9401: Partial member 'C1.C1(ref int)' must have a definition part.
+            // (4,13): error CS9276: Partial member 'C1.C1(ref int)' must have a definition part.
             //     partial C1(ref int x) { }
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C1").WithArguments("C1.C1(ref int)").WithLocation(4, 13),
-            // (8,13): error CS9400: Partial member 'C2.C2(in int)' must have an implementation part.
+            // (8,13): error CS9275: Partial member 'C2.C2(in int)' must have an implementation part.
             //     partial C2(in int x);
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C2").WithArguments("C2.C2(in int)").WithLocation(8, 13),
-            // (9,13): error CS9401: Partial member 'C2.C2(ref readonly int)' must have a definition part.
+            // (9,13): error CS9276: Partial member 'C2.C2(ref readonly int)' must have a definition part.
             //     partial C2(ref readonly int x) { }
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C2").WithArguments("C2.C2(ref readonly int)").WithLocation(9, 13),
             // (9,13): error CS0663: 'C2' cannot define an overloaded constructor that differs only on parameter modifiers 'ref readonly' and 'in'
             //     partial C2(ref readonly int x) { }
             Diagnostic(ErrorCode.ERR_OverloadRefKind, "C2").WithArguments("C2", "constructor", "ref readonly", "in").WithLocation(9, 13),
-            // (13,13): error CS9400: Partial member 'C3.C3(ref int)' must have an implementation part.
+            // (13,13): error CS9275: Partial member 'C3.C3(ref int)' must have an implementation part.
             //     partial C3(ref int x);
             Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C3").WithArguments("C3.C3(ref int)").WithLocation(13, 13),
-            // (14,13): error CS9401: Partial member 'C3.C3(out int)' must have a definition part.
+            // (14,13): error CS9276: Partial member 'C3.C3(out int)' must have a definition part.
             //     partial C3(out int x) => throw null;
             Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "C3").WithArguments("C3.C3(out int)").WithLocation(14, 13),
             // (14,13): error CS0663: 'C3' cannot define an overloaded constructor that differs only on parameter modifiers 'out' and 'ref'

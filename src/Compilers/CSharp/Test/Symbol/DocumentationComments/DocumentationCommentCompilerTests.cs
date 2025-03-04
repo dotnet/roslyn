@@ -2197,7 +2197,7 @@ partial class C
                     // (1,22): warning CS1591: Missing XML comment for publicly visible type or member 'C'
                     // public partial class C
                     Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithLocation(1, 22),
-                    // (4,40): error CS9400: Partial member 'C.E' must have an implementation part.
+                    // (4,40): error CS9275: Partial member 'C.E' must have an implementation part.
                     //     public partial event System.Action E;
                     Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("C.E").WithLocation(4, 40));
             var e = comp.GlobalNamespace.GetMember<EventSymbol>("C.E");
@@ -2240,7 +2240,7 @@ partial class C
                     // (1,22): warning CS1591: Missing XML comment for publicly visible type or member 'C'
                     // public partial class C
                     Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C").WithLocation(1, 22),
-                    // (4,20): error CS9400: Partial member 'C.C()' must have an implementation part.
+                    // (4,20): error CS9275: Partial member 'C.C()' must have an implementation part.
                     //     public partial C();
                     Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C").WithArguments("C.C()").WithLocation(4, 20));
             var ctor = comp.GlobalNamespace.GetMember<MethodSymbol>("C..ctor");
