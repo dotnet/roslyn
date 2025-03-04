@@ -541,8 +541,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         }
 
         // * :: or :: * case
-        if (previousToken.Kind() == SyntaxKind.ColonColonToken ||
-            currentToken.Kind() == SyntaxKind.ColonColonToken)
+        if (previousToken.Kind() == SyntaxKind.ColonColonToken || currentToken.Kind() == SyntaxKind.ColonColonToken)
         {
             return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
         }
