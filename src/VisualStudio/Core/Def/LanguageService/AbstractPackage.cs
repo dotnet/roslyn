@@ -7,7 +7,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -27,18 +26,12 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
-
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        _componentModel_doNotAccessDirectly = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+        _componentModel_doNotAccessDirectly = await GetServiceAsync<SComponentModel, IComponentModel>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
         Assumes.Present(_componentModel_doNotAccessDirectly);
     }
 
     protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
     {
-        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
-
         // TODO: remove, workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1985204
         var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
         if (globalOptions.GetOption(SemanticSearchFeatureFlag.Enabled))
