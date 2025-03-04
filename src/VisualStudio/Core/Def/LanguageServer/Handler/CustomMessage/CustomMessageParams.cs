@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
@@ -11,26 +10,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 /// <summary>
 /// Parameters for the <see cref="CustomMessageHandler"/> request.
 /// </summary>
-/// <param name="assemblyPath">Full path to the assembly that contains the message handler.</param>
-/// <param name="typeFullName">Full name of the <see cref="Type"/> of the message handler.</param>
-/// <param name="message">Json message to be passed to a custom message handler.</param>
-internal readonly struct CustomMessageParams(string assemblyPath, string typeFullName, JsonNode message)
-{
-    /// <summary>
-    /// Gets the full path to the assembly that contains the message handler.
-    /// </summary>
-    [JsonPropertyName("assemblyPath")]
-    public string AssemblyPath { get; } = Requires.NotNull(assemblyPath);
-
-    /// <summary>
-    /// Gets the full name of the <see cref="Type"/> of the message handler.
-    /// </summary>
-    [JsonPropertyName("typeFullName")]
-    public string TypeFullName { get; } = Requires.NotNull(typeFullName);
-
-    /// <summary>
-    /// Gets the json message to be passed to a custom message handler.
-    /// </summary>
-    [JsonPropertyName("message")]
-    public JsonNode Message { get; } = Requires.NotNull(message);
-}
+/// <param name="AssemblyPath">Full path to the assembly that contains the message handler.</param>
+/// <param name="TypeFullName">Full name of the <see cref="Type"/> of the message handler.</param>
+/// <param name="Message">Json message to be passed to a custom message handler.</param>
+internal readonly record struct CustomMessageParams(
+    [property: JsonPropertyName("assemblyPath")] string AssemblyPath,
+    [property: JsonPropertyName("typeFullName")] string TypeFullName,
+    [property: JsonPropertyName("message")] string Message);

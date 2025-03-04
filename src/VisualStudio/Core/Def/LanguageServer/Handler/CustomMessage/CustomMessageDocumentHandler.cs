@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CustomMessageHandler;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class CustomMessageDocumentHandler()
-    : ILspServiceDocumentRequestHandler<CustomMessageDocumentParams, CustomDocumentResponse>
+    : ILspServiceDocumentRequestHandler<CustomMessageDocumentParams, CustomResponse>
 {
     private const string MethodName = "roslyn/customDocumentMessage";
 
@@ -34,34 +35,37 @@ internal class CustomMessageDocumentHandler()
         return request.TextDocument;
     }
 
-    public async Task<CustomDocumentResponse> HandleRequestAsync(CustomMessageDocumentParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<CustomResponse> HandleRequestAsync(CustomMessageDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var project = context.Document?.Project
             ?? throw new InvalidOperationException();
-        var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false)
-            ?? throw new InvalidOperationException();
-        var requestLinePositions = request.Positions.Select(tdp => ProtocolConversions.PositionToLinePosition(tdp)).ToImmutableArray();
-        var jsonMessage = request.Message.ToJsonString();
-        var response = await client.TryInvokeAsync<IRemoteCustomMessageHandlerService, HandleCustomMessageResponse>(
-            project,
-            (service, solutionInfo, cancellationToken) => service.HandleCustomMessageAsync(
-                solutionInfo,
-                request.AssemblyPath,
-                request.TypeFullName,
-                jsonMessage,
-                context.Document.Id,
-                requestLinePositions,
-                cancellationToken),
-            cancellationToken).ConfigureAwait(false);
+        var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+
+        Optional<string> response;
+        if (client is not null)
+        {
+            response = await client.TryInvokeAsync<IRemoteCustomMessageHandlerService, string>(
+                project,
+                (service, solutionInfo, cancellationToken) => service.HandleCustomMessageAsync(
+                    solutionInfo,
+                    request.AssemblyPath,
+                    request.TypeFullName,
+                    request.Message,
+                    context.Document.Id,
+                    cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            // TODO fix this
+            throw new NotSupportedException("Custom message handlers are not supported.");
+        }
 
         if (!response.HasValue)
         {
             throw new InvalidOperationException("The remote message handler didn't return any value.");
         }
 
-        var responsePositions = response.Value.Positions
-            .Select(p => new Position(p.Line, p.Character))
-            .ToArray();
-        return new CustomDocumentResponse(JsonNode.Parse(response.Value.Response)!, responsePositions);
+        return new CustomResponse(response.Value);
     }
 }

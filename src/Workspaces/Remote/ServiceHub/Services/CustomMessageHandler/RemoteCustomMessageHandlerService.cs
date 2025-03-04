@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
@@ -13,7 +14,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CustomMessageHandler;
-using Microsoft.CodeAnalysis.Remote.CustomMessageHandler;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -24,11 +24,13 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by handler file path. The handlers are indexed by type name.
     /// </summary>
-    private readonly ConcurrentDictionary<string, CustomMessageHandlerExtension> _extensions = new();
+    private readonly Dictionary<string, CustomMessageHandlerExtension> _extensions = new();
 
     private readonly System.Runtime.Loader.AssemblyLoadContext _defaultLoadContext
         = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(typeof(RemoteCustomMessageHandlerService).Assembly)
         ?? throw new InvalidOperationException($"Cannot get assembly load context for {nameof(RemoteCustomMessageHandlerService)}.");
+
+    private readonly object _lockObject = new();
 #endif
 
     internal sealed class Factory : FactoryBase<IRemoteCustomMessageHandlerService>
@@ -42,13 +44,12 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
     {
     }
 
-    public ValueTask<HandleCustomMessageResponse> HandleCustomMessageAsync(
+    public ValueTask<string> HandleCustomMessageAsync(
         Checksum solutionChecksum,
         string assemblyPath,
         string typeFullName,
         string jsonMessage,
         DocumentId? documentId,
-        ImmutableArray<LinePosition> positions,
         CancellationToken cancellationToken)
     {
 #if NETSTANDARD2_0
@@ -62,7 +63,9 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
         Requires.NotNullOrEmpty(assemblyPath);
         Requires.NotNullOrEmpty(typeFullName);
         Requires.NotNullOrEmpty(jsonMessage);
-        Requires.NotNullOrEmpty(positions);
+
+        var directory = Path.GetDirectoryName(assemblyPath);
+        Contract.ThrowIfNull(directory);
 
         return RunServiceAsync(solutionChecksum, async solution =>
         {
@@ -75,81 +78,54 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
 
             try
             {
-                var extension = _extensions.GetOrAdd(assemblyPath, _ =>
+                object? handler;
+                lock (_lockObject)
                 {
-                    var directory = Path.GetDirectoryName(assemblyPath);
-                    Contract.ThrowIfNull(directory);
-
-                    var loadContext = new System.Runtime.Loader.AssemblyLoadContext(name: $"RemoteCustomMessageHandlerService assembly load context for {assemblyPath}", isCollectible: true);
-                    loadContext.Resolving += (context, assemblyName) =>
+                    // Check if the assembly is already loaded.
+                    if (!_extensions.TryGetValue(assemblyPath, out var extension))
                     {
-                        var sharedAssembly = _defaultLoadContext.Assemblies.Where(a => a.GetName().Name == assemblyName.Name).FirstOrDefault();
+                        var loadContext = new System.Runtime.Loader.AssemblyLoadContext(name: $"RemoteCustomMessageHandlerService assembly load context for {assemblyPath}", isCollectible: true);
+                        loadContext.Resolving += ResolveExtensionAssembly;
 
-                        if (sharedAssembly is not null)
-                        {
-                            if (sharedAssembly.GetName().Version < assemblyName.Version)
-                            {
-                                throw new InvalidOperationException($"The version of the loaded assembly {assemblyName.Name} is too low: requested {assemblyName.Version}, found {sharedAssembly.GetName().Version}.");
-                            }
+                        extension = new CustomMessageHandlerExtension(loadContext);
+                        _extensions[assemblyPath] = extension;
+                    }
 
-                            return sharedAssembly;
-                        }
+                    if (!extension.Handlers.TryGetValue(typeFullName, out handler))
+                    {
+                        var assembly = extension.AssemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
+                        var type = assembly.GetType(typeFullName)
+                            ?? throw new InvalidOperationException($"Cannot find type {typeFullName} in {assemblyPath}.");
 
-                        var extensionAssemblyPath = Path.Combine(directory, $"{assemblyName.Name}.dll");
-                        if (File.Exists(extensionAssemblyPath))
-                        {
-                            return loadContext.LoadFromAssemblyPath(extensionAssemblyPath);
-                        }
-
-                        return null;
-                    };
-
-                    return new CustomMessageHandlerExtension(loadContext);
-                });
-
-                var handler = extension.Handlers.GetOrAdd(typeFullName, name =>
-                {
-                    var assembly = extension.AssemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
-                    var type = assembly.GetType(typeFullName)
-                        ?? throw new InvalidOperationException($"Cannot find type {typeFullName} in {assemblyPath}.");
-
-                    // Create the Handler instance. Requires having a parameterless constructor.
-                    // ```
-                    // public class CustomMessageHandler
-                    // {
-                    //     public Task<TResponse> ExecuteAsync(TRequest, CancellationToken);
-                    // }
-                    //
-                    // public class CustomMessageDocumentHandler
-                    // {
-                    //     public Task<TResponse> ExecuteAsync(TRequest, Document, CancellationToken);
-                    // }
-                    // ```
-                    return Activator.CreateInstance(type)
-                        ?? throw new InvalidOperationException($"Cannot create {typeFullName} from {assemblyPath}.");
-                });
+                        // Create the Handler instance. Requires having a parameterless constructor.
+                        // ```
+                        // public class CustomMessageHandler
+                        // {
+                        //     public Task<TResponse> ExecuteAsync(TRequest, Solution, CancellationToken);
+                        // }
+                        //
+                        // public class CustomMessageDocumentHandler
+                        // {
+                        //     public Task<TResponse> ExecuteAsync(TRequest, Document, CancellationToken);
+                        // }
+                        // ```
+                        handler = Activator.CreateInstance(type)
+                            ?? throw new InvalidOperationException($"Cannot create {typeFullName} from {assemblyPath}.");
+                    }
+                }
 
                 // TODO: use a well-known interface once available
                 const string executeMethodName = "ExecuteAsync";
                 var executeMethod = handler.GetType().GetMethod(executeMethodName, BindingFlags.Public | BindingFlags.Instance)
                     ?? throw new InvalidOperationException($"Cannot find method {executeMethodName} in type {typeFullName} assembly {assemblyPath}.");
 
-                // CustomMessage.Message references positions in CustomMessage.TextDocument as indexes referencing CustomMessage.Positions.
-                // LinePositionReadConverter allows the deserialization of these indexes into LinePosition objects.
-                JsonSerializerOptions readOptions = new();
-                if (document is not null)
-                {
-                    LinePositionReadConverter linePositionReadConverter = new(positions);
-                    readOptions.Converters.Add(linePositionReadConverter);
-                }
-
                 // Deserialize the message into the expected TRequest type.
                 var requestType = executeMethod.GetParameters()[0].ParameterType;
-                var message = JsonSerializer.Deserialize(jsonMessage, requestType, readOptions);
+                var message = JsonSerializer.Deserialize(jsonMessage, requestType);
 
                 // Invoke the execute method.
                 object?[] parameters = document is null
-                    ? [message, cancellationToken]
+                    ? [message, solution, cancellationToken]
                     : [message, document, cancellationToken];
                 var resultTask = executeMethod.Invoke(handler, parameters) as Task
                     ?? throw new InvalidOperationException($"Unexpected return type from {typeFullName}:{executeMethodName} in assembly {assemblyPath}, expected type Task<>.");
@@ -160,26 +136,11 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                     ?? throw new InvalidOperationException($"Unexpected return type from {typeFullName}:{executeMethodName} in assembly {assemblyPath}, expected type Task<>.");
                 var result = resultProperty.GetValue(resultTask);
 
-                // CustomResponse.Message must express positions in CustomMessage.TextDocument as indexes referencing CustomResponse.Positions.
-                // LinePositionWriteConverter allows serializing extender-defined types into json with indexes referencing LinePosition objects.
-                JsonSerializerOptions writeOptions = new();
-                LinePositionWriteConverter? linePositionWriteConverter = null;
-                if (document is not null)
-                {
-                    linePositionWriteConverter = new();
-                    writeOptions.Converters.Add(linePositionWriteConverter);
-                }
-
                 // Serialize the TResponse and return it to the extension.
                 var responseType = resultProperty.PropertyType;
-                var responseJson = JsonSerializer.Serialize(result, responseType, writeOptions);
+                var responseJson = JsonSerializer.Serialize(result, responseType);
 
-                return new HandleCustomMessageResponse()
-                {
-                    Response = responseJson,
-                    Positions = linePositionWriteConverter?.LinePositions.OrderBy(lp => lp.Value).Select(lp => lp.Key).ToImmutableArray()
-                        ?? ImmutableArray<LinePosition>.Empty,
-                };
+                return responseJson;
             }
             catch (Exception e)
             {
@@ -187,6 +148,22 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                 throw;
             }
         }, cancellationToken);
+
+        Assembly? ResolveExtensionAssembly(System.Runtime.Loader.AssemblyLoadContext context, AssemblyName assemblyName)
+        {
+            try
+            {
+                return _defaultLoadContext.LoadFromAssemblyName(assemblyName);
+            }
+            catch
+            {
+            }
+
+            var extensionAssemblyPath = Path.Combine(directory, $"{assemblyName.Name}.dll");
+
+            // This will throw FileNotFoundException if the assembly is not found.
+            return context.LoadFromAssemblyPath(extensionAssemblyPath);
+        }
 #endif
     }
 
@@ -210,13 +187,13 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
         {
             try
             {
-                var defaultLoadContext = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(typeof(RemoteCustomMessageHandlerService).Assembly);
-                Contract.ThrowIfNull(defaultLoadContext);
-
-                if (_extensions.TryRemove(assemblyPath, out var extension))
+                lock (_lockObject)
                 {
-                    extension.Handlers.Clear();
-                    extension.AssemblyLoadContext.Unload();
+                    if (_extensions.TryGetValue(assemblyPath, out var extension))
+                    {
+                        _extensions.Remove(assemblyPath);
+                        extension.AssemblyLoadContext.Unload();
+                    }
                 }
             }
             catch (Exception e)
@@ -235,18 +212,21 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
     {
         base.Dispose();
 
-        foreach (var extension in _extensions.Values)
+        lock (_lockObject)
         {
-            extension.Handlers.Clear();
-            extension.AssemblyLoadContext.Unload();
-        }
+            foreach (var extension in _extensions.Values)
+            {
+                extension.Handlers.Clear();
+                extension.AssemblyLoadContext.Unload();
+            }
 
-        _extensions.Clear();
+            _extensions.Clear();
+        }
     }
 
     private record struct CustomMessageHandlerExtension(System.Runtime.Loader.AssemblyLoadContext AssemblyLoadContext)
     {
-        public ConcurrentDictionary<string, object> Handlers { get; } = new();
+        public Dictionary<string, object> Handlers { get; } = new();
     }
 #endif
 }

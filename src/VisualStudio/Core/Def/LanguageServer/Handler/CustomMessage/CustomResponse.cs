@@ -8,14 +8,8 @@ using System.Text.Json.Serialization;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
 /// <summary>
-/// Return type for the <see cref="CustomMessageHandler"/> request.
+/// Return type for the <see cref="CustomMessageHandler"/> and <see cref="CustomMessageDocumentHandler"/> request.
 /// </summary>
-/// <param name="response">Json response returned by the custom message handler.</param>
-internal readonly struct CustomResponse(JsonNode response)
-{
-    /// <summary>
-    /// Gets the json response returned by the custom message handler.
-    /// </summary>
-    [JsonPropertyName("response")]
-    public JsonNode Response { get; } = Requires.NotNull(response);
-}
+/// <param name="Response">Json response returned by the custom message handler.</param>
+internal readonly record struct CustomResponse(
+    [property: JsonPropertyName("response")] string Response);

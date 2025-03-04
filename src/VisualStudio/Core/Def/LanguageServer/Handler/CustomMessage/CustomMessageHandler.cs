@@ -3,15 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CustomMessageHandler;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
@@ -32,26 +29,33 @@ internal class CustomMessageHandler()
     {
         var solution = context.Solution
             ?? throw new InvalidOperationException();
-        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false)
-            ?? throw new InvalidOperationException();
-        var jsonMessage = request.Message.ToJsonString();
-        var response = await client.TryInvokeAsync<IRemoteCustomMessageHandlerService, HandleCustomMessageResponse>(
-            solution,
-            (service, solutionInfo, cancellationToken) => service.HandleCustomMessageAsync(
-                solutionInfo,
-                request.AssemblyPath,
-                request.TypeFullName,
-                jsonMessage,
-                documentId: null,
-                ImmutableArray<LinePosition>.Empty,
-                cancellationToken),
-            cancellationToken).ConfigureAwait(false);
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+
+        Optional<string> response;
+        if (client is not null)
+        {
+            response = await client.TryInvokeAsync<IRemoteCustomMessageHandlerService, string>(
+                solution,
+                (service, solutionInfo, cancellationToken) => service.HandleCustomMessageAsync(
+                    solutionInfo,
+                    request.AssemblyPath,
+                    request.TypeFullName,
+                    request.Message,
+                    documentId: null,
+                    cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            // TODO fix this
+            throw new NotSupportedException("Custom message handlers are not supported.");
+        }
 
         if (!response.HasValue)
         {
             throw new InvalidOperationException("The remote message handler didn't return any value.");
         }
 
-        return new CustomResponse(JsonNode.Parse(response.Value.Response)!);
+        return new CustomResponse(response.Value);
     }
 }
