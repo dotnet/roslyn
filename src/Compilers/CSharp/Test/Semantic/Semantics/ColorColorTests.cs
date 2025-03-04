@@ -2368,6 +2368,108 @@ public class Tree2 : Tree1
             compilation.VerifyDiagnostics();
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45739")]
+        [Fact]
+        public void ConstFieldEnum()
+        {
+            const string source = @"
+using Color2 = Color;
+
+enum Color
+{
+    Red,
+    Green,
+    Blue,
+    Yellow,
+}
+
+class M
+{
+    public const Color Color = Color.Red;
+    public const Color2 Color2 = Color2.Yellow;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(M.Color == Color.Red);
+        System.Console.Write(M.Color2 == Color.Yellow);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "TrueTrue")
+                .VerifyDiagnostics();
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45739")]
+        [Fact]
+        public void ConstFieldPrimitives()
+        {
+            const string source = @"
+using System;
+using SystemChar = System.Char;
+
+class M
+{
+    public const Int32 Int32 = Int32.MaxValue;
+    public const SystemChar SystemChar = SystemChar.MaxValue;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(M.Int32 == Int32.MaxValue);
+        System.Console.Write(M.SystemChar == SystemChar.MaxValue);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "TrueTrue")
+                .VerifyDiagnostics();
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/45739")]
+        [Fact]
+        public void ConstFieldPrimitivesActualCircular()
+        {
+            string source = @"
+using System;
+using SystemChar = System.Char;
+
+class M
+{
+    public const Int32 Int32 = Int32.Increment();
+    public const SystemChar SystemChar = SystemChar.Increment();
+}
+
+public static class Extensions
+{
+    public static int Increment(this int i) => i + 1;
+    public static char Increment(this ref char c) => ++c;
+}
+";
+
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics(
+                // (7,24): error CS0110: The evaluation of the constant value for 'M.Int32' involves a circular definition
+                //     public const Int32 Int32 = Int32.Increment();
+                Diagnostic(ErrorCode.ERR_CircConstValue, "Int32").WithArguments("M.Int32").WithLocation(7, 24),
+                // (7,32): error CS0133: The expression being assigned to 'M.Int32' must be constant
+                //     public const Int32 Int32 = Int32.Increment();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "Int32.Increment()").WithArguments("M.Int32").WithLocation(7, 32),
+                // (8,29): error CS0110: The evaluation of the constant value for 'M.SystemChar' involves a circular definition
+                //     public const SystemChar SystemChar = SystemChar.Increment();
+                Diagnostic(ErrorCode.ERR_CircConstValue, "SystemChar").WithArguments("M.SystemChar").WithLocation(8, 29),
+                // (8,42): error CS1510: A ref or out value must be an assignable variable
+                //     public const SystemChar SystemChar = SystemChar.Increment();
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "SystemChar").WithLocation(8, 42)
+                );
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71039")]
         public void ConstInAttributes_NoCycle_01()
         {
