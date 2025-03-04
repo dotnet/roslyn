@@ -1307,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void CollectionBuilder_ImplicitParameter_Params()
+        public void CollectionBuilder_ImplicitParameter_Params_01()
         {
             string sourceA = """
                 using System;
@@ -1374,6 +1374,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,13): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<int>' to 'int'
                 //         c = [with(2), 3];
                 Diagnostic(ErrorCode.ERR_BadArgType, "[with(2), 3]").WithArguments("1", "System.ReadOnlySpan<int>", "int").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void CollectionBuilder_ImplicitParameter_Params_02()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                struct MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly List<T> _list;
+                    internal MyCollection(ReadOnlySpan<T> items) { _list = new(items.ToArray()); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(params ReadOnlySpan<T> items) => new(items);
+                }
+                """;
+            string sourceB = """
+                using System;
+                class MyItem
+                {
+                    public static implicit operator MyItem(ReadOnlySpan<MyItem> items) => new();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyItem x = new();
+                        MyItem y = new();
+                        MyCollection<MyItem> c;
+                        c = [];
+                        c = [x, y];
+                        c = [with(x)];
+                        c = [with(x), y];
+                        c = [with(), x, y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
+            // PROTOTYPE: [with(x)] and [with(x), y] should result in errors since x should not be included in the params argument.
+            comp.VerifyEmitDiagnostics();
         }
 
         // C#7.3 feature ImprovedOverloadCandidates drops candidates with constraint violations
@@ -3319,6 +3366,123 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0007:  ret
                 }
                 """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefSafety_ConstructorArguments(bool scopedInParameter, bool scopedOutArgument)
+        {
+            string sourceA = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct R<T>
+                {
+                    public R(ref T t) { }
+                }
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public MyCollection() { }
+                    public MyCollection({{(scopedInParameter ? "scoped" : "")}} R<T> a, out R<T> b) { b = default; }
+                    public void Add(T t) { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                """;
+            string sourceB = $$"""
+                class Program
+                {
+                    static void F<T>(T x, T y)
+                    {
+                        MyCollection<T> c;
+                        T t = default;
+                        R<T> a = new(ref t);
+                        {{(scopedOutArgument ? "scoped" : "")}} R<T> b;
+                        c = new(a, out b);
+                        c = [with(a, out b), x, y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            if (scopedInParameter || scopedOutArgument)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (9,13): error CS8350: This combination of arguments to 'MyCollection<T>.MyCollection(R<T>, out R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         c = new(a, out b);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "new(a, out b)").WithArguments("MyCollection<T>.MyCollection(R<T>, out R<T>)", "a").WithLocation(9, 13),
+                    // (9,17): error CS8352: Cannot use variable 'a' in this context because it may expose referenced variables outside of their declaration scope
+                    //         c = new(a, out b);
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "a").WithArguments("a").WithLocation(9, 17),
+                    // (10,13): error CS8350: This combination of arguments to 'MyCollection<T>.MyCollection(R<T>, out R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         c = [with(a, out b), x, y];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "[with(a, out b), x, y]").WithArguments("MyCollection<T>.MyCollection(R<T>, out R<T>)", "a").WithLocation(10, 13),
+                    // (10,19): error CS8352: Cannot use variable 'a' in this context because it may expose referenced variables outside of their declaration scope
+                    //         c = [with(a, out b), x, y];
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "a").WithArguments("a").WithLocation(10, 19));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefSafety_CollectionBuilderArguments(bool scopedInParameter, bool scopedOutArgument)
+        {
+            string sourceA = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>({{(scopedInParameter ? "scoped" : "")}} ReadOnlySpan<T> items, out ReadOnlySpan<T> other)
+                    {
+                        other = default;
+                        return default;
+                    }
+                }
+                """;
+            string sourceB = $$"""
+                using System;
+                class Program
+                {
+                    static void F<T>(T x, T y)
+                    {
+                        MyCollection<T> c;
+                        {{(scopedOutArgument ? "scoped" : "")}} ReadOnlySpan<T> s;
+                        c = MyBuilder.Create([x, y], out s);
+                        c = [with(out s), x, y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
+            if (scopedInParameter || scopedOutArgument)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (8,13): error CS8350: This combination of arguments to 'MyBuilder.Create<T>(ReadOnlySpan<T>, out ReadOnlySpan<T>)' is disallowed because it may expose variables referenced by parameter 'items' outside of their declaration scope
+                    //         c = MyBuilder.Create([x, y], out s);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "MyBuilder.Create([x, y], out s)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, out System.ReadOnlySpan<T>)", "items").WithLocation(8, 13),
+                    // (8,30): error CS9203: A collection expression of type 'ReadOnlySpan<T>' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         c = MyBuilder.Create([x, y], out s);
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y]").WithArguments("System.ReadOnlySpan<T>").WithLocation(8, 30),
+                    // (9,13): error CS8352: Cannot use variable '[with(out s), x, y]' in this context because it may expose referenced variables outside of their declaration scope
+                    //         c = [with(out s), x, y];
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "[with(out s), x, y]").WithArguments("[with(out s), x, y]").WithLocation(9, 13),
+                    // (9,14): error CS8350: This combination of arguments to 'MyBuilder.Create<T>(ReadOnlySpan<T>, out ReadOnlySpan<T>)' is disallowed because it may expose variables referenced by parameter 'items' outside of their declaration scope
+                    //         c = [with(out s), x, y];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "with(out s)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, out System.ReadOnlySpan<T>)", "items").WithLocation(9, 14));
+            }
         }
 
         [Fact]
