@@ -53,7 +53,7 @@ public class AddParameterCheckTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
     public async Task TestSimpleReferenceType_AlreadyNullChecked2()
     {
         await new VerifyCS.Test
@@ -104,7 +104,7 @@ public class AddParameterCheckTests
             """);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
     public async Task TestSimpleReferenceType_ThrowIfNull()
     {
         await new VerifyCS.Test
@@ -613,7 +613,7 @@ public class AddParameterCheckTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
     public async Task TestMultiNullableParameters_Net7()
     {
         await new VerifyCS.Test
@@ -2020,7 +2020,7 @@ public class AddParameterCheckTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
     public async Task TestSpecialStringCheck2_Net8()
     {
         await new VerifyCS.Test
