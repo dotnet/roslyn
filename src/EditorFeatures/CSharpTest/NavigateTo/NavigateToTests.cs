@@ -632,11 +632,9 @@ class Goo
         """, async w =>
         {
             var expecteditem1 = new NavigateToItem("E", NavigateToItemKind.Event, "csharp", null, null, s_emptyExactPatternMatch, null);
-            var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
-
             var items = await _aggregator.GetItemsAsync("E");
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([expecteditem1, expecteditem1], items);
         });
     }
 
@@ -652,11 +650,9 @@ class Goo
         """, async w =>
         {
             var expecteditem1 = new NavigateToItem("C", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null);
-            var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
-
             var items = (await _aggregator.GetItemsAsync("C")).Where(t => t.Kind == NavigateToItemKind.Method);
 
-            VerifyNavigateToResultItems(expecteditems, items);
+            VerifyNavigateToResultItems([expecteditem1, expecteditem1], items);
         });
     }
 
