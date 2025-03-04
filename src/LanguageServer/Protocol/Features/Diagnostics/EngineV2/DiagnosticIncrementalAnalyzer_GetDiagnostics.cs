@@ -18,9 +18,9 @@ internal partial class DiagnosticAnalyzerService
 {
     private partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         {
-            return await ProduceProjectDiagnosticsAsync(
+            return ProduceProjectDiagnosticsAsync(
                 project, diagnosticIds, shouldIncludeAnalyzer,
                 // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
                 // project if no specific document id was requested.
@@ -29,23 +29,23 @@ internal partial class DiagnosticAnalyzerService
                 includeNonLocalDocumentDiagnostics,
                 // return diagnostics specific to one project or document
                 includeProjectNonLocalResult: documentId == null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
         }
 
-        public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
+        public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
             Project project,
             ImmutableHashSet<string>? diagnosticIds,
             Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
             bool includeNonLocalDocumentDiagnostics,
             CancellationToken cancellationToken)
         {
-            return await ProduceProjectDiagnosticsAsync(
+            return ProduceProjectDiagnosticsAsync(
                project, diagnosticIds, shouldIncludeAnalyzer,
                documentIds: [],
                includeLocalDocumentDiagnostics: false,
                includeNonLocalDocumentDiagnostics: includeNonLocalDocumentDiagnostics,
                includeProjectNonLocalResult: true,
-               cancellationToken).ConfigureAwait(false);
+               cancellationToken);
         }
 
         private async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(

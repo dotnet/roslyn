@@ -9,13 +9,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class GlobalKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class GlobalKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.GlobalKeyword)
 {
-    public GlobalKeywordRecommender()
-        : base(SyntaxKind.GlobalKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var syntaxTree = context.SyntaxTree;

@@ -11,13 +11,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class DecimalKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class DecimalKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.DecimalKeyword)
 {
-    public DecimalKeywordRecommender()
-        : base(SyntaxKind.DecimalKeyword)
-    {
-    }
-
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var syntaxTree = context.SyntaxTree;

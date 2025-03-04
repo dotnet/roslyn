@@ -7,13 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class FinallyKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class FinallyKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.FinallyKeyword)
 {
-    public FinallyKeywordRecommender()
-        : base(SyntaxKind.FinallyKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         => context.SyntaxTree.IsCatchOrFinallyContext(position, context.LeftToken);
 }
