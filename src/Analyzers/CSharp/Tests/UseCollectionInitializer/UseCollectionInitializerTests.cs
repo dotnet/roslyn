@@ -1842,7 +1842,7 @@ public sealed partial class UseCollectionInitializerTests
                     public void Main(ConcurrentQueue<int> queue)
                     {
                         BlockingCollection<int> bc = [|new|](queue);
-                        bc.Add(42);
+                        [|bc.Add(|]42);
                     }
                 }
                 """,
