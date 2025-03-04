@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     parameterTypes,
                                     parameterRefKinds,
                                     ImmutableArray.Create<BoundExpression>(methodGroup.ReceiverOpt, new BoundValuePlaceholder(syntax, secondArgumentType) { WasCompilerGenerated = true }),
-                                    ref useSiteInfo);
+                                    ref useSiteInfo); // PROTOTYPE we may need to override ordinals here
 
                                 if (!inferenceResult.Success)
                                 {

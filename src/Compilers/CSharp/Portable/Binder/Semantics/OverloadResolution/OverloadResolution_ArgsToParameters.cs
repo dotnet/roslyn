@@ -69,6 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return [symbol.ContainingType.ExtensionParameter.TypeWithAnnotations, .. symbol.GetParameterTypes()];
         }
 
+        internal static int GetArityIncludingExtension(MethodSymbol symbol)
+        {
+            Debug.Assert(symbol.GetIsNewExtensionMember());
+            return symbol.ContainingType.Arity + symbol.Arity;
+        }
+
         private static ArgumentAnalysisResult AnalyzeArguments(
             Symbol symbol,
             AnalyzedArguments arguments,

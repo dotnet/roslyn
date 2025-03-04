@@ -7936,7 +7936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds,
                 arguments,
                 ref discardedUseSiteInfo,
-                new MethodInferenceExtensions(this));
+                new MethodInferenceExtensions(this)); // PROTOTYPE we may need to override ordinals here
 
             if (!result.Success)
             {
