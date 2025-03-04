@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -44,14 +42,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
     protected abstract Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken);
     protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
-    protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionCoreAsync(
-        Document document,
-        TextSpan? span,
-        SyntaxNode memberDeclaration,
-        ISymbol memberSymbol,
-        SemanticModel semanticModel,
-        ImmutableArray<ReferencedSymbol> references,
-        CancellationToken cancellationToken);
+    protected abstract Task<ImplementationDetails> ImplementNotImplementedExceptionCoreAsync(Document document, SyntaxNode throwNode, CancellationToken cancellationToken);
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         => IsAvailableCoreAsync(cancellationToken);
@@ -208,18 +199,14 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
         return await GetDocumentationCommentCoreAsync(proposal, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionAsync(
+    public async Task<ImplementationDetails> ImplementNotImplementedExceptionAsync(
         Document document,
-        TextSpan? span,
-        SyntaxNode syntaxNode,
-        ISymbol memberSymbol,
-        SemanticModel semanticModel,
-        ImmutableArray<ReferencedSymbol> references,
+        SyntaxNode throwNode,
         CancellationToken cancellationToken)
     {
         if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
-            return default;
+            return new ImplementationDetails() { IsQuotaExceeded = false, ReplacementNode = null, Message = string.Empty };
 
-        return await ImplementNotImplementedExceptionCoreAsync(document, span, syntaxNode, memberSymbol, semanticModel, references, cancellationToken).ConfigureAwait(false);
+        return await ImplementNotImplementedExceptionCoreAsync(document, throwNode, cancellationToken).ConfigureAwait(false);
     }
 }

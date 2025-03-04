@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -136,17 +135,22 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
     }
 
-    protected override Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionCoreAsync(
+    protected override async Task<ImplementationDetails> ImplementNotImplementedExceptionCoreAsync(
         Document document,
-        TextSpan? span,
-        SyntaxNode syntaxNode,
-        ISymbol memberSymbol,
-        SemanticModel semanticModel,
-        ImmutableArray<ReferencedSymbol> references,
+        SyntaxNode throwNode,
         CancellationToken cancellationToken)
     {
         if (GenerateImplementationService is not null)
-            return GenerateImplementationService.ImplementNotImplementedExceptionAsync(document, span, syntaxNode, memberSymbol, semanticModel, references, cancellationToken);
-        return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
+        {
+            var wrapper = await GenerateImplementationService.ImplementNotImplementedExceptionAsync(document, throwNode, cancellationToken).ConfigureAwait(false);
+            return new()
+            {
+                IsQuotaExceeded = wrapper.IsQuotaExceeded,
+                ReplacementNode = wrapper.ReplacementNode,
+                Message = wrapper.Message,
+            };
+        }
+
+        return new() { IsQuotaExceeded = false, ReplacementNode = null, Message = string.Empty };
     }
 }

@@ -3,17 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
 
@@ -35,16 +31,12 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             copilotService
                 .Setup(service => service.ImplementNotImplementedExceptionAsync(
                     It.IsAny<Document>(),
-                    It.IsAny<TextSpan?>(),
                     It.IsAny<SyntaxNode>(),
-                    It.IsAny<ISymbol>(),
-                    It.IsAny<SemanticModel>(),
-                    It.IsAny<ImmutableArray<ReferencedSymbol>>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(async (Document document, TextSpan? textSpan, SyntaxNode node, ISymbol symbol, SemanticModel semanticModel, ImmutableArray<ReferencedSymbol> references, CancellationToken cancellationToken) =>
+                .Returns(async (Document document, SyntaxNode node, CancellationToken cancellationToken) =>
                 {
                     var text = await document.GetTextAsync(cancellationToken);
-                    var implementation = node is MethodDeclarationSyntax methodDeclaration
+                    var replacementNode = node is MethodDeclarationSyntax methodDeclaration
                         ? methodDeclaration.Identifier.Text switch
                         {
                             "Add" => "public int Add(int a, int b)\n{\n    return a + b;\n}\n",
@@ -59,7 +51,12 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                         ? "public int ConstantValue => 42;\n"
                         : string.Empty;
 
-                    return (new() { ["Implementation"] = implementation }, false);
+                    return new()
+                    {
+                        IsQuotaExceeded = false,
+                        ReplacementNode = SyntaxFactory.ParseMemberDeclaration(replacementNode),
+                        Message = "Successful",
+                    };
                 });
         });
 
@@ -166,13 +163,15 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             copilotService
                 .Setup(service => service.ImplementNotImplementedExceptionAsync(
                     It.IsAny<Document>(),
-                    It.IsAny<TextSpan?>(),
                     It.IsAny<SyntaxNode>(),
-                    It.IsAny<ISymbol>(),
-                    It.IsAny<SemanticModel>(),
-                    It.IsAny<ImmutableArray<ReferencedSymbol>>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>((null, true)));
+                .Returns(Task.FromResult<ImplementationDetails>(
+                    new()
+                    {
+                        IsQuotaExceeded = true,
+                        ReplacementNode = null,
+                        Message = nameof(ImplementationDetails.IsQuotaExceeded),
+                    }));
         });
 
         await new VerifyCS.Test
@@ -289,20 +288,22 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     [Fact]
     public async Task ReceivesInvalidCode_NotifiesAsComment()
     {
-        MockCopilotService((copilotService) =>
-        {
-            copilotService
-                .Setup(service => service.ImplementNotImplementedExceptionAsync(
-                    It.IsAny<Document>(),
-                    It.IsAny<TextSpan?>(),
-                    It.IsAny<SyntaxNode>(),
-                    It.IsAny<ISymbol>(),
-                    It.IsAny<SemanticModel>(),
-                    It.IsAny<ImmutableArray<ReferencedSymbol>>(),
-                    It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>(
-                    (new() { ["Implementation"] = "invalid code" }, false)));
-        });
+        MockCopilotService(copilotService =>
+            {
+                copilotService
+                    .Setup(service => service.ImplementNotImplementedExceptionAsync(
+                        It.IsAny<Document>(),
+                        It.IsAny<SyntaxNode>(),
+                        It.IsAny<CancellationToken>()))
+                    .Returns(Task.FromResult<ImplementationDetails>(
+                        new()
+                        {
+                            IsQuotaExceeded = false,
+                            ReplacementNode = null,
+                            Message = "Received invalid code.",
+                        }));
+            }
+        );
 
         await new VerifyCS.Test
         {
@@ -334,57 +335,49 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         }.RunAsync();
     }
 
-    [Fact]
-    public async Task NullDictionary_NotifiesWithDefaultComment()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ReplacementNode_Null_NotifiesWithComment(bool withEmptyMessage)
     {
-        await RunTestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable(null);
-    }
-
-    [Fact]
-    public async Task EmptyDictionary_NotifiesWithDefaultComment()
-    {
-        await RunTestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable([]);
+        await TestHandlesInvalidReplacementNode(
+            new()
+            {
+                IsQuotaExceeded = false,
+                ReplacementNode = null,
+                Message = withEmptyMessage ? string.Empty : "Custom Error Message",
+            });
     }
 
     [Theory]
-    [InlineData("Implementation", " ")]
-    [InlineData("Implementation", "")]
-    public async Task EmptyImplementation_NotifiedWithDefault(string key, string value)
+    [InlineData("Invalid code")]
+    [InlineData(" ")]
+    [InlineData("")]
+    public async Task ReplacementNode_Invalid_NotifiedWithDefault(string invalidCode)
     {
-        await RunTestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable(
-            new Dictionary<string, string>
+        await TestHandlesInvalidReplacementNode(
+            new()
             {
-                [key] = value
+                IsQuotaExceeded = false,
+                ReplacementNode = SyntaxFactory.ParseMemberDeclaration(invalidCode),
+                Message = "Custom Error Message",
             })
             .ConfigureAwait(false);
     }
 
-    [Fact]
-    public async Task MessageAvailable_MissingImplementation_NotifiesUsingMessage()
+    private static async Task TestHandlesInvalidReplacementNode(ImplementationDetails implementationDetails)
     {
-        await RunTestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable(
-            new Dictionary<string, string>
+        MockCopilotService(
+            copilotService =>
             {
-                ["Message"] = "Custom error message"
-            })
-            .ConfigureAwait(false);
-    }
-
-    private static async Task RunTestNotImplementedMethodFix_NotifiesWhenImplementationNotAvailable(Dictionary<string, string>? implementationSuggestion)
-    {
-        MockCopilotService((copilotService) =>
-        {
-            copilotService
-                .Setup(service => service.ImplementNotImplementedExceptionAsync(
-                    It.IsAny<Document>(),
-                    It.IsAny<TextSpan?>(),
-                    It.IsAny<SyntaxNode>(),
-                    It.IsAny<ISymbol>(),
-                    It.IsAny<SemanticModel>(),
-                    It.IsAny<ImmutableArray<ReferencedSymbol>>(),
-                    It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>((implementationSuggestion, false)));
-        });
+                copilotService
+                    .Setup(service => service.ImplementNotImplementedExceptionAsync(
+                        It.IsAny<Document>(),
+                        It.IsAny<SyntaxNode>(),
+                        It.IsAny<CancellationToken>()))
+                    .Returns(Task.FromResult(implementationDetails));
+            }
+        );
 
         await new VerifyCS.Test
         {
@@ -399,13 +392,13 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 }
             }
             """,
-            FixedCode = implementationSuggestion?.TryGetValue("Message", out var message) == true
+            FixedCode = !string.IsNullOrWhiteSpace(implementationDetails.Message)
             ? $$"""
             using System;
 
             class C
             {
-                /* {{message}} */
+                /* {{implementationDetails.Message}} */
                 void M()
                 {
                     throw new NotImplementedException();
@@ -437,9 +430,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             .ReturnsAsync(true);
 
         var copilotService = new Mock<ICopilotCodeAnalysisService>(MockBehavior.Strict);
-        copilotService
-            .Setup(service => service.IsAvailableAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
 
         setupCopilotService(copilotService);
     }

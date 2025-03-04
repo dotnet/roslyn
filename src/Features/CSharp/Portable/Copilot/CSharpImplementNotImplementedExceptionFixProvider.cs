@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -66,17 +65,6 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         }
     }
 
-    private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var progress = new StreamingProgressCollector();
-        await SymbolFinder.FindReferencesAsync(
-            symbol, document.Project.Solution, progress, documents: null,
-            FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
-
-        return progress.GetReferencedSymbols();
-    }
-
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
@@ -107,39 +95,19 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var throwNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
         var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
         Contract.ThrowIfNull(methodOrProperty);
-        Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var memberSymbol = semanticModel.GetRequiredDeclaredSymbol(methodOrProperty, cancellationToken);
-        var references = await FindReferencesAsync(document, memberSymbol, cancellationToken).ConfigureAwait(false);
+
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
+        var implementationDetails = await copilotService.ImplementNotImplementedExceptionAsync(document, throwNode, cancellationToken).ConfigureAwait(false);
 
-        var (implementationSuggestion, isQuotaExceeded) = await copilotService.ImplementNotImplementedExceptionAsync(
-            document, throwNode.Span, methodOrProperty, memberSymbol, semanticModel, references, cancellationToken).ConfigureAwait(false);
-
-        MemberDeclarationSyntax replacement;
-        if (isQuotaExceeded)
+        var replacement = implementationDetails.ReplacementNode switch
         {
-            replacement = AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded);
-        }
-        else if (implementationSuggestion == null
-            || !implementationSuggestion.TryGetValue("Implementation", out var implementation)
-            || string.IsNullOrWhiteSpace(implementation))
-        {
-            var message = implementationSuggestion?.TryGetValue("Message", out var description) == true
-                ? description
-                : CSharpFeaturesResources.Error_colon_Could_not_complete_this_request;
-            replacement = AddCommentToMember(methodOrProperty, message);
-        }
-        else
-        {
-            var parseOnce = SyntaxFactory.ParseMemberDeclaration(implementation, options: methodOrProperty.SyntaxTree.Options);
-            replacement = parseOnce is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax
-                ? parseOnce
-                    .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
-                    .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
-                    .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation)
-                : AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property);
-        }
+            MemberDeclarationSyntax newMember => newMember
+                .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
+                .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
+                .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation),
+            null => AddCommentToMember(methodOrProperty, string.IsNullOrWhiteSpace(implementationDetails.Message) ? CSharpFeaturesResources.Error_colon_Could_not_complete_this_request : implementationDetails.Message),
+            _ => AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property)
+        };
 
         editor.ReplaceNode(methodOrProperty, replacement);
     }

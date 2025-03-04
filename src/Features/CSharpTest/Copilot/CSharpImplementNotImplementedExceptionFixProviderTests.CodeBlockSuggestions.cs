@@ -3,16 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Text;
-using Xunit;
-using Moq;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
+using Moq;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot.UnitTests;
 
@@ -45,13 +43,14 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             copilotService
                 .Setup(service => service.ImplementNotImplementedExceptionAsync(
                     It.IsAny<Document>(),
-                    It.IsAny<TextSpan?>(),
                     It.IsAny<SyntaxNode>(),
-                    It.IsAny<ISymbol>(),
-                    It.IsAny<SemanticModel>(),
-                    It.IsAny<ImmutableArray<ReferencedSymbol>>(),
                     It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult<(Dictionary<string, string>?, bool)>((new() { ["Implementation"] = replacementCodeBlock }, false)));
+                .Returns(Task.FromResult<ImplementationDetails>(new()
+                {
+                    IsQuotaExceeded = false,
+                    ReplacementNode = SyntaxFactory.ParseMemberDeclaration(replacementCodeBlock),
+                    Message = "Successful",
+                }));
         });
 
         await new VerifyCS.Test

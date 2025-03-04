@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
@@ -87,14 +86,7 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Method to implement a <see cref="NotImplementedException"/> in a given <paramref name="syntaxNode"/>
+    /// Method to implement a <see cref="NotImplementedException"/> in a given <paramref name="throwNode"/>
     /// </summary>
-    Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ImplementNotImplementedExceptionAsync(
-        Document document,
-        TextSpan? span,
-        SyntaxNode syntaxNode,
-        ISymbol memberSymbol,
-        SemanticModel semanticModel,
-        ImmutableArray<ReferencedSymbol> references,
-        CancellationToken cancellationToken);
+    Task<ImplementationDetails> ImplementNotImplementedExceptionAsync(Document document, SyntaxNode throwNode, CancellationToken cancellationToken);
 }
