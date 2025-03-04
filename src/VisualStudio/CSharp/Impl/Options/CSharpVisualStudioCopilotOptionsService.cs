@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Copilot;
@@ -46,6 +47,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     private readonly CopilotOption _copilotRefineOption = new("EnableCSharpRefineQuickActionSuggestion", false);
     private readonly CopilotOption _copilotOnTheFlyDocsOption = new("EnableOnTheFlyDocs", true);
     private readonly CopilotOption _copilotGenerateDocumentationCommentOption = new("EnableCSharpGenerateDocumentationComment", true);
+    private readonly CopilotOption _copilotGenerateMethodImplementationOption = new("EnableCSharpGenerateMethodImplementation", true);
 
     private static readonly UIContext s_copilotHasLoadedUIContext = UIContext.FromUIContextGuid(new Guid(CopilotHasLoadedGuid));
     private static readonly UIContext s_gitHubAccountStatusDeterminedContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusDetermined));
@@ -53,6 +55,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     private static readonly UIContext s_gitHubAccountStatusSignedInUIContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusSignedIn));
 
     private readonly Task<ISettingsManager> _settingsManagerTask;
+    private readonly ICopilotCodeAnalysisService _copilotCodeAnalysisService;
 
     /// <summary>
     /// Determines if Copilot is active and the user is signed in and entitled to use Copilot.
@@ -67,9 +70,11 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpVisualStudioCopilotOptionsService(
         IVsService<SVsSettingsPersistenceManager, ISettingsManager> settingsManagerService,
-        IThreadingContext threadingContext)
+        IThreadingContext threadingContext,
+        ICopilotCodeAnalysisService copilotCodeAnalysisService)
     {
         _settingsManagerTask = settingsManagerService.GetValueAsync(threadingContext.DisposalToken);
+        _copilotCodeAnalysisService = copilotCodeAnalysisService;
     }
 
     private async Task<bool> IsCopilotOptionEnabledAsync(CopilotOption option)
@@ -95,6 +100,14 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
 
     public Task<bool> IsGenerateDocumentationCommentOptionEnabledAsync()
         => IsCopilotOptionEnabledAsync(_copilotGenerateDocumentationCommentOption);
+
+    public async Task<bool> IsImplementNotImplementedExceptionEnabledAsync(CancellationToken cancellationToken)
+    {
+        if (!await IsCopilotOptionEnabledAsync(_copilotGenerateMethodImplementationOption).ConfigureAwait(false))
+            return false;
+
+        return await _copilotCodeAnalysisService.IsAvailableAsync(cancellationToken).ConfigureAwait(false);
+    }
 
     private record struct CopilotOption(string Name, bool DefaultValue);
 }

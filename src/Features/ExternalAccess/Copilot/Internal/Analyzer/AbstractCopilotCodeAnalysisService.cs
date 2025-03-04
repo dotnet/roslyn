@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -43,6 +42,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
     protected abstract Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken);
     protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
+    protected abstract Task<ImplementationDetails> ImplementNotImplementedExceptionCoreAsync(Document document, SyntaxNode throwNode, CancellationToken cancellationToken);
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         => IsAvailableCoreAsync(cancellationToken);
@@ -193,9 +193,20 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
 
     public async Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
     {
-        if (!IsAvailableAsync(cancellationToken).ConfigureAwait(false).GetAwaiter().GetResult())
+        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
             return (null, false);
 
         return await GetDocumentationCommentCoreAsync(proposal, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<ImplementationDetails> ImplementNotImplementedExceptionAsync(
+        Document document,
+        SyntaxNode throwNode,
+        CancellationToken cancellationToken)
+    {
+        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+            return new ImplementationDetails() { IsQuotaExceeded = false, ReplacementNode = null, Message = string.Empty };
+
+        return await ImplementNotImplementedExceptionCoreAsync(document, throwNode, cancellationToken).ConfigureAwait(false);
     }
 }

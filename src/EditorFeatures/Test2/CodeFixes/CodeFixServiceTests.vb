@@ -321,6 +321,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Public Function IsGenerateDocumentationCommentOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsGenerateDocumentationCommentOptionEnabledAsync
                 Return Task.FromResult(True)
             End Function
+
+            Public Function IsImplementNotImplementedExceptionEnabledAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotOptionsService.IsImplementNotImplementedExceptionEnabledAsync
+                Return Task.FromResult(True)
+            End Function
         End Class
 
         <ExportLanguageService(GetType(ICopilotCodeAnalysisService), NoCompilationConstants.LanguageName, ServiceLayer.Test), [Shared], PartNotDiscoverable>
@@ -364,6 +368,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
             Public Function GetDocumentationCommentAsync(proposal As DocumentationCommentProposal, cancellationToken As CancellationToken) As Task(Of (responseDictionary As Dictionary(Of String, String), isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetDocumentationCommentAsync
                 Return Task.FromResult((New Dictionary(Of String, String), False))
+            End Function
+
+            Public Function ImplementNotImplementedExceptionAsync(document As Document, throwNode As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImplementationDetails) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionAsync
+                Return Task.FromResult(New ImplementationDetails With {.IsQuotaExceeded = False, .Message = "Dummy Message", .ReplacementNode = Nothing})
             End Function
         End Class
     End Class

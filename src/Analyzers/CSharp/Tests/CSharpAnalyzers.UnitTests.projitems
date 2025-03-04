@@ -20,6 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\AliasAmbiguousTypeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAboveReturnTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AssignOutParameters\AssignOutParametersAtStartTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Copilot\CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\AddDocCommentNodesCodeFixProviderTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\RemoveDocCommentNodeCodeFixProviderTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConditionalExpressionInStringInterpolation\CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStringCodeFixProviderTests.cs" />
@@ -202,6 +203,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Copilot\" />
     <Folder Include="$(MSBuildThisFileDirectory)UseImplicitlyTypedLambdaExpression\" />
   </ItemGroup>
 </Project>

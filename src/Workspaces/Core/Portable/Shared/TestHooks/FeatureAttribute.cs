@@ -18,6 +18,7 @@ internal static class FeatureAttribute
     public const string CodeModel = nameof(CodeModel);
     public const string ColorScheme = nameof(ColorScheme);
     public const string CompletionSet = nameof(CompletionSet);
+    public const string CopilotImplementNotImplementedException = nameof(CopilotImplementNotImplementedException);
     public const string CopilotSuggestions = nameof(CopilotSuggestions);
     public const string DesignerAttributes = nameof(DesignerAttributes);
     public const string DiagnosticService = nameof(DiagnosticService);

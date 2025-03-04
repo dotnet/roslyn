@@ -84,4 +84,9 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </summary>
     /// <param name="proposal">The documentation comment that has been broken down into its individual pieces.</param>
     Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Method to implement a <see cref="NotImplementedException"/> in a given <paramref name="throwNode"/>
+    /// </summary>
+    Task<ImplementationDetails> ImplementNotImplementedExceptionAsync(Document document, SyntaxNode throwNode, CancellationToken cancellationToken);
 }
