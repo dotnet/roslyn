@@ -11,13 +11,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class LongKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class LongKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.LongKeyword)
 {
-    public LongKeywordRecommender()
-        : base(SyntaxKind.LongKeyword)
-    {
-    }
-
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var syntaxTree = context.SyntaxTree;

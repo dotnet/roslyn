@@ -11,13 +11,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class ByteKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class ByteKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.ByteKeyword)
 {
-    public ByteKeywordRecommender()
-        : base(SyntaxKind.ByteKeyword)
-    {
-    }
-
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var syntaxTree = context.SyntaxTree;

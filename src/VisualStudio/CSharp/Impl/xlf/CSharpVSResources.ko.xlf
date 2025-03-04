@@ -184,12 +184,12 @@
       </trans-unit>
       <trans-unit id="Show_name_s_uggestions">
         <source>Show name s_uggestions</source>
-        <target state="new">Show name s_uggestions</target>
+        <target state="translated">이름 제안 표시(_U)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience">
         <source>Show new snippet experience</source>
-        <target state="new">Show new snippet experience</target>
+        <target state="translated">새 코드 조각 환경 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
@@ -714,7 +714,7 @@
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
         <source>Show name suggestions</source>
-        <target state="needs-review-translation">이름 제안 표시(_U)</target>
+        <target state="translated">이름 제안 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

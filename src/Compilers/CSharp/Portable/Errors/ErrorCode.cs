@@ -2360,6 +2360,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitlyTypedParamsParameter = 9272,
         ERR_VariableDeclarationNamedField = 9273,
 
+        ERR_DataSectionStringLiteralHashCollision = 9274,
+
         // PROTOTYPE: compact
         ERR_PartialMemberMissingImplementation = 9400,
         ERR_PartialMemberMissingDefinition = 9401,

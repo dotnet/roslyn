@@ -774,15 +774,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Ensure that any in-memory analyzer references in this test workspace are known by the serializer service
             // so that we can validate OOP scenarios involving analyzers.
-            foreach (var analyzer in this.CurrentSolution.AnalyzerReferences)
-            {
-                if (analyzer is AnalyzerImageReference analyzerImageReference)
-                {
 #pragma warning disable CA1416 // Validate platform compatibility
-                    SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerImageReference);
+            SerializerService.TestAccessor.AddAnalyzerImageReferences(this.CurrentSolution.AnalyzerReferences);
 #pragma warning restore CA1416 // Validate platform compatibility
-                }
-            }
 
             return result;
         }
