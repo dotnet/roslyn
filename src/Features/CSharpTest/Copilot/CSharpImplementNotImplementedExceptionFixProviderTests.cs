@@ -158,11 +158,11 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     }
 
     [Fact]
-    // TODO: FIX
     public async Task QuotaExceeded_VariousForms_NotifiesAsComment()
     {
         await new CustomCompositionCSharpTest
         {
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             TestCode = """
             using System;
             using System.Threading.Tasks;
@@ -221,40 +221,35 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 /* Error: Quota exceeded. */
                 public void AddData(string data)
                 {
-                    throw new NotImplementedException("AddData method not implemented");
+                    {|IDE3000:throw new NotImplementedException("AddData method not implemented");|}
                 }
             
-                /* Error: Quota exceeded. */
-                public string GetData(int id) => throw new NotImplementedException();
+                public string GetData(int id) => {|IDE3000:throw new NotImplementedException()|};
             
-                /* Error: Quota exceeded. */
                 /* Updates the data for a given ID */
                 public void UpdateData(int id, string data)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
-                    throw new NotImplementedException("UpdateData method not implemented");
+                    {|IDE3000:throw new NotImplementedException("UpdateData method not implemented");|}
                 }
             
-                /* Error: Quota exceeded. */
                 // Deletes data by ID
                 public void DeleteData(int id)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
-                    throw new NotImplementedException();
+                    {|IDE3000:throw new NotImplementedException();|}
                 }
             
-                /* Error: Quota exceeded. */
                 /// <summary>
                 /// Saves changes asynchronously
                 /// </summary>
                 /// <returns>A task representing the save operation</returns>
                 public Task SaveChangesAsync()
                 {
-                    throw new NotImplementedException("SaveChangesAsync method not implemented");
+                    {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
             
-                /* Error: Quota exceeded. */
-                public int DataCount => throw new NotImplementedException("Property not implemented");
+                public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
 
             public interface IDataService
@@ -267,6 +262,69 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 int DataCount { get; }
             }
             """,
+            BatchFixedCode = """
+            using System;
+            using System.Threading.Tasks;
+
+            public class DataService : IDataService
+            {
+                /* Error: Quota exceeded. */
+                public void AddData(string data)
+                {
+                    {|IDE3000:throw new NotImplementedException("AddData method not implemented");|}
+                }
+            
+                /* Error: Quota exceeded. */
+                public string GetData(int id) => {|IDE3000:throw new NotImplementedException()|};
+            
+                /* Error: Quota exceeded. */
+                /* Updates the data for a given ID */
+                public void UpdateData(int id, string data)
+                {
+                    if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
+                    {|IDE3000:throw new NotImplementedException("UpdateData method not implemented");|}
+                }
+            
+                /* Error: Quota exceeded. */
+                // Deletes data by ID
+                public void DeleteData(int id)
+                {
+                    if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
+                    {|IDE3000:throw new NotImplementedException();|}
+                }
+            
+                /* Error: Quota exceeded. */
+                /// <summary>
+                /// Saves changes asynchronously
+                /// </summary>
+                /// <returns>A task representing the save operation</returns>
+                public Task SaveChangesAsync()
+                {
+                    {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
+                }
+            
+                /* Error: Quota exceeded. */
+                public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
+            }
+
+            public interface IDataService
+            {
+                void AddData(string data);
+                string GetData(int id);
+                void UpdateData(int id, string data);
+                void DeleteData(int id);
+                Task SaveChangesAsync();
+                int DataCount { get; }
+            }
+            """,
+            FixedState =
+            {
+                MarkupHandling = MarkupMode.Allow,
+            },
+            BatchFixedState =
+            {
+                MarkupHandling = MarkupMode.Allow,
+            },
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }
@@ -283,11 +341,11 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     }
 
     [Fact]
-    // TODO: FIX
     public async Task ReceivesInvalidCode_NotifiesAsComment()
     {
         await new CustomCompositionCSharpTest
         {
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             TestCode = """
         using System;
 
@@ -307,10 +365,14 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             /* Error: Failed to parse into a method or property */
             void M()
             {
-                throw new NotImplementedException();
+                {|IDE3000:throw new NotImplementedException();|}
             }
         }
         """,
+            FixedState =
+            {
+                MarkupHandling = MarkupMode.Allow,
+            },
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }
@@ -329,7 +391,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    // TODO: FIX
     public async Task ReplacementNode_Null_NotifiesWithComment(bool withEmptyMessage)
     {
         await TestHandlesInvalidReplacementNode(
@@ -345,7 +406,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     [InlineData("Invalid code")]
     [InlineData(" ")]
     [InlineData("")]
-    // TODO: FIX
     public async Task ReplacementNode_Invalid_NotifiedWithDefault(string invalidCode)
     {
         await TestHandlesInvalidReplacementNode(
@@ -362,6 +422,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     {
         await new CustomCompositionCSharpTest
         {
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             TestCode = """
             using System;
 
@@ -373,31 +434,22 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 }
             }
             """,
-            FixedCode = !string.IsNullOrWhiteSpace(implementationDetails.Message)
-            ? $$"""
+            FixedCode = $$"""
             using System;
 
             class C
             {
-                /* {{implementationDetails.Message}} */
+                /* {{(!string.IsNullOrWhiteSpace(implementationDetails.Message) ? implementationDetails.Message : "Error: Could not complete this request.")}} */
                 void M()
                 {
-                    throw new NotImplementedException();
-                }
-            }
-            """
-            : """
-            using System;
-
-            class C
-            {
-                /* Error: Could not complete this request. */
-                void M()
-                {
-                    throw new NotImplementedException();
+                    {|IDE3000:throw new NotImplementedException();|}
                 }
             }
             """,
+            FixedState =
+            {
+                MarkupHandling = MarkupMode.Allow,
+            },
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }

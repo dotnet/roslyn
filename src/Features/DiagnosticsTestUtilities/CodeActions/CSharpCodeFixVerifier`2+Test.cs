@@ -70,6 +70,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
             public new string FixedCode { set => base.FixedCode = value; }
 
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
+            public new string BatchFixedCode { set => base.BatchFixedCode = value; }
+
             /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
             public string? EditorConfig
             {
