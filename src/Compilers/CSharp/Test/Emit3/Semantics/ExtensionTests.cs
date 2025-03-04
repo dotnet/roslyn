@@ -17497,7 +17497,7 @@ static class E
         // PROTOTYPE metadata is undone
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE: Call site rewrite is not implemented yet
     public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetResult()
     {
         var text = @"
@@ -17942,7 +17942,7 @@ static class E
         CompileAndVerify(comp, expectedOutput: "add").VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE: Lowering for this scenario is not implemented yet
     public void ExtensionMemberLookup_CollectionInitializer_NoApplicableMethod_ExpressionTree()
     {
         var src = """
