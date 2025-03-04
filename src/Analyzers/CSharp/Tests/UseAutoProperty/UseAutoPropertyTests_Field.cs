@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
 public sealed partial class UseAutoPropertyTests
 {
     private static readonly ParseOptions CSharp13 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp13);
-    private static readonly ParseOptions CSharp14 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+    private static readonly ParseOptions CSharp14 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
 
     [Fact]
     public async Task TestNotInCSharp13()
@@ -1598,6 +1599,113 @@ public sealed partial class UseAutoPropertyTests
                 }
 
                 public bool B { get => !field; private set; }
+            }
+            """, new TestParameters(parseOptions: CSharp14));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
+    public async Task TestReadAndWrite()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int [|_g|];
+
+                public int CustomGetter
+                {
+                    get => _g < 0 ? 0 : _g; // Synthesized return value
+                    set => _g = value;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public int CustomGetter
+                {
+                    get => field < 0 ? 0 : field; // Synthesized return value
+                    set;
+                }
+            }
+            """, new TestParameters(parseOptions: CSharp14));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
+    public async Task TestContractCall()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private int [|_s|];
+
+                public int CustomSetter
+                {
+                    get => _s;
+                    set
+                    {
+                        Assumes.True(value >= 0); // Validation
+                        _s = value;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public int CustomSetter
+                {
+                    get;
+                    set
+                    {
+                        Assumes.True(value >= 0); // Validation
+                        field = value;
+                    }
+                }
+            }
+            """, new TestParameters(parseOptions: CSharp14));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76901")]
+    public async Task TestDelegateInvoke()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                private int [|_s|];
+                public event Action<string> OnChanged;
+
+                public int ObservableProp
+                {
+                    get => _s;
+                    set
+                    {
+                        _s = value;
+                        OnChanged.Invoke(nameof(ObservableProp));
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                public event Action<string> OnChanged;
+            
+                public int ObservableProp
+                {
+                    get;
+                    set
+                    {
+                        field = value;
+                        OnChanged.Invoke(nameof(ObservableProp));
+                    }
+                }
             }
             """, new TestParameters(parseOptions: CSharp14));
     }

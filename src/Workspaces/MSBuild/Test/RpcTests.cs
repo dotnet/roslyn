@@ -4,9 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
-using Nerdbank.Streams;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
@@ -18,19 +19,30 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     {
         private class RpcPair : IAsyncDisposable
         {
-            private readonly SimplexStream _serverToClientStream;
-            private readonly SimplexStream _clientToServerStream;
+            private readonly PipeStream _clientStream;
+            private readonly PipeStream _serverStream;
 
             public RpcPair()
             {
-                // Using two simplex streams here to better model the fact standard in and standard out are uni-directional
-                _serverToClientStream = new SimplexStream();
-                _clientToServerStream = new SimplexStream();
+                // Create a pipe server and connected client; we use pipes here to match the same way we communicate with the build host in the
+                // product since pipes can act a bit different than other types of streams, and that can lead to subtle bugs.
+                var pipeName = Guid.NewGuid().ToString();
 
-                Server = new RpcServer(sendingStream: _serverToClientStream, receivingStream: _clientToServerStream);
-                Client = new RpcClient(sendingStream: _clientToServerStream, receivingStream: _serverToClientStream);
+                var pipeServer = NamedPipeUtil.CreateServer(pipeName, PipeDirection.InOut);
+                var pipeServerConnectionTask = pipeServer.WaitForConnectionAsync();
+                var pipeClient = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
 
-                ServerCompletion = Server.RunAsync();
+                pipeClient.Connect();
+                pipeServerConnectionTask.Wait();
+
+                _clientStream = pipeClient;
+                _serverStream = pipeServer;
+
+                Server = new RpcServer(_serverStream);
+                Client = new RpcClient(_clientStream);
+
+                // Start the server, and shut the pipe down once it's done to simulate real behavior
+                ServerCompletion = Server.RunAsync().ContinueWith(_ => _serverStream.Dispose(), TaskScheduler.Default);
                 Client.Start();
             }
 
@@ -40,8 +52,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             public async ValueTask DisposeAsync()
             {
-                _serverToClientStream.CompleteWriting();
-                _clientToServerStream.CompleteWriting();
+                _clientStream.Dispose();
+                _serverStream.Dispose();
 
                 await ServerCompletion;
             }
@@ -203,6 +215,18 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             Assert.Equal(0, rpcPair.Client.GetTestAccessor().GetOutstandingRequestCount());
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77040")]
+        public async Task RequestThatClosesServerDoesNotThrow()
+        {
+            await using var rpcPair = new RpcPair();
+            rpcPair.Server.AddTarget(new ObjectWithMethodThatShutsDownServer(rpcPair.Server));
+
+            // Invoke the method, and ensure we don't get exceptions back due to the shutdown if the pipe closed too early.
+            // This is not guaranteed to catch any bug, since any bug is fundamentally a race, but it at least ensures we aren't always broken.
+            await rpcPair.Client.InvokeAsync(targetObject: 0, nameof(ObjectWithMethodThatShutsDownServer.Shutdown), [], CancellationToken.None);
+        }
+
 #pragma warning disable CA1822 // Mark members as static
 
         private sealed class ObjectWithHelloMethod { public string Hello(string name) { return "Hello " + name; } }
@@ -260,6 +284,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         }
 
         private sealed class ObjectWithThrowingMethod { public void ThrowException() { throw new Exception("Exception thrown by test method!"); } }
+        private sealed class ObjectWithMethodThatShutsDownServer(RpcServer server) { public void Shutdown() { server.Shutdown(); } }
 
 #pragma warning restore CA1822 // Mark members as static
     }

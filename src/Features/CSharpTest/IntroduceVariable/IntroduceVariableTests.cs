@@ -4334,7 +4334,7 @@ class SampleCollection<T>
     }
 
     [Fact]
-    public async Task TestIntroduceLocalWithTargetTypedNew()
+    public async Task TestIntroduceLocalWithTargetTypedNew1()
     {
         var code =
             """
@@ -4381,6 +4381,48 @@ class SampleCollection<T>
         };
 
         await TestInRegularAndScriptAsync(code, expected, options: optionsCollection);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77276")]
+    public async Task TestIntroduceLocalWithTargetTypedNew2()
+    {
+        var code =
+            """
+            public static class Demo
+            {
+                public static void Test()
+                {
+                    Console.WriteLine([|new Class1 { Value = 123 }|]);
+                }
+            }
+
+            public sealed class Class1
+            {
+                public int Value { get; set; }
+            }
+            """;
+
+        var expected =
+            """
+            public static class Demo
+            {
+                public static void Test()
+                {
+                    Class1 {|Rename:class1|} = new() { Value = 123 };
+                    Console.WriteLine(class1);
+                }
+            }
+
+            public sealed class Class1
+            {
+                public int Value { get; set; }
+            }
+            """;
+
+        await TestInRegularAndScriptAsync(code, expected, options: new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
+        });
     }
 
     [Fact]

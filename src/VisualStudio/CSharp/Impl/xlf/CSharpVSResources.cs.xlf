@@ -184,12 +184,12 @@
       </trans-unit>
       <trans-unit id="Show_name_s_uggestions">
         <source>Show name s_uggestions</source>
-        <target state="new">Show name s_uggestions</target>
+        <target state="translated">Zobrazovat návr_hy názvů</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience">
         <source>Show new snippet experience</source>
-        <target state="new">Show new snippet experience</target>
+        <target state="translated">Zobrazit nové prostředí fragmentů kódu</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
@@ -714,7 +714,7 @@
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
         <source>Show name suggestions</source>
-        <target state="needs-review-translation">Zobrazovat návr_hy názvů</target>
+        <target state="translated">Zobrazovat návrhy názvů</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
