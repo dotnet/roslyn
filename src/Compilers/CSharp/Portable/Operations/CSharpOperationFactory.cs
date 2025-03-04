@@ -305,6 +305,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
                 case BoundKind.KeyValuePairElement: // PROTOTYPE: Implement IOperation support.
+                case BoundKind.CollectionExpressionWithElement: // PROTOTYPE: Implement IOperation support.
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -1250,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
                     case CollectionExpressionTypeKind.CollectionBuilder:
-                        return expr.CollectionBuilderMethod;
+                        return Binder.GetCollectionBuilderMethod(expr);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind);
                 }
@@ -1261,6 +1262,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return element switch
             {
+                BoundCollectionExpressionWithElement withElement => Create(withElement),
                 BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(expr, spreadElement),
                 BoundKeyValuePairElement keyValuePairElement => Create(keyValuePairElement),
                 _ => Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false))

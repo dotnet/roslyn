@@ -944,6 +944,43 @@ public class Program
         }
 
         [Fact]
+        public void CreateMethod_LocalFunction_InconsistentAccessibility()
+        {
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class Program
+                {
+                    [CollectionBuilder(typeof(MyBuilder), "Create")]
+                    private class MyCollection<T> : IEnumerable<T>
+                    {
+                        private readonly List<T> _items;
+                        public MyCollection(ReadOnlySpan<T> items) { _items = new(items.ToArray()); }
+                        public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    }
+                    private class MyBuilder
+                    {
+                        public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(items);
+                    }
+                    static void Main()
+                    {
+                        local(1, 2, 3);
+                        void local<T>(params MyCollection<T> c) { c.Report(); }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, CollectionExpressionTests.s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: ExpectedOutput("""[1, 2, 3], """));
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void CreateMethod_08_Inaccessible()
         {
             var src = """

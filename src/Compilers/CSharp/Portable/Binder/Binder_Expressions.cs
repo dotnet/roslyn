@@ -5237,6 +5237,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
+                if (element is WithElementSyntax withElementSyntax && builder.Any())
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsMustBeFirst, withElementSyntax.WithKeyword);
+                }
                 builder.Add(bindElement(element, diagnostics, this, nestingLevel));
             }
             return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree());
@@ -5248,66 +5252,93 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ExpressionElementSyntax { Expression: CollectionExpressionSyntax nestedCollectionExpression } => @this.BindCollectionExpression(nestedCollectionExpression, diagnostics, nestingLevel + 1),
                     ExpressionElementSyntax expressionElementSyntax => @this.BindValue(expressionElementSyntax.Expression, diagnostics, BindValueKind.RValue),
                     KeyValuePairElementSyntax kvpElementSyntax => @this.BindKeyValuePair(kvpElementSyntax, diagnostics),
-                    SpreadElementSyntax spreadElementSyntax => bindSpreadElement(spreadElementSyntax, diagnostics, @this),
+                    SpreadElementSyntax spreadElementSyntax => @this.BindSpreadElement(spreadElementSyntax, diagnostics),
+                    WithElementSyntax withElementSyntax => @this.BindCollectionArguments(withElementSyntax, diagnostics),
                     _ => throw ExceptionUtilities.UnexpectedValue(syntax.Kind())
                 };
             }
+        }
 
-            static BoundNode bindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this)
+        private BoundNode BindSpreadElement(SpreadElementSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            var expression = this.BindRValueWithoutTargetType(syntax.Expression, diagnostics);
+            ForEachEnumeratorInfo.Builder builder;
+            bool hasErrors = !this.GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
+                builder.IsIncomplete;
+            if (hasErrors)
             {
-                var expression = @this.BindRValueWithoutTargetType(syntax.Expression, diagnostics);
-                ForEachEnumeratorInfo.Builder builder;
-                bool hasErrors = !@this.GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax.Expression, ref expression, isAsync: false, isSpread: true, diagnostics, inferredType: out _, out builder) ||
-                    builder.IsIncomplete;
-                if (hasErrors)
-                {
-                    return new BoundCollectionExpressionSpreadElement(
-                        syntax,
-                        expression,
-                        expressionPlaceholder: null,
-                        conversion: null,
-                        enumeratorInfoOpt: null,
-                        lengthOrCount: null,
-                        elementPlaceholder: null,
-                        iteratorBody: null,
-                        hasErrors);
-                }
-
-                Debug.Assert(expression.Type is { });
-
-                var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, expression.Type);
-                var enumeratorInfo = builder.Build(location: default);
-                var collectionType = enumeratorInfo.CollectionType;
-                var useSiteInfo = @this.GetNewCompoundUseSiteInfo(diagnostics);
-                var conversion = @this.Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: @this.CheckOverflowAtRuntime, ref useSiteInfo);
-                Debug.Assert(conversion.IsValid);
-                diagnostics.Add(syntax.Expression, useSiteInfo);
-                var convertedExpression = @this.ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
-
-                BoundExpression? lengthOrCount;
-
-                if (enumeratorInfo is { InlineArraySpanType: not WellKnownType.Unknown })
-                {
-                    _ = expression.Type.HasInlineArrayAttribute(out int length);
-                    Debug.Assert(length > 0);
-                    lengthOrCount = new BoundLiteral(expression.Syntax, ConstantValue.Create(length), @this.GetSpecialType(SpecialType.System_Int32, diagnostics, expression.Syntax)) { WasCompilerGenerated = true };
-                }
-                else if (!@this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
-                {
-                    lengthOrCount = null;
-                }
-
                 return new BoundCollectionExpressionSpreadElement(
                     syntax,
                     expression,
-                    expressionPlaceholder: expressionPlaceholder,
-                    conversion: convertedExpression,
-                    enumeratorInfo,
-                    lengthOrCount: lengthOrCount,
+                    expressionPlaceholder: null,
+                    conversion: null,
+                    enumeratorInfoOpt: null,
+                    lengthOrCount: null,
                     elementPlaceholder: null,
                     iteratorBody: null,
-                    hasErrors: false);
+                    hasErrors);
             }
+
+            Debug.Assert(expression.Type is { });
+
+            var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, expression.Type);
+            var enumeratorInfo = builder.Build(location: default);
+            var collectionType = enumeratorInfo.CollectionType;
+            var useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
+            var conversion = this.Conversions.ClassifyConversionFromExpression(expression, collectionType, isChecked: this.CheckOverflowAtRuntime, ref useSiteInfo);
+            Debug.Assert(conversion.IsValid);
+            diagnostics.Add(syntax.Expression, useSiteInfo);
+            var convertedExpression = this.ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
+
+            BoundExpression? lengthOrCount;
+
+            if (enumeratorInfo is { InlineArraySpanType: not WellKnownType.Unknown })
+            {
+                _ = expression.Type.HasInlineArrayAttribute(out int length);
+                Debug.Assert(length > 0);
+                lengthOrCount = new BoundLiteral(expression.Syntax, ConstantValue.Create(length), this.GetSpecialType(SpecialType.System_Int32, diagnostics, expression.Syntax)) { WasCompilerGenerated = true };
+            }
+            else if (!this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
+            {
+                lengthOrCount = null;
+            }
+
+            return new BoundCollectionExpressionSpreadElement(
+                syntax,
+                expression,
+                expressionPlaceholder: expressionPlaceholder,
+                conversion: convertedExpression,
+                enumeratorInfo,
+                lengthOrCount: lengthOrCount,
+                elementPlaceholder: null,
+                iteratorBody: null,
+                hasErrors: false);
+        }
+
+        private BoundCollectionExpressionWithElement BindCollectionArguments(WithElementSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            MessageID.IDS_FeatureCollectionExpressionArguments.CheckFeatureAvailability(diagnostics, syntax.WithKeyword);
+
+            var arguments = AnalyzedArguments.GetInstance();
+            BindArgumentsAndNames(syntax.ArgumentList, diagnostics, arguments, allowArglist: true);
+            var result = new BoundCollectionExpressionWithElement(
+                syntax,
+                arguments.Arguments.ToImmutable(),
+                arguments.Names.ToImmutableOrNull(),
+                arguments.RefKinds.ToImmutableOrNull(),
+                binder: this);
+            arguments.Free();
+
+            foreach (var arg in result.Arguments)
+            {
+                if (arg.Type is { TypeKind: TypeKind.Dynamic })
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsDynamicBinding, arg.Syntax);
+                    break;
+                }
+            }
+
+            return result;
         }
 
         private BoundNode BindKeyValuePair(KeyValuePairElementSyntax syntax, BindingDiagnosticBag diagnostics)

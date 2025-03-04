@@ -2092,6 +2092,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitCollectionExpressionWithElement(BoundCollectionExpressionWithElement node)
+        {
+            // We only get here if the conversion of the collection expression to the
+            // target type failed. In this case, simply visit each argument.
+            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method: null);
+            return null;
+        }
+
         public override BoundNode VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
         {
             VisitRvalue(node.Expression);

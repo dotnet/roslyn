@@ -43,14 +43,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
+                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType) &&
+                            usesParameterlessListConstructor(_compilation, node))
                         {
                             if (TryRewriteSingleElementSpreadToList(node, listElementType, out var result))
                             {
                                 return result;
                             }
 
-                            if (useListOptimization(_compilation, node))
+                            // If the collection type is List<T>, and the list is created with the parameterless constructor,
+                            // and items are added using the expected List<T>.Add(T) method,
+                            // then construction can be optimized to use CollectionsMarshal methods.
+                            if (usesListAddMethodForAllElements(_compilation, node))
                             {
                                 return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node));
                             }
@@ -67,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // For `[]` try to use `ImmutableArray<T>.Empty` singleton if available
                             if (node.Elements.IsEmpty &&
+                                usesSingleParameterBuilderMethod(_compilation, node, arrayElementType) &&
                                 _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty) is FieldSymbol immutableArrayOfTEmpty)
                             {
                                 var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember((NamedTypeSymbol)node.Type);
@@ -96,24 +101,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Syntax = previousSyntax;
             }
 
-            // If the collection type is List<T> and items are added using the expected List<T>.Add(T) method,
-            // then construction can be optimized to use CollectionsMarshal methods.
-            static bool useListOptimization(CSharpCompilation compilation, BoundCollectionExpression node)
+            static bool usesParameterlessListConstructor(CSharpCompilation compilation, BoundCollectionExpression node)
             {
-                var elements = node.Elements;
-                if (elements.Length == 0)
-                {
-                    return true;
-                }
-                var addMethod = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add);
-                if (addMethod is null)
-                {
-                    return false;
-                }
-                return elements.All(canOptimizeListElement, addMethod);
+                var ctor = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor);
+                return ctor is { } &&
+                    node.CollectionCreation is BoundObjectCreationExpression { Constructor: var objectCreate } &&
+                    object.ReferenceEquals(ctor, objectCreate.OriginalDefinition);
             }
 
-            static bool canOptimizeListElement(BoundNode element, MethodSymbol addMethod)
+            static bool usesListAddMethodForAllElements(CSharpCompilation compilation, BoundCollectionExpression node)
+            {
+                var addMethod = (MethodSymbol?)compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add);
+                return addMethod is { } &&
+                    node.Elements.All(usesListAddMethod, addMethod);
+            }
+
+            static bool usesListAddMethod(BoundNode element, MethodSymbol addMethod)
             {
                 BoundExpression expr;
                 if (element is BoundCollectionExpressionSpreadElement spreadElement)
@@ -130,6 +133,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return addMethod.Equals(collectionInitializer.AddMethod.OriginalDefinition);
                 }
                 return false;
+            }
+
+            static bool usesSingleParameterBuilderMethod(CSharpCompilation compilation, BoundCollectionExpression node, TypeWithAnnotations elementType)
+            {
+                var method = Binder.GetCollectionBuilderMethod(node);
+                Debug.Assert(method is { Parameters: [var parameter, ..] } &&
+                    parameter.Type.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct([elementType]), TypeCompareKind.AllIgnoreOptions));
+                return method is { Parameters.Length: 1 };
             }
 
             static BoundNode unwrapListElement(BoundCollectionExpression node, BoundNode element)
@@ -220,13 +231,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             spreadExpression = null;
 
-            if (node is
-                {
-                    CollectionBuilderMethod: { } builder,
-                    Elements: [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }],
-                } &&
-                ConversionsBase.HasIdentityConversion(builder.Parameters[0].Type, spreadType) &&
-                (!builder.ReturnType.IsRefLikeType || builder.Parameters[0].EffectiveScope == ScopedKind.ScopedValue))
+            if (node.Elements is [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }] &&
+                Binder.GetCollectionBuilderMethod(node) is { Parameters: [var parameter, ..] } builder &&
+                ConversionsBase.HasIdentityConversion(parameter.Type, spreadType) &&
+                (!builder.ReturnType.IsRefLikeType || parameter.EffectiveScope == ScopedKind.ScopedValue))
             {
                 spreadExpression = expr;
             }
@@ -249,7 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(_additionalLocals is { });
-            Debug.Assert(node.CollectionCreation is null); // shouldn't have generated a constructor call
             Debug.Assert(node.Placeholder is null);
 
             var syntax = node.Syntax;
@@ -488,18 +495,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
-            Debug.Assert(node.CollectionCreation is null);
+            Debug.Assert(node.CollectionCreation is { });
             Debug.Assert(node.Placeholder is null);
-            Debug.Assert(node.CollectionBuilderMethod is { });
-            Debug.Assert(node.CollectionBuilderInvocationPlaceholder is { });
-            Debug.Assert(node.CollectionBuilderInvocationConversion is { });
+            Debug.Assert(node.CollectionBuilderSpanPlaceholder is { Type: NamedTypeSymbol { } });
 
-            var constructMethod = node.CollectionBuilderMethod;
-
-            var spanType = (NamedTypeSymbol)constructMethod.Parameters[0].Type;
+            var spanPlaceholder = node.CollectionBuilderSpanPlaceholder;
+            var spanType = (NamedTypeSymbol)spanPlaceholder.Type;
             Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
-
-            var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
 
             // If collection expression is of form `[.. anotherReadOnlySpan]`
             // with `anotherReadOnlySpan` being a ReadOnlySpan of the same type as target collection type
@@ -507,28 +509,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we can directly use `anotherReadOnlySpan` as collection builder argument and skip the copying assignment.
             BoundExpression span = CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out var spreadExpression)
                 ? VisitExpression(spreadExpression)
-                : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
+                : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]);
 
-            var invocation = new BoundCall(
-                node.Syntax,
-                receiverOpt: null,
-                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                method: constructMethod,
-                arguments: ImmutableArray.Create(span),
-                argumentNamesOpt: default,
-                argumentRefKindsOpt: default,
-                isDelegateCall: false,
-                expanded: false,
-                invokedAsExtensionMethod: false,
-                argsToParamsOpt: default,
-                defaultArguments: default,
-                resultKind: LookupResultKind.Viable,
-                type: constructMethod.ReturnType);
-
-            var invocationPlaceholder = node.CollectionBuilderInvocationPlaceholder;
-            AddPlaceholderReplacement(invocationPlaceholder, invocation);
-            var result = VisitExpression(node.CollectionBuilderInvocationConversion);
-            RemovePlaceholderReplacement(invocationPlaceholder);
+            AddPlaceholderReplacement(spanPlaceholder, span);
+            var result = VisitExpression(node.CollectionCreation);
+            RemovePlaceholderReplacement(spanPlaceholder);
             return result;
         }
 
