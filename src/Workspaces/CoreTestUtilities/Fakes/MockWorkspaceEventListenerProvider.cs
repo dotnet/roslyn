@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
 internal sealed class MockWorkspaceEventListenerProvider() : IWorkspaceServiceFactory
 {
-    public IEnumerable<IEventListener<object>>? EventListeners;
+    public IEnumerable<IEventListener>? EventListeners;
 
     public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
         => EventListeners != null ? new DefaultWorkspaceEventListenerServiceFactory.Service(workspaceServices.Workspace, EventListeners) : null;

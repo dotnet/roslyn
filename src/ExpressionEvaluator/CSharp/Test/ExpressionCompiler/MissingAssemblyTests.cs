@@ -663,6 +663,7 @@ class C
                         uSize = (uint)missingModule.MetadataLength;
                         return missingModule.MetadataAddress;
                     },
+                    out _,
                     out errorMessage);
 
                 Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
@@ -690,7 +691,7 @@ class C
 
                 var shouldSucceed = false;
                 string errorMessage;
-                var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                     runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
                     context,
                     (_, diagnostics) =>
@@ -711,6 +712,7 @@ class C
                         uSize = (uint)missingModule.MetadataLength;
                         return missingModule.MetadataAddress;
                     },
+                    out var compileResult,
                     out errorMessage);
 
                 Assert.Same(TestCompileResult.Instance, compileResult);
@@ -902,11 +904,11 @@ LanguageVersion.CSharp7_1);
                 WithRuntimeInstance(comp, [Net461.References.mscorlib, ValueTupleLegacyRef], runtime =>
                 {
                     ImmutableArray<MetadataBlock> blocks;
-                    Guid moduleVersionId;
+                    ModuleId moduleId;
                     ISymUnmanagedReader symReader;
                     int methodToken;
                     int localSignatureToken;
-                    GetContextState(runtime, methodName, out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+                    GetContextState(runtime, methodName, out blocks, out moduleId, out symReader, out methodToken, out localSignatureToken);
                     string errorMessage;
                     CompilationTestData testData;
                     int retryCount = 0;
@@ -915,9 +917,9 @@ LanguageVersion.CSharp7_1);
                         expression,
                         ImmutableArray<Alias>.Empty,
                         (b, u) => EvaluationContext.CreateMethodContext(
-                            b.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies),
+                            b.ToCompilation(moduleId: default, MakeAssemblyReferencesKind.AllAssemblies),
                             symReader,
-                            moduleVersionId,
+                            moduleId,
                             methodToken,
                             methodVersion: 1,
                             ilOffset: 0,

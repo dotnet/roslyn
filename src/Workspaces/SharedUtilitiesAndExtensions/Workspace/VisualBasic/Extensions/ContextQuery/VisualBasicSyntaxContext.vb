@@ -56,6 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             targetToken As SyntaxToken,
             isAttributeNameContext As Boolean,
             isAwaitKeywordContext As Boolean,
+            isBaseListContext As Boolean,
             isCustomEventContext As Boolean,
             isEnumBaseListContext As Boolean,
             isEnumTypeMemberAccessContext As Boolean,
@@ -93,6 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAtStartOfPattern:=False,
                 isAttributeNameContext:=isAttributeNameContext,
                 isAwaitKeywordContext:=isAwaitKeywordContext,
+                isBaseListContext:=isBaseListContext,
                 isEnumBaseListContext:=isEnumBaseListContext,
                 isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
                 isGenericConstraintContext:=isGenericConstraintContext,
@@ -176,6 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isAttributeNameContext:=syntaxTree.IsAttributeNameContext(position, targetToken, cancellationToken),
                 isAwaitKeywordContext:=ComputeIsAwaitKeywordContext(targetToken, isAnyExpressionContext, isInQuery, isStatementContext),
                 isCustomEventContext:=targetToken.GetAncestor(Of EventBlockSyntax)() IsNot Nothing,
+                isBaseListContext:=ComputeIsBaseListContext(targetToken),
                 isEnumBaseListContext:=ComputeIsEnumBaseListContext(targetToken),
                 isEnumTypeMemberAccessContext:=syntaxTree.IsEnumTypeMemberAccessContext(position, targetToken, semanticModel, cancellationToken),
                 isGenericConstraintContext:=targetToken.Parent.IsKind(SyntaxKind.TypeParameterSingleConstraintClause, SyntaxKind.TypeParameterMultipleConstraintClause),
@@ -231,6 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
                     Return False
                 End If
+
                 For Each node In targetToken.GetAncestors(Of SyntaxNode)()
                     If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression, SyntaxKind.SingleLineFunctionLambdaExpression,
                                    SyntaxKind.MultiLineSubLambdaExpression, SyntaxKind.MultiLineFunctionLambdaExpression) Then
@@ -282,6 +286,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return targetToken.Kind = SyntaxKind.None OrElse
                 targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
                 (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective())
+        End Function
+
+        Private Shared Function ComputeIsBaseListContext(targetToken As SyntaxToken) As Boolean
+            If targetToken.Kind() = SyntaxKind.ImplementsKeyword OrElse
+               targetToken.Kind() = SyntaxKind.InheritsKeyword OrElse
+               targetToken.Kind() = SyntaxKind.CommaToken Then
+                Dim parent = TryCast(targetToken.Parent, InheritsOrImplementsStatementSyntax)
+                Return parent IsNot Nothing
+            End If
+
+            Return False
         End Function
 
         Private Shared Function ComputeIsEnumBaseListContext(targetToken As SyntaxToken) As Boolean

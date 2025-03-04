@@ -434,7 +434,7 @@
       </trans-unit>
       <trans-unit id="Use_unbound_generic_type">
         <source>Use unbound generic type</source>
-        <target state="new">Use unbound generic type</target>
+        <target state="translated">바인딩되지 않은 제네릭 형식 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">

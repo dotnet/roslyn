@@ -23,6 +23,8 @@ internal sealed class ExtractInterfaceCodeRefactoringProvider : CodeRefactoringP
     {
     }
 
+    internal override CodeRefactoringKind Kind => CodeRefactoringKind.Extract;
+
     public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, textSpan, cancellationToken) = context;

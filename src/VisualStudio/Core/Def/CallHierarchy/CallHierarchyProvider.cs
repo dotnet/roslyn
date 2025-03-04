@@ -52,7 +52,7 @@ internal partial class CallHierarchyProvider
         _streamingPresenter = streamingPresenter;
     }
 
-    public async Task<ICallHierarchyMemberItem> CreateItemAsync(
+    public async Task<CallHierarchyItem> CreateItemAsync(
         ISymbol symbol, Project project, ImmutableArray<Location> callsites, CancellationToken cancellationToken)
     {
         if (symbol.Kind is SymbolKind.Method or
@@ -65,7 +65,7 @@ internal partial class CallHierarchyProvider
             var finders = await CreateFindersAsync(symbol, project, cancellationToken).ConfigureAwait(false);
             var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
                 symbol, project.Solution, this.ThreadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
-            ICallHierarchyMemberItem item = new CallHierarchyItem(
+            return new CallHierarchyItem(
                 this,
                 symbol,
                 location,
@@ -73,8 +73,6 @@ internal partial class CallHierarchyProvider
                 () => symbol.GetGlyph().GetImageSource(GlyphService),
                 callsites,
                 project);
-
-            return item;
         }
 
         return null;
@@ -100,11 +98,11 @@ internal partial class CallHierarchyProvider
                                         details);
     }
 
-    public async Task<IEnumerable<AbstractCallFinder>> CreateFindersAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<AbstractCallFinder>> CreateFindersAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
     {
         if (symbol.Kind is SymbolKind.Property or
-                SymbolKind.Event or
-                SymbolKind.Method)
+                           SymbolKind.Event or
+                           SymbolKind.Method)
         {
             var finders = new List<AbstractCallFinder>
             {
@@ -138,14 +136,12 @@ internal partial class CallHierarchyProvider
                 finders.Add(new ImplementerFinder(symbol, project.Id, AsyncListener, this));
             }
 
-            return finders;
+            return finders.ToImmutableArray();
         }
 
         if (symbol.Kind == SymbolKind.Field)
-        {
             return [new FieldReferenceFinder(symbol, project.Id, AsyncListener, this)];
-        }
 
-        return null;
+        return [];
     }
 }

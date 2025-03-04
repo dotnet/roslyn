@@ -59,6 +59,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         bool isAtStartOfPattern,
         bool isAttributeNameContext,
         bool isAwaitKeywordContext,
+        bool isBaseListContext,
         bool isCatchFilterContext,
         bool isConstantExpressionContext,
         bool isCrefContext,
@@ -119,6 +120,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
               isAtStartOfPattern: isAtStartOfPattern,
               isAttributeNameContext: isAttributeNameContext,
               isAwaitKeywordContext: isAwaitKeywordContext,
+              isBaseListContext: isBaseListContext,
               isEnumBaseListContext: isEnumBaseListContext,
               isEnumTypeMemberAccessContext: isEnumTypeMemberAccessContext,
               isGenericConstraintContext: isGenericConstraintContext,
@@ -194,40 +196,22 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
 
         var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-        var isPreProcessorKeywordContext = isPreProcessorDirectiveContext
-            ? syntaxTree.IsPreProcessorKeywordContext(position, leftToken)
-            : false;
+        var isPreProcessorKeywordContext = isPreProcessorDirectiveContext && syntaxTree.IsPreProcessorKeywordContext(position, leftToken);
+        var isPreProcessorExpressionContext = isPreProcessorDirectiveContext && targetToken.IsPreProcessorExpressionContext();
 
-        var isPreProcessorExpressionContext = isPreProcessorDirectiveContext
-            ? targetToken.IsPreProcessorExpressionContext()
-            : false;
-
-        var isStatementContext = !isPreProcessorDirectiveContext
-            ? targetToken.IsBeginningOfStatementContext()
-            : false;
-
-        var isGlobalStatementContext = !isPreProcessorDirectiveContext
-            ? syntaxTree.IsGlobalStatementContext(position, cancellationToken)
-            : false;
-
-        var isAnyExpressionContext = !isPreProcessorDirectiveContext
-            ? syntaxTree.IsExpressionContext(position, leftToken, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel)
-            : false;
-
-        var isNonAttributeExpressionContext = !isPreProcessorDirectiveContext
-            ? syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken: cancellationToken, semanticModel: semanticModel)
-            : false;
-
-        var isConstantExpressionContext = !isPreProcessorDirectiveContext
-            ? syntaxTree.IsConstantExpressionContext(position, leftToken)
-            : false;
+        var isStatementContext = !isPreProcessorDirectiveContext && targetToken.IsBeginningOfStatementContext();
+        var isGlobalStatementContext = !isPreProcessorDirectiveContext && syntaxTree.IsGlobalStatementContext(position, cancellationToken);
+        var isAnyExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsExpressionContext(position, leftToken, attributes: true, cancellationToken: cancellationToken, semanticModel: semanticModel);
+        var isNonAttributeExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken: cancellationToken, semanticModel: semanticModel);
+        var isConstantExpressionContext = !isPreProcessorDirectiveContext && syntaxTree.IsConstantExpressionContext(position, leftToken);
 
         var containingTypeDeclaration = syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
         var containingTypeOrEnumDeclaration = syntaxTree.GetContainingTypeOrEnumDeclaration(position, cancellationToken);
 
-        var isDestructorTypeContext = targetToken.IsKind(SyntaxKind.TildeToken) &&
-                                        targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
-                                        targetToken.Parent.Parent is (kind: SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration);
+        var isDestructorTypeContext =
+            targetToken.IsKind(SyntaxKind.TildeToken) &&
+            targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
+            targetToken.Parent.Parent is (kind: SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration);
 
         // Typing a dot after a numeric expression (numericExpression.) 
         // - maybe a start of MemberAccessExpression like numericExpression.Member.
@@ -255,6 +239,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
             isAtStartOfPattern: syntaxTree.IsAtStartOfPattern(leftToken, position),
             isAttributeNameContext: syntaxTree.IsAttributeNameContext(position, cancellationToken),
             isAwaitKeywordContext: ComputeIsAwaitKeywordContext(position, leftToken, targetToken, isGlobalStatementContext, isAnyExpressionContext, isStatementContext),
+            isBaseListContext: syntaxTree.IsBaseListContext(targetToken),
             isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
             isConstantExpressionContext: isConstantExpressionContext,
             isCrefContext: syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
