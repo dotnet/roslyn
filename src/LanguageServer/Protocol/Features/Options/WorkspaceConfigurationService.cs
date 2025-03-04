@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Host;
 internal sealed class WorkspaceConfigurationService : IWorkspaceConfigurationService
 {
     private readonly IGlobalOptionService _globalOptions;
-    private WorkspaceConfigurationOptions? _lazyOptions;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -22,9 +21,8 @@ internal sealed class WorkspaceConfigurationService : IWorkspaceConfigurationSer
         _globalOptions = globalOptions;
     }
 
-    public WorkspaceConfigurationOptions Options
-        => _lazyOptions ??= _globalOptions.GetWorkspaceConfigurationOptions();
+    public WorkspaceConfigurationOptions Options { get => field ??= _globalOptions.GetWorkspaceConfigurationOptions(); private set; }
 
     internal void Clear()
-        => _lazyOptions = null;
+        => Options = null;
 }
