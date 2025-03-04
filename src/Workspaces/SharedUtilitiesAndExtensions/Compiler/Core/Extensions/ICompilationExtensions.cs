@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -74,6 +76,12 @@ internal static class ICompilationExtensions
 
     public static INamedTypeSymbol? AttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Attribute).FullName!);
+
+    public static INamedTypeSymbol? BlockingCollectionOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(BlockingCollection<>).FullName!);
+
+    public static INamedTypeSymbol? CollectionOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(Collection<>).FullName!);
 
     public static INamedTypeSymbol? ExceptionType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Exception).FullName!);
