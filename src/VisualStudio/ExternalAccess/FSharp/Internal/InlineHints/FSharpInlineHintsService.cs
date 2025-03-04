@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.InlineHints
             Document document, TextSpan textSpan, InlineHintsOptions options, bool displayAllOverride, CancellationToken cancellationToken)
         {
             if (_service == null)
-                return ImmutableArray<InlineHint>.Empty;
+                return [];
 
             var hints = await _service.GetInlineHintsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             return hints.SelectAsArray(h => new InlineHint(h.Span, h.DisplayParts, (d, c) => h.GetDescriptionAsync(d, c)));

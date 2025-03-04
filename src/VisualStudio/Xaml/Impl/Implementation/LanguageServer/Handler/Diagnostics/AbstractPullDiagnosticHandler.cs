@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
 
             var project = document.Project;
-            return xamlDiagnostics.Value.Select(d => new VSDiagnostic()
+            return [.. xamlDiagnostics.Value.Select(d => new VSDiagnostic()
             {
                 Code = d.Code,
                 Message = d.Message ?? string.Empty,
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                         ProjectName = project.Name,
                     },
                 ],
-            }).ToArray();
+            })];
         }
 
         private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(XamlDiagnosticSeverity severity)

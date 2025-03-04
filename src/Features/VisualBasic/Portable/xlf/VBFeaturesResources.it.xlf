@@ -222,11 +222,6 @@
         <target state="translated">Rimuovi qualificazione 'Me'</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
-        <source>can't determine valid range of statements to extract out</source>
-        <target state="translated">non è possibile determinare l'intervallo valido di istruzioni da estrarre</target>
-        <note />
-      </trans-unit>
       <trans-unit id="contains_invalid_selection">
         <source>contains invalid selection</source>
         <target state="translated">contiene una selezione non valida</target>
@@ -280,11 +275,6 @@
       <trans-unit id="Selection_doesn_t_contain_any_valid_node">
         <source>Selection doesn't contain any valid node</source>
         <target state="translated">La selezione non contiene nodi validi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">l'intervallo di istruzioni non è valido per l'estrazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">

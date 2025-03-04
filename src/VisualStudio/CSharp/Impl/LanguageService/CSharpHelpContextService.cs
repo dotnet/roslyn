@@ -173,7 +173,7 @@ internal sealed class CSharpHelpContextService() : AbstractHelpContextService
             if (symbol == null)
             {
                 var bindableParent = document.GetRequiredLanguageService<ISyntaxFactsService>().TryGetBindableParent(token);
-                var overloads = bindableParent != null ? semanticModel.GetMemberGroup(bindableParent) : ImmutableArray<ISymbol>.Empty;
+                var overloads = bindableParent != null ? semanticModel.GetMemberGroup(bindableParent) : [];
                 symbol = overloads.FirstOrDefault();
             }
         }

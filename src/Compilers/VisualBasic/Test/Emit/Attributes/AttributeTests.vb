@@ -1875,6 +1875,7 @@ End Class
         <Fact>
         Public Sub AttributeArgumentAsEnumFromMetadata()
             Dim metadata1 = VisualBasicCompilation.Create("bar.dll",
+                                               options:=TestOptions.DebugDll,
                                                references:={MscorlibRef},
                                                syntaxTrees:={Parse("Public Enum Bar : Baz : End Enum")}).EmitToArray(New EmitOptions(metadataOnly:=True))
 
@@ -1882,6 +1883,7 @@ End Class
 
             Dim metadata2 = VisualBasicCompilation.Create(
                                 "goo.dll",
+                                options:=TestOptions.DebugDll,
                                 references:={MscorlibRef, ref1},
                                 syntaxTrees:={
                                     VisualBasicSyntaxTree.ParseText(<![CDATA[
@@ -4852,12 +4854,12 @@ BC30002: Type 'xyz' is not defined.
         <Fact>
         Public Sub ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Internal()
 
-            Dim reference =
+            Dim referenceCode =
 <compilation>
     <file name="a.vb"><![CDATA[
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Source")>
 Namespace Microsoft.CodeAnalysis
-    Friend Class EmbeddedAttribute
+    Friend NotInheritable Class EmbeddedAttribute
         Inherits System.Attribute
     End Class
 End Namespace
@@ -4875,7 +4877,9 @@ End Namespace
     </file>
 </compilation>
 
-            Dim referenceCompilation = CreateCompilationWithMscorlib40(reference).ToMetadataReference()
+            Dim referenceCompilation As VisualBasicCompilation = CreateCompilationWithMscorlib40(referenceCode)
+            referenceCompilation.AssertTheseDiagnostics()
+            Dim reference = referenceCompilation.ToMetadataReference()
 
             Dim code = "
 Public Class Program
@@ -4886,7 +4890,7 @@ Public Class Program
     End Sub
 End Class"
 
-            Dim compilation = CreateCompilationWithMscorlib40(code, references:={referenceCompilation}, assemblyName:="Source")
+            Dim compilation = CreateCompilationWithMscorlib40(code, references:={reference}, assemblyName:="Source")
 
             AssertTheseDiagnostics(compilation, <![CDATA[
 BC30002: Type 'TestReference.TestType1' is not defined.
@@ -4905,7 +4909,7 @@ BC30002: Type 'TestReference.TestType2' is not defined.
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace Microsoft.CodeAnalysis
-    Friend Class EmbeddedAttribute
+    Friend NotInheritable Class EmbeddedAttribute
         Inherits System.Attribute
     End Class
 End Namespace
@@ -4951,7 +4955,7 @@ BC30002: Type 'TestReference.TestType2' is not defined.
 
             Dim moduleCode = CreateCompilationWithMscorlib40(options:=TestOptions.ReleaseModule, source:="
 Namespace Microsoft.CodeAnalysis
-    Friend Class EmbeddedAttribute
+    Friend NotInheritable Class EmbeddedAttribute
         Inherits System.Attribute
     End Class
 End Namespace
@@ -4994,7 +4998,7 @@ BC30002: Type 'TestReference.TestType2' is not defined.
 
             Dim compilation = CreateCompilationWithMscorlib40(source:="
 Namespace Microsoft.CodeAnalysis
-    Friend Class EmbeddedAttribute
+    Friend NotInheritable Class EmbeddedAttribute
         Inherits System.Attribute
     End Class
 End Namespace
@@ -5027,7 +5031,7 @@ End Class")
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace Microsoft.CodeAnalysis
-    Friend Class EmbeddedAttribute
+    Friend NotInheritable Class EmbeddedAttribute
         Inherits System.Attribute
     End Class
 End Namespace
@@ -5059,7 +5063,7 @@ End Class
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace Microsoft.CodeAnalysis
-    Friend Class EmbeddedAttribute
+    Friend NotInheritable Class EmbeddedAttribute
         Inherits System.Attribute
     End Class
 End Namespace
@@ -5079,6 +5083,276 @@ End Class
 
             Assert.Null(compilation2.GetTypeByMetadataName("TestReference1"))
             Assert.NotNull(compilation2.GetTypeByMetadataName("TestReference2"))
+        End Sub
+
+        <Theory>
+        <InlineData("System.AttributeTargets.Class Or System.AttributeTargets.Struct Or System.AttributeTargets.Interface Or System.AttributeTargets.Enum Or System.AttributeTargets.Delegate")>
+        <InlineData("System.AttributeTargets.All")>
+        <InlineData("")>
+        Public Sub EmbeddedAttributeFromSourceValidation_Valid(targetsList As String)
+            Dim targets = If(targetsList <> "", $", System.AttributeUsage({targetsList})", "")
+
+            Dim code = $"
+Namespace Microsoft.CodeAnalysis
+    <Embedded{targets}>
+    Friend NotInheritable Class EmbeddedAttribute
+        Inherits System.Attribute
+
+        Public Sub New()
+        End Sub
+    End Class
+End Namespace
+"
+
+            Dim comp = CreateCompilationWithMscorlib40(code)
+            comp.AssertNoDiagnostics()
+
+            Dim comp2 = CreateCSharpCompilation("CSharpTest", "
+public class Test
+{
+    public static void M(in int p) {}
+}
+", referencedCompilations:={comp})
+
+            CompileAndVerify(comp2).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedAttributeFromSourceValidation_Public()
+            Dim code = "
+Namespace Microsoft.CodeAnalysis
+    <Embedded>
+    Public NotInheritable Class EmbeddedAttribute
+        Inherits System.Attribute
+
+        Public Sub New()
+        End Sub
+    End Class
+End Namespace
+"
+
+            CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20).AssertTheseDiagnostics(<![CDATA[
+BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+    <Embedded>
+    ~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedAttributeFromSourceValidation_NoSealed()
+            Dim code = "
+Namespace Microsoft.CodeAnalysis
+    <Embedded>
+    Friend Class EmbeddedAttribute
+        Inherits System.Attribute
+
+        Public Sub New()
+        End Sub
+    End Class
+End Namespace
+"
+
+            CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20).AssertTheseDiagnostics(
+                "BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+    <Embedded>
+    ~~~~~~~~~~~")
+        End Sub
+
+        <Theory>
+        <InlineData("Friend")>
+        <InlineData("Private")>
+        <InlineData("Protected")>
+        <InlineData("Protected Friend")>
+        <InlineData("Private Protected")>
+        Public Sub EmbeddedAttributeFromSourceValidation_CtorAccessibility(ctorAccessModifier As String)
+            Dim code = $"
+Namespace Microsoft.CodeAnalysis
+    Friend NotInheritable Class EmbeddedAttribute
+        Inherits System.Attribute
+
+        {ctorAccessModifier} Sub New()
+        End Sub
+    End Class
+End Namespace
+"
+
+            CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20).AssertTheseDiagnostics(<![CDATA[
+BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+    Friend NotInheritable Class EmbeddedAttribute
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub EmbeddedAttributeFromSourceValidation_MissingEmbeddedAttributeApplicationGeneratesAttributeApplication(hasObsolete As Boolean)
+            Dim obsolete = If(hasObsolete, "<System.Obsolete>", "")
+            Dim code = $"
+Namespace Microsoft.CodeAnalysis
+    {obsolete}
+    Friend NotInheritable Class EmbeddedAttribute
+        Inherits System.Attribute
+
+        Public Sub New()
+        End Sub
+    End Class
+End Namespace
+"
+
+            Dim comp = CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20)
+            Dim embeddedAttribute = comp.Assembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName)
+            Assert.True(embeddedAttribute.HasCodeAnalysisEmbeddedAttribute)
+
+            CompileAndVerify(comp, symbolValidator:=Sub([module])
+                                                        Dim embeddedAttr = [module].ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName)
+                                                        Assert.NotNull(embeddedAttr)
+                                                        Assert.Equal({"Microsoft.CodeAnalysis.EmbeddedAttribute"},
+                                                            embeddedAttr.GetAttributes().Where(Function(a) a.AttributeClass.Name <> "ObsoleteAttribute").Select(Function(a) a.AttributeClass.ToTestDisplayString()))
+                                                    End Sub).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedAttributeFromSourceValidation_MissingEmbeddedAttributeApplicationGeneratesAttributeApplication_Partial()
+            Dim code = "
+Namespace Microsoft.CodeAnalysis
+    Friend NotInheritable Partial Class EmbeddedAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace"
+
+            Dim comp = CreateCompilationWithMscorlib40({code, code})
+            comp.AssertNoDiagnostics()
+
+            Dim sourceDeclaration = comp.SourceAssembly.GetTypeByMetadataName("Microsoft.CodeAnalysis.EmbeddedAttribute")
+            Assert.Equal(2, sourceDeclaration.Locations.Length)
+
+            CompileAndVerify(comp, symbolValidator:=Sub([module])
+                                                        Dim embeddedAttr = [module].ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName)
+                                                        Assert.NotNull(embeddedAttr)
+                                                        Assert.Equal({"Microsoft.CodeAnalysis.EmbeddedAttribute"},
+                                                            embeddedAttr.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()))
+                                                    End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedAttributeFromSourceValidation_Generic()
+            Dim code = "
+Namespace Microsoft.CodeAnalysis
+    <Embedded(Of Integer)>
+    Friend NotInheritable Class EmbeddedAttribute(Of T)
+        Inherits System.Attribute
+
+        Public Sub New()
+        End Sub
+    End Class
+End Namespace
+"
+
+            Dim comp = CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20)
+            comp.AssertTheseDiagnostics(<![CDATA[
+BC30002: Type 'Embedded' is not defined.
+    <Embedded(Of Integer)>
+     ~~~~~~~~
+BC32066: Type arguments are not valid because attributes cannot be generic.
+    <Embedded(Of Integer)>
+     ~~~~~~~~
+BC32074: Classes that are generic or contained in a generic type cannot inherit from an attribute class.
+    Friend NotInheritable Class EmbeddedAttribute(Of T)
+                                ~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedAttributeFromSourceValidation_Static()
+            Dim code = "
+Namespace Microsoft.CodeAnalysis
+    <Embedded>
+    Friend Module EmbeddedAttribute
+        Inherits System.Attribute
+    End Module
+End Namespace
+"
+
+            CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20).AssertTheseDiagnostics(<![CDATA[
+BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+    <Embedded>
+    ~~~~~~~~~~~
+BC31504: 'EmbeddedAttribute' cannot be used as an attribute because it does not inherit from 'System.Attribute'.
+    <Embedded>
+     ~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute..ctor' is not defined.
+    Friend Module EmbeddedAttribute
+                  ~~~~~~~~~~~~~~~~~
+BC30230: 'Inherits' not valid in Modules.
+        Inherits System.Attribute
+        ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub EmbeddedAttributeFromSourceValidation_WrongBaseType()
+            Dim code = "
+Namespace Microsoft.CodeAnalysis
+    <Embedded>
+    Friend NotInheritable Class EmbeddedAttribute
+
+        Public Sub New()
+        End Sub
+    End Class
+End Namespace
+"
+
+            CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20).AssertTheseDiagnostics(<![CDATA[
+BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+    <Embedded>
+    ~~~~~~~~~~~
+BC31504: 'EmbeddedAttribute' cannot be used as an attribute because it does not inherit from 'System.Attribute'.
+    <Embedded>
+     ~~~~~~~~
+]]>)
+        End Sub
+
+        <Theory>
+        <InlineData("AttributeTargets.Struct Or AttributeTargets.Interface Or AttributeTargets.Enum Or AttributeTargets.Delegate")>
+        <InlineData("AttributeTargets.Class Or AttributeTargets.Interface Or AttributeTargets.Enum Or AttributeTargets.Delegate")>
+        <InlineData("AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Enum Or AttributeTargets.Delegate")>
+        <InlineData("AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Interface Or AttributeTargets.Delegate")>
+        <InlineData("AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Interface Or AttributeTargets.Enum")>
+        Public Sub EmbeddedAttributeFromSourceValidation_AttributeUsage(targets As String)
+            Dim code = $"
+Imports System
+Namespace Microsoft.CodeAnalysis
+    <Embedded, AttributeUsage({targets})>
+    Friend NotInheritable Class EmbeddedAttribute
+        Inherits System.Attribute
+
+        Public Sub New()
+        End Sub
+    End Class
+End Namespace
+"
+
+            If Not targets.Contains("Class") Then
+            End If
+
+            Dim comp = CreateCompilation(code, assemblyName:="testModule", targetFramework:=TargetFramework.NetStandard20)
+
+            If targets.Contains("Class") Then
+                comp.AssertTheseDiagnostics($"BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+    <Embedded, AttributeUsage({targets})>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~{(New String("~"c, targets.Length))}~~~"
+)
+            Else
+
+                comp.AssertTheseDiagnostics(<![CDATA[
+BC37335: The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type
+    <Embedded, AttributeUsage(AttributeTargets.Struct Or AttributeTargets.Interface Or AttributeTargets.Enum Or AttributeTargets.Delegate)>
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30662: Attribute 'EmbeddedAttribute' cannot be applied to 'EmbeddedAttribute' because the attribute is not valid on this declaration type.
+    <Embedded, AttributeUsage(AttributeTargets.Struct Or AttributeTargets.Interface Or AttributeTargets.Enum Or AttributeTargets.Delegate)>
+     ~~~~~~~~
+]]>)
+            End If
         End Sub
 
         <Fact>

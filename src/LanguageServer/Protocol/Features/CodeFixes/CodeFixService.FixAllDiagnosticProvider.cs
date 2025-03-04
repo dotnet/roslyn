@@ -12,67 +12,72 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes
+namespace Microsoft.CodeAnalysis.CodeFixes;
+
+internal partial class CodeFixService
 {
-    internal partial class CodeFixService
+    private sealed class FixAllDiagnosticProvider : FixAllContext.SpanBasedDiagnosticProvider
     {
-        private sealed class FixAllDiagnosticProvider : FixAllContext.SpanBasedDiagnosticProvider
+        private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private readonly ImmutableHashSet<string>? _diagnosticIds;
+        private readonly bool _includeSuppressedDiagnostics;
+
+        public FixAllDiagnosticProvider(IDiagnosticAnalyzerService diagnosticService, ImmutableHashSet<string> diagnosticIds)
         {
-            private readonly IDiagnosticAnalyzerService _diagnosticService;
-            private readonly ImmutableHashSet<string>? _diagnosticIds;
-            private readonly bool _includeSuppressedDiagnostics;
+            _diagnosticService = diagnosticService;
 
-            public FixAllDiagnosticProvider(IDiagnosticAnalyzerService diagnosticService, ImmutableHashSet<string> diagnosticIds)
+            // When computing FixAll for unnecessary pragma suppression diagnostic,
+            // we need to include suppressed diagnostics, as well as reported compiler and analyzer diagnostics.
+            // A null value for '_diagnosticIds' ensures the latter.
+            if (diagnosticIds.Contains(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId))
             {
-                _diagnosticService = diagnosticService;
-
-                // When computing FixAll for unnecessary pragma suppression diagnostic,
-                // we need to include suppressed diagnostics, as well as reported compiler and analyzer diagnostics.
-                // A null value for '_diagnosticIds' ensures the latter.
-                if (diagnosticIds.Contains(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId))
-                {
-                    _diagnosticIds = null;
-                    _includeSuppressedDiagnostics = true;
-                }
-                else
-                {
-                    _diagnosticIds = diagnosticIds;
-                    _includeSuppressedDiagnostics = false;
-                }
+                _diagnosticIds = null;
+                _includeSuppressedDiagnostics = true;
             }
-
-            public override async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+            else
             {
-                var solution = document.Project.Solution;
-                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(solution, projectId: null, document.Id, _diagnosticIds, shouldIncludeAnalyzer: null, _includeSuppressedDiagnostics, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
-                return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                _diagnosticIds = diagnosticIds;
+                _includeSuppressedDiagnostics = false;
             }
+        }
 
-            public override async Task<IEnumerable<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan fixAllSpan, CancellationToken cancellationToken)
-            {
-                bool shouldIncludeDiagnostic(string id) => _diagnosticIds == null || _diagnosticIds.Contains(id);
-                var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(document, fixAllSpan, shouldIncludeDiagnostic,
-                    includeCompilerDiagnostics: true, _includeSuppressedDiagnostics, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
-                    DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
-                return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            }
+        private ImmutableArray<DiagnosticData> Filter(ImmutableArray<DiagnosticData> diagnostics)
+            => diagnostics.WhereAsArray(d => _includeSuppressedDiagnostics || !d.IsSuppressed);
 
-            public override async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-            {
-                // Get all diagnostics for the entire project, including document diagnostics.
-                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null, _diagnosticIds, shouldIncludeAnalyzer: null, _includeSuppressedDiagnostics, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
-                return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-            }
+        public override async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        {
+            var diagnostics = Filter(await _diagnosticService.GetDiagnosticsForIdsAsync(
+                document.Project, document.Id, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
+            Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
+            return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
+        }
 
-            public override async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-            {
-                // Get all no-location diagnostics for the project, doesn't include document diagnostics.
-                var diagnostics = await _diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id, _diagnosticIds, shouldIncludeAnalyzer: null, _includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId == null));
-                return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-            }
+        public override async Task<IEnumerable<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan fixAllSpan, CancellationToken cancellationToken)
+        {
+            bool shouldIncludeDiagnostic(string id) => _diagnosticIds == null || _diagnosticIds.Contains(id);
+            var diagnostics = Filter(await _diagnosticService.GetDiagnosticsForSpanAsync(
+                document, fixAllSpan, shouldIncludeDiagnostic,
+                priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+                DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false));
+            Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
+            return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
+        }
+
+        public override async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        {
+            // Get all diagnostics for the entire project, including document diagnostics.
+            var diagnostics = Filter(await _diagnosticService.GetDiagnosticsForIdsAsync(
+                project, documentId: null, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
+            return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
+        }
+
+        public override async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        {
+            // Get all no-location diagnostics for the project, doesn't include document diagnostics.
+            var diagnostics = Filter(await _diagnosticService.GetProjectDiagnosticsForIdsAsync(
+                project, _diagnosticIds, shouldIncludeAnalyzer: null, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
+            Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId == null));
+            return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
         }
     }
 }

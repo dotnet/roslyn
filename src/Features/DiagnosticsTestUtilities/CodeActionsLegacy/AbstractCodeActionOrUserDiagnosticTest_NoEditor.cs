@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected virtual TestComposition GetComposition()
             => FeaturesTestCompositions.Features
-                .AddAssemblies(typeof(DiagnosticIncrementalAnalyzer).Assembly);
+                .AddAssemblies(typeof(DiagnosticAnalyzerService).Assembly);
 
         protected virtual void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
@@ -877,9 +877,9 @@ Consider using the title as the equivalence key instead of 'null'";
 
         protected static ImmutableArray<CodeAction> FlattenActions(ImmutableArray<CodeAction> codeActions)
         {
-            return codeActions.SelectMany(a => a.NestedActions.Length > 0
+            return [.. codeActions.SelectMany(a => a.NestedActions.Length > 0
                 ? a.NestedActions
-                : ImmutableArray.Create(a)).ToImmutableArray();
+                : [a])];
         }
 
         protected static ImmutableArray<CodeAction> GetNestedActions(ImmutableArray<CodeAction> codeActions)

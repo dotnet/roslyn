@@ -132,10 +132,10 @@ public abstract class AbstractMoveTypeTest : AbstractCodeActionTest
         return await TestOperationsAsync(workspace,
             expectedText: expectedCode,
             operations: operations,
-            conflictSpans: ImmutableArray<TextSpan>.Empty,
-            renameSpans: ImmutableArray<TextSpan>.Empty,
-            warningSpans: ImmutableArray<TextSpan>.Empty,
-            navigationSpans: ImmutableArray<TextSpan>.Empty,
+            conflictSpans: [],
+            renameSpans: [],
+            warningSpans: [],
+            navigationSpans: [],
             expectedChangedDocumentId: null);
     }
 

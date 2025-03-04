@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -19790,6 +19791,7 @@ class C1 (int p1)
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/75002")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76651")]
         [Fact]
         public void PartialMembers_01()
         {
@@ -19811,14 +19813,49 @@ class C1 (int p1)
             var comp = CreateCompilation([source1, source2]);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
+            model.GetDiagnostics().Verify();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76651")]
+        public void PartialMembers_02()
+        {
+            var source1 = """
+[System.Diagnostics.CodeAnalysis.Experimental(C.P)]
+class Repro
+{
+}
+""";
+
+            var source2 = """
+partial class C
+{
+    public static partial string P {get=>"";set{}}
+    public static partial string P {get;set;}
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, Inherited = false)]
+    public sealed class ExperimentalAttribute : Attribute
+    {
+        public ExperimentalAttribute(string diagnosticId) { }
+
+        public string UrlFormat { get; set; }
+
+        public string Message { get; set; }
+    }
+}
+""";
+            var comp = CreateCompilation([source1, source2]);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+
             model.GetDiagnostics().Verify(
-                // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
-                // c.M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(2, 3),
-                // (3,7): error CS0229: Ambiguity between 'C.P' and 'C.P'
-                // _ = c.P;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("C.P", "C.P").WithLocation(3, 7));
+                // (1,47): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [System.Diagnostics.CodeAnalysis.Experimental(C.P)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.P").WithLocation(1, 47)
+                );
         }
 
         [Fact]
@@ -19879,14 +19916,14 @@ class C1 (int p1)
             var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net80);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
             model.GetDiagnostics().Verify(
-                // (4,7): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
+                // (4,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // o = c.M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(4, 7),
-                // (5,7): error CS0229: Ambiguity between 'C.P' and 'C.P'
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M()").WithLocation(4, 5),
+                // (5,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // o = c.P;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("C.P", "C.P").WithLocation(5, 7));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.P").WithLocation(5, 5)
+                );
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/75002")]
@@ -19915,14 +19952,14 @@ class C1 (int p1)
             var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net80);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
             model.GetDiagnostics().Verify(
-                // (4,7): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
+                // (4,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // o = c.M();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M()", "C.M()").WithLocation(4, 7),
-                // (5,7): error CS0229: Ambiguity between 'C.P' and 'C.P'
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M()").WithLocation(4, 5),
+                // (5,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 // o = c.P;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("C.P", "C.P").WithLocation(5, 7));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.P").WithLocation(5, 5)
+                );
         }
 
         [Fact]
@@ -22359,6 +22396,259 @@ internal partial class EditorDocumentManagerListener
                 //     public C2() { } // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C2").WithArguments("property", "Text").WithLocation(12, 12)
                 );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_01([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+public " + keyword + @" Test1(
+    [Preserve1]
+    [Preserve2]
+    [Preserve3]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp2, symbolValidator: validate).VerifyDiagnostics();
+
+            var comp3 = CreateCompilation([source2], references: [comp1.EmitToImageReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp3, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "Preserve1Attribute",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>P").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_02([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+public record " + keyword + @" Test1(
+    [Preserve1]
+    [Preserve2]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition, IsExternalInitTypeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var comp2 = CreateCompilation([source2, IsExternalInitTypeDefinition], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp2, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            var comp3 = CreateCompilation([source2, IsExternalInitTypeDefinition], references: [comp1.EmitToImageReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp3, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_03([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source1 = @"
+using System;
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+";
+
+            string source2 = @"
+public record " + keyword + @" Test1(
+    [field: Preserve1]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, IsExternalInitTypeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)",
+                        "Preserve1Attribute"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>k__BackingField").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_04_Retargeting([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source0 = @"
+public class Test0 {}
+";
+
+            var comp0 = CreateCompilation(source0);
+
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+public " + keyword + @" Test1(
+    [Preserve1]
+    [Preserve2]
+    [Preserve3]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, CompilerLoweringPreserveAttributeDefinition],
+                references: [comp0.ToMetadataReference()],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            Assert.IsType<RetargetingNamedTypeSymbol>(comp2.GetTypeByMetadataName("Preserve1Attribute"));
+
+            CompileAndVerify(comp2, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "Preserve1Attribute",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>P").GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompilerLoweringPreserveAttribute_05_Generic([CombinatorialValues("class ", "struct")] string keyword)
+        {
+            string source0 = @"
+public class Test0 {}
+";
+
+            var comp0 = CreateCompilation(source0);
+
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute<T> : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute<T> : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute<T> : Attribute { }
+";
+
+            string source2 = @"
+public " + keyword + @" Test1(
+    [Preserve1<int>]
+    [Preserve2<int>]
+    [Preserve3<int>]
+    int P1)
+{
+    int M1() => P1;
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, CompilerLoweringPreserveAttributeDefinition],
+                references: [comp0.ToMetadataReference()],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            CompileAndVerify(comp2, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    [
+                        "Preserve1Attribute<System.Int32>",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)"
+                    ],
+                    m.GlobalNamespace.GetMember("Test1.<P1>P").GetAttributes().Select(a => a.ToString()));
+            }
         }
     }
 }

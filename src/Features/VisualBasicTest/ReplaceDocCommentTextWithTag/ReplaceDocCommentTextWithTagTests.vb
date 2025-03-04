@@ -68,6 +68,32 @@ class C(Of TKey)
 end class")
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76548")>
+        Public Async Function TestEndOfKeyword_XmlCloseTagFollowing() As Task
+            Await TestInRegularAndScriptAsync(
+"
+''' <summary>Testing keyword MustInherit[||]</summary>
+class C(Of TKey)
+end class",
+"
+''' <summary>Testing keyword <see langword=""MustInherit""/></summary>
+class C(Of TKey)
+end class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76548")>
+        Public Async Function TestEndOfKeyword_XmlOpenTagPreceding() As Task
+            Await TestInRegularAndScriptAsync(
+"
+''' <summary>[||]MustInherit is a thing</summary>
+class C(Of TKey)
+end class",
+"
+''' <summary>[||]<see langword=""MustInherit""/> is a thing</summary>
+class C(Of TKey)
+end class")
+        End Function
+
         <Fact>
         Public Async Function TestSelectedKeyword() As Task
             Await TestInRegularAndScriptAsync(

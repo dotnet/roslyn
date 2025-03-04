@@ -169,7 +169,7 @@ internal static partial class ISymbolExtensions
     }
 
     public static ImmutableArray<ISymbol> ImplicitInterfaceImplementations(this ISymbol symbol)
-        => symbol.ExplicitOrImplicitInterfaceImplementations().Except(symbol.ExplicitInterfaceImplementations()).ToImmutableArray();
+        => [.. symbol.ExplicitOrImplicitInterfaceImplementations().Except(symbol.ExplicitInterfaceImplementations())];
 
     public static bool IsOverridable([NotNullWhen(true)] this ISymbol? symbol)
     {
@@ -194,17 +194,16 @@ internal static partial class ISymbolExtensions
                 return true;
             }
 
-            if (symbol.Kind == SymbolKind.Method)
-            {
-                var methodSymbol = (IMethodSymbol)symbol;
-                if (methodSymbol.MethodKind is MethodKind.Ordinary or
-                    MethodKind.PropertyGet or
-                    MethodKind.PropertySet or
-                    MethodKind.UserDefinedOperator or
-                    MethodKind.Conversion)
+            if (symbol is IMethodSymbol
                 {
-                    return true;
-                }
+                    MethodKind: MethodKind.Ordinary or
+                        MethodKind.PropertyGet or
+                        MethodKind.PropertySet or
+                        MethodKind.UserDefinedOperator or
+                        MethodKind.Conversion
+                })
+            {
+                return true;
             }
         }
 
@@ -517,7 +516,7 @@ internal static partial class ISymbolExtensions
                     types = types.Concat((method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object)).WithNullableAnnotation(method.ReturnNullableAnnotation));
                 }
 
-                return delegateType.TryConstruct(types.ToArray());
+                return delegateType.TryConstruct([.. types]);
             }
         }
 
@@ -530,10 +529,7 @@ internal static partial class ISymbolExtensions
     }
 
     public static bool IsStaticType([NotNullWhen(true)] this ISymbol? symbol)
-        => symbol != null && symbol.Kind == SymbolKind.NamedType && symbol.IsStatic;
-
-    public static bool IsNamespace([NotNullWhen(true)] this ISymbol? symbol)
-        => symbol?.Kind == SymbolKind.Namespace;
+        => symbol is INamedTypeSymbol { IsStatic: true };
 
     public static bool IsOrContainsAccessibleAttribute(
         [NotNullWhen(true)] this ISymbol? symbol, ISymbol withinType, IAssemblySymbol withinAssembly, CancellationToken cancellationToken)

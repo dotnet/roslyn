@@ -104,7 +104,7 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticA
             //
             // fortunately, this only happens on disposing at shutdown, so we just catch the exception and silently swallow it. 
             // we are about to shutdown anyway.
-            return ImmutableArray<(AnalyzerFileReference, string)>.Empty;
+            return [];
         }
     }
 

@@ -462,6 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isSpeculative = false)
             : base(compilation, symbol, node, EmptyStructTypeCache.CreatePrecise(), trackUnassignments: true)
         {
+            Debug.Assert(!TrackingRegions);
             Debug.Assert(!useDelegateInvokeParameterTypes || delegateInvokeMethodOpt is object);
             Debug.Assert(baseOrThisInitializer is null or { MethodKind: MethodKind.Constructor });
 
@@ -910,13 +911,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 => ImmutableArray<Symbol>.Empty,
 
                             (includeAllMembers: false, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: false)
-                                => containingType.GetMembersUnordered().SelectManyAsArray(predicate: SymbolExtensions.IsRequired, selector: getAllMembersToBeDefaulted),
+                                => containingType.GetMembersUnordered().SelectManyAsArray(
+                                    predicate: SymbolExtensions.IsRequired,
+                                    selector: symbol => getAllMembersToBeDefaulted(symbol, filterOverridingProperties: true)),
 
                             (includeAllMembers: false, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
-                                => containingType.AllRequiredMembers.SelectManyAsArray(static kvp => getAllMembersToBeDefaulted(kvp.Value)),
+                                => containingType.AllRequiredMembers.SelectManyAsArray(static kvp => getAllMembersToBeDefaulted(kvp.Value, filterOverridingProperties: true)),
 
                             (includeAllMembers: true, includeCurrentTypeRequiredMembers: _, includeBaseRequiredMembers: false)
-                                => containingType.GetMembersUnordered().SelectAsArray(getFieldSymbolToBeInitialized),
+                                => containingType.GetMembersUnordered().SelectManyAsArray(
+                                    selector: symbol =>
+                                    {
+                                        var symbolToInitialize = getFieldSymbolToBeInitialized(symbol);
+                                        var prop = symbolToInitialize as PropertySymbol ?? (symbolToInitialize as FieldSymbol)?.AssociatedSymbol as PropertySymbol;
+                                        if (prop is not null && isFilterableOverrideOfAbstractProperty(prop))
+                                        {
+                                            return OneOrMany<Symbol>.Empty;
+                                        }
+                                        else
+                                        {
+                                            return OneOrMany.Create(symbolToInitialize);
+                                        }
+                                    }),
 
                             (includeAllMembers: true, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
                                 => getAllTypeAndRequiredMembers(containingType),
@@ -928,50 +944,95 @@ namespace Microsoft.CodeAnalysis.CSharp
                         static ImmutableArray<Symbol> getAllTypeAndRequiredMembers(TypeSymbol containingType)
                         {
                             var members = containingType.GetMembersUnordered();
-                            var requiredMembers = containingType.BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty;
+                            var baseRequiredMembers = containingType.BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty;
 
-                            if (requiredMembers.IsEmpty)
+                            if (baseRequiredMembers.IsEmpty)
                             {
                                 return members;
                             }
 
-                            var builder = ArrayBuilder<Symbol>.GetInstance(members.Length + requiredMembers.Count);
+                            var builder = ArrayBuilder<Symbol>.GetInstance(members.Length + baseRequiredMembers.Count);
                             builder.AddRange(members);
-                            foreach (var (_, requiredMember) in requiredMembers)
+                            foreach (var (_, requiredMember) in baseRequiredMembers)
                             {
                                 // We want to assume that all required members were _not_ set by the chained constructor
-                                builder.AddRange(getAllMembersToBeDefaulted(requiredMember));
+
+                                // We exclude any members that are abstract and have an implementation in the current type, when that implementation passes the same heuristics
+                                // we use in the other other cases (annotations match up across overrides). This is because the chained constructor, which as SetsRequiredMembers as well,
+                                // will have already set the abstract member to non-null, and there isn't a separate slot for that abstract member.
+                                if (requiredMember is PropertySymbol { IsAbstract: true } abstractProperty)
+                                {
+                                    if (members.FirstOrDefault(static (thisMember, baseMember) => thisMember.IsOverride && (object)thisMember.GetOverriddenMember() == baseMember, requiredMember) is { } overridingMember
+                                        && isFilterableOverrideOfAbstractProperty((PropertySymbol)overridingMember))
+                                    {
+                                        continue;
+                                    }
+                                }
+
+                                builder.AddRange(getAllMembersToBeDefaulted(requiredMember, filterOverridingProperties: false));
                             }
 
                             return builder.ToImmutableAndFree();
                         }
 
-                        static IEnumerable<Symbol> getAllMembersToBeDefaulted(Symbol requiredMember)
+                        static OneOrMany<Symbol> getAllMembersToBeDefaulted(Symbol requiredMember, bool filterOverridingProperties)
                         {
                             Debug.Assert(requiredMember.IsRequired());
 
                             if (requiredMember is FieldSymbol)
                             {
-                                yield return requiredMember;
+                                return OneOrMany.Create(requiredMember);
                             }
                             else
                             {
                                 var property = (PropertySymbol)requiredMember;
-                                yield return getFieldSymbolToBeInitialized(property);
+
+                                if (filterOverridingProperties && isFilterableOverrideOfAbstractProperty(property))
+                                {
+                                    return OneOrMany<Symbol>.Empty;
+                                }
+
+                                var @return = OneOrMany.Create(getFieldSymbolToBeInitialized(property));
 
                                 // If the set method is null (ie missing), that's an error, but we'll recover as best we can
                                 foreach (var notNullMemberName in (property.SetMethod?.NotNullMembers ?? property.NotNullMembers))
                                 {
                                     foreach (var member in property.ContainingType.GetMembers(notNullMemberName))
                                     {
-                                        yield return getFieldSymbolToBeInitialized(member);
+                                        @return = @return.Add(getFieldSymbolToBeInitialized(member));
                                     }
                                 }
+
+                                return @return;
                             }
                         }
 
                         static Symbol getFieldSymbolToBeInitialized(Symbol requiredMember)
                             => requiredMember is SourcePropertySymbolBase { BackingField: { } backingField } ? backingField : requiredMember;
+
+                        static bool isFilterableOverrideOfAbstractProperty(PropertySymbol property)
+                        {
+                            // If this is an override of an abstract property, and the overridden property has the same nullable
+                            // annotation as us, we can skip default-initializing the property because the chained constructor
+                            // will have done so
+                            if (property.OverriddenProperty is not { IsAbstract: true } overriddenProperty)
+                            {
+                                return false;
+                            }
+
+                            var symbolAnnotations = property is SourcePropertySymbolBase { UsesFieldKeyword: true, BackingField: { } field }
+                                ? field!.FlowAnalysisAnnotations
+                                : property.GetFlowAnalysisAnnotations();
+                            var symbolType = ApplyUnconditionalAnnotations(property.TypeWithAnnotations, symbolAnnotations);
+                            if (!symbolType.NullableAnnotation.IsNotAnnotated())
+                            {
+                                return false;
+                            }
+
+                            var overriddenAnnotations = overriddenProperty.GetFlowAnalysisAnnotations();
+                            var overriddenType = ApplyUnconditionalAnnotations(overriddenProperty.TypeWithAnnotations, overriddenAnnotations);
+                            return overriddenType.NullableAnnotation == symbolType.NullableAnnotation;
+                        }
                     }
                 }
             }
@@ -1111,6 +1172,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Gets a slot for a static member, or a member of 'this', which is being referenced by a postcondition.
+        /// Used for "declaration-site" analysis of MemberNotNullAttributes.
+        /// </summary>
         private int GetSlotForMemberPostCondition(Symbol member)
         {
             if (member.Kind != SymbolKind.Field &&
@@ -1120,22 +1185,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return -1;
             }
 
-            int containingSlot = GetReceiverSlotForMemberPostConditions(_symbol as MethodSymbol);
-
-            if (containingSlot < 0)
-            {
-                return -1;
-            }
-
+            int containingSlot;
             if (member.IsStatic)
             {
-                // Trying to access a static member from a non-static context
                 containingSlot = 0;
             }
-            else if (containingSlot == 0)
+            else
             {
-                // Trying to access an instance member from a static context
-                return -1;
+                containingSlot = GetReceiverSlotForMemberPostConditions(_symbol as MethodSymbol);
+                if (containingSlot <= 0)
+                {
+                    // Either trying to access an instance member from a static context,
+                    // or an invalid slot (-1) was returned
+                    return -1;
+                }
             }
 
             return GetOrCreateSlot(member, containingSlot);
@@ -3865,10 +3928,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(isTargetTyped == argumentsCompletion is not null);
 
             var type = node.Type;
-            (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, int>? initialStateInferenceCompletion) = inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped);
+            var initializerOpt = node.InitializerExpressionOpt;
+            (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, int>? initialStateInferenceCompletion) =
+                inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped, hasObjectInitializer: initializerOpt is { });
 
             Action<int, TypeSymbol>? initializerCompletion = null;
-            var initializerOpt = node.InitializerExpressionOpt;
             if (initializerOpt != null)
             {
                 initializerCompletion = VisitObjectCreationInitializer(slot, type, initializerOpt, delayCompletionForType: isTargetTyped);
@@ -3951,20 +4015,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, int>? completion) inferInitialObjectState(
                 BoundExpression node, TypeSymbol type, MethodSymbol? constructor,
                 ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitResult> argumentResults,
-                bool isTargetTyped)
+                bool isTargetTyped,
+                bool hasObjectInitializer)
             {
                 if (isTargetTyped)
                 {
-                    return (-1, NullableFlowState.NotNull, inferInitialObjectStateAsContinuation(node, arguments, argumentResults));
+                    return (-1, NullableFlowState.NotNull, inferInitialObjectStateAsContinuation(node, arguments, argumentResults, hasObjectInitializer));
                 }
 
                 Debug.Assert(node.Kind is BoundKind.ObjectCreationExpression or BoundKind.DynamicObjectCreationExpression or BoundKind.NewT or BoundKind.NoPiaObjectCreationExpression);
 
-                var argumentTypes = argumentResults.SelectAsArray(ar => ar.RValueType);
-
                 int slot = -1;
                 var resultState = NullableFlowState.NotNull;
-                if (type is object)
+                if (type is object &&
+                    (hasObjectInitializer || type.IsStructType()))
                 {
                     slot = GetOrCreatePlaceholderSlot(node);
                     if (slot > 0)
@@ -3977,6 +4041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (containingType?.IsTupleType == true && !isDefaultValueTypeConstructor)
                             {
                                 // new System.ValueTuple<T1, ..., TN>(e1, ..., eN)
+                                var argumentTypes = argumentResults.SelectAsArray(ar => ar.RValueType);
                                 TrackNullableStateOfTupleElements(slot, containingType, arguments, argumentTypes, ((BoundObjectCreationExpression)node).ArgsToParamsOpt, useRestField: true);
                             }
                             else
@@ -4021,11 +4086,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Func<TypeSymbol, MethodSymbol?, int> inferInitialObjectStateAsContinuation(
                 BoundExpression node,
                 ImmutableArray<BoundExpression> arguments,
-                ImmutableArray<VisitResult> argumentResults)
+                ImmutableArray<VisitResult> argumentResults,
+                bool hasObjectInitializer)
             {
                 return (TypeSymbol type, MethodSymbol? constructor) =>
                 {
-                    var (slot, resultState, completion) = inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped: false);
+                    var (slot, resultState, completion) = inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped: false, hasObjectInitializer);
                     Debug.Assert(completion is null);
                     Debug.Assert(resultState == NullableFlowState.NotNull);
                     return slot;
@@ -7083,6 +7149,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Applies the member postconditions of <paramref name="method"/> to members of <paramref name="receiverOpt"/> or to the appropriate static members.
+        /// Used for the "use-site" analysis of MemberNotNullAttributes.
+        /// </summary>
         private void ApplyMemberPostConditions(BoundExpression? receiverOpt, MethodSymbol? method)
         {
             if (method is null)
@@ -7102,9 +7172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ApplyMemberPostConditions(receiverSlot, method);
         }
 
-        // For an instance method, or a non-static local function in an instance method, returns the slot for the `this` parameter
-        // For a static method, or a static local function, or a local function in a static method, returns 0
-        // Otherwise, returns -1
+        /// <summary>
+        /// Returns -1 when a null method is passed. In this case there are definitely no member postconditions to apply.
+        /// Returns the slot for the `this` parameter for an instance method, or a non-static local function in an instance method.
+        /// Otherwise, returns 0, because postconditions applying to static members of the containing type could be present.
+        /// </summary>
         private int GetReceiverSlotForMemberPostConditions(MethodSymbol? method)
         {
             if (method is null)
@@ -7132,7 +7204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetOrCreateSlot(thisParameter);
             }
 
-            return -1;
+            return 0;
         }
 
         private void ApplyMemberPostConditions(int receiverSlot, MethodSymbol method)

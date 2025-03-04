@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -65,10 +66,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim location = token.GetLocation()
 
             For Each ancestor In token.GetAncestors(Of SyntaxNode)()
-                If Not TypeOf ancestor Is AggregationRangeVariableSyntax AndAlso
-                   Not TypeOf ancestor Is CollectionRangeVariableSyntax AndAlso
-                   Not TypeOf ancestor Is ExpressionRangeVariableSyntax AndAlso
-                   Not TypeOf ancestor Is InferredFieldInitializerSyntax Then
+                If TypeOf ancestor IsNot AggregationRangeVariableSyntax AndAlso
+                   TypeOf ancestor IsNot CollectionRangeVariableSyntax AndAlso
+                   TypeOf ancestor IsNot ExpressionRangeVariableSyntax AndAlso
+                   TypeOf ancestor IsNot InferredFieldInitializerSyntax Then
 
                     Dim symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken)
 
@@ -325,6 +326,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             End While
 
+            Return False
+        End Function
+
+        Public Function TryGetPrimaryConstructor(typeSymbol As INamedTypeSymbol, <NotNullWhen(True)> ByRef primaryConstructor As IMethodSymbol) As Boolean Implements ISemanticFacts.TryGetPrimaryConstructor
+            ' VB does not support primary constructors
             Return False
         End Function
 

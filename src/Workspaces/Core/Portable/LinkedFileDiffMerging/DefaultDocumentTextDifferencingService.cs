@@ -27,6 +27,6 @@ internal sealed class DefaultDocumentTextDifferencingService : IDocumentTextDiff
     public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, TextDifferenceTypes preferredDifferenceType, CancellationToken cancellationToken)
     {
         var changes = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false);
-        return changes.ToImmutableArray();
+        return [.. changes];
     }
 }

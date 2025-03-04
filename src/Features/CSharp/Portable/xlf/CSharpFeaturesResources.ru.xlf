@@ -132,11 +132,6 @@
         <target state="translated">Автовыбор отключен из-за возможного объявления переменной шаблона.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
-        <source>Cannot determine valid range of statements to extract</source>
-        <target state="translated">Невозможно определить допустимый диапазон операторов для извлечения</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">Изменить на выражение "as"</target>
@@ -367,11 +362,6 @@
         <target state="translated">Выделенный код находится внутри небезопасного содержимого.</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_valid_statement_range_to_extract">
-        <source>No valid statement range to extract</source>
-        <target state="translated">Отсутствует допустимый диапазон операторов для извлечения</target>
-        <note />
-      </trans-unit>
       <trans-unit id="deprecated">
         <source>deprecated</source>
         <target state="translated">не рекомендуется</target>
@@ -409,7 +399,7 @@
       </trans-unit>
       <trans-unit id="required_property">
         <source>required property</source>
-        <target state="new">required property</target>
+        <target state="translated">обязательное свойство</target>
         <note />
       </trans-unit>
       <trans-unit id="reversed_for_loop">

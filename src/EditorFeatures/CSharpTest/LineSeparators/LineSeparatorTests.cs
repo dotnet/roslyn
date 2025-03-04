@@ -602,7 +602,7 @@ public class LineSeparatorTests
         var spans = await lineSeparatorService.GetLineSeparatorsAsync(document, root.FullSpan, CancellationToken.None);
         var tokens = root.DescendantTokens().Where(t => t.Kind() is SyntaxKind.CloseBraceToken or SyntaxKind.SemicolonToken);
 
-        Assert.Equal(tokenIndices.Length, spans.Count());
+        Assert.Equal(tokenIndices.Length, spans.Length);
 
         var i = 0;
         foreach (var span in spans.OrderBy(t => t.Start))

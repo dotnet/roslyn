@@ -19,22 +19,23 @@ using static SyntaxFactory;
 
 internal static class UseExpressionBodyForLambdaCodeActionHelpers
 {
-    internal static LambdaExpressionSyntax Update(SemanticModel semanticModel, LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration, CancellationToken cancellationToken)
-        => UpdateWorker(semanticModel, originalDeclaration, currentDeclaration, cancellationToken).WithAdditionalAnnotations(Formatter.Annotation);
+    internal static LambdaExpressionSyntax Update(SemanticModel semanticModel, LambdaExpressionSyntax lambdaExpression, CancellationToken cancellationToken)
+        => UpdateWorker(semanticModel, lambdaExpression, cancellationToken).WithAdditionalAnnotations(Formatter.Annotation);
 
     private static LambdaExpressionSyntax UpdateWorker(
-        SemanticModel semanticModel, LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration, CancellationToken cancellationToken)
+        SemanticModel semanticModel, LambdaExpressionSyntax lambdaExpression, CancellationToken cancellationToken)
     {
-        var expressionBody = UseExpressionBodyForLambdaHelpers.GetBodyAsExpression(currentDeclaration);
+        var expressionBody = UseExpressionBodyForLambdaHelpers.GetBodyAsExpression(lambdaExpression);
         return expressionBody == null
-            ? WithExpressionBody(currentDeclaration, originalDeclaration.GetLanguageVersion(), cancellationToken)
-            : WithBlockBody(semanticModel, originalDeclaration, currentDeclaration, expressionBody);
+            ? WithExpressionBody(semanticModel, lambdaExpression, cancellationToken)
+            : WithBlockBody(semanticModel, lambdaExpression, expressionBody);
     }
 
-    private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration, LanguageVersion languageVersion, CancellationToken cancellationToken)
+    private static LambdaExpressionSyntax WithExpressionBody(
+        SemanticModel semanticModel, LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
     {
         if (!UseExpressionBodyForLambdaHelpers.TryConvertToExpressionBody(
-                declaration, languageVersion, ExpressionBodyPreference.WhenPossible, cancellationToken, out var expressionBody))
+                semanticModel, declaration, declaration.GetLanguageVersion(), ExpressionBodyPreference.WhenPossible, cancellationToken, out var expressionBody))
         {
             return declaration;
         }
@@ -53,23 +54,23 @@ internal static class UseExpressionBodyForLambdaCodeActionHelpers
     }
 
     private static LambdaExpressionSyntax WithBlockBody(
-        SemanticModel semanticModel, LambdaExpressionSyntax originalDeclaration, LambdaExpressionSyntax currentDeclaration, ExpressionSyntax expressionBody)
+        SemanticModel semanticModel, LambdaExpressionSyntax lambdaExpression, ExpressionSyntax expressionBody)
     {
         var createReturnStatementForExpression = CreateReturnStatementForExpression(
-            semanticModel, originalDeclaration);
+            semanticModel, lambdaExpression);
 
         if (!expressionBody.TryConvertToStatement(
                 semicolonTokenOpt: null,
                 createReturnStatementForExpression,
                 out var statement))
         {
-            return currentDeclaration;
+            return lambdaExpression;
         }
 
         // If the user is converting to a block, it's likely they intend to add multiple
         // statements to it.  So make a multi-line block so that things are formatted properly
         // for them to do so.
-        return currentDeclaration.WithBody(Block(
+        return lambdaExpression.WithBody(Block(
             OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed),
             [statement],
             CloseBraceToken));

@@ -8,9 +8,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -48,8 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Debug.Assert(preferences.Count == enumValues.Length);
             Debug.Assert(previews.Length == enumValues.Length);
 
-            _enumValues = enumValues.ToImmutableArray();
-            _previews = previews.ToImmutableArray();
+            _enumValues = [.. enumValues];
+            _previews = [.. previews];
 
             var codeStyleOption = optionStore.GetOption<CodeStyleOption2<T>>(option, option.IsPerLanguage ? info.Language : null);
 

@@ -59,7 +59,7 @@ internal abstract partial class AbstractCodeCleanUpFixer(
                 _workspace,
                 // Just defer to FixProjectsAsync, passing in all fixable projects in the solution.
                 (progress, cancellationToken) => FixProjectsAsync(
-                    solution, solution.Projects.Where(p => p.SupportsCompilation).ToImmutableArray(), context.EnabledFixIds, progress, cancellationToken),
+                    solution, [.. solution.Projects.Where(p => p.SupportsCompilation)], context.EnabledFixIds, progress, cancellationToken),
                 context).ConfigureAwait(false);
         }
 

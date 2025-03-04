@@ -69,6 +69,12 @@ internal static class ICompilationExtensions
         return builder.ToImmutableAndFree();
     }
 
+    public static INamedTypeSymbol? ArgumentExceptionType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ArgumentException).FullName!);
+
+    public static INamedTypeSymbol? ArgumentNullExceptionType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
+
     public static INamedTypeSymbol? ArrayType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Array).FullName!);
 
@@ -98,6 +104,9 @@ internal static class ICompilationExtensions
 
     public static INamedTypeSymbol? ThreadStaticAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(ThreadStaticAttribute).FullName!);
+
+    public static INamedTypeSymbol? FormattableStringType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(FormattableString).FullName!);
 
     public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);

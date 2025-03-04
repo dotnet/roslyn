@@ -213,7 +213,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         return new Updates(
             results.ModuleUpdates.Status,
             diagnostics,
-            projectUpdates.ToImmutableArray(),
+            [.. projectUpdates],
             results.ProjectsToRestart.Select(solution.GetRequiredProject).ToImmutableHashSet(),
             results.ProjectsToRebuild.Select(solution.GetRequiredProject).ToImmutableHashSet());
     }

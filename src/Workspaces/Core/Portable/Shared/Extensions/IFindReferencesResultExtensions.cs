@@ -107,7 +107,7 @@ internal static partial class IFindReferencesResultExtensions
                 where aliasLocations.Any()
                 select new ReferencedSymbol(r.Definition, aliasLocations);
 
-        return q.ToImmutableArray();
+        return [.. q];
     }
 
     public static ImmutableArray<ReferencedSymbol> FilterNonMatchingMethodNames(

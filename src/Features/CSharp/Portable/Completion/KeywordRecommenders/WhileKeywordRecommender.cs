@@ -8,13 +8,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class WhileKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class WhileKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.WhileKeyword)
 {
-    public WhileKeywordRecommender()
-        : base(SyntaxKind.WhileKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         if (context.IsStatementContext ||

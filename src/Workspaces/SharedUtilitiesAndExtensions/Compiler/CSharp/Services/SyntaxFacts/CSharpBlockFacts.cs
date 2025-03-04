@@ -15,9 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
-internal class CSharpBlockFacts : AbstractBlockFacts
+internal class CSharpBlockFacts : AbstractBlockFacts<StatementSyntax>
 {
-    public static readonly IBlockFacts Instance = new CSharpBlockFacts();
+    public static readonly CSharpBlockFacts Instance = new();
 
     public override bool IsScopeBlock([NotNullWhen(true)] SyntaxNode? node)
         => node.IsKind(SyntaxKind.Block);
@@ -25,7 +25,16 @@ internal class CSharpBlockFacts : AbstractBlockFacts
     public override bool IsExecutableBlock([NotNullWhen(true)] SyntaxNode? node)
         => node is (kind: SyntaxKind.Block or SyntaxKind.SwitchSection or SyntaxKind.CompilationUnit);
 
-    public override IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode? node)
+    public override SyntaxNode? GetImmediateParentExecutableBlockForStatement(StatementSyntax statement)
+        => statement.Parent switch
+        {
+            BlockSyntax block => block,
+            SwitchSectionSyntax switchSection => switchSection,
+            GlobalStatementSyntax globalStatement => globalStatement.Parent,
+            _ => null,
+        };
+
+    public override IReadOnlyList<StatementSyntax> GetExecutableBlockStatements(SyntaxNode? node)
     {
         return node switch
         {
@@ -37,17 +46,17 @@ internal class CSharpBlockFacts : AbstractBlockFacts
     }
 
     public override SyntaxNode? FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
-        => nodes.FindInnermostCommonNode(node => IsExecutableBlock(node));
+        => nodes.FindInnermostCommonNode(IsExecutableBlock);
 
     public override bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node)
         => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();
 
-    public override IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode? node)
+    public override IReadOnlyList<StatementSyntax> GetStatementContainerStatements(SyntaxNode? node)
     {
         if (IsExecutableBlock(node))
             return GetExecutableBlockStatements(node);
         else if (node.GetEmbeddedStatement() is { } embeddedStatement)
-            return ImmutableArray.Create<SyntaxNode>(embeddedStatement);
+            return [embeddedStatement];
         else
             return [];
     }

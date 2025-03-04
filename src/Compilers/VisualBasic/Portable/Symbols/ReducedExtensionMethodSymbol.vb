@@ -444,6 +444,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return _curriedFromMethod.GetOverloadResolutionPriority()
+        End Function
+
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
                 Return False

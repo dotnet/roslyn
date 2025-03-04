@@ -4750,13 +4750,13 @@ public class ConvertToRecordCodeRefactoringTests
     private class TestAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(new DiagnosticDescriptor(
+            => [new DiagnosticDescriptor(
                 "CS8865",
                 "Only records may inherit from records.",
                 "Only records may inherit from records.",
                 "Compiler error",
                 DiagnosticSeverity.Error,
-                isEnabledByDefault: true));
+                isEnabledByDefault: true)];
 
         public override void Initialize(AnalysisContext context)
         {

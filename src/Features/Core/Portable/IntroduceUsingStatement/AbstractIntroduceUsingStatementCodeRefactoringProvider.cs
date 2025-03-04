@@ -429,7 +429,7 @@ internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<
     private static void AddReferencedLocalVariables(
         HashSet<ISymbol> referencedVariables,
         SyntaxNode node,
-        IReadOnlyList<ISymbol> localVariables,
+        ArrayBuilder<ISymbol> localVariables,
         SemanticModel semanticModel,
         ISyntaxFactsService syntaxFactsService,
         CancellationToken cancellationToken)

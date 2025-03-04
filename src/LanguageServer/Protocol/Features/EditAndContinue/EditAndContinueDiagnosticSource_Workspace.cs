@@ -59,7 +59,7 @@ internal static partial class EditAndContinueDiagnosticSource
             var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             if (document != null && !isDocumentOpen(document))
             {
-                sources.Add(new ClosedDocumentSource(document, diagnostics.ToImmutableArray()));
+                sources.Add(new ClosedDocumentSource(document, [.. diagnostics]));
             }
         }
 
@@ -70,7 +70,7 @@ internal static partial class EditAndContinueDiagnosticSource
             group data by data.ProjectId into projectData
             let project = solution.GetProject(projectData.Key)
             where project != null
-            select new ProjectSource(project, projectData.ToImmutableArray()));
+            select new ProjectSource(project, [.. projectData]));
 
         return sources.ToImmutable();
     }

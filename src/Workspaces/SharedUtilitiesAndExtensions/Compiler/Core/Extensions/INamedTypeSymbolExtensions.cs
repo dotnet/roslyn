@@ -33,10 +33,10 @@ internal static partial class INamedTypeSymbolExtensions
         return stack.SelectManyAsArray(n => n.TypeParameters);
     }
 
-    public static IEnumerable<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
+    public static ImmutableArray<ITypeSymbol> GetAllTypeArguments(this INamedTypeSymbol? symbol)
     {
         var stack = GetContainmentStack(symbol);
-        return stack.SelectMany(n => n.TypeArguments);
+        return stack.SelectManyAsArray(n => n.TypeArguments);
     }
 
     private static Stack<INamedTypeSymbol> GetContainmentStack(INamedTypeSymbol? symbol)
@@ -86,9 +86,9 @@ internal static partial class INamedTypeSymbolExtensions
     {
         if (member.ContainingType.TypeKind == TypeKind.Interface)
         {
-            if (member.Kind == SymbolKind.Property)
+            if (member is IPropertySymbol property)
             {
-                return IsInterfacePropertyImplemented(classOrStructType, (IPropertySymbol)member);
+                return IsInterfacePropertyImplemented(classOrStructType, property);
             }
             else
             {
@@ -98,9 +98,9 @@ internal static partial class INamedTypeSymbolExtensions
 
         if (member.IsAbstract)
         {
-            if (member.Kind == SymbolKind.Property)
+            if (member is IPropertySymbol property)
             {
-                return IsAbstractPropertyImplemented(classOrStructType, (IPropertySymbol)member);
+                return IsAbstractPropertyImplemented(classOrStructType, property);
             }
             else
             {
@@ -369,9 +369,7 @@ internal static partial class INamedTypeSymbolExtensions
     private static ImmutableArray<INamedTypeSymbol> GetAbstractClassesToImplement(
         IEnumerable<INamedTypeSymbol> abstractClasses)
     {
-        return abstractClasses.SelectMany(a => a.GetBaseTypesAndThis())
-                              .Where(t => t.IsAbstractClass())
-                              .ToImmutableArray();
+        return [.. abstractClasses.SelectMany(a => a.GetBaseTypesAndThis()).Where(t => t.IsAbstractClass())];
     }
 
     private static ImmutableArray<INamedTypeSymbol> GetInterfacesToImplement(

@@ -280,6 +280,13 @@ internal static class ParenthesizedExpressionSyntaxExtensions
         if (nodeParent is SwitchExpressionArmSyntax arm && arm.Expression == node)
             return true;
 
+        // [.. (expr)]    ->    [.. expr]
+        //
+        // Note: There is no precedence with `..` it's always just part of the collection expr, with the expr being
+        // parsed independently of it.  That's why no parens are ever needed here.
+        if (nodeParent is SpreadElementSyntax)
+            return true;
+
         // If we have: (X)(++x) or (X)(--x), we don't want to remove the parens. doing so can
         // make the ++/-- now associate with the previous part of the cast expression.
         if (parentExpression.IsKind(SyntaxKind.CastExpression) &&

@@ -3530,4 +3530,26 @@ compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLib
             }
             """);
     }
+
+    [Fact]
+    public async Task TestCollectionExpressionSpread()
+    {
+        await TestInRegularAndScript1Async("""
+            class C
+            {
+                public void M()
+                {
+                    var v = [.. $$(a ? b : c)];
+                }
+            }
+            """, """
+            class C
+            {
+                public void M()
+                {
+                    var v = [.. a ? b : c];
+                }
+            }
+            """);
+    }
 }

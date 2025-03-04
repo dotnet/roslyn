@@ -1098,7 +1098,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
             TestCode = code,
             FixedCode = fixedCode,
             CodeActionIndex = 1,
-            MemberNames = ImmutableArray<string>.Empty,
+            MemberNames = [],
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
@@ -2039,7 +2039,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
         {
             TestCode = code,
             FixedCode = fixedCode,
-            MemberNames = ImmutableArray.Create("a", "b"),
+            MemberNames = ["a", "b"],
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
@@ -2084,7 +2084,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
         {
             TestCode = code,
             FixedCode = fixedCode,
-            MemberNames = ImmutableArray.Create("c", "b"),
+            MemberNames = ["c", "b"],
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
@@ -2127,7 +2127,7 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
         {
             TestCode = code,
             FixedCode = fixedCode,
-            MemberNames = ImmutableArray<string>.Empty,
+            MemberNames = [],
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
@@ -3251,7 +3251,7 @@ DiagnosticResult.CompilerError("CS0518").WithSpan(18, 45, 18, 51).WithArguments(
 DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments("Int32", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
                 },
             },
-            ReferenceAssemblies = ReferenceAssemblies.Default.WithAssemblies(ImmutableArray<string>.Empty),
+            ReferenceAssemblies = ReferenceAssemblies.Default.WithAssemblies([]),
         }.RunAsync();
     }
 
@@ -4152,7 +4152,7 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                     """,
                 },
             },
-            MemberNames = ImmutableArray.Create("bar"),
+            MemberNames = ["bar"],
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -4210,7 +4210,7 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                     """,
                 },
             },
-            MemberNames = ImmutableArray.Create("bar"),
+            MemberNames = ["bar"],
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -4268,7 +4268,7 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                     """,
                 },
             },
-            MemberNames = ImmutableArray.Create("bar"),
+            MemberNames = ["bar"],
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -4328,7 +4328,7 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                     """,
                 },
             },
-            MemberNames = ImmutableArray.Create("bar"),
+            MemberNames = ["bar"],
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -4398,6 +4398,21 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             },
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.Default,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76916")]
+    public async Task TestMissingWithPrimaryConstructorAndNoFields()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C(int a)
+                {
+                    [||]
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 }

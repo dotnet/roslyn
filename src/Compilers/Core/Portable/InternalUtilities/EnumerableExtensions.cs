@@ -397,6 +397,22 @@ namespace Roslyn.Utilities
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
+        public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IReadOnlyCollection<TSource>? source, Func<TSource, TArg, TResult> selector, TArg arg)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = new TResult[source.Count];
+            var index = 0;
+            foreach (var item in source)
+            {
+                builder[index] = selector(item, arg);
+                index++;
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
         {
             if (source == null)
@@ -443,6 +459,18 @@ namespace Roslyn.Utilities
             var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
             foreach (var item in source)
                 builder.AddRange(selector(item, arg));
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, OneOrMany<TResult>> selector)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in source)
+                selector(item).AddRangeTo(builder);
 
             return builder.ToImmutableAndFree();
         }

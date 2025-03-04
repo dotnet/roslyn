@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 ImmutableArray<Guid> keys;
                 lock (_dataPoints)
                 {
-                    keys = _dataPoints.Keys.ToImmutableArray();
+                    keys = [.. _dataPoints.Keys];
                 }
 
                 var projectVersions = await _lazyCodeLensCallbackService.Value.InvokeAsync<ImmutableDictionary<Guid, string>>(

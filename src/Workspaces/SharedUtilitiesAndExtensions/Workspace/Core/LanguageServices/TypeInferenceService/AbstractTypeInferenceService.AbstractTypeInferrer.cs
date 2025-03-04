@@ -75,9 +75,7 @@ internal abstract partial class AbstractTypeInferenceService : ITypeInferenceSer
 
         private ImmutableArray<TypeInferenceInfo> Filter(IEnumerable<TypeInferenceInfo> types, bool filterUnusable = true)
         {
-            return types.Where(filterUnusable ? IsUsableTypeFunc : s_isNotNull)
-                        .Distinct()
-                        .ToImmutableArray();
+            return [.. types.Where(filterUnusable ? IsUsableTypeFunc : s_isNotNull).Distinct()];
         }
 
         protected IEnumerable<TypeInferenceInfo> CreateResult(SpecialType type, NullableAnnotation nullableAnnotation = NullableAnnotation.None)

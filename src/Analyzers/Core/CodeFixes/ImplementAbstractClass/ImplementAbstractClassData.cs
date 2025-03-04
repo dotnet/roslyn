@@ -128,11 +128,10 @@ internal sealed class ImplementAbstractClassData(
         ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
         CancellationToken cancellationToken)
     {
-        return _unimplementedMembers
+        return [.. _unimplementedMembers
             .SelectMany(t => t.members)
             .Select(m => GenerateMember(compilation, m, throughMember, propertyGenerationBehavior, cancellationToken))
-            .WhereNotNull()
-            .ToImmutableArray();
+            .WhereNotNull()];
     }
 
     private ISymbol? GenerateMember(

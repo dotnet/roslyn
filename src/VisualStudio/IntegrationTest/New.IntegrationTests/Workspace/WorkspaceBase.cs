@@ -32,7 +32,7 @@ public abstract class WorkspaceBase : AbstractIntegrationTest
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName, HangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75458")]
+    [IdeFact]
     public async Task OpenCSharpThenVBSolution()
     {
         await InitializeWithDefaultSolution();

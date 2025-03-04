@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
 
                 // Map all the text changes' spans for this document.
-                var mappedResults = await GetMappedSpanResultAsync(oldDocument, textChanges.Select(tc => tc.Span).ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+                var mappedResults = await GetMappedSpanResultAsync(oldDocument, [.. textChanges.Select(tc => tc.Span)], cancellationToken).ConfigureAwait(false);
                 if (mappedResults == null)
                 {
                     // There's no span mapping available, just create text edits from the original text changes.
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => new LSP.SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(uriAndEdit.TextEdit), (uri, edits) => new LSP.TextDocumentEdit
             {
                 TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { Uri = uri },
-                Edits = edits.ToArray(),
+                Edits = [.. edits],
             }).ToArray();
 
             return documentEdits;

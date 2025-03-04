@@ -93,7 +93,7 @@ internal sealed class DefaultPersistentStorageConfiguration : IPersistentStorage
 
     private static string StripInvalidPathChars(string val)
     {
-        val = new string(val.Where(c => !s_invalidPathChars.Contains(c)).ToArray());
+        val = new string([.. val.Where(c => !s_invalidPathChars.Contains(c))]);
 
         return string.IsNullOrWhiteSpace(val) ? "None" : val;
     }

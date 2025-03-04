@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,18 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
 /// 
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
+        EnforceOnBuildValues.InlineDeclaration,
+        CSharpCodeStyleOptions.PreferInlinedVariableDeclaration,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Inline_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Variable_declaration_can_be_inlined), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
     private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
-
-    public CSharpInlineDeclarationDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
-               EnforceOnBuildValues.InlineDeclaration,
-               CSharpCodeStyleOptions.PreferInlinedVariableDeclaration,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Inline_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Variable_declaration_can_be_inlined), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -180,7 +175,7 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltI
         // for references to the local to make sure that no reads/writes happen before
         // the out-argument.  If there are any reads/writes we can't inline as those
         // accesses will become invalid.
-        var enclosingBlockOfLocalStatement = GetEnclosingPseudoBlock(localStatement.Parent);
+        var enclosingBlockOfLocalStatement = CSharpBlockFacts.Instance.GetImmediateParentExecutableBlockForStatement(localStatement);
         if (enclosingBlockOfLocalStatement is null)
             return;
 
@@ -251,34 +246,6 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltI
             properties: null));
     }
 
-    public static SyntaxNode? GetEnclosingPseudoBlock(SyntaxNode? parent)
-    {
-        if (parent is BlockSyntax)
-            return parent;
-
-        if (parent is SwitchSectionSyntax)
-            return parent;
-
-        if (parent is GlobalStatementSyntax)
-            return parent.Parent as CompilationUnitSyntax;
-
-        return null;
-    }
-
-    private static StatementSyntax GetLastStatement(SyntaxNode enclosingBlock)
-    {
-        if (enclosingBlock is BlockSyntax block)
-            return block.Statements.Last();
-
-        if (enclosingBlock is SwitchSectionSyntax switchSection)
-            return switchSection.Statements.Last();
-
-        if (enclosingBlock is CompilationUnitSyntax compilationUnit)
-            return compilationUnit.Members.OfType<GlobalStatementSyntax>().Last().Statement;
-
-        throw ExceptionUtilities.Unreachable();
-    }
-
     private static bool WouldCauseDefiniteAssignmentErrors(
         SemanticModel semanticModel,
         LocalDeclarationStatementSyntax localStatement,
@@ -300,7 +267,7 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltI
 
         var dataFlow = semanticModel.AnalyzeDataFlow(
             nextStatement,
-            GetLastStatement(enclosingBlock));
+            CSharpBlockFacts.Instance.GetExecutableBlockStatements(enclosingBlock).Last());
         Contract.ThrowIfNull(dataFlow);
         return dataFlow.DataFlowsIn.Contains(outLocalSymbol);
     }
@@ -309,13 +276,13 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltI
     {
         for (var current = argumentExpression; current != null; current = current.Parent)
         {
-            if (current.Parent is LambdaExpressionSyntax lambda &&
-                current == lambda.Body)
-            {
-                // We were in a lambda.  The lambda body will be the new scope of the 
-                // out var.
+            // We were in a lambda.  The lambda body will be the new scope of the out var.
+            if (current.Parent is LambdaExpressionSyntax lambda && current == lambda.Body)
                 return current;
-            }
+
+            // The arm of a switch expression is its own isolated scope.
+            if (current.Parent is SwitchExpressionArmSyntax switchArm && current == switchArm.Expression)
+                return current;
 
             // Any loop construct defines a scope for out-variables, as well as each of the following:
             // * Using statements

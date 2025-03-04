@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -28,6 +28,7 @@ internal sealed partial class CSharpIntroduceVariableService
 {
     protected override Document IntroduceLocal(
         SemanticDocument document,
+        CodeCleanupOptions options,
         ExpressionSyntax expression,
         bool allOccurrences,
         bool isConstant,
@@ -47,6 +48,22 @@ internal sealed partial class CSharpIntroduceVariableService
             ? TokenList(ConstKeyword)
             : default;
 
+        var updatedExpression = expression.WithoutTrivia();
+        var simplifierOptions = (CSharpSimplifierOptions)options.SimplifierOptions;
+
+        // If the target-type new syntax is preferred and "var" is not preferred under any circumstance, then we use the
+        // target-type new syntax. The approach is not exhaustive. We aim to support codebases that rely strictly on the
+        // target-type new syntax (i.e., no "var").
+        if (simplifierOptions.ImplicitObjectCreationWhenTypeIsApparent.Value && simplifierOptions.GetUseVarPreference() == UseVarPreference.None
+            && updatedExpression is ObjectCreationExpressionSyntax objectCreationExpression)
+        {
+            var (newKeyword, argumentList) = objectCreationExpression.ArgumentList is null
+                ? (objectCreationExpression.NewKeyword.WithoutTrailingTrivia(), ArgumentList().WithoutLeadingTrivia().WithTrailingTrivia(objectCreationExpression.NewKeyword.TrailingTrivia))
+                : (objectCreationExpression.NewKeyword, objectCreationExpression.ArgumentList);
+            updatedExpression = ImplicitObjectCreationExpression(
+                newKeyword, argumentList, objectCreationExpression.Initializer);
+        }
+
         var declarationStatement = LocalDeclarationStatement(
             modifiers,
             VariableDeclaration(
@@ -54,7 +71,7 @@ internal sealed partial class CSharpIntroduceVariableService
                 [VariableDeclarator(
                     newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()),
                     argumentList: null,
-                    EqualsValueClause(expression.WithoutTrivia()))]));
+                    EqualsValueClause(updatedExpression))]));
 
         switch (containerToGenerateInto)
         {
@@ -69,7 +86,7 @@ internal sealed partial class CSharpIntroduceVariableService
             case ArrowExpressionClauseSyntax arrowExpression:
                 // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
                 // both of which are a shorthand for the getter and always return a value
-                var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent, cancellationToken) as IMethodSymbol;
+                var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.GetRequiredParent(), cancellationToken) as IMethodSymbol;
                 var createReturnStatement = true;
 
                 if (method is not null)
@@ -221,7 +238,7 @@ internal sealed partial class CSharpIntroduceVariableService
         CancellationToken cancellationToken)
     {
         var oldBody = arrowExpression;
-        var oldParentingNode = oldBody.Parent;
+        var oldParentingNode = oldBody.GetRequiredParent();
         var leadingTrivia = oldBody.GetLeadingTrivia()
                                    .AddRange(oldBody.ArrowToken.TrailingTrivia);
 
@@ -306,7 +323,7 @@ internal sealed partial class CSharpIntroduceVariableService
 
         if (scope is BlockSyntax block)
         {
-            var firstAffectedStatement = block.Statements.Single(s => firstAffectedExpression.GetAncestorOrThis<StatementSyntax>().Contains(s));
+            var firstAffectedStatement = block.Statements.Single(s => firstAffectedExpression.GetAncestorOrThis<StatementSyntax>()!.Contains(s));
             var firstAffectedStatementIndex = block.Statements.IndexOf(firstAffectedStatement);
             editor.ReplaceNode(
                 block,
@@ -319,7 +336,7 @@ internal sealed partial class CSharpIntroduceVariableService
         }
         else
         {
-            var firstAffectedGlobalStatement = compilationUnit.Members.OfType<GlobalStatementSyntax>().Single(s => firstAffectedExpression.GetAncestorOrThis<GlobalStatementSyntax>().Contains(s));
+            var firstAffectedGlobalStatement = compilationUnit.Members.OfType<GlobalStatementSyntax>().Single(s => firstAffectedExpression.GetAncestorOrThis<GlobalStatementSyntax>()!.Contains(s));
             var firstAffectedGlobalStatementIndex = compilationUnit.Members.IndexOf(firstAffectedGlobalStatement);
             editor.ReplaceNode(
                 compilationUnit,
@@ -333,6 +350,8 @@ internal sealed partial class CSharpIntroduceVariableService
 
         return document.Document.WithSyntaxRoot(editor.GetChangedRoot());
     }
+
+#nullable disable
 
     private Document IntroduceLocalDeclarationIntoBlock(
         SemanticDocument document,
@@ -356,12 +375,6 @@ internal sealed partial class CSharpIntroduceVariableService
 
         var matches = FindMatches(document, expression, document, [scope], allOccurrences, cancellationToken);
         Debug.Assert(matches.Contains(expression));
-
-        //(document, matches) = await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(false);
-
-        //// Our original expression should have been one of the matches, which were tracked as part
-        //// of complexification, so we can retrieve the latest version of the expression here.
-        //expression = document.Root.GetCurrentNode(expression);
 
         var root = document.Root;
         ISet<StatementSyntax> allAffectedStatements = new HashSet<StatementSyntax>(matches.SelectMany(expr => GetApplicableStatementAncestors(expr)));
@@ -407,6 +420,8 @@ internal sealed partial class CSharpIntroduceVariableService
         return document.Document.WithSyntaxRoot(newRoot);
     }
 
+#nullable restore
+
     private static IEnumerable<StatementSyntax> GetApplicableStatementAncestors(ExpressionSyntax expr)
     {
         foreach (var statement in expr.GetAncestorsOrThis<StatementSyntax>())
@@ -440,10 +455,11 @@ internal sealed partial class CSharpIntroduceVariableService
         var localFunctionIdentifiers = localFunctions.Select(node => ((LocalFunctionStatementSyntax)node).Identifier.ValueText);
 
         // Find all calls to the applicable local functions within the scope.
-        var localFunctionCalls = innermostCommonBlock.DescendantNodes().Where(node => node is InvocationExpressionSyntax invocationExpression &&
-                                                                              invocationExpression.Expression.GetRightmostName() != null &&
-                                                                              !invocationExpression.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) &&
-                                                                              localFunctionIdentifiers.Contains(invocationExpression.Expression.GetRightmostName().Identifier.ValueText));
+        var localFunctionCalls = innermostCommonBlock.DescendantNodes().Where(
+            node => node is InvocationExpressionSyntax invocationExpression &&
+            invocationExpression.Expression.GetRightmostName() is { } rightmostName &&
+            !invocationExpression.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) &&
+            localFunctionIdentifiers.Contains(rightmostName.Identifier.ValueText));
 
         if (localFunctionCalls.IsEmpty())
         {

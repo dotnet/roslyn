@@ -65,7 +65,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
                 DocumentChanges = uriToEditsMap.Select(kvp => new TextDocumentEdit
                 {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = kvp.Key },
-                    Edits = kvp.Value.Select(v => new SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(v)).ToArray(),
+                    Edits = [.. kvp.Value.Select(v => new SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(v))],
                 }).ToArray()
             };
         }

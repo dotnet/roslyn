@@ -325,7 +325,7 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
             throw new ArgumentException("target");
         }
 
-        var attributeSyntaxList = AttributeGenerator.GenerateAttributeLists(attributes.ToImmutableArray(), info, target).ToArray();
+        var attributeSyntaxList = AttributeGenerator.GenerateAttributeLists([.. attributes], info, target).ToArray();
 
         return destination switch
         {
@@ -345,21 +345,21 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
         if (destination is EnumDeclarationSyntax enumDeclaration)
         {
             enumDeclaration.EnsureOpenAndCloseBraceTokens();
-            return Cast<TDeclarationNode>(enumDeclaration.AddMembers(members.Cast<EnumMemberDeclarationSyntax>().ToArray()));
+            return Cast<TDeclarationNode>(enumDeclaration.AddMembers([.. members.Cast<EnumMemberDeclarationSyntax>()]));
         }
         else if (destination is TypeDeclarationSyntax typeDeclaration)
         {
             typeDeclaration = typeDeclaration.EnsureOpenAndCloseBraceTokens();
-            return Cast<TDeclarationNode>(typeDeclaration.AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+            return Cast<TDeclarationNode>(typeDeclaration.AddMembers([.. members.Cast<MemberDeclarationSyntax>()]));
         }
         else if (destination is BaseNamespaceDeclarationSyntax namespaceDeclaration)
         {
-            return Cast<TDeclarationNode>(namespaceDeclaration.AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+            return Cast<TDeclarationNode>(namespaceDeclaration.AddMembers([.. members.Cast<MemberDeclarationSyntax>()]));
         }
         else
         {
             return Cast<TDeclarationNode>(Cast<CompilationUnitSyntax>(destination)
-                .AddMembers(members.Cast<MemberDeclarationSyntax>().ToArray()));
+                .AddMembers([.. members.Cast<MemberDeclarationSyntax>()]));
         }
     }
 

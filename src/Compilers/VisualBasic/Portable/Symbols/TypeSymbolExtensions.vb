@@ -1334,6 +1334,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension>
+        Friend Function IsMicrosoftCodeAnalysisEmbeddedAttribute(typeSymbol As TypeSymbol) As Boolean
+            Dim namedTypeSymbol = TryCast(typeSymbol, NamedTypeSymbol)
+
+            Return namedTypeSymbol IsNot Nothing AndAlso
+                namedTypeSymbol.Name = "EmbeddedAttribute" AndAlso
+                namedTypeSymbol.Arity = 0 AndAlso
+                typeSymbol.ContainingType Is Nothing AndAlso
+                IsContainedInNamespace(typeSymbol, "Microsoft", "CodeAnalysis")
+        End Function
+
+        <Extension>
         Private Function IsContainedInNamespace(typeSymbol As TypeSymbol, outerNS As String, midNS As String, Optional innerNS As String = Nothing) As Boolean
             Dim midNamespace As NamespaceSymbol
 

@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BoundKind.ConditionalAccessReceiverPlaceholder
                     ' do nothing receiver ref must be already pushed
                     Debug.Assert(Not expression.Type.IsReferenceType)
-                    Debug.Assert(Not expression.Type.IsValueType)
+                    Debug.Assert(Not expression.Type.IsValueType OrElse expression.Type.IsNullableType())
 
                 Case BoundKind.ComplexConditionalAccessReceiver
                     EmitComplexConditionalAccessReceiverAddress(DirectCast(expression, BoundComplexConditionalAccessReceiver))
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             If expression.Kind = BoundKind.ConditionalAccessReceiverPlaceholder OrElse
                expression.Kind = BoundKind.ComplexConditionalAccessReceiver Then
-                Return addressKind = AddressKind.ReadOnly OrElse addressKind = AddressKind.Immutable
+                Return addressKind = AddressKind.ReadOnly OrElse addressKind = AddressKind.Immutable Or expression.Type.IsNullableType()
             End If
 
             ' taking immutable addresses is ok as long as expression has home

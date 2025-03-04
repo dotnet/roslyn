@@ -301,7 +301,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             var lastIndexOfSeparatorInFullPath = this.FullFilePath.LastIndexOf('\\');
             if (lastIndexOfSeparatorInFullPath != -1)
             {
-                var fileNameInFullPathInContainers = this.FullFilePath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+                var fileNameInFullPathInContainers = this.FullFilePath.Split(['\\'], StringSplitOptions.RemoveEmptyEntries);
 
                 // Trim spaces of each component of the file name.
                 // Note that path normalization changed between 4.6.1 and 4.6.2 and GetFullPath no longer trims trailing spaces.
@@ -323,13 +323,13 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             {
                 // The new file will be within the root of the project
                 var folderPath = this.FullFilePath[projectRootPath.Length..];
-                var containers = folderPath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries);
+                var containers = folderPath.Split(['\\'], StringSplitOptions.RemoveEmptyEntries);
 
                 // Folder name was mentioned
                 if (containers.Length > 1)
                 {
                     _fileName = containers.Last();
-                    Folders = new List<string>(containers);
+                    Folders = [.. containers];
                     Folders.RemoveAt(Folders.Count - 1);
 
                     if (Folders.Any(folder => !(_syntaxFactsService.IsValidIdentifier(folder) || _syntaxFactsService.IsVerbatimIdentifier(folder))))
@@ -365,7 +365,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
             }
 
             // Check for reserved words in the folder or filename
-            if (this.FullFilePath.Split(new[] { '\\' }, StringSplitOptions.RemoveEmptyEntries).Any(s => _reservedKeywords.Contains(s, StringComparer.OrdinalIgnoreCase)))
+            if (this.FullFilePath.Split(['\\'], StringSplitOptions.RemoveEmptyEntries).Any(s => _reservedKeywords.Contains(s, StringComparer.OrdinalIgnoreCase)))
             {
                 SendFailureNotification(ServicesVSResources.File_path_cannot_use_reserved_keywords);
                 return false;

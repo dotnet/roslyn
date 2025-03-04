@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Operations;
@@ -20,9 +18,9 @@ internal static class SemanticEquivalence
     public static bool AreEquivalent(
         SemanticModel semanticModel1,
         SemanticModel semanticModel2,
-        SyntaxNode node1,
-        SyntaxNode node2,
-        Func<SyntaxNode, bool> predicate = null)
+        SyntaxNode? node1,
+        SyntaxNode? node2,
+        Func<SyntaxNode, bool>? predicate = null)
     {
         // First check for syntactic equivalency.  If two nodes aren't structurally equivalent,
         // then they're not semantically equivalent.
@@ -52,7 +50,7 @@ internal static class SemanticEquivalence
         SemanticModel semanticModel2,
         SyntaxNode node1,
         SyntaxNode node2,
-        Func<SyntaxNode, bool> predicate)
+        Func<SyntaxNode, bool>? predicate)
     {
         if (node1 == node2)
         {
@@ -115,9 +113,9 @@ internal static class SemanticEquivalence
             var c1 = e1.Current;
             var c2 = e2.Current;
 
-            if (c1.IsNode && c2.IsNode)
+            if (c1.AsNode(out var c1Node) && c2.AsNode(out var c2Node))
             {
-                if (!AreSemanticallyEquivalentWorker(semanticModel1, semanticModel2, c1.AsNode(), c2.AsNode(), predicate))
+                if (!AreSemanticallyEquivalentWorker(semanticModel1, semanticModel2, c1Node, c2Node, predicate))
                 {
                     return false;
                 }
@@ -134,13 +132,8 @@ internal static class SemanticEquivalence
         SymbolInfo info1,
         SymbolInfo info2)
     {
-        if (semanticModel1 == semanticModel2)
-        {
-            return EqualityComparer<ISymbol>.Default.Equals(info1.Symbol, info2.Symbol);
-        }
-        else
-        {
-            return SymbolEquivalenceComparer.Instance.Equals(info1.Symbol, info2.Symbol);
-        }
+        return semanticModel1 == semanticModel2
+            ? EqualityComparer<ISymbol?>.Default.Equals(info1.Symbol, info2.Symbol)
+            : SymbolEquivalenceComparer.Instance.Equals(info1.Symbol, info2.Symbol);
     }
 }

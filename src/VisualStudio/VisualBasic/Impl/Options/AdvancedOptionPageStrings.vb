@@ -253,6 +253,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Fade_out_unused_imports As String =
             BasicVSResources.Fade_out_unused_imports
 
+        Public ReadOnly Property Option_Fade_out_unused_members As String =
+            ServicesVSResources.Fade_out_unused_members
+
         Public ReadOnly Property Option_Performance As String =
             ServicesVSResources.Performance
 

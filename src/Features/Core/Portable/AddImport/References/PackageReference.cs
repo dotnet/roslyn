@@ -18,7 +18,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         SearchResult searchResult,
         string source,
         string packageName,
-        string versionOpt) : Reference(provider, searchResult)
+        string versionOpt,
+        bool isWithinImport) : Reference(provider, searchResult, isWithinImport)
     {
         private readonly string _source = source;
         private readonly string _packageName = packageName;

@@ -95,7 +95,7 @@ public class CSharpWinForms : AbstractEditorTest
         Assert.Contains(@"this.SomeButton.Click += new System.EventHandler(this.ExecuteWhenButtonClicked);", designerActualText);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.cs", HangMitigatingCancellationToken);
         var codeFileActualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"    public partial class Form1: Form
+        Assert.Contains(@"    public partial class Form1 : Form
     {
         public Form1()
         {
@@ -109,7 +109,7 @@ public class CSharpWinForms : AbstractEditorTest
     }", codeFileActualText);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/77293")]
     public async Task RenameControl()
     {
         var project = ProjectName;
@@ -146,7 +146,7 @@ public class CSharpWinForms : AbstractEditorTest
         Assert.DoesNotContain(@"private System.Windows.Forms.Button SomeButton;", actualText);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/77293")]
     public async Task RemoveEventHandler()
     {
         var project = ProjectName;
@@ -176,7 +176,7 @@ public class CSharpWinForms : AbstractEditorTest
         Assert.DoesNotContain(@"VisualStudio.Editor.SomeButton.Click += new System.EventHandler(VisualStudio.Editor.GooHandler);", actualText);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/77293")]
     public async Task ChangeAccessibility()
     {
         var project = ProjectName;
@@ -205,7 +205,7 @@ public class CSharpWinForms : AbstractEditorTest
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
         Assert.Contains(@"public System.Windows.Forms.Button SomeButton;", actualText);
     }
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/77293")]
     public async Task DeleteControl()
     {
         if (ExecutionConditionUtil.IsBitness64)

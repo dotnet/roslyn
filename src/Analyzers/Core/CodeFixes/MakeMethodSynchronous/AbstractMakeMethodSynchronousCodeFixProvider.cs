@@ -143,7 +143,7 @@ internal abstract class AbstractMakeMethodSynchronousCodeFixProvider : CodeFixPr
                 if (referencedSymbol != null)
                 {
                     return await RemoveAwaitFromCallersAsync(
-                        document.Project.Solution, referencedSymbol.Locations.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+                        document.Project.Solution, [.. referencedSymbol.Locations], cancellationToken).ConfigureAwait(false);
                 }
             }
         }

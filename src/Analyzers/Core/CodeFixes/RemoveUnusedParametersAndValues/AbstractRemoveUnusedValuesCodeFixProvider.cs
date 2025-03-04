@@ -694,8 +694,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
             var insertionNode = node.FirstAncestorOrSelf<SyntaxNode>(
                 n => n.Parent is TSwitchCaseBlockSyntax ||
                      blockFacts.IsExecutableBlock(n.Parent) &&
-                     n is not TCatchStatementSyntax &&
-                     n is not TCatchBlockSyntax);
+                     n is not TCatchStatementSyntax and not TCatchBlockSyntax);
             if (insertionNode is TSwitchCaseLabelOrClauseSyntax)
             {
                 InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(

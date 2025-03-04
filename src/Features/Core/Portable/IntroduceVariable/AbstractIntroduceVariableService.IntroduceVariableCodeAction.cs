@@ -64,7 +64,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             }
             else if (_isLocal)
             {
-                return _service.IntroduceLocal(_semanticDocument, _expression, _allOccurrences, _isConstant, cancellationToken);
+                return _service.IntroduceLocal(_semanticDocument, Options, _expression, _allOccurrences, _isConstant, cancellationToken);
             }
             else
             {

@@ -138,7 +138,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
                     dialogAction.PickMembersOptions,
                     selectedAll: true);
                 var operations = await dialogAction.GetOperationsAsync(originalSolution, options, progressTracker, cancellationToken).ConfigureAwait(false);
-                return operations == null ? [] : operations.ToImmutableArray();
+                return operations == null ? [] : [.. operations];
             }
             else
             {

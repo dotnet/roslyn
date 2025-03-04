@@ -181,6 +181,8 @@
                 <StackPanel>
                     <CheckBox x:Name="Fade_out_unused_imports"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unused_imports}" />
+                    <CheckBox x:Name="Fade_out_unused_members"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unused_members}" />
                 </StackPanel>
             </GroupBox>
             

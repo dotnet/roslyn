@@ -9154,7 +9154,7 @@ class C
         {
             static string transform(string s)
             {
-                var lines = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                var lines = s.Split([Environment.NewLine], StringSplitOptions.None);
                 for (var i = 0; i < lines.Length; i++)
                 {
                     if (!string.IsNullOrEmpty(lines[i]))
