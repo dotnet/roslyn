@@ -69,8 +69,10 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
     protected sealed override bool TryAddMatches(
         ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> preMatches,
         ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> postMatches,
+        out bool changesSemantics,
         CancellationToken cancellationToken)
     {
+        changesSemantics = false;
         using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
 
         var initializer = this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
