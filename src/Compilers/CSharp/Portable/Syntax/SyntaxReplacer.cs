@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
-            [MemberNotNull(nameof(_totalSpan))]
             private void CalculateVisitationCriteria()
             {
                 _spanSet.Clear();
@@ -195,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 if (node != null)
                 {
-                    var isReplacedNode = _nodeSet.Remove(node);
+                    bool isReplacedNode = _nodeSet.Remove(node);
 
                     if (isReplacedNode)
                     {
@@ -224,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
                 var rewritten = token;
-                var isReplacedToken = _tokenSet.Remove(token);
+                bool isReplacedToken = _tokenSet.Remove(token);
 
                 if (isReplacedToken)
                 {
@@ -252,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             public override SyntaxTrivia VisitListElement(SyntaxTrivia trivia)
             {
                 var rewritten = trivia;
-                var isReplacedTrivia = _triviaSet.Remove(trivia);
+                bool isReplacedTrivia = _triviaSet.Remove(trivia);
 
                 if (isReplacedTrivia)
                 {
