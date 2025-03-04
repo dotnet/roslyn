@@ -10,6 +10,9 @@
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Features\TestUtilities\Utilities\StringSyntaxAttribute.cs" Link="Extensions\StringSyntaxAttribute.cs" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
