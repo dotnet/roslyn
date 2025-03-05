@@ -1,0 +1,4 @@
+[*.{cs,vb}]
+
+# CA1510: Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance - API only available on .NET 7 in test projects, so disabling for shared project.
+dotnet_diagnostic.CA1510.severity = none
