@@ -14475,7 +14475,8 @@ class C
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 additionalFlags: ["/langversion:preview",
                     "/out:embed.exe",
-                    "/features:InterceptorsNamespaces=Generated"],
+                    "/features:InterceptorsNamespaces=Generated",
+                    "/warn:9"],
                 expectedWarningCount: 1,
                 generators: [generator],
                 analyzers: null);
@@ -14543,7 +14544,8 @@ class C
                 includeCurrentAssemblyAsAnalyzerReference: false,
                 additionalFlags: ["/langversion:preview",
                     $"/out:{objDir.Path}/embed.exe",
-                    "/features:InterceptorsNamespaces=Generated"],
+                    "/features:InterceptorsNamespaces=Generated",
+                    "/warn:9"],
                 expectedWarningCount: 1,
                 generators: [generator],
                 analyzers: null);
@@ -14617,6 +14619,7 @@ class C
                     "/langversion:preview",
                     "/out:embed.exe",
                     "/features:InterceptorsNamespaces=Generated",
+                    "/warn:9",
                     .. string.IsNullOrEmpty(pathMapArgument) ? default(Span<string>) : [pathMapArgument]
                     ],
                 expectedWarningCount: 1,
@@ -15494,11 +15497,11 @@ class C {}
 ");
             var notAnalyzer = dir.CreateFile("random.txt");
 
-            // not suppresssed
+            // not suppressed
             var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
             Assert.Contains("warning CS8034", output, StringComparison.Ordinal);
 
-            // supressed
+            // suppressed
             VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/nowarn:CS8034" }, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false);
 
             // elevated
@@ -15518,11 +15521,11 @@ dotnet_diagnostic.CS8034.severity = none
 ");
             var notAnalyzer = dir.CreateFile("random.txt");
 
-            // not suppresssed
+            // not suppressed
             var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
             Assert.Contains("warning CS8034", output, StringComparison.Ordinal);
 
-            // suppresssed via global analyzer config
+            // suppressed via global analyzer config
             VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/analyzerConfig:" + globalconfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
         }
 

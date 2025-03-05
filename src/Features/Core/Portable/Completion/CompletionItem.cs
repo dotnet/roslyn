@@ -311,7 +311,6 @@ public sealed class CompletionItem : IComparable<CompletionItem>
     /// <param name="properties">Additional information.</param>
     /// <param name="tags">Descriptive tags that may influence how the item is displayed.</param>
     /// <param name="rules">The rules that declare how this item should behave.</param>
-    /// <returns></returns>
     [Obsolete("Use the Create overload that does not take a span", error: true)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static CompletionItem Create(

@@ -6,13 +6,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.ValueTracking"
              xmlns:utils="clr-namespace:Microsoft.VisualStudio.LanguageServices.Utilities"
+             xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vsutil="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
              mc:Ignorable="d" 
              xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}"
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="control">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <platformimaging:ThemedImageSourceConverter x:Uid="ThemedImageSourceConverter" x:Key="ThemedImageSourceConverter" />
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -59,7 +64,20 @@
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type local:TreeItemViewModel}" ItemsSource="{Binding ChildItems}">
                     <StackPanel Orientation="Horizontal">
-                        <Image Source="{Binding GlyphImage}" />
+                        <Image
+                            Width="16"
+                            Height="16">
+                            <Image.Source>
+                                <MultiBinding x:Uid="MultiBinding_1" Converter="{StaticResource ThemedImageSourceConverter}">
+                                    <Binding x:Uid="Binding_1" Path="GlyphImage" />
+                                    <Binding
+                                        x:Uid="Binding_2"
+                                        Path="(platformimaging:ImageThemingUtilities.ImageBackgroundColor)"
+                                        RelativeSource="{RelativeSource Self}" />
+                                    <Binding x:Uid="Binding_3" Source="{x:Static vsutil:Boxes.BooleanTrue}" />
+                                </MultiBinding>
+                            </Image.Source>
+                        </Image>
                         <utils:BindableTextBlock InlineCollection="{Binding Inlines}" Margin="0 0 5 0" />
                     </StackPanel>
                 </HierarchicalDataTemplate>

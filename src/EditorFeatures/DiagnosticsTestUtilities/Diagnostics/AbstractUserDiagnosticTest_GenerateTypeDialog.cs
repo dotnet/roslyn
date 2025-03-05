@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.False(fixActions.IsDefault);
 
             // Since the dialog option is always fed as the last CodeAction
-            var index = fixActions.Count() - 1;
+            var index = fixActions.Length - 1;
             var action = fixActions.ElementAt(index);
 
             Assert.Equal(action.Title, FeaturesResources.Generate_new_type);

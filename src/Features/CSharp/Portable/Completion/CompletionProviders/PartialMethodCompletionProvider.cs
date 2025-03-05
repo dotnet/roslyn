@@ -61,10 +61,10 @@ internal sealed partial class PartialMethodCompletionProvider : AbstractPartialM
             ?? throw ExceptionUtilities.UnexpectedValue(token);
     }
 
-    protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
+    protected override TextSpan GetTargetSelectionSpan(SyntaxNode caretTarget)
     {
         var methodDeclaration = (MethodDeclarationSyntax)caretTarget;
-        return CompletionUtilities.GetTargetCaretPositionForMethod(methodDeclaration).GetLocation().SourceSpan.End;
+        return CompletionUtilities.GetTargetSelectionSpanForInsertedMember(methodDeclaration);
     }
 
     protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)

@@ -61,10 +61,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return FormattingRule.Instance
             End Function
 
-            Protected Overrides Function GetInvocationNameToken(methodNames As IEnumerable(Of SyntaxToken)) As SyntaxToken?
-                Return methodNames.FirstOrNull(Function(t) t.Parent.Kind <> SyntaxKind.SubStatement AndAlso t.Parent.Kind <> SyntaxKind.FunctionStatement)
-            End Function
-
             Protected Overrides Function ParseTypeName(name As String) As SyntaxNode
                 Return SyntaxFactory.ParseTypeName(name)
             End Function
@@ -115,9 +111,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Protected Overrides Function InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
                     document As Document,
-                    invocationNameToken? As SyntaxToken,
+                    invocationNameToken As SyntaxToken,
                     methodDefinition As SyntaxNode,
-                    cancellationToken As CancellationToken) As Task(Of (document As Document, invocationNameToken As SyntaxToken?))
+                    cancellationToken As CancellationToken) As Task(Of (document As Document, invocationNameToken As SyntaxToken))
                 ' VB doesn't need to do any correction, so we just return the values untouched
                 Return Task.FromResult((document, invocationNameToken))
             End Function

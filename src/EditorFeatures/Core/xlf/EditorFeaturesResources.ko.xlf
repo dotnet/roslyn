@@ -17,6 +17,11 @@
         <target state="translated">변경 내용 적용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Chat_limit_reached_upgrade_now_or_wait_for_the_limit_to_reset">
+        <source>Chat limit reached, [upgrade now] or wait for the limit to reset.</source>
+        <target state="translated">채팅 제한에 도달했습니다. [upgrade now] 또는 제한이 재설정될 때까지 기다리세요.</target>
+        <note>The text surrounded by "[" and "]" characters will be hyperlinked. Please ensure the localized text still has "[" and "]" characters.</note>
+      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">'Encapsulate Field' 정보 계산</target>

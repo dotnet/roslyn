@@ -40,6 +40,7 @@ internal abstract class AbstractBraceCompletionService : IBraceCompletionService
 
     public ValueTask<bool> HasBraceCompletionAsync(BraceCompletionContext context, Document document, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (!context.HasCompletionForOpeningBrace(OpeningBrace))
             return ValueTaskFactory.FromResult(false);
 

@@ -193,7 +193,7 @@ public static class CommandLineProject
         var directory = Path.GetDirectoryName(path);
         if (string.IsNullOrEmpty(directory))
         {
-            return ImmutableArray.Create<string>();
+            return [];
         }
         else
         {

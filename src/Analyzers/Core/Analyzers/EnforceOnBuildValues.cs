@@ -14,7 +14,7 @@ internal static class EnforceOnBuildValues
     public const EnforceOnBuild UseExplicitType = /*IDE0008*/ EnforceOnBuild.HighlyRecommended;
     public const EnforceOnBuild AddBraces = /*IDE0011*/ EnforceOnBuild.HighlyRecommended;
     public const EnforceOnBuild OrderModifiers = /*IDE0036*/ EnforceOnBuild.HighlyRecommended;
-    public const EnforceOnBuild AddAccessibilityModifiers = /*IDE0040*/ EnforceOnBuild.HighlyRecommended;
+    public const EnforceOnBuild AddOrRemoveAccessibilityModifiers = /*IDE0040*/ EnforceOnBuild.HighlyRecommended;
     public const EnforceOnBuild ValidateFormatString = /*IDE0043*/ EnforceOnBuild.HighlyRecommended;
     public const EnforceOnBuild MakeFieldReadonly = /*IDE0044*/ EnforceOnBuild.HighlyRecommended;
     public const EnforceOnBuild RemoveUnusedMembers = /*IDE0051*/ EnforceOnBuild.HighlyRecommended;
@@ -100,6 +100,7 @@ internal static class EnforceOnBuildValues
     public const EnforceOnBuild MakeAnonymousFunctionStatic = /*IDE0320*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild UseSystemThreadingLock = /*IDE0330*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild UseUnboundGenericTypeInNameOf = /*IDE0340*/ EnforceOnBuild.Recommended;
+    public const EnforceOnBuild UseImplicitlyTypedLambdaExpression = /*IDE0350*/ EnforceOnBuild.Recommended;
 
     /* EnforceOnBuild.WhenExplicitlyEnabled */
     public const EnforceOnBuild RemoveUnnecessaryCast = /*IDE0004*/ EnforceOnBuild.WhenExplicitlyEnabled; // TODO: Move to 'Recommended' OR 'HighlyRecommended' bucket once performance problems are addressed: https://github.com/dotnet/roslyn/issues/43304

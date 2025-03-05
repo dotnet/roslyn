@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
