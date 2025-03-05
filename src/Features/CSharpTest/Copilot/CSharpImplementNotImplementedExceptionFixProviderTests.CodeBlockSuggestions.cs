@@ -101,5 +101,6 @@ public class TestService
         [
             "public int TestProperty => 42;",
             "public int TestProperty\n        => DateTime.Now.Year;"
-        ]};
+        ]
+    };
 }

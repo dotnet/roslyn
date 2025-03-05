@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -81,15 +81,9 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         }
 
         var changedRoot = editor.GetChangedRoot();
-
-        // Get the language specific rule for formatting this construct and call into the
-        // formatter to explicitly format things. Note: all we will format is the new
-        // node as that's the only node that has the appropriate annotation on it.
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var rules = ImmutableArray.Create(MultiLineConditionalExpressionFormattingRule.Instance);
         var spansToFormat = FormattingExtensions.GetAnnotatedSpans(changedRoot, new());
-
-        var formattedRoot = CSharpSyntaxFormatting.Instance.GetFormattingResult(changedRoot, spansToFormat, formattingOptions, rules, cancellationToken).GetFormattedRoot(cancellationToken);
+        var formattedRoot = CSharpSyntaxFormatting.Instance.GetFormattingResult(changedRoot, spansToFormat, formattingOptions, [], cancellationToken).GetFormattedRoot(cancellationToken);
         changedRoot = formattedRoot;
 
         editor.ReplaceNode(editor.OriginalRoot, changedRoot);
@@ -135,15 +129,12 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
             SyntaxFactory.Comment($"/* {message} */"),
             SyntaxFactory.CarriageReturnLineFeed);
 
-        // Find the position after all blank lines
-        var insertIndex = 0;
-        while (insertIndex < leadingTrivia.Count &&
-               leadingTrivia[insertIndex].IsKind(SyntaxKind.EndOfLineTrivia))
-        {
-            insertIndex++;
-        }
+        // Find the last EndOfLineTrivia
+        var syntaxTrivia = leadingTrivia.LastOrDefault(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        var lastEndOfLineIndex = leadingTrivia.IndexOf(syntaxTrivia);
 
-        // Insert the comment after any blank lines
+        // Insert the comment after the last EndOfLineTrivia or at the start if none found
+        var insertIndex = lastEndOfLineIndex >= 0 ? lastEndOfLineIndex + 1 : 0;
         var newLeadingTrivia = leadingTrivia.InsertRange(insertIndex, comment);
 
         return member
