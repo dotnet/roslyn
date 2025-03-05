@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -36,20 +37,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
-
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var shell = (IVsShell7)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-        var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
-        cancellationToken.ThrowIfCancellationRequested();
-        Assumes.Present(shell);
-        Assumes.Present(solution);
-
-        foreach (var editorFactory in CreateEditorFactories())
-        {
-            RegisterEditorFactory(editorFactory);
-        }
+        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
 
         RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
         {
@@ -64,7 +52,22 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             return _languageService.ComAggregate;
         });
 
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        foreach (var editorFactory in CreateEditorFactories())
+        {
+            RegisterEditorFactory(editorFactory);
+        }
+
+        var shell = await GetServiceAsync<SVsShell, IVsShell7>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
+    }
+
+    protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
+    {
+        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
         RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
