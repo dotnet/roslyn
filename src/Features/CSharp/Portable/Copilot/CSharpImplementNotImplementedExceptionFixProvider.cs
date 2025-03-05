@@ -105,9 +105,19 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
         var implementationDetails = await copilotService.ImplementNotImplementedExceptionAsync(document, throwNode, cancellationToken).ConfigureAwait(false);
 
+        if (implementationDetails.IsQuotaExceeded)
+        {
+            editor.ReplaceNode(methodOrProperty, AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded));
+            return;
+        }
+
         var replacement = implementationDetails.ReplacementNode switch
         {
-            MemberDeclarationSyntax newMember => newMember
+            BasePropertyDeclarationSyntax newMember => newMember
+                .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
+                .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
+                .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation),
+            BaseMethodDeclarationSyntax newMember => newMember
                 .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
                 .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
                 .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation),

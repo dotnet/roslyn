@@ -334,7 +334,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             {
                 IsQuotaExceeded = true,
                 ReplacementNode = null,
-                Message = "Error: Quota exceeded.",
+                Message = string.Empty,
             };
         })
         .RunAsync();
@@ -362,7 +362,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
         class C
         {
-            /* Error: Failed to parse into a method or property */
+            /* Error: Failed to parse Copilot response into a method or property. */
             void M()
             {
                 {|IDE3000:throw new NotImplementedException();|}
@@ -381,8 +381,19 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             copilotService.PrepareFakeResult = new()
             {
                 IsQuotaExceeded = false,
-                ReplacementNode = null,
-                Message = "Received invalid code.",
+                // Fixer expects a MemberDeclarationSyntax, specifically method or property
+                ReplacementNode = SyntaxFactory.ParseCompilationUnit(
+                    """
+                    using System;
+                    class C
+                    {
+                        void M()
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                    """),
+                Message = string.Empty,
             };
         })
         .RunAsync();
@@ -403,16 +414,36 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     }
 
     [Theory]
-    [InlineData("Invalid code")]
-    [InlineData(" ")]
-    [InlineData("")]
-    public async Task ReplacementNode_Invalid_NotifiedWithDefault(string invalidCode)
+    [InlineData("class MyClass { }", typeof(ClassDeclarationSyntax))]
+    [InlineData("struct MyStruct { }", typeof(StructDeclarationSyntax))]
+    [InlineData("interface IMyInterface { }", typeof(InterfaceDeclarationSyntax))]
+    [InlineData("enum MyEnum { Value1, Value2 }", typeof(EnumDeclarationSyntax))]
+    [InlineData("delegate void MyDelegate();", typeof(DelegateDeclarationSyntax))]
+    [InlineData("int myField;", typeof(FieldDeclarationSyntax))]
+    [InlineData("event EventHandler MyEvent;", typeof(EventFieldDeclarationSyntax))]
+    [InlineData("record MyRecord { }", typeof(RecordDeclarationSyntax))]
+    public async Task TestInvalidNodeReplacement(string syntax, Type _)
     {
         await TestHandlesInvalidReplacementNode(
             new()
             {
                 IsQuotaExceeded = false,
-                ReplacementNode = SyntaxFactory.ParseMemberDeclaration(invalidCode),
+                ReplacementNode = SyntaxFactory.ParseMemberDeclaration(syntax),
+                Message = "Error: Failed to parse Copilot response into a method or property.",
+            })
+            .ConfigureAwait(false);
+    }
+
+    [Theory]
+    [InlineData(" ")]
+    [InlineData("")]
+    public async Task TestHandlesEmptyReplacementNode(string emptyReplacement)
+    {
+        await TestHandlesInvalidReplacementNode(
+            new()
+            {
+                IsQuotaExceeded = false,
+                ReplacementNode = SyntaxFactory.ParseMemberDeclaration(emptyReplacement),
                 Message = "Custom Error Message",
             })
             .ConfigureAwait(false);
