@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             => new CoreAssemblyLoaderImpl(loader);
 #else
             => new DesktopAssemblyLoaderImpl(loader);
-#endif            
+#endif 
 
         public abstract Assembly LoadFromStream(Stream peStream, Stream pdbStream);
         public abstract AssemblyAndLocation LoadFromPath(string path);
