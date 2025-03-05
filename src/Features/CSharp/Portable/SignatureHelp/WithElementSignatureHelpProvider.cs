@@ -69,7 +69,7 @@ internal sealed partial class WithElementSignatureHelpProvider() : AbstractCShar
             return null;
 
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(withElement, cancellationToken).ConfigureAwait(false);
-        if (semanticModel.GetTypeInfo(collectionExpression, cancellationToken).Type is not INamedTypeSymbol collectionExpressionType)
+        if (semanticModel.GetTypeInfo(collectionExpression, cancellationToken).ConvertedType is not INamedTypeSymbol collectionExpressionType)
             return null;
 
         var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
@@ -144,7 +144,8 @@ internal sealed partial class WithElementSignatureHelpProvider() : AbstractCShar
 
                     var slicedMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
                         constructedBuilderMethod,
-                        parameters: slicedParameters);
+                        parameters: slicedParameters,
+                        containingType: constructedBuilderMethod.ContainingType);
                     var item = AbstractOrdinaryMethodSignatureHelpProvider.ConvertMethodGroupMethod(
                         document, slicedMethod, withElement.SpanStart, semanticModel);
 

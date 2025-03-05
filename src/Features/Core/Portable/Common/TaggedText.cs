@@ -86,7 +86,10 @@ public readonly record struct TaggedText
 internal static class TaggedTextExtensions
 {
     public static ImmutableArray<TaggedText> ToTaggedText(
-        this IEnumerable<SymbolDisplayPart>? displayParts, TaggedTextStyle style = TaggedTextStyle.None, Func<ISymbol?, string?>? getNavigationHint = null, bool includeNavigationHints = true)
+        this IEnumerable<SymbolDisplayPart>? displayParts,
+        TaggedTextStyle style = TaggedTextStyle.None,
+        Func<ISymbol?, string?>? getNavigationHint = null,
+        bool includeNavigationHints = true)
     {
         if (displayParts == null)
             return [];
