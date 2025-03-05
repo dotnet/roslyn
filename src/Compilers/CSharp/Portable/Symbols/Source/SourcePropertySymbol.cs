@@ -199,12 +199,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (SourcePartialImplementationPart is { } implementationPart)
             {
                 return OneOrMany.Create(
-                    ((BasePropertyDeclarationSyntax)CSharpSyntaxNode).AttributeLists,
-                    ((BasePropertyDeclarationSyntax)implementationPart.CSharpSyntaxNode).AttributeLists);
+                    this.AttributeDeclarationSyntaxList,
+                    implementationPart.AttributeDeclarationSyntaxList);
             }
             else
             {
-                return OneOrMany.Create(((BasePropertyDeclarationSyntax)CSharpSyntaxNode).AttributeLists);
+                return OneOrMany.Create(this.AttributeDeclarationSyntaxList);
+            }
+        }
+
+        private SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+        {
+            get
+            {
+                if (this.ContainingType is SourceMemberContainerTypeSymbol { AnyMemberHasAttributes: true })
+                {
+                    return ((BasePropertyDeclarationSyntax)this.CSharpSyntaxNode).AttributeLists;
+                }
+
+                return default;
             }
         }
 
@@ -430,20 +443,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allowedModifiers |= DeclarationModifiers.Extern;
 
-            // In order to detect whether explicit accessibility mods were provided, we pass the default value
-            // for 'defaultAccess' and manually add in the 'defaultAccess' flags after the call.
             bool hasExplicitAccessMod;
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
-                                                                        modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors);
-            if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
-            {
-                hasExplicitAccessMod = false;
-                mods |= defaultAccess;
-            }
-            else
-            {
-                hasExplicitAccessMod = true;
-            }
+                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out hasExplicitAccessMod);
 
             if ((mods & DeclarationModifiers.Partial) != 0)
             {
@@ -690,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasTypeDifferences)
             {
-                diagnostics.Add(ErrorCode.ERR_PartialPropertyTypeDifference, implementation.GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_PartialMemberTypeDifference, implementation.GetFirstLocation());
             }
             else if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(this, implementation))
             {
@@ -707,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((!hasTypeDifferences && !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(this, implementation))
                 || !Parameters.SequenceEqual(implementation.Parameters, (a, b) => a.Name == b.Name))
             {
-                diagnostics.Add(ErrorCode.WRN_PartialPropertySignatureDifference, implementation.GetFirstLocation(),
+                diagnostics.Add(ErrorCode.WRN_PartialMemberSignatureDifference, implementation.GetFirstLocation(),
                     new FormattedSymbol(this, SymbolDisplayFormat.MinimallyQualifiedFormat),
                     new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
@@ -789,8 +791,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourcePropertySymbol? SourcePartialDefinitionPart => IsPartialImplementation ? OtherPartOfPartial : null;
         internal SourcePropertySymbol? SourcePartialImplementationPart => IsPartialDefinition ? OtherPartOfPartial : null;
 
-        internal override PropertySymbol? PartialDefinitionPart => SourcePartialDefinitionPart;
-        internal override PropertySymbol? PartialImplementationPart => SourcePartialImplementationPart;
+        internal sealed override PropertySymbol? PartialDefinitionPart => SourcePartialDefinitionPart;
+        internal sealed override PropertySymbol? PartialImplementationPart => SourcePartialImplementationPart;
 
         internal static void InitializePartialPropertyParts(SourcePropertySymbol definition, SourcePropertySymbol implementation)
         {
