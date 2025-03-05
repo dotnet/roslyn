@@ -162,13 +162,14 @@ internal sealed partial class NamedParameterCompletionProvider() : LSPCompletion
         CancellationToken cancellationToken)
     {
         var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
-        if (semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type is INamedTypeSymbol type && within != null && type.TypeKind != TypeKind.Delegate)
-        {
-            return type.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
-                                            .Select(c => c.Parameters);
-        }
+        if (within is null)
+            return null;
 
-        return null;
+        if (semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type is not INamedTypeSymbol { TypeKind: not TypeKind.Delegate } type)
+            return null;
+
+        return type.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
+                                        .Select(c => c.Parameters);
     }
 
     private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetElementAccessExpressionParameterLists(
@@ -201,20 +202,15 @@ internal sealed partial class NamedParameterCompletionProvider() : LSPCompletion
         CancellationToken cancellationToken)
     {
         var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
-        if (within is { TypeKind: TypeKind.Struct or TypeKind.Class })
-        {
-            var type = constructorInitializer.Kind() == SyntaxKind.BaseConstructorInitializer
-                ? within.BaseType
-                : within;
+        if (within is not { TypeKind: TypeKind.Struct or TypeKind.Class })
+            return null;
 
-            if (type != null)
-            {
-                return type.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
-                                                .Select(c => c.Parameters);
-            }
-        }
+        var type = constructorInitializer.Kind() == SyntaxKind.BaseConstructorInitializer
+            ? within.BaseType
+            : within;
 
-        return null;
+        return type?.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
+                                         .Select(c => c.Parameters);
     }
 
     private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetPrimaryConstructorParameterLists(
@@ -262,7 +258,7 @@ internal sealed partial class NamedParameterCompletionProvider() : LSPCompletion
         return null;
     }
 
-    private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetWithElementParameterLists(
+    private static IEnumerable<ImmutableArray<IParameterSymbol>> GetWithElementParameterLists(
         SemanticModel semanticModel,
         WithElementSyntax withElement,
         CancellationToken cancellationToken)
