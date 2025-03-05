@@ -4423,7 +4423,7 @@ class SampleCollection<T>
         });
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77428")]
     public async Task TestIntroduceLocalWithTargetTypedNew1_CSharp8()
     {
         var code =
