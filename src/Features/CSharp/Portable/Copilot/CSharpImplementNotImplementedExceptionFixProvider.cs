@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -137,11 +137,10 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
 
     private static MemberDeclarationSyntax AddCommentToMember(MemberDeclarationSyntax member, string message, string? argument = null)
     {
-        var leadingTrivia = member.GetLeadingTrivia();
-        var commentMessage = string.IsNullOrEmpty(argument) ? message : $"{message} {argument}";
         var comment = SyntaxFactory.TriviaList(
-            SyntaxFactory.Comment($"/* {commentMessage} */"),
+            SyntaxFactory.Comment(CreateComment(message, argument)),
             SyntaxFactory.CarriageReturnLineFeed);
+        var leadingTrivia = member.GetLeadingTrivia();
 
         // Find the last EndOfLineTrivia
         var syntaxTrivia = leadingTrivia.LastOrDefault(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
@@ -154,5 +153,18 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         return member
             .WithLeadingTrivia(newLeadingTrivia)
             .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation);
+    }
+
+    private static string CreateComment(string message, string? argument)
+    {
+        var commentBuilder = new StringBuilder("/* ");
+        commentBuilder.Append(message);
+        if (!string.IsNullOrEmpty(argument))
+        {
+            commentBuilder.Append(' ').Append(argument);
+        }
+
+        commentBuilder.Append(" */");
+        return commentBuilder.ToString();
     }
 }

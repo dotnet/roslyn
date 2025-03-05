@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
@@ -459,6 +460,8 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
     private static async Task TestHandlesInvalidReplacementNode(ImplementationDetails implementationDetails)
     {
+        var comment = CreateComment("Error: Failed to parse Copilot response into a method or property.", implementationDetails.Message);
+
         await new CustomCompositionCSharpTest
         {
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
@@ -478,7 +481,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             class C
             {
-                /* {{string.Format("Error: Failed to parse Copilot response into a method or property. {0}", implementationDetails.Message)}} */
+                {{comment}}
                 void M()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
@@ -497,6 +500,19 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             copilotService.PrepareFakeResult = implementationDetails;
         })
         .RunAsync();
+
+        static string CreateComment(string message, string? argument)
+        {
+            var commentBuilder = new StringBuilder("/* ");
+            commentBuilder.Append(message);
+            if (!string.IsNullOrEmpty(argument))
+            {
+                commentBuilder.Append(' ').Append(argument);
+            }
+
+            commentBuilder.Append(" */");
+            return commentBuilder.ToString();
+        }
     }
 
     private class CustomCompositionCSharpTest : VerifyCS.Test
