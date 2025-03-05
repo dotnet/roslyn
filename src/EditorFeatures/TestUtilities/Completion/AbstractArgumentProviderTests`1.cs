@@ -27,10 +27,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
 
         private readonly TestFixtureHelper<TWorkspaceFixture> _fixtureHelper = new();
 
-        private ExportProvider? _lazyExportProvider;
-
         protected ExportProvider ExportProvider
-            => _lazyExportProvider ??= GetComposition().ExportProviderFactory.CreateExportProvider();
+            => field ??= GetComposition().ExportProviderFactory.CreateExportProvider();
 
         protected virtual TestComposition GetComposition()
             => s_baseComposition.AddParts(GetArgumentProviderType());

@@ -19,7 +19,6 @@ internal readonly struct ComHandle<THandle, TObject>
     where THandle : class
     where TObject : class, THandle
 {
-    private readonly THandle _handle;
 
     /// <summary>
     /// Create an instance from a "ComObject" or from a managed object.
@@ -28,17 +27,17 @@ internal readonly struct ComHandle<THandle, TObject>
     {
         if (handleOrManagedObject == null)
         {
-            _handle = null;
+            Handle = null;
             Object = null;
         }
         else if (Marshal.IsComObject(handleOrManagedObject))
         {
-            _handle = handleOrManagedObject;
+            Handle = handleOrManagedObject;
             Object = ComAggregate.GetManagedObject<TObject>(handleOrManagedObject);
         }
         else
         {
-            _handle = (THandle)ComAggregate.TryGetWrapper(handleOrManagedObject);
+            Handle = (THandle)ComAggregate.TryGetWrapper(handleOrManagedObject);
             Object = (TObject)handleOrManagedObject;
         }
     }
@@ -47,7 +46,7 @@ internal readonly struct ComHandle<THandle, TObject>
     {
         if (handle == null && managedObject == null)
         {
-            _handle = null;
+            Handle = null;
             Object = null;
         }
         else
@@ -60,7 +59,7 @@ internal readonly struct ComHandle<THandle, TObject>
                 throw new ArgumentException("must be null or a Com object", nameof(handle));
             }
 
-            _handle = handle;
+            Handle = handle;
             Object = managedObject;
         }
     }
@@ -72,15 +71,15 @@ internal readonly struct ComHandle<THandle, TObject>
     {
         get
         {
-            Debug.Assert(_handle == null || Marshal.IsComObject(_handle), "Invariant broken!");
+            Debug.Assert(field == null || Marshal.IsComObject(field), "Invariant broken!");
 
-            if (_handle == null)
+            if (field == null)
             {
                 return Object;
             }
             else
             {
-                return _handle;
+                return field;
             }
         }
     }

@@ -20,10 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
     public abstract class AbstractKeywordHighlighterTests
     {
         private static readonly TestComposition s_baseComposition = EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IHighlighter));
-        private TestComposition _lazyComposition;
 
         protected TestComposition Composition
-            => _lazyComposition ??= s_baseComposition.AddParts(GetHighlighterType());
+            => field ??= s_baseComposition.AddParts(GetHighlighterType());
 
         internal abstract Type GetHighlighterType();
 
