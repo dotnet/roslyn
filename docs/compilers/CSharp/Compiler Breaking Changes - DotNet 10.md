@@ -308,3 +308,31 @@ class C
 
 class partial { }
 ```
+
+## Extended partial members are now virtual
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+We have fixed [an inconsistency](https://github.com/dotnet/roslyn/issues/77346)
+where interface members would not be implicitly `virtual` if they were also marked `partial`.
+
+```cs
+((I)new C()).M(); // wrote 1 previously, writes 2 now
+
+partial interface I
+{
+    public partial void M();
+    public partial void M() // implicitly virtual now
+    {
+        System.Console.Write(1);
+    }
+}
+
+class C : I
+{
+    public void M() // overrides I.M
+    {
+        System.Console.Write(2);
+    }
+}
+```
