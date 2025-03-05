@@ -507,18 +507,18 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         public TestCopilotOptionsService() { }
 
         public Task<bool> IsRefineOptionEnabledAsync()
-            => throw new NotImplementedException();
+            => Task.FromResult(true);
 
         public Task<bool> IsCodeAnalysisOptionEnabledAsync()
-            => throw new NotImplementedException();
+            => Task.FromResult(true);
 
         public Task<bool> IsOnTheFlyDocsOptionEnabledAsync()
-            => throw new NotImplementedException();
+            => Task.FromResult(true);
 
         public Task<bool> IsGenerateDocumentationCommentOptionEnabledAsync()
-            => throw new NotImplementedException();
+            => Task.FromResult(true);
 
-        public Task<bool> IsImplementNotImplementedExceptionEnabledAsync(CancellationToken cancellationToken)
+        public Task<bool> IsImplementNotImplementedExceptionEnabledAsync()
             => Task.FromResult(true);
     }
 
@@ -548,7 +548,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             => throw new NotImplementedException();
 
         public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
-            => throw new NotImplementedException();
+            => Task.FromResult(true);
 
         public Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken)
             => throw new NotImplementedException();

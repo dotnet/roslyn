@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult(True)
             End Function
 
-            Public Function IsImplementNotImplementedExceptionEnabledAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotOptionsService.IsImplementNotImplementedExceptionEnabledAsync
+            Public Function IsImplementNotImplementedExceptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsImplementNotImplementedExceptionEnabledAsync
                 Return Task.FromResult(True)
             End Function
         End Class

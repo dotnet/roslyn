@@ -45,7 +45,13 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var cancellationToken = context.CancellationToken;
 
         if (document.GetLanguageService<ICopilotOptionsService>() is not { } optionsService ||
-            await optionsService.IsImplementNotImplementedExceptionEnabledAsync(cancellationToken).ConfigureAwait(false) is false)
+            await optionsService.IsImplementNotImplementedExceptionEnabledAsync().ConfigureAwait(false) is false)
+        {
+            return;
+        }
+
+        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+            await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
         {
             return;
         }
