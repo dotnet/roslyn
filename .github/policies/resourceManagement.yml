@@ -103,7 +103,7 @@ configuration:
       - payloadType: Pull_Request
       - isPullRequest
       - isActivitySender:
-          user: github-actions
+          user: github-actions[bot]
           issueAuthor: False
       - titleContains:
           pattern: "[automated] Merge branch"
@@ -166,7 +166,7 @@ configuration:
               issueAuthor: False
         - not:
             isActivitySender:
-              user: github-actions
+              user: github-actions[bot]
               issueAuthor: False
       then:
       - addLabel:
@@ -187,7 +187,7 @@ configuration:
               issueAuthor: False
         - not:
             isActivitySender:
-              user: github-actions
+              user: github-actions[bot]
               issueAuthor: False
       - or:
         - isAction:
