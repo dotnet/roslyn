@@ -585,6 +585,6 @@
     <value>Error: Quota exceeded.</value>
   </data>
     <data name="Error_colon_Failed_to_parse_into_a_method_or_property" xml:space="preserve">
-    <value>Error: Failed to parse Copilot response into a method or property. {0}</value>
+    <value>Error: Failed to parse Copilot response into a method or property.</value>
   </data>
 </root>

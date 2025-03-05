@@ -121,7 +121,7 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         }
         else
         {
-            replacement = AddCommentToMember(methodOrProperty, string.Format(CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property, implementationDetails.Message));
+            replacement = AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property, implementationDetails.Message);
         }
 
         editor.ReplaceNode(methodOrProperty, replacement);
@@ -135,11 +135,12 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         return await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, searchOptions, cancellationToken).ConfigureAwait(false);
     }
 
-    private static MemberDeclarationSyntax AddCommentToMember(MemberDeclarationSyntax member, string message)
+    private static MemberDeclarationSyntax AddCommentToMember(MemberDeclarationSyntax member, string message, string? argument = null)
     {
         var leadingTrivia = member.GetLeadingTrivia();
+        var commentMessage = string.IsNullOrEmpty(argument) ? message : $"{message} {argument}";
         var comment = SyntaxFactory.TriviaList(
-            SyntaxFactory.Comment($"/* {message} */"),
+            SyntaxFactory.Comment($"/* {commentMessage} */"),
             SyntaxFactory.CarriageReturnLineFeed);
 
         // Find the last EndOfLineTrivia
