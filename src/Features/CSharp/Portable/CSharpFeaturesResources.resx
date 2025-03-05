@@ -581,9 +581,6 @@
   <data name="required_property" xml:space="preserve">
     <value>required property</value>
   </data>
-  <data name="Error_colon_Could_not_complete_this_request" xml:space="preserve">
-    <value>Error: Could not complete this request.</value>
-  </data>
     <data name="Error_colon_Quota_exceeded" xml:space="preserve">
     <value>Error: Quota exceeded.</value>
   </data>

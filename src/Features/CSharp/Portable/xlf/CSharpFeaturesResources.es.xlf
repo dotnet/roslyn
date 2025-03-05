@@ -192,11 +192,6 @@
         <target state="translated">Habilitar tipos de referencia que aceptan valores NULL en la solución</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_colon_Could_not_complete_this_request">
-        <source>Error: Could not complete this request.</source>
-        <target state="new">Error: Could not complete this request.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Error_colon_Failed_to_parse_into_a_method_or_property">
         <source>Error: Failed to parse Copilot response into a method or property. {0}</source>
         <target state="new">Error: Failed to parse Copilot response into a method or property. {0}</target>
