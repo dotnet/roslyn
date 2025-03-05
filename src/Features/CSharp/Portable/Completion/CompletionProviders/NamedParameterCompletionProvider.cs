@@ -125,12 +125,10 @@ internal sealed partial class NamedParameterCompletionProvider() : LSPCompletion
     }
 
     private static ISet<string> GetExistingNamedParameters(BaseArgumentListSyntax argumentList, int position)
-    {
-        var existingArguments = argumentList.Arguments.Where(a => a.Span.End <= position && a.NameColon != null)
-                                                      .Select(a => a.NameColon!.Name.Identifier.ValueText);
-
-        return existingArguments.ToSet();
-    }
+        => argumentList.Arguments
+            .Where(a => a.Span.End <= position && a.NameColon != null)
+            .Select(a => a.NameColon!.Name.Identifier.ValueText)
+            .ToSet();
 
     private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetParameterLists(
         SemanticModel semanticModel, int position, SyntaxNode invocableNode, CancellationToken cancellationToken)
@@ -171,18 +169,16 @@ internal sealed partial class NamedParameterCompletionProvider() : LSPCompletion
         var expressionSymbol = semanticModel.GetSymbolInfo(elementAccessExpression.Expression, cancellationToken).GetAnySymbol();
         var expressionType = semanticModel.GetTypeInfo(elementAccessExpression.Expression, cancellationToken).Type;
 
-        if (expressionSymbol != null && expressionType != null)
-        {
-            var indexers = semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer).OfType<IPropertySymbol>();
-            var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
-            if (within != null)
-            {
-                return indexers.Where(i => i.IsAccessibleWithin(within, throughType: expressionType))
-                               .Select(i => i.Parameters);
-            }
-        }
+        if (expressionSymbol is null || expressionType is null)
+            return null;
 
-        return null;
+        var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
+        if (within is null)
+            return null;
+
+        var indexers = semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer).OfType<IPropertySymbol>();
+        return indexers.Where(i => i.IsAccessibleWithin(within, throughType: expressionType))
+                       .Select(i => i.Parameters);
     }
 
     private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetConstructorInitializerParameterLists(
