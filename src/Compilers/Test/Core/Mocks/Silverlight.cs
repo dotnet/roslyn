@@ -37,9 +37,6 @@ public static class Silverlight
     private static (byte[], byte[]) BuildImages()
     {
         const string corlibExtraCode = """
-            using System;
-            using System.Reflection;
-
             namespace System.Reflection;
 
             [AttributeUsage(AttributeTargets.Assembly, Inherited = false)]
