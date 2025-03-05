@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -562,7 +563,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         {
         }
 
-        public Func<Document, SyntaxNode, CancellationToken, Task<ImplementationDetails>>? SetupFixAll { get; internal set; }
+        public Func<Document, SyntaxNode, ImmutableArray<ReferencedSymbol>, CancellationToken, Task<ImplementationDetails>>? SetupFixAll { get; internal set; }
 
         public ImplementationDetails? PrepareFakeResult { get; internal set; }
 
@@ -590,9 +591,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ICopilotCodeAnalysisService.GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task<ImplementationDetails> ImplementNotImplementedExceptionAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        public Task<ImplementationDetails> ImplementNotImplementedExceptionAsync(Document document, SyntaxNode node, ImmutableArray<ReferencedSymbol> referencedSymbols, CancellationToken cancellationToken)
         {
-            return SetupFixAll?.Invoke(document, node, cancellationToken)
+            return SetupFixAll?.Invoke(document, node, referencedSymbols, cancellationToken)
                 ?? Task.FromResult(PrepareFakeResult ?? new ImplementationDetails
                 {
                     IsQuotaExceeded = false,

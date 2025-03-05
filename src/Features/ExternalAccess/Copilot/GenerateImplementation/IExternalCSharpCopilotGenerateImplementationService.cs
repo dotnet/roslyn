@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation;
+using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
 {
     internal interface IExternalCSharpCopilotGenerateImplementationService
     {
-        Task<ImplementationDetailsWrapper> ImplementNotImplementedExceptionAsync(Document document, SyntaxNode throwNode, CancellationToken cancellationToken);
+        Task<ImplementationDetailsWrapper> ImplementNotImplementedExceptionAsync(Document document, SyntaxNode throwNode, ImmutableArray<ReferencedSymbol> referencedSymbols, CancellationToken cancellationToken);
     }
 }

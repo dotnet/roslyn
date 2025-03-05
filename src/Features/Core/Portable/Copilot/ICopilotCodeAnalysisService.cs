@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -88,5 +89,5 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// <summary>
     /// Method to implement a <see cref="NotImplementedException"/> in a given <paramref name="throwNode"/>
     /// </summary>
-    Task<ImplementationDetails> ImplementNotImplementedExceptionAsync(Document document, SyntaxNode throwNode, CancellationToken cancellationToken);
+    Task<ImplementationDetails> ImplementNotImplementedExceptionAsync(Document document, SyntaxNode throwNode, ImmutableArray<ReferencedSymbol> referencedSymbols, CancellationToken cancellationToken);
 }

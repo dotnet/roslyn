@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -94,10 +96,16 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
     {
         var throwNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
         var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+
         Contract.ThrowIfNull(methodOrProperty);
+        Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
+
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var memberSymbol = semanticModel.GetRequiredDeclaredSymbol(methodOrProperty, cancellationToken);
+        var references = await FindReferencesAsync(document, memberSymbol, cancellationToken).ConfigureAwait(false);
 
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
-        var implementationDetails = await copilotService.ImplementNotImplementedExceptionAsync(document, throwNode, cancellationToken).ConfigureAwait(false);
+        var implementationDetails = await copilotService.ImplementNotImplementedExceptionAsync(document, throwNode, references, cancellationToken).ConfigureAwait(false);
 
         if (implementationDetails.IsQuotaExceeded)
         {
@@ -120,6 +128,14 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         };
 
         editor.ReplaceNode(methodOrProperty, replacement);
+    }
+
+    private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var searchOptions = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
+        return await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, searchOptions, cancellationToken).ConfigureAwait(false);
     }
 
     private static MemberDeclarationSyntax AddCommentToMember(MemberDeclarationSyntax member, string message)

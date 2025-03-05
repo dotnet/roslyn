@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -138,11 +139,12 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
     protected override async Task<ImplementationDetails> ImplementNotImplementedExceptionCoreAsync(
         Document document,
         SyntaxNode throwNode,
+        ImmutableArray<ReferencedSymbol> referencedSymbols,
         CancellationToken cancellationToken)
     {
         if (GenerateImplementationService is not null)
         {
-            var wrapper = await GenerateImplementationService.ImplementNotImplementedExceptionAsync(document, throwNode, cancellationToken).ConfigureAwait(false);
+            var wrapper = await GenerateImplementationService.ImplementNotImplementedExceptionAsync(document, throwNode, referencedSymbols, cancellationToken).ConfigureAwait(false);
             return new()
             {
                 IsQuotaExceeded = wrapper.IsQuotaExceeded,

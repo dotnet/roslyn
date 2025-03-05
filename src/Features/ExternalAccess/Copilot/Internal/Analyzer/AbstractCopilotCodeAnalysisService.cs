@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -42,7 +43,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
     protected abstract Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken);
     protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
-    protected abstract Task<ImplementationDetails> ImplementNotImplementedExceptionCoreAsync(Document document, SyntaxNode throwNode, CancellationToken cancellationToken);
+    protected abstract Task<ImplementationDetails> ImplementNotImplementedExceptionCoreAsync(Document document, SyntaxNode throwNode, ImmutableArray<ReferencedSymbol> referencedSymbols, CancellationToken cancellationToken);
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         => IsAvailableCoreAsync(cancellationToken);
@@ -202,11 +203,12 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     public async Task<ImplementationDetails> ImplementNotImplementedExceptionAsync(
         Document document,
         SyntaxNode throwNode,
+        ImmutableArray<ReferencedSymbol> referencedSymbols,
         CancellationToken cancellationToken)
     {
         if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
             return new ImplementationDetails() { IsQuotaExceeded = false, ReplacementNode = null, Message = string.Empty };
 
-        return await ImplementNotImplementedExceptionCoreAsync(document, throwNode, cancellationToken).ConfigureAwait(false);
+        return await ImplementNotImplementedExceptionCoreAsync(document, throwNode, referencedSymbols, cancellationToken).ConfigureAwait(false);
     }
 }

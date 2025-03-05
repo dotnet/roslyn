@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ErrorLogger
+Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
@@ -370,8 +371,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult((New Dictionary(Of String, String), False))
             End Function
 
-            Public Function ImplementNotImplementedExceptionAsync(document As Document, throwNode As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImplementationDetails) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionAsync
-                Return Task.FromResult(New ImplementationDetails With {.IsQuotaExceeded = False, .Message = "Dummy Message", .ReplacementNode = Nothing})
+            Public Function ImplementNotImplementedExceptionAsync(document As Document, throwNode As SyntaxNode, referencedSymbols As ImmutableArray(Of ReferencedSymbol), cancellationToken As CancellationToken) As Task(Of ImplementationDetails) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionAsync
+                Return Task.FromResult(New ImplementationDetails With {.IsQuotaExceeded = False, .Message = "", .ReplacementNode = Nothing})
             End Function
         End Class
     End Class
