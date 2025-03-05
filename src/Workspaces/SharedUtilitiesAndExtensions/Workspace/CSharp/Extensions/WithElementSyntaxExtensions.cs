@@ -66,7 +66,7 @@ internal static class WithElementSyntaxExtensions
 
             var readonlySpanOfTType = compilation.ReadOnlySpanOfTType();
             var attribute = collectionExpressionType.GetAttributes().FirstOrDefault(
-                a => a.AttributeClass.IsCollectionBuilderAttribute());
+                static a => a.AttributeClass.IsCollectionBuilderAttribute());
 
             // https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md#create-method-candidates
             // A [CollectionBuilder(...)] attribute specifies the builder type and method name of a method to be invoked
