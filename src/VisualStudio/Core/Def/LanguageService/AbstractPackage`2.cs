@@ -42,7 +42,6 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
         var shell = (IVsShell7?)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
         var solution = (IVsSolution?)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
-        cancellationToken.ThrowIfCancellationRequested();
         Assumes.Present(shell);
         Assumes.Present(solution);
 
