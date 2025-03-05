@@ -247,9 +247,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static DeclarationModifiers AdjustModifiersForAnInterfaceMember(DeclarationModifiers mods, bool hasBody, bool isExplicitInterfaceImplementation, bool forMethod)
         {
-            // Partial methods without accessibility modifiers (i.e., not the "extended partial methods") are implicitly private and not virtual.
-            var noExplicitAccessibilityModifiers = (mods & DeclarationModifiers.AccessibilityMask) == 0;
-            var plainPartialMethod = noExplicitAccessibilityModifiers && forMethod && (mods & DeclarationModifiers.Partial) != 0;
+            if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
+            {
+                // Partial methods without accessibility modifiers (i.e., not the "extended partial methods") are implicitly private and not virtual.
+                var plainPartialMethod = forMethod && (mods & DeclarationModifiers.Partial) != 0;
+
+                if (!plainPartialMethod && !isExplicitInterfaceImplementation)
+                {
+                    mods |= DeclarationModifiers.Public;
+                }
+                else
+                {
+                    mods |= DeclarationModifiers.Private;
+                }
+            }
 
             if (isExplicitInterfaceImplementation)
             {
@@ -262,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 mods &= ~DeclarationModifiers.Sealed;
             }
-            else if (!plainPartialMethod && (mods & (DeclarationModifiers.Private | DeclarationModifiers.Virtual | DeclarationModifiers.Abstract)) == 0)
+            else if ((mods & (DeclarationModifiers.Private | DeclarationModifiers.Virtual | DeclarationModifiers.Abstract)) == 0)
             {
                 Debug.Assert(!isExplicitInterfaceImplementation);
 
@@ -280,18 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     mods |= DeclarationModifiers.Abstract;
-                }
-            }
-
-            if (noExplicitAccessibilityModifiers)
-            {
-                if (!plainPartialMethod && !isExplicitInterfaceImplementation)
-                {
-                    mods |= DeclarationModifiers.Public;
-                }
-                else
-                {
-                    mods |= DeclarationModifiers.Private;
                 }
             }
 
