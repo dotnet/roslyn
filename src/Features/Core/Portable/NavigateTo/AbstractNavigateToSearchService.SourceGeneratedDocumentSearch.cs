@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo;
 
 internal abstract partial class AbstractNavigateToSearchService
 {
-    public async Task SearchGeneratedDocumentsAsync(
+    public async Task SearchSourceGeneratedDocumentsAsync(
         Solution solution,
         ImmutableArray<Project> projects,
         string searchPattern,
@@ -82,7 +82,9 @@ internal abstract partial class AbstractNavigateToSearchService
                 sourceGeneratedDocs,
                 cancellationToken,
                 (document, cancellationToken) => SearchSingleDocumentAsync(
-                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onItemFound, cancellationToken)).ConfigureAwait(false);
+                    document, patternName, patternContainerOpt, declaredSymbolInfoKindsSet,
+                    // We were asked to search generated docs, so we def want to search inside generated code.
+                    searchGeneratedCode: true, onItemFound, cancellationToken)).ConfigureAwait(false);
 
             await onProjectCompleted().ConfigureAwait(false);
         }
