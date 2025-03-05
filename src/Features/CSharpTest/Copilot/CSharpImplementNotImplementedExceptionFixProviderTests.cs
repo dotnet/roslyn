@@ -128,7 +128,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         }
         .WithMockCopilotService(copilotService =>
         {
-            copilotService.SetupFixAll = async (Document document, SyntaxNode throwNode, CancellationToken cancellationToken) =>
+            copilotService.SetupFixAll = async (Document document, SyntaxNode throwNode, ImmutableArray<ReferencedSymbol> referencedSymbols, CancellationToken cancellationToken) =>
             {
                 var node = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
                 var text = await document.GetTextAsync(cancellationToken);
@@ -278,16 +278,16 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 /* Error: Quota exceeded. */
                 public string GetData(int id) => {|IDE3000:throw new NotImplementedException()|};
             
-                /* Error: Quota exceeded. */
                 /* Updates the data for a given ID */
+                /* Error: Quota exceeded. */
                 public void UpdateData(int id, string data)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
                     {|IDE3000:throw new NotImplementedException("UpdateData method not implemented");|}
                 }
             
-                /* Error: Quota exceeded. */
                 // Deletes data by ID
+                /* Error: Quota exceeded. */
                 public void DeleteData(int id)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
@@ -342,7 +342,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     }
 
     [Fact]
-    public async Task ReceivesInvalidCode_NotifiesAsComment()
+    public async Task HandleInvalidCode_SuggestsAsComment()
     {
         await new CustomCompositionCSharpTest
         {
@@ -363,7 +363,15 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
         class C
         {
-            /* Error: Failed to parse Copilot response into a method or property. */
+            /* Error: Failed to parse Copilot response into a method or property. Received response:
+            using System;
+            class C
+            {
+                void M()
+                {
+                    throw new NotImplementedException();
+                }
+            } */
             void M()
             {
                 {|IDE3000:throw new NotImplementedException();|}
@@ -379,22 +387,21 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         }
         .WithMockCopilotService(copilotService =>
         {
+            var replacement = """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
             copilotService.PrepareFakeResult = new()
             {
                 IsQuotaExceeded = false,
-                // Fixer expects a MemberDeclarationSyntax, specifically method or property
-                ReplacementNode = SyntaxFactory.ParseCompilationUnit(
-                    """
-                    using System;
-                    class C
-                    {
-                        void M()
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                    """),
-                Message = string.Empty,
+                ReplacementNode = SyntaxFactory.ParseCompilationUnit(replacement),
+                Message = $"Received response:{Environment.NewLine}{replacement}",
             };
         })
         .RunAsync();
@@ -423,14 +430,14 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     [InlineData("int myField;", typeof(FieldDeclarationSyntax))]
     [InlineData("event EventHandler MyEvent;", typeof(EventFieldDeclarationSyntax))]
     [InlineData("record MyRecord { }", typeof(RecordDeclarationSyntax))]
-    public async Task TestInvalidNodeReplacement(string syntax, Type _)
+    public async Task TestInvalidNodeReplacement(string syntax, Type type)
     {
         await TestHandlesInvalidReplacementNode(
             new()
             {
                 IsQuotaExceeded = false,
                 ReplacementNode = SyntaxFactory.ParseMemberDeclaration(syntax),
-                Message = "Error: Failed to parse Copilot response into a method or property.",
+                Message = $"Copilot response is of type {type}, but expected method or property",
             })
             .ConfigureAwait(false);
     }
@@ -471,7 +478,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             class C
             {
-                /* {{(!string.IsNullOrWhiteSpace(implementationDetails.Message) ? implementationDetails.Message : "Error: Could not complete this request.")}} */
+                /* {{string.Format("Error: Failed to parse Copilot response into a method or property. {0}", implementationDetails.Message)}} */
                 void M()
                 {
                     {|IDE3000:throw new NotImplementedException();|}

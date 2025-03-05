@@ -107,25 +107,22 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
         var implementationDetails = await copilotService.ImplementNotImplementedExceptionAsync(document, throwNode, references, cancellationToken).ConfigureAwait(false);
 
+        var replacement = implementationDetails.ReplacementNode;
         if (implementationDetails.IsQuotaExceeded)
         {
-            editor.ReplaceNode(methodOrProperty, AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded));
-            return;
+            replacement = AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded);
         }
-
-        var replacement = implementationDetails.ReplacementNode switch
+        else if (replacement is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax)
         {
-            BasePropertyDeclarationSyntax newMember => newMember
+            replacement = replacement
                 .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
                 .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
-                .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation),
-            BaseMethodDeclarationSyntax newMember => newMember
-                .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
-                .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
-                .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation),
-            null => AddCommentToMember(methodOrProperty, string.IsNullOrWhiteSpace(implementationDetails.Message) ? CSharpFeaturesResources.Error_colon_Could_not_complete_this_request : implementationDetails.Message),
-            _ => AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property)
-        };
+                .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation);
+        }
+        else
+        {
+            replacement = AddCommentToMember(methodOrProperty, string.Format(CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property, implementationDetails.Message));
+        }
 
         editor.ReplaceNode(methodOrProperty, replacement);
     }
