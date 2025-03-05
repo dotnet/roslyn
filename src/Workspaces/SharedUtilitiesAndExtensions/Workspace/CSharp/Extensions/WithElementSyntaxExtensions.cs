@@ -53,7 +53,7 @@ internal static class WithElementSyntaxExtensions
 
             var constructedListType = listOfTType.Construct(collectionExpressionType.TypeArguments.Single());
             var constructor = constructedListType.InstanceConstructors.FirstOrDefault(
-                m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Int32, Name: "capacity" }]);
+                static m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Int32, Name: "capacity" }]);
 
             return constructor is null ? [] : [constructor];
         }
