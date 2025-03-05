@@ -61,7 +61,7 @@ internal readonly struct LightweightOverloadResolution(
     /// Returns true if an overload is acceptable. In that case, we output the parameter that should be highlighted given the cursor's
     /// position in the partial invocation.
     /// </summary>
-    public (IMethodSymbol? method, int parameterIndex) TryFindParameterIndexIfCompatibleMethod(IMethodSymbol method)
+    private (IMethodSymbol? method, int parameterIndex) TryFindParameterIndexIfCompatibleMethod(IMethodSymbol method)
     {
         // map the arguments to their corresponding parameters
         using var argumentToParameterMap = TemporaryArray<int>.Empty;
