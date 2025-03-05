@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -98,6 +99,23 @@ internal static class CommonSignatureHelpUtilities
         }
 
         return TextSpan.FromBounds(start, nextToken.SpanStart);
+    }
+
+    internal static async Task<TSyntax?> TryGetSyntaxAsync<TSyntax>(
+        Document document,
+        int position,
+        SignatureHelpTriggerReason triggerReason,
+        Func<SyntaxToken, bool> isTriggerToken,
+        Func<TSyntax, SyntaxToken, bool> isArgumentListToken,
+        CancellationToken cancellationToken)
+        where TSyntax : SyntaxNode
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+        TryGetSyntax(
+            root, position, syntaxFacts, triggerReason, isTriggerToken, isArgumentListToken, cancellationToken, out var syntax);
+        return syntax;
     }
 
     internal static bool TryGetSyntax<TSyntax>(
