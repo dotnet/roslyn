@@ -301,6 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeaturePartialEventsAndConstructors = MessageBase + 12852,
         IDS_FeatureExtensions = MessageBase + 12853,
         IDS_FeatureNullConditionalAssignment = MessageBase + 12854,
+        IDS_FeatureExpressionOptionalAndNamedArguments = MessageBase + 12855,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -488,6 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeaturePartialEventsAndConstructors:
                 case MessageID.IDS_FeatureExtensions:
                 case MessageID.IDS_FeatureNullConditionalAssignment:
+                case MessageID.IDS_FeatureExpressionOptionalAndNamedArguments:
                     return LanguageVersion.Preview;
 
                 // C# 13.0 features.
