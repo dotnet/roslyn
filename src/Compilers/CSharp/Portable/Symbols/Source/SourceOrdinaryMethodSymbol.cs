@@ -57,13 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  location,
                  syntax,
                  isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
-                 MakeModifiersAndFlags(containingType, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics, out bool hasExplicitAccessMod))
+                 MakeModifiersAndFlags(containingType, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics))
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
             this.CheckUnsafeModifier(DeclarationModifiers, diagnostics);
 
-            HasExplicitAccessModifier = hasExplicitAccessMod;
             bool hasAnyBody = syntax.HasAnyBody();
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
@@ -88,9 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(
             NamedTypeSymbol containingType, Location location, MethodDeclarationSyntax syntax, MethodKind methodKind,
-            bool isNullableAnalysisEnabled, BindingDiagnosticBag diagnostics, out bool hasExplicitAccessMod)
+            bool isNullableAnalysisEnabled, BindingDiagnosticBag diagnostics)
         {
-            (DeclarationModifiers declarationModifiers, hasExplicitAccessMod) = MakeModifiers(syntax, containingType, methodKind, hasBody: syntax.HasAnyBody(), location, diagnostics);
+            (DeclarationModifiers declarationModifiers, bool hasExplicitAccessMod) = MakeModifiers(syntax, containingType, methodKind, hasBody: syntax.HasAnyBody(), location, diagnostics);
             Flags flags = new Flags(
                                     methodKind, refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                                     declarationModifiers,
@@ -103,7 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                                     isVararg: syntax.IsVarArg(),
                                     isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation,
-                                    hasThisInitializer: false);
+                                    hasThisInitializer: false,
+                                    hasExplicitAccessModifier: hasExplicitAccessMod);
 
             return (declarationModifiers, flags);
         }
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static DeclarationModifiers MakeDeclarationModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, Location location, DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: containingType.IsInterface,
-                                                                    syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out _);
+                                                                    syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out _, out _);
         }
 
         internal sealed override void ForceComplete(SourceLocation locationOpt, Predicate<Symbol> filter, CancellationToken cancellationToken)
@@ -679,10 +679,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, _location, diagnostics);
         }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            if (this.ReturnType?.IsErrorType() == true && GetSyntax().ReturnType is IdentifierNameSyntax { Identifier.RawContextualKind: (int)SyntaxKind.PartialKeyword })
+            {
+                var available = MessageID.IDS_FeaturePartialEventsAndConstructors.CheckFeatureAvailability(diagnostics, DeclaringCompilation, ReturnTypeLocation);
+                Debug.Assert(!available, "Should have been parsed as partial constructor.");
+            }
+        }
 #nullable disable
 
-        // Consider moving this to flags to save space
-        internal bool HasExplicitAccessModifier { get; }
+        internal bool HasExplicitAccessModifier => flags.HasExplicitAccessModifier;
 
         private static (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, MethodKind methodKind, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
