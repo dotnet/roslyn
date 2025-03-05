@@ -55,30 +55,22 @@ internal sealed partial class NamedParameterCompletionProvider() : LSPCompletion
 
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken))
-            {
                 return;
-            }
 
             var token = syntaxTree
                 .FindTokenOnLeftOfPosition(position, cancellationToken)
                 .GetPreviousTokenIfTouchingWord(position);
 
             if (token.Kind() is not (SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken or SyntaxKind.CommaToken))
-            {
                 return;
-            }
 
             if (token.Parent is not BaseArgumentListSyntax argumentList)
-            {
                 return;
-            }
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(argumentList, cancellationToken).ConfigureAwait(false);
             var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent!, cancellationToken);
             if (parameterLists == null)
-            {
                 return;
-            }
 
             var existingNamedParameters = GetExistingNamedParameters(argumentList, position);
 
@@ -99,8 +91,6 @@ internal sealed partial class NamedParameterCompletionProvider() : LSPCompletion
             {
                 context.IsExclusive = true;
             }
-
-            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var parameter in unspecifiedParameters)
             {
