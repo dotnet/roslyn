@@ -113,9 +113,8 @@ internal static class CommonSignatureHelpUtilities
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        TryGetSyntax(
-            root, position, syntaxFacts, triggerReason, isTriggerToken, isArgumentListToken, cancellationToken, out var syntax);
-        return syntax;
+        return TryGetSyntax(
+            root, position, syntaxFacts, triggerReason, isTriggerToken, isArgumentListToken, cancellationToken, out var syntax) ? syntax : null;
     }
 
     internal static bool TryGetSyntax<TSyntax>(
