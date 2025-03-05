@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 internal static class WithElementSyntaxExtensions
 {
     public static ImmutableArray<IMethodSymbol> GetCreationMethods(
-        SemanticModel semanticModel, WithElementSyntax? withElement, CancellationToken cancellationToken)
+        this WithElementSyntax? withElement, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         if (withElement?.Parent is not CollectionExpressionSyntax collectionExpression)
             return [];
@@ -62,35 +62,60 @@ internal static class WithElementSyntaxExtensions
         {
             // If the type has a [CollectionBuilder(typeof(...), "...")] attribute on it, find the method it points to, and
             // produce the synthesized signature help items for it (e.g. without the ReadOnlySpan<T> parameter).
-            var readonlySpanOfTType = semanticModel.Compilation.ReadOnlySpanOfTType();
+            var compilation = semanticModel.Compilation;
+
+            var readonlySpanOfTType = compilation.ReadOnlySpanOfTType();
             var attribute = collectionExpressionType.GetAttributes().FirstOrDefault(
                 a => a.AttributeClass.IsCollectionBuilderAttribute());
+
+            // https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md#create-method-candidates
+            // A [CollectionBuilder(...)] attribute specifies the builder type and method name of a method to be invoked
+            // to construct an instance of the collection type.
             if (attribute is not { ConstructorArguments: [{ Value: INamedTypeSymbol builderType }, { Value: string builderMethodName }] })
                 return null;
 
-            var builderMethod = builderType
+            // Find all the methods in the builder type with the given name that have a ReadOnlySpan<T> as either their
+            // first or last parameter.
+            var builderMethods = builderType
+                // The method must have the name specified in the [CollectionBuilder(...)] attribute.
                 .GetMembers(builderMethodName)
                 .OfType<IMethodSymbol>()
                 .Where(m =>
-                    m.IsStatic && m.Parameters.Length >= 1 &&
+                    // The method must be static.
+                    m.IsStatic &&
+                    // The arity of the method must match the arity of the collection type.
                     m.Arity == collectionExpressionType.Arity &&
+                    m.Parameters.Length >= 1 &&
+                    // The method must have a first (or last) parameter of type System.ReadOnlySpan<E>, passed by value.
                     (Equals(m.Parameters[0].Type.OriginalDefinition, readonlySpanOfTType) ||
                      Equals(m.Parameters.Last().Type.OriginalDefinition, readonlySpanOfTType)))
-                .FirstOrDefault();
+                .ToImmutableArray();
 
-            if (builderMethod is null)
-                return [];
+            // Instance the construction method if generic. And filter to only those that return the collection type
+            // being created.
+            var constructedBuilderMethods = builderMethods
+                .Select(m => m.Construct([.. collectionExpressionType.TypeArguments]))
+                .Where(m =>
+                {
+                    // There is an identity conversion, implicit reference conversion, or boxing conversion from the method return type to the collection type.
+                    var conversion = compilation.ClassifyConversion(m.ReturnType, collectionExpressionType);
+                    return conversion.IsIdentityOrImplicitReference() || conversion.IsBoxing;
+                })
+                .ToImmutableArray();
 
-            var constructedBuilderMethod = builderMethod.Construct([.. collectionExpressionType.TypeArguments]);
-            var slicedParameters = Equals(constructedBuilderMethod.Parameters[0].Type.OriginalDefinition, readonlySpanOfTType)
-                ? builderMethod.Parameters[1..]
-                : builderMethod.Parameters[..^1];
+            return constructedBuilderMethods.SelectAsArray(constructedMethod =>
+            {
+                // Create a synthesized method with the ReadOnlySpan<T> parameter removed.  This corresponds to the parameters
+                // that actually have to be passed to the with element.
+                var slicedParameters = Equals(constructedMethod.Parameters[0].Type.OriginalDefinition, readonlySpanOfTType)
+                    ? constructedMethod.Parameters[1..]
+                    : constructedMethod.Parameters[..^1];
 
-            var slicedMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                constructedBuilderMethod,
-                parameters: slicedParameters,
-                containingType: constructedBuilderMethod.ContainingType);
-            return [slicedMethod];
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                    constructedMethod,
+                    parameters: slicedParameters,
+                    containingType: constructedMethod.ContainingType);
+            });
         }
     }
 }
