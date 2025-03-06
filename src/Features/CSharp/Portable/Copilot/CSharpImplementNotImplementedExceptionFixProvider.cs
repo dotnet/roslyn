@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -69,6 +70,7 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
                 createChangedDocumentPreview: (_, _) => Task.FromResult(context.Document),
                 equivalenceKey: nameof(CSharpAnalyzersResources.Implement_with_Copilot));
             context.RegisterCodeFix(fix, context.Diagnostics[0]);
+            Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Fix_Registered, logLevel: LogLevel.Information);
         }
     }
 
@@ -107,6 +109,7 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
             if (!memberImplementationDetails.TryGetValue(methodOrProperty, out var implementationDetails))
             {
                 replacement = AddErrorComment(methodOrProperty);
+                Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Failed, logLevel: LogLevel.Error);
             }
             else
             {
@@ -121,6 +124,7 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
                 else
                 {
                     replacement = AddErrorComment(methodOrProperty, implementationDetails.Message);
+                    Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Failed, logLevel: LogLevel.Error);
                 }
             }
 
@@ -134,6 +138,7 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         changedRoot = formattedRoot;
 
         editor.ReplaceNode(editor.OriginalRoot, changedRoot);
+        Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Completed, logLevel: LogLevel.Information);
     }
 
     private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
