@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
@@ -129,30 +129,47 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         }
         .WithMockCopilotService(copilotService =>
         {
-            copilotService.SetupFixAll = async (Document document, SyntaxNode throwNode, ImmutableArray<ReferencedSymbol> referencedSymbols, CancellationToken cancellationToken) =>
+            copilotService.SetupFixAll = async (Document document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> memberReferences, CancellationToken cancellationToken) =>
             {
-                var node = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
-                var text = await document.GetTextAsync(cancellationToken);
-                var replacementNode = node is MethodDeclarationSyntax methodDeclaration
-                    ? methodDeclaration.Identifier.Text switch
-                    {
-                        "Add" => "public int Add(int a, int b)\n{\n    return a + b;\n}\n",
-                        "Subtract" => "public int Subtract(int a, int b) => a - b;\n",
-                        "Multiply" => "public int Multiply(int a, int b)\n{\n    return a * b;\n}\n",
-                        "Divide" => "public double Divide(int a, int b)\n{\n    if (b == 0) throw new DivideByZeroException(\"Division by zero is not allowed\");\n    return (double)a / b;\n}\n",
-                        "CalculateSquareRoot" => "public double CalculateSquareRoot(double number) => Math.Sqrt(number);\n",
-                        "Factorial" => "public int Factorial(int number)\n{\n    if (number < 0) throw new ArgumentException(\"Number must be non-negative\", nameof(number));\n    return number == 0 ? 1 : number * Factorial(number - 1);\n}\n",
-                        _ => string.Empty
-                    }
-                    : node is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Identifier.Text == "ConstantValue"
-                    ? "public int ConstantValue => 42;\n"
-                    : string.Empty;
-
-                return new()
+                // Create a map of method/property implementations
+                var implementationMap = new Dictionary<string, string>
                 {
-                    ReplacementNode = SyntaxFactory.ParseMemberDeclaration(replacementNode),
-                    Message = "Successful",
+                    ["Add"] = "public int Add(int a, int b)\n{\n    return a + b;\n}\n",
+                    ["Subtract"] = "public int Subtract(int a, int b) => a - b;\n",
+                    ["Multiply"] = "public int Multiply(int a, int b)\n{\n    return a * b;\n}\n",
+                    ["Divide"] = "public double Divide(int a, int b)\n{\n    if (b == 0) throw new DivideByZeroException(\"Division by zero is not allowed\");\n    return (double)a / b;\n}\n",
+                    ["CalculateSquareRoot"] = "public double CalculateSquareRoot(double number) => Math.Sqrt(number);\n",
+                    ["Factorial"] = "public int Factorial(int number)\n{\n    if (number < 0) throw new ArgumentException(\"Number must be non-negative\", nameof(number));\n    return number == 0 ? 1 : number * Factorial(number - 1);\n}\n",
+                    ["ConstantValue"] = "public int ConstantValue => 42;\n"
                 };
+
+                // Process each member reference and create implementation details
+                var resultsBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImplementationDetails>();
+                foreach (var memberReference in memberReferences)
+                {
+                    Assumes.Is<MemberDeclarationSyntax>(memberReference.Key);
+                    var memberNode = (MemberDeclarationSyntax)memberReference.Key;
+
+                    // Get the identifier based on node type
+                    var identifier = memberNode switch
+                    {
+                        MethodDeclarationSyntax method => method.Identifier.Text,
+                        PropertyDeclarationSyntax property => property.Identifier.Text,
+                        _ => string.Empty
+                    };
+
+                    // Look up implementation in our map
+                    Assumes.True(implementationMap.TryGetValue(identifier, out var implementation));
+                    resultsBuilder.Add(
+                        memberNode,
+                        new ImplementationDetails
+                        {
+                            ReplacementNode = SyntaxFactory.ParseMemberDeclaration(implementation),
+                            Message = "Successful"
+                        });
+                }
+
+                return resultsBuilder.ToImmutable();
             };
         })
         .RunAsync();
@@ -334,7 +351,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         }
         .WithMockCopilotService(copilotService =>
         {
-            copilotService.PrepareFakeResult = new()
+            copilotService.PrepareUsingSingleFakeResult = new()
             {
                 ReplacementNode = null,
                 Message = copilotErrorMessage,
@@ -399,7 +416,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 }
             }
             """;
-            copilotService.PrepareFakeResult = new()
+            copilotService.PrepareUsingSingleFakeResult = new()
             {
                 ReplacementNode = SyntaxFactory.ParseCompilationUnit(replacement),
                 Message = $"The generated implementation isn't a valid method or property:{Environment.NewLine}{replacement}",
@@ -495,7 +512,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         }
         .WithMockCopilotService(copilotService =>
         {
-            copilotService.PrepareFakeResult = implementationDetails;
+            copilotService.PrepareUsingSingleFakeResult = implementationDetails;
         })
         .RunAsync();
     }
@@ -571,9 +588,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         {
         }
 
-        public Func<Document, SyntaxNode, ImmutableArray<ReferencedSymbol>, CancellationToken, Task<ImplementationDetails>>? SetupFixAll { get; internal set; }
+        public Func<Document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>>, CancellationToken, Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>>>? SetupFixAll { get; internal set; }
 
-        public ImplementationDetails? PrepareFakeResult { get; internal set; }
+        public ImplementationDetails? PrepareUsingSingleFakeResult { get; internal set; }
 
         public Task AnalyzeDocumentAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
             => throw new NotImplementedException();
@@ -599,14 +616,37 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ICopilotCodeAnalysisService.GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task<ImplementationDetails> ImplementNotImplementedExceptionAsync(Document document, SyntaxNode node, ImmutableArray<ReferencedSymbol> referencedSymbols, CancellationToken cancellationToken)
+        public Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
+            Document document,
+            ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+            CancellationToken cancellationToken)
         {
-            return SetupFixAll?.Invoke(document, node, referencedSymbols, cancellationToken)
-                ?? Task.FromResult(PrepareFakeResult ?? new ImplementationDetails
-                {
-                    ReplacementNode = node,
-                    Message = string.Empty,
-                });
+            if (SetupFixAll != null)
+            {
+                return SetupFixAll.Invoke(document, methodOrProperties, cancellationToken);
+            }
+
+            if (PrepareUsingSingleFakeResult != null)
+            {
+                return Task.FromResult(CreateSingleNodeResult(methodOrProperties, PrepareUsingSingleFakeResult));
+            }
+
+            return Task.FromResult(ImmutableDictionary<SyntaxNode, ImplementationDetails>.Empty);
+        }
+
+        private static ImmutableDictionary<SyntaxNode, ImplementationDetails> CreateSingleNodeResult(
+            ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+            ImplementationDetails implementationDetails)
+        {
+            var resultsBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImplementationDetails>();
+            foreach (var methodOrProperty in methodOrProperties)
+            {
+                Assumes.Is<MemberDeclarationSyntax>(methodOrProperty.Key);
+                var node = (MemberDeclarationSyntax)methodOrProperty.Key;
+                resultsBuilder.Add(node, implementationDetails);
+            }
+
+            return resultsBuilder.ToImmutable();
         }
     }
 }

@@ -136,22 +136,28 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
     }
 
-    protected override async Task<ImplementationDetails> ImplementNotImplementedExceptionCoreAsync(
+    protected override async Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(
         Document document,
-        SyntaxNode throwNode,
-        ImmutableArray<ReferencedSymbol> referencedSymbols,
+        ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
         CancellationToken cancellationToken)
     {
-        if (GenerateImplementationService is not null)
+        if (GenerateImplementationService is null)
+            return ImmutableDictionary<SyntaxNode, ImplementationDetails>.Empty;
+
+        var nodeToWrappers = await GenerateImplementationService.ImplementNotImplementedExceptionsAsync(document, methodOrProperties, cancellationToken).ConfigureAwait(false);
+
+        var resultBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImplementationDetails>();
+        foreach (var nodeToWrapper in nodeToWrappers)
         {
-            var wrapper = await GenerateImplementationService.ImplementNotImplementedExceptionAsync(document, throwNode, referencedSymbols, cancellationToken).ConfigureAwait(false);
-            return new()
-            {
-                ReplacementNode = wrapper.ReplacementNode,
-                Message = wrapper.Message,
-            };
+            resultBuilder.Add(
+                nodeToWrapper.Key,
+                new ImplementationDetails
+                {
+                    ReplacementNode = nodeToWrapper.Value.ReplacementNode,
+                    Message = nodeToWrapper.Value.Message
+                });
         }
 
-        return new() { ReplacementNode = null, Message = string.Empty };
+        return resultBuilder.ToImmutable();
     }
 }

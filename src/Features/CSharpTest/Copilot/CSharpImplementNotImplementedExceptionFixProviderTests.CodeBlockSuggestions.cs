@@ -54,7 +54,7 @@ public class TestService
         }
         .WithMockCopilotService(copilotService =>
         {
-            copilotService.PrepareFakeResult = new()
+            copilotService.PrepareUsingSingleFakeResult = new()
             {
                 ReplacementNode = SyntaxFactory.ParseMemberDeclaration(replacementCodeBlock),
                 Message = "Successful",

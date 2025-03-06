@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
 {
     internal interface IExternalCSharpCopilotGenerateImplementationService
     {
-        Task<ImplementationDetailsWrapper> ImplementNotImplementedExceptionAsync(Document document, SyntaxNode throwNode, ImmutableArray<ReferencedSymbol> referencedSymbols, CancellationToken cancellationToken);
+        Task<ImmutableDictionary<SyntaxNode, ImplementationDetailsWrapper>> ImplementNotImplementedExceptionsAsync(
+            Document document,
+            ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+            CancellationToken cancellationToken);
     }
 }

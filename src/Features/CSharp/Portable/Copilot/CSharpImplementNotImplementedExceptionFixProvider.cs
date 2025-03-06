@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -78,10 +76,9 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        // Build a dictionary to track method/property nodes and their references
-        var inputMethodOrPropertyItems = new Dictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>>();
-
+        var memberReferencesBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImmutableArray<ReferencedSymbol>>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
         foreach (var diagnostic in diagnostics)
         {
             var throwNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
@@ -90,44 +87,24 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
             Contract.ThrowIfNull(methodOrProperty);
             Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
 
-            // Skip recomputing refs if we've already checked the same methodOrProperty
-            if (!inputMethodOrPropertyItems.ContainsKey(methodOrProperty))
+            if (!memberReferencesBuilder.ContainsKey(methodOrProperty))
             {
                 var memberSymbol = semanticModel.GetRequiredDeclaredSymbol(methodOrProperty, cancellationToken);
                 var references = await FindReferencesAsync(document, memberSymbol, cancellationToken).ConfigureAwait(false);
-
-                // Store references in the input dictionary for copilot request
-                inputMethodOrPropertyItems.Add(methodOrProperty, references);
+                memberReferencesBuilder.Add(methodOrProperty, references);
             }
         }
 
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
-        // Assume the new API in copilotService to handle multiple methods/properties at once
-        // This line would need to be updated once the actual API is implemented
-        //var resultingMethodOrPropertyItems = await copilotService.ImplementNotImplementedExceptionAsync(document, inputMethodOrPropertyItems, cancellationToken).ConfigureAwait(false);
+        var memberImplementationDetails = await copilotService.ImplementNotImplementedExceptionsAsync(document, memberReferencesBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false);
 
-        var resultingMethodOrPropertyItems = new Dictionary<MemberDeclarationSyntax, ImplementationDetails>();
-        foreach (var item in inputMethodOrPropertyItems)
+        foreach (var syntaxNode in memberReferencesBuilder.Keys)
         {
-            var responseFromOldApi = await copilotService.ImplementNotImplementedExceptionAsync(document, item.Key, item.Value, cancellationToken).ConfigureAwait(false);
-            if (responseFromOldApi == null)
-            {
-                continue;
-            }
+            Contract.ThrowIfFalse(syntaxNode is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
+            var methodOrProperty = (MemberDeclarationSyntax)syntaxNode;
 
-            var implementationDetails = new ImplementationDetails
-            {
-                ReplacementNode = responseFromOldApi.ReplacementNode,
-                Message = responseFromOldApi.Message
-            };
-
-            resultingMethodOrPropertyItems.Add(item.Key, implementationDetails);
-        }
-
-        foreach (var methodOrProperty in inputMethodOrPropertyItems.Keys)
-        {
             SyntaxNode? replacement;
-            if (!resultingMethodOrPropertyItems.TryGetValue(methodOrProperty, out var implementationDetails))
+            if (!memberImplementationDetails.TryGetValue(methodOrProperty, out var implementationDetails))
             {
                 replacement = AddErrorComment(methodOrProperty);
             }

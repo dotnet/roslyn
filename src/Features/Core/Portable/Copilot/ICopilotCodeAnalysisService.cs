@@ -87,7 +87,11 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Method to implement a <see cref="NotImplementedException"/> in a given <paramref name="throwNode"/>
+    /// Implements methods or properties containing <see cref="NotImplementedException"/> throws in the given <paramref name="document"/>.
     /// </summary>
-    Task<ImplementationDetails> ImplementNotImplementedExceptionAsync(Document document, SyntaxNode throwNode, ImmutableArray<ReferencedSymbol> referencedSymbols, CancellationToken cancellationToken);
+    /// <returns>A dictionary mapping the original syntax nodes to their implementation details.</returns>
+    Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
+        Document document,
+        ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+        CancellationToken cancellationToken);
 }

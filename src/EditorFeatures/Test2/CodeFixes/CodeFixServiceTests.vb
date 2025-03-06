@@ -371,8 +371,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult((New Dictionary(Of String, String), False))
             End Function
 
-            Public Function ImplementNotImplementedExceptionAsync(document As Document, throwNode As SyntaxNode, referencedSymbols As ImmutableArray(Of ReferencedSymbol), cancellationToken As CancellationToken) As Task(Of ImplementationDetails) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionAsync
-                Return Task.FromResult(New ImplementationDetails With {.Message = "", .ReplacementNode = Nothing})
+            Public Function ImplementNotImplementedExceptionsAsync(document As Document, methodOrProperties As ImmutableDictionary(Of SyntaxNode, ImmutableArray(Of ReferencedSymbol)), cancellationToken As CancellationToken) As Task(Of ImmutableDictionary(Of SyntaxNode, ImplementationDetails)) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionsAsync
+                Return Task.FromResult(ImmutableDictionary(Of SyntaxNode, ImplementationDetails).Empty)
             End Function
         End Class
     End Class
