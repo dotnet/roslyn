@@ -8610,7 +8610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lookupResult, analyzedArguments, ref actualMethodArguments, options, in callingConvention, binder, diagnostics);
 
                 // 3. resolve properties
-                OverloadResolutionResult<PropertySymbol>? propertyResult = resolveProperties(left, lookupResult, binder, ref actualReceiverArguments, ref useSiteInfo);
+                OverloadResolutionResult<PropertySymbol>? propertyResult = arity != 0 ? null : resolveProperties(left, lookupResult, binder, ref actualReceiverArguments, ref useSiteInfo);
 
                 // 4. determine member kind
                 if (!methodResult.HasAnyApplicableMethod && propertyResult?.HasAnyApplicableMember != true)

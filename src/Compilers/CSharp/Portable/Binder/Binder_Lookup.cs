@@ -196,7 +196,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // No need for "diagnose" since we discard the lookup results (and associated diagnostic info)
                 // unless the results are good.
-                LookupMembersInClass(tempResult, extension, name, arity, basesBeingResolved,
+                int remainingArity = arity == 0 ? 0 : arity - extension.Arity;
+
+                if (remainingArity < 0)
+                {
+                    continue;
+                }
+
+                LookupMembersInClass(tempResult, extension, name, remainingArity, basesBeingResolved,
                     options, originalBinder, diagnose: false, ref useSiteInfo);
 
                 result.MergeEqual(tempResult);

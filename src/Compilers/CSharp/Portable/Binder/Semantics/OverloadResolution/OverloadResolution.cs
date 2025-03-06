@@ -1169,7 +1169,7 @@ outerDefault:
             // This is specifying an impossible condition; the member lookup algorithm has already filtered
             // out methods from the method group that have the wrong generic arity.
 
-            Debug.Assert(typeArguments.Count == 0 || typeArguments.Count == member.GetMemberArity()); // PROTOTYPE deal with explicit type arguments
+            Debug.Assert(typeArguments.Count == 0 || typeArguments.Count == GetMemberTotalArity(member));
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
             bool disallowExpandedNonArrayParams = (options & Options.DisallowExpandedNonArrayParams) != 0;
