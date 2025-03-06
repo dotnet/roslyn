@@ -12502,4 +12502,16 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     {
         await AssertFormatAsync(expected, text);
     }
+
+    [Fact]
+    public async Task FormatNullConditionalAssignment()
+    {
+        await AssertFormatAsync(
+            expected: """
+            x?.y = z;
+            """,
+            code: """
+             x ? . y  =  z ;
+            """);
+    }
 }
