@@ -2826,20 +2826,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol is SynthesizedBackingFieldSymbol { InfersNullableAnnotation: true } backingField)
             {
                 NullableAnnotation nullableAnnotation;
-                if (_getterNullResilienceData is var (analyzedField, assumedNullableAnnotation)
-                    && (object)analyzedField == backingField)
+                if (_getterNullResilienceData is var (analyzedField, assumedNullableAnnotation))
                 {
+                    // If we find a usage of a different backing field, than the one we are currently doing a null resilience analysis on,
+                    // we should not proceed, in order to avoid cycles across inference of multiple fields.
+                    if ((object)analyzedField != backingField)
+                        throw ExceptionUtilities.UnexpectedValue(backingField);
+
                     // Currently in the process of inferring the nullable annotation for 'backingField'.
                     // Therefore don't try to access the inferred nullable annotation, use a temporary assumedNullableAnnotation instead.
                     nullableAnnotation = assumedNullableAnnotation;
                 }
                 else
                 {
-                    // We should not have any '_getterNullResilienceData' in this code path.
-                    // If we do have one, it means we are currently inferring the annotation of a different field.
-                    // We should not proceed as there is a possibility of a cycle across inference of multiple fields.
-                    Debug.Assert(_getterNullResilienceData is null);
-
                     nullableAnnotation = backingField.GetInferredNullableAnnotation();
                 }
 
