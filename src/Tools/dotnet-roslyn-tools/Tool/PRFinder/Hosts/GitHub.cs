@@ -194,7 +194,7 @@ internal partial class GitHub : IRepositoryHost
 
     [GeneratedRegex(@"^Merge pull request #\d+ from dotnet/merges/")]
     private static partial Regex IsGitHubReleaseFlowCommit();
-    [GeneratedRegex(@"^[automated] Merge branch '.*' => '.*' \(#\d+\)")]
+    [GeneratedRegex(@"^\[automated\] Merge branch '.*' => '.*' \(#\d+\)")]
     private static partial Regex IsGitHubActionCodeFlowCommit();
     [GeneratedRegex(@"^Merge pull request #(\d+) from")]
     private static partial Regex IsGitHubMergePRCommit();
