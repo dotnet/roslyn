@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -77,54 +78,91 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
+        // Build a dictionary to track method/property nodes and their references
+        var inputMethodOrPropertyItems = new Dictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>>();
+
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         foreach (var diagnostic in diagnostics)
         {
-            await FixOneAsync(editor, document, diagnostic, cancellationToken).ConfigureAwait(false);
+            var throwNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+
+            Contract.ThrowIfNull(methodOrProperty);
+            Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
+
+            // Skip recomputing refs if we've already checked the same methodOrProperty
+            if (!inputMethodOrPropertyItems.ContainsKey(methodOrProperty))
+            {
+                var memberSymbol = semanticModel.GetRequiredDeclaredSymbol(methodOrProperty, cancellationToken);
+                var references = await FindReferencesAsync(document, memberSymbol, cancellationToken).ConfigureAwait(false);
+
+                // Store references in the input dictionary for copilot request
+                inputMethodOrPropertyItems.Add(methodOrProperty, references);
+            }
+        }
+
+        var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
+        // Assume the new API in copilotService to handle multiple methods/properties at once
+        // This line would need to be updated once the actual API is implemented
+        //var resultingMethodOrPropertyItems = await copilotService.ImplementNotImplementedExceptionAsync(document, inputMethodOrPropertyItems, cancellationToken).ConfigureAwait(false);
+
+        var resultingMethodOrPropertyItems = new Dictionary<MemberDeclarationSyntax, ImplementationDetails>();
+        foreach (var item in inputMethodOrPropertyItems)
+        {
+            var responseFromOldApi = await copilotService.ImplementNotImplementedExceptionAsync(document, item.Key, item.Value, cancellationToken).ConfigureAwait(false);
+            if (responseFromOldApi == null)
+            {
+                continue;
+            }
+
+            var implementationDetails = new ImplementationDetails
+            {
+                ReplacementNode = responseFromOldApi.ReplacementNode,
+                IsQuotaExceeded = responseFromOldApi.IsQuotaExceeded,
+                Message = responseFromOldApi.Message
+            };
+
+            resultingMethodOrPropertyItems.Add(item.Key, implementationDetails);
+        }
+
+        foreach (var methodOrProperty in inputMethodOrPropertyItems.Keys)
+        {
+            SyntaxNode? replacement;
+            if (!resultingMethodOrPropertyItems.TryGetValue(methodOrProperty, out var implementationDetails))
+            {
+                // could happen if the API doesn't return anything, or if the API is not implemented yet
+                replacement = AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property);
+            }
+            else
+            {
+                replacement = implementationDetails.ReplacementNode;
+                if (implementationDetails.IsQuotaExceeded)
+                {
+                    replacement = AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded);
+                }
+                else if (replacement != null && (replacement is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax))
+                {
+                    replacement = replacement
+                        .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
+                        .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
+                        .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation);
+                }
+                else
+                {
+                    replacement = AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property, implementationDetails.Message);
+                }
+            }
+
+            editor.ReplaceNode(methodOrProperty, replacement);
         }
 
         var changedRoot = editor.GetChangedRoot();
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var spansToFormat = FormattingExtensions.GetAnnotatedSpans(changedRoot, new());
-        var formattedRoot = CSharpSyntaxFormatting.Instance.GetFormattingResult(changedRoot, spansToFormat, formattingOptions, [], cancellationToken).GetFormattedRoot(cancellationToken);
+        var formattedRoot = CSharpSyntaxFormatting.Instance.GetFormattingResult(changedRoot, spansToFormat, formattingOptions, new(), cancellationToken).GetFormattedRoot(cancellationToken);
         changedRoot = formattedRoot;
 
         editor.ReplaceNode(editor.OriginalRoot, changedRoot);
-    }
-
-    private static async Task FixOneAsync(
-        SyntaxEditor editor, Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
-    {
-        var throwNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-        var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
-
-        Contract.ThrowIfNull(methodOrProperty);
-        Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
-
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var memberSymbol = semanticModel.GetRequiredDeclaredSymbol(methodOrProperty, cancellationToken);
-        var references = await FindReferencesAsync(document, memberSymbol, cancellationToken).ConfigureAwait(false);
-
-        var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
-        var implementationDetails = await copilotService.ImplementNotImplementedExceptionAsync(document, throwNode, references, cancellationToken).ConfigureAwait(false);
-
-        var replacement = implementationDetails.ReplacementNode;
-        if (implementationDetails.IsQuotaExceeded)
-        {
-            replacement = AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded);
-        }
-        else if (replacement is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax)
-        {
-            replacement = replacement
-                .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
-                .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
-                .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation);
-        }
-        else
-        {
-            replacement = AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property, implementationDetails.Message);
-        }
-
-        editor.ReplaceNode(methodOrProperty, replacement);
     }
 
     private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
