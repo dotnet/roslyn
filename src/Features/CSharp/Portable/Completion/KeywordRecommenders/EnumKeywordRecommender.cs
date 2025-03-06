@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class EnumKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class EnumKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.EnumKeyword)
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
@@ -18,11 +18,6 @@ internal class EnumKeywordRecommender : AbstractSyntacticSingleKeywordRecommende
             SyntaxKind.PrivateKeyword,
             SyntaxKind.ProtectedKeyword,
         };
-
-    public EnumKeywordRecommender()
-        : base(SyntaxKind.EnumKeyword)
-    {
-    }
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {

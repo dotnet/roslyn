@@ -31,15 +31,11 @@ namespace Microsoft.CodeAnalysis.GoToDefinition;
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal class GoToDefinitionCommandHandler(
-    IGlobalOptionService globalOptionService,
     IThreadingContext threadingContext,
-    IUIThreadOperationExecutor executor,
     IAsynchronousOperationListenerProvider listenerProvider) :
     ICommandHandler<GoToDefinitionCommandArgs>
 {
-    private readonly IGlobalOptionService _globalOptionService = globalOptionService;
     private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly IUIThreadOperationExecutor _executor = executor;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.GoToDefinition);
 
     public string DisplayName => EditorFeaturesResources.Go_to_Definition;
