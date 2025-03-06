@@ -539,6 +539,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public static SymbolInfo GetSymbolInfo(this SemanticModel? semanticModel, WithElementSyntax withElement, CancellationToken cancellationToken = default)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetSymbolInfo(withElement, cancellationToken);
+            }
+            else
+            {
+                return SymbolInfo.None;
+            }
+        }
+
         /// <summary>
         /// Returns what symbol(s), if any, the given constructor initializer syntax bound to in the program.
         /// </summary>
