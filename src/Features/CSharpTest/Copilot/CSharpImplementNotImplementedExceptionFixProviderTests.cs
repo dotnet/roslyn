@@ -150,7 +150,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
                 return new()
                 {
-                    IsQuotaExceeded = false,
                     ReplacementNode = SyntaxFactory.ParseMemberDeclaration(replacementNode),
                     Message = "Successful",
                 };
@@ -159,8 +158,11 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         .RunAsync();
     }
 
-    [Fact]
-    public async Task QuotaExceeded_VariousForms_NotifiesAsComment()
+    [Theory]
+    [InlineData("Failed to receive implementation from Copilot service")]
+    [InlineData("Generated implementation doesn't match the original method signature.")]
+    [InlineData("The generated implementation isn't a valid method or property.")]
+    public async Task NullReplacementNode_MethodHasCommentsInVariousForms_PrintsMessageAsComment(string copilotErrorMessage)
     {
         await new CustomCompositionCSharpTest
         {
@@ -214,13 +216,13 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 int DataCount { get; }
             }
             """,
-            FixedCode = """
+            FixedCode = $$"""
             using System;
             using System.Threading.Tasks;
 
             public class DataService : IDataService
             {
-                /* Error: Quota exceeded. */
+                /* {{copilotErrorMessage}} */
                 public void AddData(string data)
                 {
                     {|IDE3000:throw new NotImplementedException("AddData method not implemented");|}
@@ -264,23 +266,23 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 int DataCount { get; }
             }
             """,
-            BatchFixedCode = """
+            BatchFixedCode = $$"""
             using System;
             using System.Threading.Tasks;
 
             public class DataService : IDataService
             {
-                /* Error: Quota exceeded. */
+                /* {{copilotErrorMessage}} */
                 public void AddData(string data)
                 {
                     {|IDE3000:throw new NotImplementedException("AddData method not implemented");|}
                 }
             
-                /* Error: Quota exceeded. */
+                /* {{copilotErrorMessage}} */
                 public string GetData(int id) => {|IDE3000:throw new NotImplementedException()|};
             
                 /* Updates the data for a given ID */
-                /* Error: Quota exceeded. */
+                /* {{copilotErrorMessage}} */
                 public void UpdateData(int id, string data)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
@@ -288,14 +290,14 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 }
             
                 // Deletes data by ID
-                /* Error: Quota exceeded. */
+                /* {{copilotErrorMessage}} */
                 public void DeleteData(int id)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
                     {|IDE3000:throw new NotImplementedException();|}
                 }
             
-                /* Error: Quota exceeded. */
+                /* {{copilotErrorMessage}} */
                 /// <summary>
                 /// Saves changes asynchronously
                 /// </summary>
@@ -305,7 +307,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
             
-                /* Error: Quota exceeded. */
+                /* {{copilotErrorMessage}} */
                 public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
 
@@ -334,9 +336,8 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         {
             copilotService.PrepareFakeResult = new()
             {
-                IsQuotaExceeded = true,
                 ReplacementNode = null,
-                Message = string.Empty,
+                Message = copilotErrorMessage,
             };
         })
         .RunAsync();
@@ -364,7 +365,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
         class C
         {
-            /* Error: Failed to parse Copilot response into a method or property. Received response:
+            /* The generated implementation isn't a valid method or property:
             using System;
             class C
             {
@@ -400,9 +401,8 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             """;
             copilotService.PrepareFakeResult = new()
             {
-                IsQuotaExceeded = false,
                 ReplacementNode = SyntaxFactory.ParseCompilationUnit(replacement),
-                Message = $"Received response:{Environment.NewLine}{replacement}",
+                Message = $"The generated implementation isn't a valid method or property:{Environment.NewLine}{replacement}",
             };
         })
         .RunAsync();
@@ -416,7 +416,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         await TestHandlesInvalidReplacementNode(
             new()
             {
-                IsQuotaExceeded = false,
                 ReplacementNode = null,
                 Message = withEmptyMessage ? string.Empty : "Custom Error Message",
             });
@@ -436,7 +435,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         await TestHandlesInvalidReplacementNode(
             new()
             {
-                IsQuotaExceeded = false,
                 ReplacementNode = SyntaxFactory.ParseMemberDeclaration(syntax),
                 Message = $"Copilot response is of type {type}, but expected method or property",
             })
@@ -451,17 +449,17 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         await TestHandlesInvalidReplacementNode(
             new()
             {
-                IsQuotaExceeded = false,
                 ReplacementNode = SyntaxFactory.ParseMemberDeclaration(emptyReplacement),
                 Message = "Custom Error Message",
             })
             .ConfigureAwait(false);
     }
 
+    private const string DefaultErrorMessage = "Failed to receive implementation from Copilot service.";
+
     private static async Task TestHandlesInvalidReplacementNode(ImplementationDetails implementationDetails)
     {
-        var comment = CreateComment("Error: Failed to parse Copilot response into a method or property.", implementationDetails.Message);
-
+        var comment = string.IsNullOrWhiteSpace(implementationDetails.Message) ? DefaultErrorMessage : implementationDetails.Message;
         await new CustomCompositionCSharpTest
         {
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
@@ -481,7 +479,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             class C
             {
-                {{comment}}
+                /* {{comment}} */
                 void M()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
@@ -500,19 +498,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             copilotService.PrepareFakeResult = implementationDetails;
         })
         .RunAsync();
-
-        static string CreateComment(string message, string? argument)
-        {
-            var commentBuilder = new StringBuilder("/* ");
-            commentBuilder.Append(message);
-            if (!string.IsNullOrEmpty(argument))
-            {
-                commentBuilder.Append(' ').Append(argument);
-            }
-
-            commentBuilder.Append(" */");
-            return commentBuilder.ToString();
-        }
     }
 
     private class CustomCompositionCSharpTest : VerifyCS.Test
@@ -619,7 +604,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             return SetupFixAll?.Invoke(document, node, referencedSymbols, cancellationToken)
                 ?? Task.FromResult(PrepareFakeResult ?? new ImplementationDetails
                 {
-                    IsQuotaExceeded = false,
                     ReplacementNode = node,
                     Message = string.Empty,
                 });

@@ -147,12 +147,11 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
             var wrapper = await GenerateImplementationService.ImplementNotImplementedExceptionAsync(document, throwNode, referencedSymbols, cancellationToken).ConfigureAwait(false);
             return new()
             {
-                IsQuotaExceeded = wrapper.IsQuotaExceeded,
                 ReplacementNode = wrapper.ReplacementNode,
                 Message = wrapper.Message,
             };
         }
 
-        return new() { IsQuotaExceeded = false, ReplacementNode = null, Message = string.Empty };
+        return new() { ReplacementNode = null, Message = string.Empty };
     }
 }

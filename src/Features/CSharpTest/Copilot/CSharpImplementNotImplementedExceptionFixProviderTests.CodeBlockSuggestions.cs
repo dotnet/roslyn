@@ -56,7 +56,6 @@ public class TestService
         {
             copilotService.PrepareFakeResult = new()
             {
-                IsQuotaExceeded = false,
                 ReplacementNode = SyntaxFactory.ParseMemberDeclaration(replacementCodeBlock),
                 Message = "Successful",
             };

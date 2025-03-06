@@ -372,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             End Function
 
             Public Function ImplementNotImplementedExceptionAsync(document As Document, throwNode As SyntaxNode, referencedSymbols As ImmutableArray(Of ReferencedSymbol), cancellationToken As CancellationToken) As Task(Of ImplementationDetails) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionAsync
-                Return Task.FromResult(New ImplementationDetails With {.IsQuotaExceeded = False, .Message = "", .ReplacementNode = Nothing})
+                Return Task.FromResult(New ImplementationDetails With {.Message = "", .ReplacementNode = Nothing})
             End Function
         End Class
     End Class

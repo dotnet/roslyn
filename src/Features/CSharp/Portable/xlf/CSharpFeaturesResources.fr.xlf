@@ -192,14 +192,9 @@
         <target state="translated">Activer les types référence Nullable dans la solution</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_colon_Failed_to_parse_into_a_method_or_property">
-        <source>Error: Failed to parse Copilot response into a method or property.</source>
-        <target state="new">Error: Failed to parse Copilot response into a method or property.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_colon_Quota_exceeded">
-        <source>Error: Quota exceeded.</source>
-        <target state="new">Error: Quota exceeded.</target>
+      <trans-unit id="Failed_to_receive_implementation_from_Copilot_service">
+        <source>Failed to receive implementation from Copilot service.</source>
+        <target state="new">Failed to receive implementation from Copilot service.</target>
         <note />
       </trans-unit>
       <trans-unit id="Global_using_directives">

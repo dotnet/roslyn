@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation
 {
     internal sealed class ImplementationDetailsWrapper
     {
-        public required bool IsQuotaExceeded { get; init; }
-
         public required string Message { get; init; }
 
         public required SyntaxNode? ReplacementNode { get; init; }

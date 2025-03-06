@@ -118,7 +118,6 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
             var implementationDetails = new ImplementationDetails
             {
                 ReplacementNode = responseFromOldApi.ReplacementNode,
-                IsQuotaExceeded = responseFromOldApi.IsQuotaExceeded,
                 Message = responseFromOldApi.Message
             };
 
@@ -130,17 +129,12 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
             SyntaxNode? replacement;
             if (!resultingMethodOrPropertyItems.TryGetValue(methodOrProperty, out var implementationDetails))
             {
-                // could happen if the API doesn't return anything, or if the API is not implemented yet
-                replacement = AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property);
+                replacement = AddErrorComment(methodOrProperty);
             }
             else
             {
                 replacement = implementationDetails.ReplacementNode;
-                if (implementationDetails.IsQuotaExceeded)
-                {
-                    replacement = AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Quota_exceeded);
-                }
-                else if (replacement != null && (replacement is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax))
+                if (replacement != null && (replacement is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax))
                 {
                     replacement = replacement
                         .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
@@ -149,7 +143,7 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
                 }
                 else
                 {
-                    replacement = AddCommentToMember(methodOrProperty, CSharpFeaturesResources.Error_colon_Failed_to_parse_into_a_method_or_property, implementationDetails.Message);
+                    replacement = AddErrorComment(methodOrProperty, implementationDetails.Message);
                 }
             }
 
@@ -173,10 +167,11 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         return await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, searchOptions, cancellationToken).ConfigureAwait(false);
     }
 
-    private static MemberDeclarationSyntax AddCommentToMember(MemberDeclarationSyntax member, string message, string? argument = null)
+    private static MemberDeclarationSyntax AddErrorComment(MemberDeclarationSyntax member, string? message = null)
     {
+        var errorMessage = string.IsNullOrWhiteSpace(message) ? CSharpFeaturesResources.Failed_to_receive_implementation_from_Copilot_service : message;
         var comment = SyntaxFactory.TriviaList(
-            SyntaxFactory.Comment(CreateComment(message, argument)),
+            SyntaxFactory.Comment($"/* {errorMessage} */"),
             SyntaxFactory.CarriageReturnLineFeed);
         var leadingTrivia = member.GetLeadingTrivia();
 
@@ -191,18 +186,5 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         return member
             .WithLeadingTrivia(newLeadingTrivia)
             .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation);
-    }
-
-    private static string CreateComment(string message, string? argument)
-    {
-        var commentBuilder = new StringBuilder("/* ");
-        commentBuilder.Append(message);
-        if (!string.IsNullOrEmpty(argument))
-        {
-            commentBuilder.Append(' ').Append(argument);
-        }
-
-        commentBuilder.Append(" */");
-        return commentBuilder.ToString();
     }
 }

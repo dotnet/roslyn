@@ -207,7 +207,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
         CancellationToken cancellationToken)
     {
         if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
-            return new ImplementationDetails() { IsQuotaExceeded = false, ReplacementNode = null, Message = string.Empty };
+            return new ImplementationDetails() { ReplacementNode = null, Message = string.Empty };
 
         return await ImplementNotImplementedExceptionCoreAsync(document, throwNode, referencedSymbols, cancellationToken).ConfigureAwait(false);
     }
