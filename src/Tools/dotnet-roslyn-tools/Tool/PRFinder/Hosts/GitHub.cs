@@ -55,7 +55,8 @@ internal partial class GitHub : IRepositoryHost
         }
 
         // Exclude merge commits from auto code-flow PRs (e.g. merges/main-to-main-vs-deps)
-        if (IsGitHubReleaseFlowCommit().Match(commit.MessageShort).Success)
+        if (IsGitHubReleaseFlowCommit().Match(commit.MessageShort).Success ||
+            IsGitHubActionCodeFlowCommit().Match(commit.MessageShort).Success)
         {
             mergePRFound = true;
             return true;
@@ -193,6 +194,8 @@ internal partial class GitHub : IRepositoryHost
 
     [GeneratedRegex(@"^Merge pull request #\d+ from dotnet/merges/")]
     private static partial Regex IsGitHubReleaseFlowCommit();
+    [GeneratedRegex(@"^\[automated\] Merge branch '.*' => '.*' \(#\d+\)")]
+    private static partial Regex IsGitHubActionCodeFlowCommit();
     [GeneratedRegex(@"^Merge pull request #(\d+) from")]
     private static partial Regex IsGitHubMergePRCommit();
     [GeneratedRegex(@"\(#(\d+)\)(?:\n|$)")]
