@@ -79,14 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool GetIsNewExtensionMember(this Symbol member)
         {
-            switch (member.Kind)
-            {
-                case SymbolKind.Method:
-                case SymbolKind.Property:
-                    return member.ContainingSymbol is TypeSymbol { IsExtension: true };
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
-            }
+            return member.ContainingSymbol is TypeSymbol { IsExtension: true };
         }
 
         /// <summary>

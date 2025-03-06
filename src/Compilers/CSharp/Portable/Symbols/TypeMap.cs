@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(ConstructMapping(from, to))
         {
             // mapping contents are read-only hereafter
-            Debug.Assert(allowAlpha || !from.Any(static tp => tp is SubstitutedTypeParameterSymbol));
+            Debug.Assert(allowAlpha || !from.Any(static tp => tp is SubstitutedTypeParameterSymbol && tp.ContainingSymbol is not SourceExtensionImplementationMethodSymbol)); // PROTOTYPE: Follow up
         }
 
         // Only when the caller passes allowAlpha=true do we tolerate substituted (alpha-renamed) type parameters as keys

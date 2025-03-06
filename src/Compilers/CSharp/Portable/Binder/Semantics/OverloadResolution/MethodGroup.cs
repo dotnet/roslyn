@@ -49,8 +49,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var member in members)
             {
+                var method = (MethodSymbol)member;
+                Debug.Assert(method.IsExtensionMethod || method.GetIsNewExtensionMember());
+
+                // Prefer instance extension declarations vs. their implementations
+                if (method.IsExtensionMethod)
+                {
+                    foreach (var possibleDeclaration in this.Methods)
+                    {
+                        if (possibleDeclaration is { IsExtensionMethod: false, IsStatic: false } &&
+                            possibleDeclaration.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() == (object)method.OriginalDefinition)
+                        {
+                            goto skip;
+                        }
+                    }
+                }
+                else if (!method.IsStatic && method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } implementation)
+                {
+                    for (int i = 0; i < Methods.Count; i++)
+                    {
+                        MethodSymbol possibleDeclaration = this.Methods[i];
+                        if (possibleDeclaration.IsExtensionMethod &&
+                            possibleDeclaration.OriginalDefinition == (object)implementation)
+                        {
+                            Debug.Assert(false); // PROTOTYPE: This code path is not reachable at the moment
+                            this.Methods.RemoveAt(i);
+                            break;
+                        }
+                    }
+                }
+
                 this.Methods.Add((MethodSymbol)member);
-                Debug.Assert(((MethodSymbol)member).IsExtensionMethod || member.ContainingType.IsExtension);
+skip:
+                ;
             }
 
             if (!typeArguments.IsDefault)

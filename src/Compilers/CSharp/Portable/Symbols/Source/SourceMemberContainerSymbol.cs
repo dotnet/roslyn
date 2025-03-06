@@ -2172,8 +2172,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if ((method1 as SourceExtensionImplementationMethodSymbol)?.UnderlyingMethod.ContainingType is { } extensionDeclaration &&
-                (object)extensionDeclaration == (method2 as SourceExtensionImplementationMethodSymbol)?.UnderlyingMethod.ContainingType)
+            if (method1 is SourceExtensionImplementationMethodSymbol { UnderlyingMethod: var underlying1, UnderlyingMethod.ContainingType: { } extensionDeclaration1 } &&
+                method2 is SourceExtensionImplementationMethodSymbol { UnderlyingMethod: var underlying2, UnderlyingMethod.ContainingType: { } extensionDeclaration2 } &&
+                (object)extensionDeclaration1 == extensionDeclaration2 &&
+                underlying1.IsStatic == underlying2.IsStatic)
             {
                 return; // The conflict is reported in context of extension declaration
             }
@@ -3614,7 +3616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     foreach (var member in type.GetMembers())
                     {
-                        if (member is MethodSymbol { IsImplicitlyDeclared: false } method &&
+                        if (member is MethodSymbol { IsImplicitlyDeclared: false, MethodKind: not (MethodKind.Constructor or MethodKind.StaticConstructor or MethodKind.Destructor or MethodKind.ExplicitInterfaceImplementation) } method &&
                             (method.IsStatic || type.ExtensionParameter is not null))
                         {
                             builder.AddNonTypeMember(this, new SourceExtensionImplementationMethodSymbol(method), declaredMembersAndInitializers);
@@ -5577,11 +5579,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!_lazyContainsExtensionMethods.HasValue())
                 {
-                    bool containsExtensionMethods = ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) && this.declaration.ContainsExtensionMethods;
+                    bool containsExtensionMethods = ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) && calculateContainsExtensionMethodsFromMembers();
                     _lazyContainsExtensionMethods = containsExtensionMethods.ToThreeState();
                 }
 
                 return _lazyContainsExtensionMethods.Value();
+
+                bool calculateContainsExtensionMethodsFromMembers()
+                {
+                    if (this.declaration.ContainsExtensionMethods)
+                    {
+                        return true;
+                    }
+
+                    // PROTOTYPE: Optimize this calculation, probably by caching more info in declaration table
+                    if (this.declaration.Children.Any(static d => d.Kind == DeclarationKind.Extension))
+                    {
+                        return this.GetMembersUnordered().OfType<SourceExtensionImplementationMethodSymbol>().Any(static m => m.IsExtensionMethod);
+                    }
+
+                    return false;
+                }
             }
         }
 
