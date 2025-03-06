@@ -56,7 +56,6 @@ namespace Roslyn.Test.Performance.Utilities
         /// <summary>
         /// A list of scenarios.
         /// </summary>
-        /// <returns></returns>
         public abstract string[] GetScenarios();
 
         public virtual ITraceManager GetTraceManager()

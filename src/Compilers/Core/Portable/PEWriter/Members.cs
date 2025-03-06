@@ -415,7 +415,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Debugging information associated with a MoveNext method of a state machine.
         /// </summary>
-        StateMachineMoveNextBodyDebugInfo MoveNextBodyInfo { get; }
+        StateMachineMoveNextBodyDebugInfo? MoveNextBodyInfo { get; }
 
         /// <summary>
         /// The maximum number of elements on the evaluation stack during the execution of the method.
@@ -446,7 +446,7 @@ namespace Microsoft.Cci
         /// the namespace type name. For instance namespace type x.y.z will have two namespace scopes, the first is for the x and the second
         /// is for the y.
         /// </remarks>
-        IImportScope ImportScope { get; }
+        IImportScope? ImportScope { get; }
 
         DebugId MethodId { get; }
 
@@ -470,7 +470,7 @@ namespace Microsoft.Cci
         /// The name of the state machine generated for the method, 
         /// or null if the method isn't the kickoff method of a state machine.
         /// </summary>
-        string StateMachineTypeName { get; }
+        string? StateMachineTypeName { get; }
 
         /// <summary>
         /// Returns information relevant to EnC on slots of local variables hoisted to state machine fields, 
@@ -1045,6 +1045,11 @@ namespace Microsoft.Cci
                         return true;
                     }
                 }
+            }
+
+            if (method != null && (context.Module.PEEntryPoint == method || context.Module.DebugEntryPoint == method))
+            {
+                return true;
             }
 
             return false;

@@ -97,9 +97,9 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
         throw ExceptionUtilities.UnexpectedValue(token);
     }
 
-    protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
+    protected override TextSpan GetTargetSelectionSpan(SyntaxNode caretTarget)
     {
-        return CompletionUtilities.GetTargetCaretNodeForInsertedMember(caretTarget).GetLocation().SourceSpan.End;
+        return CompletionUtilities.GetTargetSelectionSpanForInsertedMember(caretTarget);
     }
 
     public override async Task ProvideCompletionsAsync(CompletionContext context)

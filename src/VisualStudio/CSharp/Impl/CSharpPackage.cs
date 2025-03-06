@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -57,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [Guid(Guids.CSharpPackageIdString)]
     internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
     {
-        private ObjectBrowserLibraryManager _libraryManager;
+        private ObjectBrowserLibraryManager? _libraryManager;
         private uint _libraryManagerCookie;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -79,13 +77,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
         }
 
-        protected override async Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+        protected override void RegisterObjectBrowserLibraryManager()
         {
+            Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
+
             var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
 
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            if (await GetServiceAsync(typeof(SVsObjectManager)).ConfigureAwait(true) is IVsObjectManager2 objectManager)
+            if (GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
             {
                 _libraryManager = new ObjectBrowserLibraryManager(this, ComponentModel, workspace);
 
@@ -96,19 +94,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
         }
 
-        protected override async Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+        protected override void UnregisterObjectBrowserLibraryManager()
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
 
             if (_libraryManagerCookie != 0)
             {
-                if (await GetServiceAsync(typeof(SVsObjectManager)).ConfigureAwait(true) is IVsObjectManager2 objectManager)
+                if (GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
                 {
                     objectManager.UnregisterLibrary(_libraryManagerCookie);
                     _libraryManagerCookie = 0;
                 }
 
-                _libraryManager.Dispose();
+                _libraryManager?.Dispose();
                 _libraryManager = null;
             }
         }
@@ -136,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             var editorFactory = new CSharpEditorFactory(this.ComponentModel);
             var codePageEditorFactory = new CSharpCodePageEditorFactory(editorFactory);
 
-            return new IVsEditorFactory[] { editorFactory, codePageEditorFactory };
+            return [editorFactory, codePageEditorFactory];
         }
 
         protected override CSharpLanguageService CreateLanguageService()

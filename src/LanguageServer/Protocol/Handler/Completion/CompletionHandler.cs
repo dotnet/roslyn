@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<LSP.CompletionList?> GetCompletionListAsync(
+        public static async Task<LSP.VSInternalCompletionList?> GetCompletionListAsync(
             Document document,
             int position,
             LSP.CompletionContext? completionContext,

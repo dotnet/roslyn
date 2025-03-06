@@ -8,7 +8,7 @@ Guides for contributing to this project
     - [Windows](Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md)
 - [Localization in tests](Localization%20In%20Compiler%20Tests.md)
 - [Nullable Annotations](Nullable%20Annotations.md)
-- [Target Framework Strategy](Target%20Framework%20Strategy.md)
+- [Target Framework Strategy](target-framework-strategy.md)
 - [Bootstrap Builds](bootstrap-builds.md)
 - [API Review Process](API%20Review%20Process.md)
 - [Developing a Language Feature](Developing%20a%20Language%20Feature.md)

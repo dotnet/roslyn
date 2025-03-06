@@ -119,7 +119,6 @@ internal static class SpecializedTasks
     /// <param name="transform">The synchronous transformation to apply to the result of <paramref name="func"/>.</param>
     /// <param name="arg">The state to pass to <paramref name="func"/> and <paramref name="transform"/>.</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the operation will observe.</param>
-    /// <returns></returns>
     public static ValueTask<TResult> TransformWithoutIntermediateCancellationExceptionAsync<TArg, TIntermediate, TResult>(
         Func<TArg, CancellationToken, ValueTask<TIntermediate>> func,
         Func<TIntermediate, TArg, TResult> transform,

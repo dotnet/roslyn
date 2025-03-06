@@ -9,9 +9,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Notification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractInterface;
 
@@ -24,14 +21,12 @@ internal sealed class OmniSharpExtractInterfaceOptionsService(
     private readonly IOmniSharpExtractInterfaceOptionsService _omniSharpExtractInterfaceOptionsService = omniSharpExtractInterfaceOptionsService;
 
     public ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
-        ISyntaxFactsService syntaxFactsService,
-        INotificationService notificationService,
+        Document document,
         List<ISymbol> extractableMembers,
         string defaultInterfaceName,
         List<string> conflictingTypeNames,
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
-        string languageName,
         CancellationToken cancellationToken)
     {
         var result = _omniSharpExtractInterfaceOptionsService.GetExtractInterfaceOptions(extractableMembers, defaultInterfaceName);

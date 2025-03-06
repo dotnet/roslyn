@@ -5,7 +5,10 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -15,17 +18,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>
     where TDiagnosticsParams : IPartialResultParams<TReport>
 {
-    internal record struct DiagnosticsRequestState(Project Project, int GlobalStateVersion, RequestContext Context, IDiagnosticSource DiagnosticSource);
+    internal readonly record struct DiagnosticsRequestState(Project Project, int GlobalStateVersion, RequestContext Context, IDiagnosticSource DiagnosticSource);
 
     /// <summary>
-    /// Cache where we store the data produced by prior requests so that they can be returned if nothing of significance 
-    /// changed. The <see cref="VersionStamp"/> is produced by <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> while the 
-    /// <see cref="Checksum"/> is produced by <see cref="Project.GetDependentChecksumAsync(CancellationToken)"/>.  The former is faster
-    /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
-    /// update the version stamp but not the content (for example, forking LSP text).
+    /// Cache where we store the data produced by prior requests so that they can be returned if nothing of significance
+    /// changed. The <see cref="VersionStamp"/> is produced by <see
+    /// cref="Project.GetDependentVersionAsync(CancellationToken)"/> while the <see cref="Checksum"/> is produced by
+    /// <see cref="CodeAnalysis.Diagnostics.Extensions.GetDiagnosticChecksumAsync"/>.  The former is faster and works
+    /// well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that update
+    /// the version stamp but not the content (for example, forking LSP text).
     /// </summary>
-    private sealed class DiagnosticsPullCache(string uniqueKey) : VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum), DiagnosticsRequestState, ImmutableArray<DiagnosticData>>(uniqueKey)
+    private sealed class DiagnosticsPullCache(IGlobalOptionService globalOptions, string uniqueKey)
+        : VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum), DiagnosticsRequestState, ImmutableArray<DiagnosticData>>(uniqueKey)
     {
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
+
         public override async Task<(int globalStateVersion, VersionStamp? dependentVersion)> ComputeCheapVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
         {
             return (state.GlobalStateVersion, await state.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false));
@@ -33,7 +40,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
 
         public override async Task<(int globalStateVersion, Checksum dependentChecksum)> ComputeExpensiveVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
         {
-            return (state.GlobalStateVersion, await state.Project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false));
+            return (state.GlobalStateVersion, await state.Project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false));
         }
 
         /// <inheritdoc cref="VersionedPullCache{TCheapVersion, TExpensiveVersion, TState, TComputedData}.ComputeDataAsync(TState, CancellationToken)"/>
@@ -44,14 +51,28 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             return diagnostics;
         }
 
-        public override Checksum ComputeChecksum(ImmutableArray<DiagnosticData> data)
+        public override Checksum ComputeChecksum(ImmutableArray<DiagnosticData> data, string language)
         {
             // Create checksums of diagnostic data and sort to ensure stable ordering for comparison.
-            var diagnosticDataChecksums = data
-                .SelectAsArray(d => Checksum.Create(d, SerializeDiagnosticData))
-                .Sort();
+            using var _ = ArrayBuilder<Checksum>.GetInstance(out var builder);
+            foreach (var datum in data)
+                builder.Add(Checksum.Create(datum, SerializeDiagnosticData));
 
-            return Checksum.Create(diagnosticDataChecksums);
+            // Ensure that if fading options change that we recompute the checksum as it will produce different data
+            // that we would report to the client.
+            var option1 = _globalOptions.GetOption(FadingOptions.FadeOutUnreachableCode, language);
+            var option2 = _globalOptions.GetOption(FadingOptions.FadeOutUnusedImports, language);
+            var option3 = _globalOptions.GetOption(FadingOptions.FadeOutUnusedMembers, language);
+
+            var value =
+                (option1 ? (1 << 2) : 0) |
+                (option2 ? (1 << 1) : 0) |
+                (option3 ? (1 << 0) : 0);
+
+            builder.Add(new Checksum(0, value));
+            builder.Sort();
+
+            return Checksum.Create(builder);
         }
 
         private static void SerializeDiagnosticData(DiagnosticData diagnosticData, ObjectWriter writer)

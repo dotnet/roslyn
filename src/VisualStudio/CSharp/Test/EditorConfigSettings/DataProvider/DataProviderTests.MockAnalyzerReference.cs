@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             public readonly ImmutableArray<DiagnosticAnalyzer> Analyzers;
 
             private static readonly CodeFixProvider s_defaultFixer = new MockFixer();
-            private static readonly ImmutableArray<DiagnosticAnalyzer> s_defaultAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new MockDiagnosticAnalyzer());
+            private static readonly ImmutableArray<DiagnosticAnalyzer> s_defaultAnalyzers = [new MockDiagnosticAnalyzer()];
 
             public MockAnalyzerReference(CodeFixProvider? fixer, ImmutableArray<DiagnosticAnalyzer> analyzers)
             {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
                 => Analyzers;
 
             public ImmutableArray<CodeFixProvider> GetFixers()
-                => Fixer != null ? ImmutableArray.Create(Fixer) : ImmutableArray<CodeFixProvider>.Empty;
+                => Fixer != null ? [Fixer] : [];
 
             public class MockFixer : CodeFixProvider
             {

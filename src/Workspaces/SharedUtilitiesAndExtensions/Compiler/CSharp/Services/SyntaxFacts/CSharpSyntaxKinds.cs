@@ -97,6 +97,7 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int CollectionInitializerExpression => (int)SyntaxKind.CollectionInitializerExpression;
     public int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
     public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
+    public int? FieldExpression => (int)SyntaxKind.FieldExpression;
     public int? ImplicitArrayCreationExpression => (int)SyntaxKind.ImplicitArrayCreationExpression;
     public int? ImplicitObjectCreationExpression => (int)SyntaxKind.ImplicitObjectCreationExpression;
     public int? IndexExpression => (int)SyntaxKind.IndexExpression;

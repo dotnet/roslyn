@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return GenerateExpression(generator, DirectCast(type, INamedTypeSymbol).TypeArguments(0), value, canUseFieldReference)
                 ElseIf type?.TypeKind = TypeKind.Enum Then
                     Return DirectCast(VisualBasicFlagsEnumGenerator.Instance.CreateEnumConstantValue(
-                        generator, DirectCast(type, INamedTypeSymbol), value), ExpressionSyntax)
+                        DirectCast(type, INamedTypeSymbol), value), ExpressionSyntax)
                 End If
             End If
 

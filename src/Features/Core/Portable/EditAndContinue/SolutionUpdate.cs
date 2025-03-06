@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
@@ -30,22 +31,22 @@ internal readonly struct SolutionUpdate(
         bool hasEmitErrors)
         => new(
             new(syntaxError != null || hasEmitErrors ? ModuleUpdateStatus.Blocked : ModuleUpdateStatus.RestartRequired, []),
-            [],
-            [],
+            nonRemappableRegions: [],
+            projectBaselines: [],
             diagnostics,
             documentsWithRudeEdits,
             syntaxError);
 
     internal void Log(TraceLog log, UpdateId updateId)
     {
-        log.Write("Solution update {0}.{1} status: {2}", updateId.SessionId.Ordinal, updateId.Ordinal, ModuleUpdates.Status);
+        log.Write($"Solution update {updateId} status: {ModuleUpdates.Status}");
 
         foreach (var moduleUpdate in ModuleUpdates.Updates)
         {
-            log.Write("Module update: capabilities=[{0}], types=[{1}], methods=[{2}]",
-                moduleUpdate.RequiredCapabilities,
-                moduleUpdate.UpdatedTypes,
-                moduleUpdate.UpdatedMethods);
+            log.Write("Module update: " +
+                $"capabilities=[{string.Join(",", moduleUpdate.RequiredCapabilities)}], " +
+                $"types=[{string.Join(",", moduleUpdate.UpdatedTypes.Select(token => token.ToString("X8")))}], " +
+                $"methods=[{string.Join(",", moduleUpdate.UpdatedMethods.Select(token => token.ToString("X8")))}]");
         }
 
         foreach (var projectDiagnostics in Diagnostics)
@@ -54,7 +55,7 @@ internal readonly struct SolutionUpdate(
             {
                 if (diagnostic.Severity == DiagnosticSeverity.Error)
                 {
-                    log.Write("Project {0} update error: {1}", projectDiagnostics.ProjectId, diagnostic);
+                    log.Write($"Project {projectDiagnostics.ProjectId.DebugName} update error: {diagnostic}", LogMessageSeverity.Error);
                 }
             }
         }
@@ -63,7 +64,7 @@ internal readonly struct SolutionUpdate(
         {
             foreach (var rudeEdit in documentWithRudeEdits.Diagnostics)
             {
-                log.Write("Document {0} rude edit: {1} {2}", documentWithRudeEdits.DocumentId, rudeEdit.Kind, rudeEdit.SyntaxKind);
+                log.Write($"Document {documentWithRudeEdits.DocumentId.DebugName} rude edit: {rudeEdit.Kind} {rudeEdit.SyntaxKind}", LogMessageSeverity.Error);
             }
         }
     }

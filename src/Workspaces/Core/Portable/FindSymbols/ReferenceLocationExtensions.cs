@@ -84,9 +84,8 @@ internal static class ReferenceLocationExtensions
                 return current;
             }
 
-            if (current.Kind == SymbolKind.Method)
+            if (current is IMethodSymbol method)
             {
-                var method = (IMethodSymbol)current;
                 if (method.IsAccessor())
                 {
                     return method.AssociatedSymbol;

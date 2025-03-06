@@ -281,7 +281,7 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
 #pragma warning disable CS0618 // Type or member is obsolete
             if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
             {
-                actionSets = Array.Empty<SuggestedActionSet>();
+                actionSets = [];
             }
 #pragma warning restore CS0618 // Type or member is obsolete
 

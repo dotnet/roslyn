@@ -31,11 +31,12 @@
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" />
     <PackageReference Include="Microsoft.VisualStudio.Language" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.ServiceHub.Client" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
+    <Compile Include="..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\BrokeredServices\ServiceBrokerProvider.cs" Link="BrokeredServices\ServiceBrokerProvider.cs" />
+    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Services\EditAndContinue\EditAndContinueLogReporter.cs" Link="EditAndContinue\EditAndContinueLogReporter.cs" />
+    <Compile Include="..\..\Workspaces\Remote\ServiceHub\Services\EditAndContinue\HotReloadLoggerProxy.cs" Link="EditAndContinue\HotReloadLoggerProxy.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
@@ -77,6 +78,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleTo Include="Roslyn.Services.Editor.TypeScript.UnitTests" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
@@ -100,5 +102,8 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="BrokeredServices\" />
   </ItemGroup>
 </Project>

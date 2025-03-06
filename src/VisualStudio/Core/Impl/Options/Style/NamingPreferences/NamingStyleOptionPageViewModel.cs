@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         public NamingStyleOptionPageViewModel(NamingStylePreferences info)
         {
             var viewModels = new List<NamingRuleViewModel>();
-            foreach (var namingRule in info.NamingRules)
+            foreach (var namingRule in info.Rules.NamingRules)
             {
                 var viewModel = new NamingRuleViewModel()
                 {
@@ -48,8 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                     NotificationPreferences = new List<NotificationOptionViewModel>(_notifications)
                 };
 
-                viewModel.SelectedSpecification = viewModel.Specifications.Single(s => s.ID == namingRule.SymbolSpecificationID);
-                viewModel.SelectedStyle = viewModel.NamingStyles.Single(s => s.ID == namingRule.NamingStyleID);
+                viewModel.SelectedSpecification = viewModel.Specifications.Single(s => s.ID == namingRule.SymbolSpecification.ID);
+                viewModel.SelectedStyle = viewModel.NamingStyles.Single(s => s.ID == namingRule.NamingStyle.ID);
                 viewModel.SelectedNotificationPreference = viewModel.NotificationPreferences.Single(n => n.Notification.Severity == namingRule.EnforcementLevel);
 
                 viewModels.Add(viewModel);

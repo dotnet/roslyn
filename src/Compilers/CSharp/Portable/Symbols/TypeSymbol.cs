@@ -1855,23 +1855,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             reportMismatchInParameterType,
                             (implementingType, isExplicit));
 
-                        SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
-                            implementedMethod,
-                            implementingMethod,
-                            diagnostics,
-                            static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
-                                {
-                                    diagnostics.Add(
-                                        SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(implementedMethod, implementingMethod) ?
-                                            ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
-                                            ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
-                                        GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
-                                        new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
-                                },
-                            (implementingType, isExplicit),
-                            allowVariance: true,
-                            invokedAsExtensionMethod: false);
-
+                        if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(implementedMethod))
+                        {
+                            SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
+                                implementedMethod,
+                                implementingMethod,
+                                diagnostics,
+                                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
+                                    {
+                                        diagnostics.Add(
+                                            SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(implementedMethod, implementingMethod) ?
+                                                ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation :
+                                                ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation,
+                                            GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
+                                            new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
+                                    },
+                                (implementingType, isExplicit),
+                                allowVariance: true,
+                                invokedAsExtensionMethod: false);
+                        }
                         SourceMemberContainerTypeSymbol.CheckRefReadonlyInMismatch(
                             implementedMethod, implementingMethod, diagnostics,
                             static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>

@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -70,11 +72,16 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// <paramref name="language"/> is the language of the originating <see cref="ISymbol"/>.
     /// </para>
     /// </summary>
-    Task<string> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
+    Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
 
     /// <summary>
     /// Determines if the given <paramref name="filePath"/> is excluded in the workspace.
     /// </summary>
     Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Method to retrieve the documentation comment for a given <paramref name="proposal"/>
+    /// </summary>
+    /// <param name="proposal">The documentation comment that has been broken down into its individual pieces.</param>
+    Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
 }

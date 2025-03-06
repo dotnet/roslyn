@@ -98,7 +98,6 @@ internal static partial class SyntaxGeneratorExtensions
     /// <summary>
     /// Generates a call to a method *through* an existing field or property symbol.
     /// </summary>
-    /// <returns></returns>
     public static SyntaxNode GenerateDelegateThroughMemberStatement(
         this SyntaxGenerator generator, IMethodSymbol method, ISymbol throughMember)
     {

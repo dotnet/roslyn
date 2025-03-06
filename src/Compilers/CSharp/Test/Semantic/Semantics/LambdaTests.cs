@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class LambdaTests : SemanticModelTestBase
+    public sealed class LambdaTests : SemanticModelTestBase
     {
         [Fact, WorkItem(37456, "https://github.com/dotnet/roslyn/issues/37456")]
         public void Verify37456()
@@ -173,12 +173,9 @@ class C
                 // (20,45): error CS1593: Delegate 'Func<double>' does not take 1 arguments
                 //         Func<double> q5 = (System.Duobel x5)=>1;  // but arity error should not be suppressed on error type
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<double>", "1").WithLocation(20, 45),
-                // (21,52): error CS1661: Cannot convert lambda expression to type 'C.D1' because the parameter types do not match the delegate parameter types
+                // (21,25): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "C.D1").WithLocation(21, 52),
-                // (21,25): error CS1678: Parameter 1 is declared as type 'double' but should be 'ref int'
-                //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
-                Diagnostic(ErrorCode.ERR_BadParamType, "x6").WithArguments("1", "", "double", "ref ", "int").WithLocation(21, 25),
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x6").WithArguments("1", "ref").WithLocation(21, 25),
                 // (21,37): error CS1676: Parameter 2 must be declared with the 'out' keyword
                 //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
                 Diagnostic(ErrorCode.ERR_BadParamRef, "y6").WithArguments("2", "out").WithLocation(21, 37),
@@ -510,7 +507,8 @@ End Module
             var vbProject = VisualBasic.VisualBasicCompilation.Create(
                 "VBProject",
                 references: new[] { MscorlibRef },
-                syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(vbSource) });
+                syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(vbSource) },
+                options: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var csSource = @"
 class Program
@@ -560,7 +558,8 @@ End Module
             var vbProject = VisualBasic.VisualBasicCompilation.Create(
                 "VBProject",
                 references: new[] { MscorlibRef },
-                syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(vbSource) });
+                syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(vbSource) },
+                options: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var csSource = @"
 class Program
@@ -6887,10 +6886,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(8, 21),
                 // (8,29): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D d3 = (out ref int i) => { };
-                Diagnostic(ErrorCode.ERR_BadParamRef, "i").WithArguments("1", "ref").WithLocation(8, 29),
-                // (8,32): error CS1661: Cannot convert lambda expression to type 'D' because the parameter types do not match the delegate parameter types
-                //         D d3 = (out ref int i) => { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D").WithLocation(8, 32));
+                Diagnostic(ErrorCode.ERR_BadParamRef, "i").WithArguments("1", "ref").WithLocation(8, 29));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -7098,8 +7094,7 @@ public class DisplayAttribute : System.Attribute
                 Diagnostic(ErrorCode.ERR_BadParamRef, "r1").WithArguments("1", "ref").WithLocation(9, 17),
                 // (10,11): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         M(r2 => r2); // 2
-                Diagnostic(ErrorCode.ERR_BadParamRef, "r2").WithArguments("1", "ref").WithLocation(10, 11)
-                );
+                Diagnostic(ErrorCode.ERR_BadParamRef, "r2").WithArguments("1", "ref").WithLocation(10, 11));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -7203,10 +7198,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(string s = null, x = 7, double d = 3.14) => { }").WithLocation(5, 19),
                 // (5,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
                 //         var lam = (string s = null, x = 7, double d = 3.14) => { };
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(5, 37),
-                // (5,37): error CS9098: Implicitly typed lambda parameter 'x' cannot have a default value.
-                //         var lam = (string s = null, x = 7, double d = 3.14) => { };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedDefaultParameter, "x").WithArguments("x").WithLocation(5, 37));
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(5, 37));
         }
 
         [Fact]
@@ -8552,6 +8544,255 @@ class Program
                 // (1,19): error CS0027: Keyword 'this' is not available in the current context
                 // var lam = (params this int[] xs) => xs.Length;
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(1, 19));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedLambdaWithModifier_CSharp13()
+        {
+            var source = """
+                delegate void D(ref int i);
+
+                class C
+                {
+                    void M()
+                    {
+                        D d = (ref a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                // (7,16): error CS8652: The feature 'simple lambda parameter modifiers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         D d = (ref a) => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ref a").WithArguments("simple lambda parameter modifiers").WithLocation(7, 16));
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+
+            Assert.Equal(RefKind.Ref, symbol.Parameters[0].RefKind);
+            Assert.Equal(SpecialType.System_Int32, symbol.Parameters[0].Type.SpecialType);
+        }
+
+        [Fact]
+        public void IncorrectlyTypedLambdaWithCorrectRefNess()
+        {
+            var source = """
+                delegate void D(ref int i);
+
+                class C
+                {
+                    void M()
+                    {
+                        D d = (ref byte a) => { };
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,25): error CS1678: Parameter 1 is declared as type 'ref byte' but should be 'ref int'
+                //         D d = (ref byte a) => { };
+                Diagnostic(ErrorCode.ERR_BadParamType, "a").WithArguments("1", "ref ", "byte", "ref ", "int").WithLocation(7, 25),
+                // (7,28): error CS1661: Cannot convert lambda expression to type 'D' because the parameter types do not match the delegate parameter types
+                //         D d = (ref byte a) => { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D").WithLocation(7, 28));
+        }
+
+        [Theory, CombinatorialData]
+        public void TestParamsWithImplicitExplicitLambdas(
+            [CombinatorialValues("params", "")] string delegateModifier,
+            [CombinatorialValues("params", "")] string lambdaModifier,
+            [CombinatorialValues("int[]", "")] string lambdaType,
+            bool isCSharp13)
+        {
+            var options = isCSharp13 ? TestOptions.Regular13 : TestOptions.RegularNext;
+            var source = $$"""
+                delegate void D({{delegateModifier}} int[] i);
+
+                class C
+                {
+                    void M()
+                    {
+                        D d = ({{lambdaModifier}} {{lambdaType}} a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, parseOptions: options);
+
+            var diagnostics = new List<DiagnosticDescription>();
+
+            if (lambdaModifier == "params")
+            {
+                if (lambdaType is "")
+                {
+                    diagnostics.Add(
+                        // (7,16): error CS9272: Implicitly typed lambda parameter 'a' cannot have the 'params' modifier.
+                        //         D d = (params  a) => { };
+                        Diagnostic(ErrorCode.ERR_ImplicitlyTypedParamsParameter, "params").WithArguments("a").WithLocation(7, 16));
+
+                    if (isCSharp13)
+                    {
+                        diagnostics.Add(
+                            // (7,16): error CS8652: The feature 'simple lambda parameter modifiers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            //         D d = (params  a) => { };
+                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "params  a").WithArguments("simple lambda parameter modifiers"));
+                    }
+                }
+
+                if (delegateModifier == "")
+                {
+                    diagnostics.Add(
+                        // (7,24): warning CS9100: Parameter 1 has params modifier in lambda but not in target delegate type.
+                        //         D d = (params  a) => { };
+                        Diagnostic(ErrorCode.WRN_ParamsArrayInLambdaOnly, "a").WithArguments("1"));
+                }
+            }
+
+            compilation.VerifyDiagnostics([.. diagnostics]);
+        }
+
+        [Fact]
+        public void TestScopedImplicitParameter_CSharp10()
+        {
+            var source = $$"""
+                using System;
+
+                class scoped { }
+
+                class C
+                {
+                    void M()
+                    {
+                        Action<scoped> f = (scoped a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (3,7): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class scoped { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(3, 7));
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+            Assert.Equal(ScopedKind.None, symbol.Parameters[0].ScopedKind);
+        }
+
+        [Fact]
+        public void TestScopedImplicitParameter_CSharp13_1()
+        {
+            var source = $$"""
+                using System;
+
+                class scoped { }
+
+                class C
+                {
+                    void M()
+                    {
+                        Action<scoped> f = (scoped a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                // (3,7): error CS9062: Types and aliases cannot be named 'scoped'.
+                // class scoped { }
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(3, 7));
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+            Assert.Equal(ScopedKind.None, symbol.Parameters[0].ScopedKind);
+            Assert.Equal("scoped", symbol.Parameters[0].Type.Name);
+        }
+
+        [Fact]
+        public void TestScopedImplicitParameter_CSharp13_2()
+        {
+            var source = $$"""
+                using System;
+
+                class @scoped { }
+
+                class C
+                {
+                    void M()
+                    {
+                        Action<scoped> f = (scoped a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+            Assert.Equal(ScopedKind.None, symbol.Parameters[0].ScopedKind);
+            Assert.Equal("scoped", symbol.Parameters[0].Type.Name);
+        }
+
+        [Fact]
+        public void TestScopedImplicitParameter1()
+        {
+            var source = $$"""
+                class scoped { }
+                ref struct S { }
+                delegate void D(S s);
+
+                class C
+                {
+                    void M()
+                    {
+                        D f = (scoped a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (1,7): error CS9062: Types and aliases cannot be named 'scoped'.
+                // class scoped { }
+                Diagnostic(ErrorCode.ERR_ScopedTypeNameDisallowed, "scoped").WithLocation(1, 7));
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+            Assert.Equal(ScopedKind.ScopedValue, symbol.Parameters[0].ScopedKind);
+            Assert.Equal("S", symbol.Parameters[0].Type.Name);
+        }
+
+        [Fact]
+        public void TestScopedImplicitParameter2()
+        {
+            var source = $$"""
+                class @scoped { }
+                ref struct S { }
+                delegate void D(S s);
+
+                class C
+                {
+                    void M()
+                    {
+                        D f = (scoped a) => { };
+                    }
+                }
+                """;
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+            Assert.Equal(ScopedKind.ScopedValue, symbol.Parameters[0].ScopedKind);
+            Assert.Equal("S", symbol.Parameters[0].Type.Name);
         }
 
         [Fact]

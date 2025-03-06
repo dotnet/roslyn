@@ -2946,7 +2946,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         return new NamingStylePreferences(
             [.. styles.Select(t => t.specification)],
             [.. styles.Select(t => t.style)],
-            [.. styles.Select(t => CreateRule(t.specification, t.style))]);
+            [.. styles.Select(t => new NamingRule(t.specification, t.style, ReportDiagnostic.Error))]);
 
         // Local functions
 
@@ -2980,7 +2980,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         return new NamingStylePreferences(
             [.. specificationStyles.Select(t => t.specification)],
             [.. specificationStyles.Select(t => t.style)],
-            [.. specificationStyles.Select(t => CreateRule(t.specification, t.style))]);
+            [.. specificationStyles.Select(t => new NamingRule(t.specification, t.style, ReportDiagnostic.Error))]);
 
         // Local functions
 
@@ -3038,14 +3038,6 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         return new NamingStylePreferences(
             symbolSpecifications,
             namingStyles,
-            namingRules: [CreateRule(symbolSpecifications[0], namingStyles[0]), CreateRule(symbolSpecifications[1], namingStyles[1])]);
+            namingRules: [new NamingRule(symbolSpecifications[0], namingStyles[0], ReportDiagnostic.Error), new NamingRule(symbolSpecifications[1], namingStyles[1], ReportDiagnostic.Error)]);
     }
-
-    private static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
-        => new()
-        {
-            SymbolSpecificationID = specification.ID,
-            NamingStyleID = style.ID,
-            EnforcementLevel = ReportDiagnostic.Error
-        };
 }

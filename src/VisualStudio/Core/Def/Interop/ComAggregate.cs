@@ -4,7 +4,7 @@
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 

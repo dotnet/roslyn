@@ -181,7 +181,6 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         /// </param>
         /// <param name="ordinalInInvocation">ordinal of the arguments of function: (a,b) or (a,b,c) in the example above</param>
         /// <param name="ordinalInLambda">ordinal of the lambda parameters, e.g. a, b or c.</param>
-        /// <returns></returns>
         private ImmutableArray<ITypeSymbol> GetTypeSymbols(
             ImmutableArray<ISymbol> candidateSymbols,
             string argumentName,
@@ -348,7 +347,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             //
             // ...unless, again, it's also declared elsewhere.
             //
-            return recommendationSymbol.IsNamespace() &&
+            return recommendationSymbol is INamespaceSymbol &&
                    recommendationSymbol.Locations.Any(
                        static (candidateLocation, declarationSyntax) => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
                                               declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)), declarationSyntax);
