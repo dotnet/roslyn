@@ -337,7 +337,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _formalParameterRefKinds = formalParameterRefKinds;
             _arguments = arguments;
             _extensions = extensions ?? Extensions.Default;
+
+            // For extension members, we do inference across all the type parameters (from the extension declaration and the member)
             Debug.Assert(ordinals is null || ordinals.Values.Count() == ordinals.Values.Distinct().Count());
+            Debug.Assert(ordinals is null || methodTypeParameters.All(tp => ordinals.ContainsKey(tp)));
+
             _ordinals = ordinals;
             _fixedResults = new (TypeWithAnnotations, bool)[methodTypeParameters.Length];
             _exactBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];

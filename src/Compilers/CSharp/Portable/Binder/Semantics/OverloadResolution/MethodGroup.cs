@@ -49,8 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var member in members)
             {
-                this.Methods.Add((MethodSymbol)member);
-                Debug.Assert(((MethodSymbol)member).IsExtensionMethod || member.ContainingType.IsExtension);
+                if (member is MethodSymbol method)
+                {
+                    this.Methods.Add(method);
+                    Debug.Assert(method.IsExtensionMethod || method.GetIsNewExtensionMember());
+                }
             }
 
             if (!typeArguments.IsDefault)

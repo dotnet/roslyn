@@ -9757,20 +9757,25 @@ static class E
         var src = """
 dynamic d = null;
 new object().M(d);
+new object().M2(d);
 
 static class E
 {
     extension(object o)
     {
-        public void Method(object o) => throw null;
+        public void M(object o) => throw null;
     }
+    public static void M2(this object o, object o2) => throw null;
 }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,14): error CS1061: 'object' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (2,1): error CS1973: 'object' has no applicable method named 'M' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
             // new object().M(d);
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M").WithLocation(2, 14));
+            Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "new object().M(d)").WithArguments("object", "M").WithLocation(2, 1),
+            // (3,1): error CS1973: 'object' has no applicable method named 'M2' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
+            // new object().M2(d);
+            Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "new object().M2(d)").WithArguments("object", "M2").WithLocation(3, 1));
     }
 
     [Fact]
@@ -17982,7 +17987,6 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // PROTOTYPE should we allow this after all, since there's no other way to refer to new extension methods?
         comp.VerifyEmitDiagnostics(
             // (1,29): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
             // System.Console.Write(nameof(C.Method));
@@ -18093,6 +18097,7 @@ static class E
     }
 }
 """;
+        // PROTOTYPE should we get an error as with methods?
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "Property").VerifyDiagnostics();
 
@@ -18948,71 +18953,6 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_08()
-    {
-        var src = """
-static class E
-{
-    extension(int i)
-    {
-        public static void M() { }
-    }
-    extension(in int i)
-    {
-        public static void M() { }
-    }
-}
-""";
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (9,28): error CS0111: Type 'E' already defines a member called 'M' with the same parameter types
-            //         public static void M() { }
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "E").WithLocation(9, 28));
-    }
-
-    [Fact]
-    public void SignatureConflict_09()
-    {
-        var src = """
-static class E
-{
-    extension(int)
-    {
-        public static int Create() { return 0; }
-    }
-    extension(long)
-    {
-        public static long Create() { return 0; }
-    }
-}
-""";
-        // PROTOTYPE this should be allowed
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (9,28): error CS0111: Type 'E' already defines a member called 'Create' with the same parameter types
-            //         public static long Create() { return 0; }
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Create").WithArguments("Create", "E").WithLocation(9, 28));
-    }
-
-    [Fact]
-    public void SignatureConflict_10()
-    {
-        var src = """
-static class E
-{
-    extension(int i)
-    {
-        public void M() { }
-    }
-    public static void M(this int i) { }
-}
-""";
-        // PROTOTYPE should error once we emit speakable implementation names
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-    }
-
-    [Fact]
     public void MethodInvocation_01()
     {
         var source = """
@@ -19762,25 +19702,28 @@ static class E2
     {
         var src = """
 int.M(42);
+0.M2(42);
 
 static class E1
 {
     extension<T>(T t)
     {
-        public static void M<U>(U u) { }
+        public static void M<U>(U u) => throw null;
+        public void M2<U>(U u) => throw null;
     }
 }
 static class E2
 {
     extension<T>(T t)
     {
-        public static void M(int i) => throw null;
+        public static void M(int i) { System.Console.Write("ran "); }
+        public void M2(int i) { System.Console.Write("ran2"); }
     }
 }
 """;
-        // PROTOTYPE confirm whether we want this betterness behavior for methods
+        // PROTOTYPE confirm whether we want this betterness behavior for methods when the receiver is a type
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran ran2").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20483,9 +20426,11 @@ static class E2
     public void PropertyAccess_RemoveStaticInstanceMismatches_ColorColor_02()
     {
         var source = """
+Color.M(new Color());
+
 class Color
 {
-    static void M(Color Color)
+    public static void M(Color Color)
     {
         _ = Color.P;
     }
@@ -20495,12 +20440,12 @@ static class E1
 {
     extension(Color c)
     {
-        public int P => 0;
+        public int P { get { System.Console.Write("ran"); return 0; } }
     }
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20514,9 +20459,11 @@ static class E1
     public void PropertyAccess_RemoveStaticInstanceMismatches_ColorColor_03()
     {
         var source = """
+Color.M(null);
+
 class Color
 {
-    static void M(Color Color)
+    public static void M(Color Color)
     {
         _ = Color.P;
     }
@@ -20526,12 +20473,12 @@ static class E1
 {
     extension(Color c)
     {
-        public static int P => 0;
+        public static int P { get { System.Console.Write("ran"); return 0; } }
     }
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20773,7 +20720,7 @@ static class E
 {
     extension<T>(T t)
     {
-        public void M() { }
+        public void M() { System.Console.Write(t is null); }
     }
 }
 """;
@@ -20782,6 +20729,7 @@ static class E
             // (4,1): warning CS8602: Dereference of a possibly null reference.
             // s.M();
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(4, 1));
+        CompileAndVerify(comp, expectedOutput: "True");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20802,12 +20750,13 @@ static class E
 {
     extension<T>(T t)
     {
-        public void M(T t2) { }
+        public void M(T t2) { System.Console.Write(t2 is null); }
     }
 }
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "True");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -21053,7 +21002,6 @@ static class E
     }
 }
 """;
-        // PROTOTYPE should we determine the member kind before or after betterness?
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (2,1): error CS9505: 'string' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -21085,7 +21033,6 @@ static class E
     }
 }
 """;
-        // PROTOTYPE should we determine the member kind before or after betterness?
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS9505: 'string' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -21120,7 +21067,6 @@ static class E
     }
 }
 """;
-        // PROTOTYPE should we determine the member kind before or after betterness?
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (2,1): error CS9505: 'I<string>' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'I<string>' could be found (are you missing a using directive or an assembly reference?)
@@ -21159,7 +21105,6 @@ static class E2
     }
 }
 """;
-        // PROTOTYPE should we determine the member kind before or after betterness?
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (2,1): error CS9505: 'I<string>' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'I<string>' could be found (are you missing a using directive or an assembly reference?)
@@ -21574,23 +21519,120 @@ static class E
     }
 
     [Fact]
-    public void PropertyAccess_()
+    public void ConstAccess()
     {
         var src = """
-var f = (ref readonly int i) => i.P;
-int i = 42;
-f(ref i);
+_ = int.Const;
 
 static class E
 {
-    extension(ref readonly int i)
+    extension(int)
     {
-        public int P { get { System.Console.Write(i); return 0; } }
+        public const int Const = 42;
     }
 }
 """;
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS0117: 'int' does not contain a definition for 'Const'
+            // _ = int.Const;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Const").WithArguments("int", "Const").WithLocation(1, 9),
+            // (7,26): error CS9501: Extension declarations can include only methods or properties
+            //         public const int Const = 42;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Const").WithLocation(7, 26));
     }
 
+    [Fact]
+    public void ParamsReceiver_01()
+    {
+        // extension(params int[] i)
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+        extends System.Object
+    {
+        // Methods
+        .method public hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed 
+        {
+            .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
+
+            IL_0000: ret
+        }
+        .method public hidebysig instance void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
+    .method public hidebysig specialname static void '<Extension>M' ( int32[] i ) cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
+
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ret
+    }
+}
+""";
+        var src = """
+int[] i = null;
+i.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran");
+    }
+
+    [Fact]
+    public void ParamsReceiver_02()
+    {
+        // extension(params int[] i)
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+        extends System.Object
+    {
+        .method public hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed 
+        {
+            .param [1]
+            .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
+
+            IL_0000: ret
+        }
+        .method public hidebysig specialname instance int32 get_P () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+        .property instance int32 P()
+        {
+            .get instance int32 E/'<>E__0'::get_P()
+        }
+    }
+    .method public hidebysig specialname static int32 '<Extension>get_P' ( int32[] i ) cil managed 
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
+
+        IL_0000: ldstr "ran"
+        IL_0005: call void [mscorlib]System.Console::Write(string)
+        IL_000a: ldc.i4.0
+        IL_000b: ret
+    }
+}
+""";
+        var src = """
+int[] i = null;
+_ = i.P;
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran");
+    }
 }

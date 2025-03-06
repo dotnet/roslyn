@@ -8542,13 +8542,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Free();
                     actualReceiverArguments?.Free();
 
-                    if (result.AnalyzedArguments is null)
+                    if (result.AnalyzedArguments != actualMethodArguments)
                     {
                         actualMethodArguments?.Free();
-                    }
-                    else
-                    {
-                        Debug.Assert(result.AnalyzedArguments == actualMethodArguments);
                     }
 
                     return result;
@@ -8560,13 +8556,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Free();
             actualReceiverArguments?.Free();
 
-            if (firstResult.AnalyzedArguments is null)
+            if (firstResult.AnalyzedArguments != actualMethodArguments)
             {
                 actualMethodArguments?.Free();
-            }
-            else
-            {
-                Debug.Assert(firstResult.AnalyzedArguments == actualMethodArguments);
             }
 
             return firstResult;
@@ -8693,24 +8685,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder binder,
                 BindingDiagnosticBag diagnostics)
             {
-                ArrayBuilder<Symbol>? methods = null;
-                foreach (var member in lookupResult.Symbols)
-                {
-                    if (member is MethodSymbol method)
-                    {
-                        methods ??= ArrayBuilder<Symbol>.GetInstance();
-                        methods.Add(method);
-                    }
-                }
-
-                if (methods is null)
-                {
-                    return default;
-                }
-
                 var methodGroup = MethodGroup.GetInstance();
-                methodGroup.PopulateWithExtensionMethods(left, methods, typeArgumentsWithAnnotations, resultKind: lookupResult.Kind);
-                methods.Free();
+                methodGroup.PopulateWithExtensionMethods(left, lookupResult.Symbols, typeArgumentsWithAnnotations, resultKind: lookupResult.Kind);
 
                 if (analyzedArguments == null)
                 {
@@ -8800,6 +8776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.OverloadResolution.PropertyOverloadResolution(properties, left, actualReceiverArguments, overloadResolutionResult,
                     allowRefOmittedArguments: binder.AllowRefOmittedArguments(left), dynamicResolution: actualReceiverArguments.HasDynamicArgument, ref useSiteInfo);
 
+                properties.Free();
                 return overloadResolutionResult;
             }
 

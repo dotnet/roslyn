@@ -791,7 +791,6 @@ outerDefault:
 
         private bool FailsConstraintChecks<TMember>(TMember member, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt, CompoundUseSiteInfo<AssemblySymbol> template) where TMember : Symbol
         {
-            bool isNewExtensionMember = member.GetIsNewExtensionMember();
             int arity = GetMemberTotalArity(member);
             if (arity == 0 || member.OriginalDefinition == (object)member)
             {
@@ -814,7 +813,7 @@ outerDefault:
                     ref useSiteDiagnosticsBuilder);
             }
 
-            if (isNewExtensionMember && member.ContainingType is { Arity: > 0 } extension)
+            if (member.GetIsNewExtensionMember() && member.ContainingType is { Arity: > 0 } extension)
             {
                 constraintsSatisfied &= ConstraintsHelper.CheckConstraints(extension, in constraintsArgs,
                     extension.TypeSubstitution, extension.TypeParameters, extension.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,
@@ -1478,7 +1477,7 @@ outerDefault:
                 if (result.Result.IsValid)
                 {
                     if (!typeArgumentsAccessible(result.Member.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo)
-                        || result.Member.GetIsNewExtensionMember() && !typeArgumentsAccessible(result.Member.ContainingType.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo))
+                        || (result.Member.GetIsNewExtensionMember() && !typeArgumentsAccessible(result.Member.ContainingType.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo)))
                     {
                         results[f] = result.WithResult(MemberAnalysisResult.InaccessibleTypeArgument());
                     }
@@ -4409,8 +4408,9 @@ outerDefault:
                     Debug.Assert(property.GetIsNewExtensionMember());
                     NamedTypeSymbol extension = property.ContainingType;
                     Debug.Assert(extension.Arity > 0);
+                    Debug.Assert(extension.Arity == typeArguments.Length);
 
-                    extension = extension.Construct(typeArguments[..extension.Arity]);
+                    extension = extension.Construct(typeArguments);
                     property = property.AsMember(extension);
 
                     return (TMember)(Symbol)property;
@@ -4475,12 +4475,13 @@ outerDefault:
             // in "Infer" for details.
 
             PooledDictionary<TypeParameterSymbol, int> ordinals = makeOrdinalsIfNeeded(member, originalTypeParameters);
+            NamedTypeSymbol containingType = member.GetIsNewExtensionMember() ? member.ContainingType.ContainingType : member.ContainingType;
 
             var inferenceResult = MethodTypeInferrer.Infer(
                 _binder,
                 _binder.Conversions,
                 originalTypeParameters,
-                getContainingType(member),
+                containingType,
                 originalEffectiveParameters.ParameterTypes,
                 originalEffectiveParameters.ParameterRefKinds,
                 args,
@@ -4535,11 +4536,6 @@ outerDefault:
             return default(ImmutableArray<TypeWithAnnotations>);
 
 #nullable enable
-            static NamedTypeSymbol getContainingType(TMember member)
-            {
-                return member.GetIsNewExtensionMember() ? member.ContainingType.ContainingType : member.ContainingType;
-            }
-
             static PooledDictionary<TypeParameterSymbol, int>? makeOrdinalsIfNeeded(TMember member, ImmutableArray<TypeParameterSymbol> originalTypeParameters)
             {
                 if (member is MethodSymbol method)
