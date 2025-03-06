@@ -588,7 +588,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         {
         }
 
-        public Func<Document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>>, CancellationToken, Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>>>? SetupFixAll { get; internal set; }
+        public Func<Document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>>, CancellationToken, ImmutableDictionary<SyntaxNode, ImplementationDetails>>? SetupFixAll { get; internal set; }
 
         public ImplementationDetails? PrepareUsingSingleFakeResult { get; internal set; }
 
@@ -623,7 +623,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         {
             if (SetupFixAll != null)
             {
-                return SetupFixAll.Invoke(document, methodOrProperties, cancellationToken);
+                return Task.FromResult(SetupFixAll.Invoke(document, methodOrProperties, cancellationToken));
             }
 
             if (PrepareUsingSingleFakeResult != null)
