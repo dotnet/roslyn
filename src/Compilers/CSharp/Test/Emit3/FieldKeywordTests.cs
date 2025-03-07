@@ -10900,14 +10900,16 @@ class C<T>
             Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
-        [Fact]
-        public void Nullable_Resilient_NotInitialized_01()
+        [Theory]
+        [InlineData("??=")]
+        [InlineData("??")]
+        public void Nullable_Resilient_NotInitialized_01(string op)
         {
-            var source = """
+            var source = $$"""
                 #nullable enable
                 class C
                 {
-                    public string Prop => field ??= "a";
+                    public string Prop => field {{op}} "a";
                 }
                 """;
 
@@ -11955,7 +11957,7 @@ class C<T>
         }
 
         [Fact]
-        public void LocalFunction_NullResilient_05()
+        public void LocalFunction_NullResilience_05()
         {
             // Not null-resilient
             var source = """
@@ -11988,9 +11990,132 @@ class C<T>
             Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
-        // TODO2 more test examples
-        // warnings caused by use of field inside nested lambdas
-        // Similar scenarios to ??=, except with just ?? instead.
-        // Use in target-typed constructs like collection expressions
+        [Fact]
+        public void Lambda_NullResilience_01()
+        {
+            // Null-resilient
+            var source = """
+                #nullable enable
+                using System;
+
+                class C
+                {
+                    public string Prop // 1
+                    {
+                        get
+                        {
+                            Func<string> a = () => field ?? "a";
+                            return a();
+                        }
+                    }
+                }
+                """;
+
+            var comp0 = CreateCompilation(source);
+            comp0.VerifyEmitDiagnostics();
+
+            var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
+            Assert.True(sourceField.InfersNullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Lambda_NullResilience_02()
+        {
+            // Not null-resilient
+            var source = """
+                #nullable enable
+                using System;
+
+                class C
+                {
+                    public string Prop // 1
+                    {
+                        get
+                        {
+                            Func<string> a = () => field;
+                            return a();
+                        }
+                    }
+                }
+                """;
+
+            var comp0 = CreateCompilation(source);
+            comp0.VerifyEmitDiagnostics(
+                // (6,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public string Prop // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(6, 19));
+
+            var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
+            Assert.True(sourceField.InfersNullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void AsTargetTypedOperand_01()
+        {
+            // Not null-resilient
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string Prop // 1
+                    {
+                        get
+                        {
+                            var arr = M([field]);
+                            return arr[0];
+                        }
+                    }
+
+                    public static T[] M<T>(T[] arr) => arr;
+                }
+                """;
+
+            var comp0 = CreateCompilation(source);
+            comp0.VerifyEmitDiagnostics(
+                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public string Prop // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19));
+
+            var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
+            Assert.True(sourceField.InfersNullableAnnotation);
+            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void AsTargetTypedOperand_02()
+        {
+            // Null-resilient
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string Prop
+                    {
+                        get
+                        {
+                            var arr = M([field ?? "a"]);
+                            return arr[0];
+                        }
+                    }
+
+                    public static T[] M<T>(T[] arr) => arr;
+                }
+                """;
+
+            var comp0 = CreateCompilation(source);
+            comp0.VerifyEmitDiagnostics();
+
+            var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
+            Assert.True(sourceField.InfersNullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+        }
     }
 }
