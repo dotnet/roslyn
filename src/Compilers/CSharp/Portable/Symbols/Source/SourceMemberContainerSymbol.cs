@@ -2172,9 +2172,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (method1 is SourceExtensionImplementationMethodSymbol { UnderlyingMethod: var underlying1, UnderlyingMethod.ContainingType: { } extensionDeclaration1 } &&
-                method2 is SourceExtensionImplementationMethodSymbol { UnderlyingMethod: var underlying2, UnderlyingMethod.ContainingType: { } extensionDeclaration2 } &&
-                (object)extensionDeclaration1 == extensionDeclaration2 &&
+            if (method1 is SourceExtensionImplementationMethodSymbol { UnderlyingMethod: var underlying1 } &&
+                method2 is SourceExtensionImplementationMethodSymbol { UnderlyingMethod: var underlying2 } &&
+                (object)underlying1.ContainingType == underlying2.ContainingType &&
                 underlying1.IsStatic == underlying2.IsStatic)
             {
                 return; // The conflict is reported in context of extension declaration

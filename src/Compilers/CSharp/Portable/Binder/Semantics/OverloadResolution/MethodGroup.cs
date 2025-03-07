@@ -47,42 +47,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.PopulateHelper(receiverOpt, resultKind, error);
             this.IsExtensionMethodGroup = true;
 
+            PooledHashSet<MethodSymbol> implementationsToShadow = null;
+
+            if (members.Any(static m => m is MethodSymbol { IsExtensionMethod: true }) &&
+                members.Any(static m => m is MethodSymbol { IsExtensionMethod: false, IsStatic: false }))
+            {
+                implementationsToShadow = PooledHashSet<MethodSymbol>.GetInstance();
+
+                foreach (var member in members)
+                {
+                    if (member is MethodSymbol { IsExtensionMethod: false, IsStatic: false } shadows &&
+                        shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
+                    {
+                        implementationsToShadow.Add(toShadow);
+                    }
+                }
+            }
+
             foreach (var member in members)
             {
                 var method = (MethodSymbol)member;
                 Debug.Assert(method.IsExtensionMethod || method.GetIsNewExtensionMember());
 
                 // Prefer instance extension declarations vs. their implementations
-                if (method.IsExtensionMethod)
+                if (method.IsExtensionMethod && implementationsToShadow?.Remove(method.OriginalDefinition) == true)
                 {
-                    foreach (var possibleDeclaration in this.Methods)
-                    {
-                        if (possibleDeclaration is { IsExtensionMethod: false, IsStatic: false } &&
-                            possibleDeclaration.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() == (object)method.OriginalDefinition)
-                        {
-                            goto skip;
-                        }
-                    }
-                }
-                else if (!method.IsStatic && method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } implementation)
-                {
-                    for (int i = 0; i < Methods.Count; i++)
-                    {
-                        MethodSymbol possibleDeclaration = this.Methods[i];
-                        if (possibleDeclaration.IsExtensionMethod &&
-                            possibleDeclaration.OriginalDefinition == (object)implementation)
-                        {
-                            Debug.Assert(false); // PROTOTYPE: This code path is not reachable at the moment
-                            this.Methods.RemoveAt(i);
-                            break;
-                        }
-                    }
+                    continue;
                 }
 
                 this.Methods.Add((MethodSymbol)member);
-skip:
-                ;
             }
+
+            implementationsToShadow?.Free();
 
             if (!typeArguments.IsDefault)
             {

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -3680,7 +3681,7 @@ static class Extensions
 
         var comp1MetadataReference = comp1.ToMetadataReference();
         var comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
-        var verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+        var verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -3715,7 +3716,7 @@ static class Extensions
 
         var comp1ImageReference = comp1.EmitToImageReference();
         comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
-        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
         verifier2.VerifyIL("Program.Test", testIL);
         verifier2.VerifyIL("Extensions.M2", m2IL);
@@ -3747,16 +3748,35 @@ static class Extensions_
 """;
 
         comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
-        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
         verifier2.VerifyIL("Program.Test", testIL);
         verifier2.VerifyIL("Extensions_.M2", m2IL);
 
         comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
-        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
         verifier2.VerifyIL("Program.Test", testIL);
         verifier2.VerifyIL("Extensions_.M2", m2IL);
+
+        var vbComp = CreateVisualBasicCompilation("""
+Class Program
+    Shared Sub Main()
+        System.Console.Write(Test1("1"))
+        System.Console.Write(Test2("3"))
+    End Sub
+
+    Shared Function Test1(o As String) As String
+        return o.M("2")
+    End Function
+    Shared Function Test2(o As String) As String
+        return Extensions.M(o, "4")
+    End Function
+End Class
+""",
+            referencedAssemblies: comp2.References, compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        CompileAndVerify(vbComp, expectedOutput: "1234").VerifyDiagnostics();
 
         if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
         {
@@ -3786,7 +3806,7 @@ static class Extensions
 """;
 
             var comp4 = CreateCompilation(src4, references: [comp1MetadataReference], options: TestOptions.DebugExe);
-            var verifier4 = CompileAndVerify(comp4, expectedOutput: "1234");
+            var verifier4 = CompileAndVerify(comp4, expectedOutput: "1234").VerifyDiagnostics();
 
             testIL =
     @"
@@ -3827,7 +3847,7 @@ static class Extensions
             verifier4.VerifyIL("Extensions.M2", m2IL);
 
             comp4 = CreateCompilation(src4, references: [comp1ImageReference], options: TestOptions.DebugExe);
-            verifier4 = CompileAndVerify(comp4, expectedOutput: "1234");
+            verifier4 = CompileAndVerify(comp4, expectedOutput: "1234").VerifyDiagnostics();
 
             verifier4.VerifyIL("Program.Test", testIL);
             verifier4.VerifyIL("Extensions.M2", m2IL);
@@ -4060,10 +4080,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -4245,10 +4265,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -4611,7 +4631,7 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        var verifier3 = CompileAndVerify(comp3, expectedOutput: "1234");
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -4645,7 +4665,7 @@ static class Extensions
         verifier3.VerifyIL("Extensions.M2", m2IL);
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "1234");
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test", testIL);
         verifier3.VerifyIL("Extensions.M2", m2IL);
@@ -4934,10 +4954,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -5066,7 +5086,7 @@ static class Extensions
 
         var comp1MetadataReference = comp1.ToMetadataReference();
         var comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
-        var verifier3 = CompileAndVerify(comp3, expectedOutput: "132465");
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -5103,7 +5123,7 @@ static class Extensions
 
         var comp1ImageReference = comp1.EmitToImageReference();
         comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "132465");
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
         verifier3.VerifyIL("Extensions.M2<T, U>(this C<T>, T, U)", m2IL);
@@ -5147,7 +5167,7 @@ static class Extensions
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Func<T, U, string>(o.M)").WithArguments("M", "System.Func<T, U, string>").WithLocation(20, 42)
                 );
 #else
-            verifier3 = CompileAndVerify(comp3, expectedOutput: "132465");
+            verifier3 = CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
 
             testIL =
 @"
@@ -5203,7 +5223,7 @@ static class Extensions
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Func<T, U, string>(o.M)").WithArguments("M", "System.Func<T, U, string>").WithLocation(20, 42)
                 );
 #else
-            verifier3 = CompileAndVerify(comp3, expectedOutput: "132465");
+            verifier3 = CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
 
             verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
             verifier3.VerifyIL("Extensions.M2<T, U>(C<T>, T, U)", m2IL);
@@ -5480,10 +5500,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1323202346565056");
+        CompileAndVerify(comp3, expectedOutput: "1323202346565056").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1323202346565056");
+        CompileAndVerify(comp3, expectedOutput: "1323202346565056").VerifyDiagnostics();
     }
 
     [Fact]
@@ -5740,10 +5760,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1323246565");
+        CompileAndVerify(comp3, expectedOutput: "1323246565").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1323246565");
+        CompileAndVerify(comp3, expectedOutput: "1323246565").VerifyDiagnostics();
     }
 
     [Fact]
@@ -6128,10 +6148,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "132465");
+        CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "132465");
+        CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
     }
 
     [Fact]
@@ -6434,10 +6454,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "132465");
+        CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "132465");
+        CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
     }
 
     [Fact]
@@ -6566,7 +6586,7 @@ static class Extensions
 
         var comp1MetadataReference = comp1.ToMetadataReference();
         var comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
-        var verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+        var verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -6602,10 +6622,64 @@ static class Extensions
 
         var comp1ImageReference = comp1.EmitToImageReference();
         comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
-        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
         verifier2.VerifyIL("Program.Test", testIL);
         verifier2.VerifyIL("Extensions.M2", m2IL);
+
+        src2 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write(object.M2("3", "4"));
+    }
+
+    static string Test(object o)
+    {
+        return Extensions.M(o, "2");
+    }
+}
+
+static class Extensions_
+{
+    extension(object o)
+    {
+        public static string M2(object o, string s)
+        {
+            return Extensions.M(o, s);
+        }
+    }
+}
+""";
+
+        comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+        verifier2.VerifyIL("Program.Test", testIL);
+        verifier2.VerifyIL("Extensions_.M2", m2IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+        verifier2.VerifyIL("Program.Test", testIL);
+        verifier2.VerifyIL("Extensions_.M2", m2IL);
+
+        var vbComp = CreateVisualBasicCompilation("""
+Class Program
+    Shared Sub Main()
+        System.Console.Write(Test2("3"))
+    End Sub
+
+    Shared Function Test2(o As String) As String
+        return Extensions.M(o, "4")
+    End Function
+End Class
+""",
+            referencedAssemblies: comp2.References, compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        CompileAndVerify(vbComp, expectedOutput: "34").VerifyDiagnostics();
 
         if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
         {
@@ -6638,7 +6712,7 @@ static class Extensions
 """;
 
             comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
-            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
             testIL =
     @"
@@ -6688,10 +6762,50 @@ static class Extensions
             verifier2.VerifyIL("Extensions.M2", m2IL);
 
             comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
-            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
             verifier2.VerifyIL("Program.Test", testIL);
             verifier2.VerifyIL("Extensions.M2", m2IL);
+
+            src2 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write(object.M2("3", "4"));
+    }
+
+    static string Test(object o)
+    {
+        System.Func<object, string, string> d = Extensions.M;
+        return d(o, "2");
+    }
+}
+
+static class Extensions_
+{
+    extension(object o)
+    {
+        public static string M2(object o, string s)
+        {
+            return new System.Func<object, string, string>(Extensions.M)(o, s);
+        }
+    }
+}
+""";
+
+            comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+            verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Extensions_.M2", m2IL);
+
+            comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+            verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Extensions_.M2", m2IL);
 
             src2 = """
 class Program
@@ -6722,10 +6836,10 @@ static class Extensions
 """;
 
             comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe.WithAllowUnsafe(true));
-            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped);
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped).VerifyDiagnostics();
 
             testIL =
-    @"
+@"
 {
   // Code size       27 (0x1b)
   .maxstack  3
@@ -6750,7 +6864,7 @@ static class Extensions
             verifier2.VerifyIL("Program.Test", testIL);
 
             m2IL =
-    @"
+@"
 {
   // Code size       17 (0x11)
   .maxstack  3
@@ -6768,10 +6882,50 @@ static class Extensions
             verifier2.VerifyIL("Extensions.M2", m2IL);
 
             comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe.WithAllowUnsafe(true));
-            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped);
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped).VerifyDiagnostics();
 
             verifier2.VerifyIL("Program.Test", testIL);
             verifier2.VerifyIL("Extensions.M2", m2IL);
+
+            src2 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write(object.M2("3", "4"));
+    }
+
+    unsafe static string Test(object o)
+    {
+        delegate*<object, string, string> d = &Extensions.M;
+        return d(o, "2");
+    }
+}
+
+static class Extensions_
+{
+    extension(object o)
+    {
+        unsafe public static string M2(object o, string s)
+        {
+            return ((delegate*<object, string, string>)&Extensions.M)(o, s);
+        }
+    }
+}
+""";
+
+            comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Extensions_.M2", m2IL);
+
+            comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Extensions_.M2", m2IL);
         }
 
         var comp5 = CreateCompilation(src1);
@@ -6948,10 +7102,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -7128,10 +7282,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -7489,10 +7643,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -7773,10 +7927,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -7888,8 +8042,9 @@ static class Extensions
 }
 """;
 
-        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        var verifier3 = CompileAndVerify(comp3, expectedOutput: "12");
+        var comp1MetadataReference = comp1.ToMetadataReference();
+        var comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -7920,11 +8075,103 @@ static class Extensions
 ";
         verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
 
-        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "12");
+        var comp1ImageReference = comp1.EmitToImageReference();
+        comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test", testIL);
         verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
+
+        src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write("2".P2);
+    }
+
+    static string Test(object o)
+    {
+        return o.get_P();
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public string P2 => o.get_P();
+    }
+}
+""";
+
+        comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
+
+        comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
+
+        src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write("2".P2);
+    }
+
+    static string Test(object o)
+    {
+        return Extensions.get_P(o);
+    }
+}
+
+static class Extensions_
+{
+    extension(object o)
+    {
+        public string P2 => Extensions.get_P(o);
+    }
+}
+""";
+
+        comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions_.get_P2(this object)", m2IL);
+
+        comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions_.get_P2(this object)", m2IL);
+
+        var vbComp = CreateVisualBasicCompilation("""
+Class Program
+    Shared Sub Main()
+        System.Console.Write(Test1("1"))
+        System.Console.Write(Test2("3"))
+    End Sub
+
+    Shared Function Test1(o As String) As String
+        return o.get_P()
+    End Function
+    Shared Function Test2(o As String) As String
+        return Extensions.get_P(o)
+    End Function
+End Class
+""",
+            referencedAssemblies: comp3.References, compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        CompileAndVerify(vbComp, expectedOutput: "13").VerifyDiagnostics();
 
         var comp5 = CreateCompilation(src1);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
@@ -8037,8 +8284,9 @@ static class Extensions
 }
 """;
 
-        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        var verifier3 = CompileAndVerify(comp3, expectedOutput: "PP");
+        var comp1MetadataReference = comp1.ToMetadataReference();
+        var comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "PP").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -8067,11 +8315,63 @@ static class Extensions
 ";
         verifier3.VerifyIL("Extensions.get_P2()", m2IL);
 
-        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "PP");
+        var comp1ImageReference = comp1.EmitToImageReference();
+        comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "PP").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test", testIL);
         verifier3.VerifyIL("Extensions.get_P2()", m2IL);
+
+        src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test());
+        System.Console.Write(object.P2);
+    }
+
+    static string Test()
+    {
+        return Extensions.get_P();
+    }
+}
+
+static class Extensions_
+{
+    extension(object o)
+    {
+        public static string P2 => Extensions.get_P();
+    }
+}
+""";
+
+        comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "PP").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions_.get_P2()", m2IL);
+
+        comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "PP").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions_.get_P2()", m2IL);
+
+        var vbComp = CreateVisualBasicCompilation("""
+Class Program
+    Shared Sub Main()
+        System.Console.Write(Test2())
+    End Sub
+
+    Shared Function Test2() As String
+        return Extensions.get_P()
+    End Function
+End Class
+""",
+            referencedAssemblies: comp3.References, compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        CompileAndVerify(vbComp, expectedOutput: "P").VerifyDiagnostics();
 
         var comp5 = CreateCompilation(src1);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
@@ -8177,7 +8477,7 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        var verifier3 = CompileAndVerify(comp3, expectedOutput: "12");
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -8209,7 +8509,7 @@ static class Extensions
         verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "12");
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test", testIL);
         verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
