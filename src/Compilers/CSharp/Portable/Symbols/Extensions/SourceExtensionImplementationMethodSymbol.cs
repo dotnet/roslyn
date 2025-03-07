@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod)
             : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
         {
-            Debug.Assert(sourceMethod.ContainingSymbol is NamedTypeSymbol { IsExtension: true });
+            Debug.Assert(sourceMethod.GetIsNewExtensionMember());
             Debug.Assert(sourceMethod.IsStatic || sourceMethod.ContainingType.ExtensionParameter is not null);
             Debug.Assert(!sourceMethod.IsExtern);
             Debug.Assert(!sourceMethod.IsExternal);

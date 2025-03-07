@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert((object)method != null);
                         if (resolution.MethodGroup.IsExtensionMethodGroup)
                         {
-                            Debug.Assert(method.IsExtensionMethod || method.ContainingSymbol is NamedTypeSymbol { IsExtension: true });
+                            Debug.Assert(method.IsExtensionMethod || method.GetIsNewExtensionMember());
 
                             ParameterSymbol thisParameter;
 
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: Delegate type compatibility is important, but is not part of the existence check.
 
-            bool isExtensionMethod = methodGroup.IsExtensionMethodGroup && method.ContainingSymbol is not NamedTypeSymbol { IsExtension: true };
+            bool isExtensionMethod = methodGroup.IsExtensionMethodGroup && !method.GetIsNewExtensionMember();
             Debug.Assert(method.ParameterCount == parameterCount + (isExtensionMethod ? 1 : 0));
 
             return new Conversion(ConversionKind.MethodGroup, method, isExtensionMethod: isExtensionMethod);

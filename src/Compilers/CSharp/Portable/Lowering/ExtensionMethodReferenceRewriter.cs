@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: NotNullIfNotNull(nameof(method))]
         private static MethodSymbol? VisitMethodSymbolWithExtensionRewrite(BoundTreeRewriter rewriter, MethodSymbol? method)
         {
-            if (method is { OriginalDefinition.ContainingSymbol: NamedTypeSymbol { IsExtension: true } declaringTypeDefinition } &&
+            if (method?.GetIsNewExtensionMember() == true &&
                 method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is MethodSymbol implementationMethod)
             {
                 method = implementationMethod.AsMember(method.ContainingSymbol.ContainingType).
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: NotNullIfNotNull(nameof(method))]
         public override MethodSymbol? VisitMethodSymbol(MethodSymbol? method)
         {
-            Debug.Assert(method is not { OriginalDefinition.ContainingSymbol: NamedTypeSymbol { IsExtension: true } } ||
+            Debug.Assert(method?.GetIsNewExtensionMember() != true ||
                          method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is null);
             return base.VisitMethodSymbol(method);
         }
