@@ -2832,20 +2832,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodParameters = method.Parameters;
             int numParams = delegateOrFuncPtrParameters.Length;
 
-            if (methodParameters.Length != numParams + (isExtensionMethod ? 1 : 0))
-            {
-                // This can happen if "method" has optional parameters.
-                Debug.Assert(methodParameters.Length > numParams + (isExtensionMethod ? 1 : 0));
-                Error(diagnostics, getMethodMismatchErrorCode(delegateType.TypeKind), errorLocation, method, delegateType);
-                return false;
-            }
+            Debug.Assert(methodParameters.Length == numParams + (isExtensionMethod ? 1 : 0));
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
-            Debug.Assert(!isExtensionMethod ||
-                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt!.Type, ref useSiteInfo, isMethodGroupConversion: true).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
+            Debug.Assert(!isExtensionMethod || !method.GetIsNewExtensionMember() ||
+                (Conversions.ConvertExtensionMethodThisArg(GetReceiverParameter(method)!.Type, receiverOpt!.Type, ref useSiteInfo, isMethodGroupConversion: true).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
 
             useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
 
@@ -2978,6 +2972,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeKind.FunctionPointer => ErrorCode.ERR_FuncPtrRefMismatch,
                     _ => throw ExceptionUtilities.UnexpectedValue(type)
                 };
+        }
+
+        internal static ParameterSymbol? GetReceiverParameter(MethodSymbol method)
+        {
+            if (method.IsExtensionMethod)
+            {
+                return method.Parameters[0];
+            }
+
+            Debug.Assert(method.GetIsNewExtensionMember());
+            return method.ContainingType.ExtensionParameter;
         }
 
         /// <summary>

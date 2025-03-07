@@ -340,11 +340,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (method.IsStatic)
                             {
-                                thisParameter = null; // PROTOTYPE: Test this code path with respect to ERR_ValueTypeExtDelegate
+                                thisParameter = null;
                             }
                             else
                             {
-                                thisParameter = method.ContainingType.ExtensionParameter; // PROTOTYPE: Test this code path with respect to ERR_ValueTypeExtDelegate
+                                thisParameter = method.ContainingType.ExtensionParameter;
                             }
 
                             if (thisParameter?.Type.IsReferenceType == false)
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol method = result.BestResult.Member;
 
-            if (methodGroup.IsExtensionMethodGroup && !method.Parameters[0].Type.IsReferenceType)
+            if (methodGroup.IsExtensionMethodGroup && !Binder.GetReceiverParameter(method).Type.IsReferenceType)
             {
                 return Conversion.NoConversion;
             }
