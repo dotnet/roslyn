@@ -39,13 +39,13 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         ) : base(diagnosticsRefresher)
     {
         if (externalCopilotService is null)
-            FatalError.ReportAndCatch(new NullReferenceException("ExternalCSharpCopilotCodeAnalysisService is unavailable."), ErrorSeverity.Diagnostic);
+            FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpCopilotGenerateDocumentationService)), ErrorSeverity.Diagnostic);
 
         if (externalCSharpCopilotGenerateDocumentationService is null)
-            FatalError.ReportAndCatch(new NullReferenceException("ExternalCSharpCopilotGenerateDocumentationService is unavailable."), ErrorSeverity.Diagnostic);
+            FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpCopilotGenerateDocumentationService)), ErrorSeverity.Diagnostic);
 
         if (externalCSharpCopilotGenerateDocumentationService is null)
-            FatalError.ReportAndCatch(new NullReferenceException("ExternalCSharpCopilotGenerateImplementationService is unavailable."), ErrorSeverity.Diagnostic);
+            FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpCopilotGenerateImplementationService)), ErrorSeverity.Diagnostic);
 
         AnalysisService = externalCopilotService;
         GenerateDocumentationService = externalCSharpCopilotGenerateDocumentationService;

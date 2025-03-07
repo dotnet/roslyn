@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot.UnitTests;
+
 [Trait(Traits.Feature, Traits.Features.CopilotImplementNotImplementedException)]
 public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTests
 {

@@ -66,7 +66,7 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         {
             var fix = DocumentChangeAction.New(
                 title: CSharpAnalyzersResources.Implement_with_Copilot,
-                createChangedDocument: async (_, cancellationToken) => await GetDocumentUpdater(context: context, diagnostic: null)(cancellationToken).ConfigureAwait(false),
+                createChangedDocument: (_, cancellationToken) => GetDocumentUpdater(context, diagnostic: null)(cancellationToken),
                 createChangedDocumentPreview: (_, _) => Task.FromResult(context.Document),
                 equivalenceKey: nameof(CSharpAnalyzersResources.Implement_with_Copilot));
             context.RegisterCodeFix(fix, context.Diagnostics[0]);
@@ -85,8 +85,6 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         {
             var throwNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
-
-            Contract.ThrowIfNull(methodOrProperty);
             Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
 
             if (!memberReferencesBuilder.ContainsKey(methodOrProperty))
@@ -141,12 +139,11 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Completed, logLevel: LogLevel.Information);
     }
 
-    private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+    private static Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
         var searchOptions = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
-        return await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, searchOptions, cancellationToken).ConfigureAwait(false);
+        return SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, searchOptions, cancellationToken);
     }
 
     private static MemberDeclarationSyntax AddErrorComment(MemberDeclarationSyntax member, string? message = null)

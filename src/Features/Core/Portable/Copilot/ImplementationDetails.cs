@@ -8,5 +8,5 @@ internal sealed class ImplementationDetails
 {
     public required string Message { get; init; }
 
-    public required SyntaxNode? ReplacementNode { get; init; }
+    public SyntaxNode? ReplacementNode { get; init; }
 }
