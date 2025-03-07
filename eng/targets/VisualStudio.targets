@@ -186,7 +186,7 @@
     </ItemGroup>
     <MSBuild Projects="@(_ProjectsToPublishForUpToDateCheck)"
            BuildInParallel="$(BuildInParallel)"
-           Properties="%(_ProjectsToPublish.SetConfiguration);%(_ProjectsToPublish.SetPlatform);%(_ProjectsToPublish.SetTargetFramework)"
+           Properties="%(_ProjectsToPublishForUpToDateCheck.SetConfiguration);%(_ProjectsToPublishForUpToDateCheck.SetPlatform);%(_ProjectsToPublishForUpToDateCheck.SetTargetFramework)"
            Targets="PublishItemsOutputGroup"
            RebaseOutputs="true"
            ContinueOnError="$(ContinueOnError)">
