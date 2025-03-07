@@ -5678,6 +5678,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.AscendingOrdering
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.AssemblyKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.AsteriskEqualsToken
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.AsteriskToken
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.Async2Keyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.AsyncKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.Attribute
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.AttributeArgument
