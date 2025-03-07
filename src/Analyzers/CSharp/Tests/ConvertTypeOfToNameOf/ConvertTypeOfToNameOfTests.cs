@@ -18,6 +18,8 @@ using VerifyCS = CSharpCodeFixVerifier<CSharpConvertTypeOfToNameOfDiagnosticAnal
 [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
 public partial class ConvertTypeOfToNameOfTests
 {
+    private static readonly LanguageVersion CSharp14 = LanguageVersion.Preview;
+
     [Fact]
     public async Task BasicType()
     {
@@ -233,21 +235,87 @@ public partial class ConvertTypeOfToNameOfTests
     }
 
     [Fact]
-    public async Task NotInGenericType()
+    public async Task GenericType_CSharp13()
     {
-        var text = """
-            class Test
-            {
-                class Goo<T> 
-                { 
-                    void M() 
-                    {
-                        _ = typeof(Goo<int>).Name;
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Test
+                {
+                    class Goo<T> 
+                    { 
+                        void M() 
+                        {
+                            _ = typeof(Goo<int>).Name;
+                        }
                     }
                 }
-            }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, text);
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task GenericType_CSharp14()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Test
+                {
+                    class Goo<T> 
+                    { 
+                        void M() 
+                        {
+                            _ = typeof(Goo<int>).Name;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task UnboundGenericType_CSharp13()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Test
+                {
+                    class Goo<T> 
+                    { 
+                        void M() 
+                        {
+                            _ = typeof(Goo<>).Name;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task UnboundGenericType_CSharp14()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Test
+                {
+                    class Goo<T> 
+                    { 
+                        void M() 
+                        {
+                            _ = typeof(Goo<>).Name;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
@@ -287,33 +355,123 @@ public partial class ConvertTypeOfToNameOfTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
-    public async Task NestedInGenericType2()
+    public async Task NestedInGenericType2_CSharp13()
     {
-        var text = """
-            using System;
-            using System.Collections.Generic;
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
 
-            class Test
-            {
-                public void M()
+                class Test
                 {
-                    Console.WriteLine([|typeof(List<int>.Enumerator).Name|]);
+                    public void M()
+                    {
+                        Console.WriteLine([|typeof(List<int>.Enumerator).Name|]);
+                    }
                 }
-            }
-            """;
-        var expected = """
-            using System;
-            using System.Collections.Generic;
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
 
-            class Test
-            {
-                public void M()
+                class Test
                 {
-                    Console.WriteLine(nameof(List<Int32>.Enumerator));
+                    public void M()
+                    {
+                        Console.WriteLine(nameof(List<Int32>.Enumerator));
+                    }
                 }
-            }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
+    public async Task NestedInGenericType2_CSharp14()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class Test
+                {
+                    public void M()
+                    {
+                        Console.WriteLine([|typeof(List<int>.Enumerator).Name|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class Test
+                {
+                    public void M()
+                    {
+                        Console.WriteLine(nameof(List<>.Enumerator));
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
+    public async Task NestedInGenericType_UnboundTypeof_CSharp13()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class Test
+                {
+                    public void M()
+                    {
+                        Console.WriteLine([|typeof(List<>.Enumerator).Name|]);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
+    public async Task NestedInGenericType_UnboundTypeof_CSharp14()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class Test
+                {
+                    public void M()
+                    {
+                        Console.WriteLine([|typeof(List<>.Enumerator).Name|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class Test
+                {
+                    public void M()
+                    {
+                        Console.WriteLine(nameof(List<>.Enumerator));
+                    }
+                }
+                """,
+            LanguageVersion = CSharp14,
+        }.RunAsync();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54233")]

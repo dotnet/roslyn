@@ -1570,4 +1570,39 @@ public class UseCompoundAssignmentTests
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76633")]
+    public async Task TestFieldKeyword1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class C
+                {
+                    int M
+                    {
+                        get
+                        {
+                            field [|=|] field + 10;
+                            return 0;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                public class C
+                {
+                    int M
+                    {
+                        get
+                        {
+                            field += 10;
+                            return 0;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+    }
 }

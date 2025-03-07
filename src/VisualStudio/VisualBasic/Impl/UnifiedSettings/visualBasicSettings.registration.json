@@ -105,7 +105,7 @@
     },
     // CompletionOptionsStorage.EnterKeyBehavior
     "textEditor.basic.intellisense.returnKeyCompletionBehavior": {
-      "title": "@Enter_key_behavior_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "title": "@Enter_key_behavior;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
       "enum": [ "never", "afterFullyTypedWord", "always" ],
       "enumItemLabels": [ "@Never_add_new_line_on_enter;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Only_add_new_line_on_enter_after_end_of_fully_typed_word;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Always_add_new_line_on_enter;{574fc912-f74f-4b4e-92c3-f695c208a2bb}" ],
@@ -163,6 +163,11 @@
       "type": "boolean",
       "default": false,
       "order": 60,
+      "messages": [
+        {
+          "text": "@Experimental_feature;..\\Microsoft.VisualStudio.LanguageServices.dll"
+        }
+      ],
       "migration": {
         "pass": {
           "input": {
@@ -175,7 +180,7 @@
   },
   "categories": {
     "textEditor.basic":{
-      "title": "Visual Basic"
+      "title": "@101;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
     },
     "textEditor.basic.intellisense": {
       "title": "@112;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",

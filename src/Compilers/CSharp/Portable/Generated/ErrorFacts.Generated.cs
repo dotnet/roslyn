@@ -344,6 +344,8 @@
                 case ErrorCode.WRN_UnassignedInternalRefField:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                 case ErrorCode.WRN_ExperimentalWithMessage:
+                case ErrorCode.WRN_UnscopedRefAttributeOldRules:
+                case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
                     return true;
                 default:
                     return false;

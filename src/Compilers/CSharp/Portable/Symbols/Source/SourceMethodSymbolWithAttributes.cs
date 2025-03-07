@@ -614,6 +614,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
             {
+                if (!this.UseUpdatedEscapeRules)
+                {
+                    diagnostics.Add(ErrorCode.WRN_UnscopedRefAttributeOldRules, arguments.AttributeSyntaxOpt.Location);
+                }
+
                 if (this.IsValidUnscopedRefAttributeTarget())
                 {
                     arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasUnscopedRefAttribute = true;
@@ -634,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
             {
-                MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+                MessageID.IDS_FeatureOverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
 
                 if (!CanHaveOverloadResolutionPriority)
                 {
@@ -1103,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DeclaringCompilation.AddInterception(matchingTree.FilePath, position, attributeLocation, this);
+            DeclaringCompilation.AddInterception(matchingTree.GetText().GetContentHash(), position, attributeLocation, this);
 
             // Caller must free the returned builder.
             static ArrayBuilder<string> getNamespaceNames(SourceMethodSymbol @this)
@@ -1155,7 +1160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // https://github.com/dotnet/roslyn/issues/72265: Remove support for path-based interceptors prior to stable release.
         private void DecodeInterceptsLocationAttributeExperimentalCompat(
             DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
             string? attributeFilePath,
@@ -1166,6 +1170,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var attributeSyntax = arguments.AttributeSyntaxOpt;
             Debug.Assert(attributeSyntax is object);
             var attributeLocation = attributeSyntax.Location;
+            diagnostics.Add(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, attributeLocation);
+
             const int filePathParameterIndex = 0;
             const int lineNumberParameterIndex = 1;
             const int characterNumberParameterIndex = 2;
@@ -1316,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DeclaringCompilation.AddInterception(matchingTree.FilePath, referencedToken.Position, attributeLocation, this);
+            DeclaringCompilation.AddInterception(matchingTree.GetText().GetContentHash(), referencedToken.Position, attributeLocation, this);
 
             // Caller must free the returned builder.
             ArrayBuilder<string> getNamespaceNames()

@@ -38,7 +38,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+            var state = State.Generate((TService)this, semanticDocument, node, cancellationToken);
             if (state == null)
                 return [];
 

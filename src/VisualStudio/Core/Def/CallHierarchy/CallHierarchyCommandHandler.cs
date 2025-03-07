@@ -97,7 +97,7 @@ internal class CallHierarchyCommandHandler : ICommandHandler<ViewCallHierarchyCo
 
                 if (mapping.Symbol != null)
                 {
-                    var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, ImmutableArray<Location>.Empty, cancellationToken).ConfigureAwait(false);
+                    var node = await _provider.CreateItemAsync(mapping.Symbol, mapping.Project, [], cancellationToken).ConfigureAwait(false);
 
                     if (node != null)
                     {

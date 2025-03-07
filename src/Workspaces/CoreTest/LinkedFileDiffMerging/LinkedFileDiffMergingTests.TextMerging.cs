@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 ["a b y d e", "a b z d e"],
                 $"""
 
-                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                <<<<<<< {string.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
                 a b c d e
                 =======
                 a b z d e
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 ["a q1 c z1 e", "a q2 c z2 e"],
                 $"""
 
-                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                <<<<<<< {string.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
                 a b c d e
                 =======
                 a q2 c z2 e
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 $"""
                 One
 
-                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                <<<<<<< {string.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
                 Two
                 Three
                 =======
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 $"""
                 One;
 
-                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                <<<<<<< {string.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
                 Two;
                 =======
                 TwoZ;
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 TwoY;
                 Three;
 
-                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                <<<<<<< {string.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
                 Four;
                 =======
                 FourZ;
@@ -190,13 +190,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 ],
                 $"""
 
-                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName2")}, {WorkspacesResources.Before_colon}
+                <<<<<<< {string.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, "ProjectName2")}, {WorkspacesResources.Before_colon}
                 A
                 =======
                 C
                 >>>>>>> {WorkspacesResources.After}
 
-                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName3")}, {WorkspacesResources.Before_colon}
+                <<<<<<< {string.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, "ProjectName3")}, {WorkspacesResources.Before_colon}
                 A
                 =======
                 >>>>>>> {WorkspacesResources.After}
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 ],
                 $"""
 
-                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                <<<<<<< {string.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
                 =======
                 B
                 >>>>>>> {WorkspacesResources.After}
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 ],
                 $"""
 
-                <<<<<<< {string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+                <<<<<<< {string.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
                 A
                 =======
                 >>>>>>> {WorkspacesResources.After}

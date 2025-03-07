@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End Function
 
             Private Shared Function ContainsNamespaceCandidateSymbols(symbolInfo As SymbolInfo) As Boolean
-                Return symbolInfo.CandidateSymbols.Any() AndAlso symbolInfo.CandidateSymbols.All(Function(s) s.IsNamespace())
+                Return symbolInfo.CandidateSymbols.Any() AndAlso symbolInfo.CandidateSymbols.All(Function(s) TypeOf s Is INamespaceSymbol)
             End Function
 
             ''' <summary>
@@ -368,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                         Return associatedSymbol.Kind <> SymbolKind.Event AndAlso associatedSymbol.Kind <> SymbolKind.Property
                     End If
                 ElseIf s.Kind = SymbolKind.NamedType AndAlso s.IsImplicitlyDeclared Then
-                    Return Not TypeOf DirectCast(s, INamedTypeSymbol).AssociatedSymbol Is IEventSymbol
+                    Return TypeOf DirectCast(s, INamedTypeSymbol).AssociatedSymbol IsNot IEventSymbol
                 End If
 
                 Return True

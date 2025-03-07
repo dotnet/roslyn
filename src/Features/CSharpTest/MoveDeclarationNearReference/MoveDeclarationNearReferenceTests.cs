@@ -653,7 +653,8 @@ public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest_No
                     });
                 }
             }
-            """);
+            """,
+            title: FeaturesResources.Move_declaration_near_reference_may_change_semantics);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545435")]

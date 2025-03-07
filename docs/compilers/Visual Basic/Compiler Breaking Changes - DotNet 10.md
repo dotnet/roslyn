@@ -35,3 +35,27 @@ Class C
 End Class
 ```
 
+## `Microsoft.CodeAnalysis.EmbeddedAttribute` is validated on declaration
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+The compiler now validates the shape of `Microsoft.CodeAnalysis.EmbeddedAttribute` when declared in source. Previously, the compiler
+would allow user-defined declarations of this attribute with any shape. We now validate that:
+
+1. It must be Friend
+2. It must be a Class
+3. It must be NotInheritable
+4. It must not be a Module
+5. It must have a Public parameterless constructor
+6. It must inherit from System.Attribute.
+7. It must be allowed on any type declaration (Class, Structure, Interface, Enum, or Delegate)
+
+```vb
+Namespace Microsoft.CodeAnalysis
+
+    ' Previously allowed. Now, BC37335
+    Public Class EmbeddedAttribute
+        Inherits Attribute
+    End Class
+End Namespace
+```

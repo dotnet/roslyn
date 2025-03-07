@@ -38,7 +38,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     private protected static readonly Regex s_timePropertiesRegex = new("[|](EmitDifferenceMilliseconds|TotalAnalysisMilliseconds)=[0-9]+");
 
     private protected static readonly ActiveStatementSpanProvider s_noActiveSpans =
-        (_, _, _) => new(ImmutableArray<ActiveStatementSpan>.Empty);
+        (_, _, _) => new([]);
 
     private protected const TargetFramework DefaultTargetFramework = TargetFramework.NetStandard20;
 
@@ -162,7 +162,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             solution,
             _debuggerService,
             sourceTextProvider: sourceTextProvider ?? NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+            captureMatchingDocuments: [],
             captureAllMatchingDocuments: false,
             reportDiagnostics: true,
             CancellationToken.None);
@@ -190,7 +190,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal void ExitBreakState(
         DebuggingSession session)
     {
-        _debuggerService.GetActiveStatementsImpl = () => ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
+        _debuggerService.GetActiveStatementsImpl = () => [];
         session.BreakStateOrCapabilitiesChanged(inBreakState: false);
     }
 
@@ -368,7 +368,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         return DocumentInfo.Create(
             DocumentId.CreateNewId(projectId, name),
             name: name,
-            folders: Array.Empty<string>(),
+            folders: [],
             sourceCodeKind: SourceCodeKind.Regular,
             loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), path)),
             filePath: path,

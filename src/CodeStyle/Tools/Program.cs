@@ -37,7 +37,7 @@ namespace CodeStyleConfigFileGenerator
             var language = args[0];
             var outputDir = args[1];
             var targetsFileName = args[2];
-            var assemblyList = args[3].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
+            var assemblyList = args[3].Split([';'], StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
 
             CreateGlobalConfigFiles(language, outputDir, assemblyList);
             CreateTargetsFile(language, outputDir, targetsFileName);

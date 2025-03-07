@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string ChangeSignature = nameof(ChangeSignature);
             public const string ClassView = nameof(ClassView);
             public const string Classification = nameof(Classification);
-            public const string CodeActionsAddAccessibilityModifiers = "CodeActions.AddAccessibilityModifiers";
+            public const string CodeActionsAddOrRemoveAccessibilityModifiers = "CodeActions.AddOrRemoveAccessibilityModifiers";
             public const string CodeActionsAddAnonymousTypeMemberName = "CodeActions.AddAnonymousTypeMemberName";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsSimplifyConditional = "CodeActions.SimplifyConditional";
             public const string CodeActionsSimplifyInterpolation = "CodeActions.SimplifyInterpolation";
             public const string CodeActionsSimplifyLinqExpression = "CodeActions.SimplifyLinqExpression";
+            public const string CodeActionsSimplifyLinqTypeCheckAndCast = "CodeActions.SimplifyLinqTypeCheckAndCast";
             public const string CodeActionsSimplifyPropertyPattern = "CodeActions.SimplifyPropertyPattern";
             public const string CodeActionsSimplifyThisOrMe = "CodeActions.SimplifyThisOrMe";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";

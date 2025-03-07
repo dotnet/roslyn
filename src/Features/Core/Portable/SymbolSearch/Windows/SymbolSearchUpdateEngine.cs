@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
@@ -70,43 +71,105 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
         // Nothing to do for the core symbol search engine.
     }
 
-    public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-        string source, string name, int arity, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<PackageResult>> FindPackagesAsync(
+        string source, TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
     {
+        return FindPackageOrReferenceAssembliesAsync(
+            source, typeQuery, namespaceQuery,
+            // Ignore any reference assembly results.
+            packageNameMatches: packageName => packageName != MicrosoftAssemblyReferencesName,
+            createResult: (database, symbol) =>
+            {
+                var version = database.GetPackageVersion(symbol.Index).ToString();
+
+                return new PackageResult(
+                    packageName: symbol.PackageName.ToString(),
+                    rank: GetRank(symbol),
+                    typeName: namespaceQuery.IsDefault ? symbol.Name.ToString() : "",
+                    version: string.IsNullOrWhiteSpace(version) ? null : version,
+                    containingNamespaceNames: GetFullName(
+                        namespaceQuery.IsDefault ? symbol.FullName.Parent : symbol.FullName));
+            },
+            cancellationToken);
+    }
+
+    public ValueTask<ImmutableArray<ReferenceAssemblyResult>> FindReferenceAssembliesAsync(
+        TypeQuery typeQuery, NamespaceQuery namespaceQuery, CancellationToken cancellationToken)
+    {
+        // Our reference assembly data is stored in the nuget.org DB.
+        return FindPackageOrReferenceAssembliesAsync(
+            PackageSourceHelper.NugetOrgSourceName,
+            typeQuery, namespaceQuery,
+            // Only look at reference assembly results.
+            packageNameMatches: packageName => packageName == MicrosoftAssemblyReferencesName,
+            createResult: (_, symbol) => new ReferenceAssemblyResult(
+                symbol.AssemblyName.ToString(),
+                typeName: namespaceQuery.IsDefault ? symbol.Name.ToString() : "",
+                containingNamespaceNames: GetFullName(
+                    namespaceQuery.IsDefault ? symbol.FullName.Parent : symbol.FullName)),
+            cancellationToken);
+    }
+
+    public ValueTask<ImmutableArray<TResult>> FindPackageOrReferenceAssembliesAsync<TResult>(
+        string source,
+        TypeQuery typeQuery,
+        NamespaceQuery namespaceQuery,
+        Func<string, bool> packageNameMatches,
+        Func<AddReferenceDatabase, Symbol, TResult> createResult,
+        CancellationToken cancellationToken)
+    {
+        // Check if we don't have a database to search.  
         if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
-        {
-            // Don't have a database to search.  
-            return ValueTaskFactory.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
-        }
+            return ValueTaskFactory.FromResult(ImmutableArray<TResult>.Empty);
 
         var database = databaseWrapper.Database;
-        if (name == "var")
-        {
-            // never find anything named 'var'.
-            return ValueTaskFactory.FromResult(ImmutableArray<PackageWithTypeResult>.Empty);
-        }
 
-        var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
+        var searchName = namespaceQuery.IsDefault ? typeQuery.Name : namespaceQuery.Names.Last();
+
+        // never find anything named 'var'.
+        if (searchName == "var")
+            return ValueTaskFactory.FromResult(ImmutableArray<TResult>.Empty);
+
+        var query = new MemberQuery(searchName, isFullSuffix: true, isFullNamespace: false);
         var symbols = new PartialArray<Symbol>(100);
 
-        var result = ArrayBuilder<PackageWithTypeResult>.GetInstance();
+        using var results = TemporaryArray<TResult>.Empty;
         if (query.TryFindMembers(database, ref symbols))
         {
-            var types = FilterToViableTypes(symbols);
-
-            foreach (var type in types)
+            foreach (var symbol in FilterToViableSymbols(symbols, namespaceQuery))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Ignore any reference assembly results.
-                if (type.PackageName.ToString() != MicrosoftAssemblyReferencesName)
-                {
-                    result.Add(CreateResult(database, type));
-                }
+                if (packageNameMatches(symbol.PackageName.ToString()))
+                    results.Add(createResult(database, symbol));
             }
         }
 
-        return ValueTaskFactory.FromResult(result.ToImmutableAndFree());
+        return ValueTaskFactory.FromResult(results.ToImmutableAndClear());
+
+        static IEnumerable<Symbol> FilterToViableSymbols(
+            PartialArray<Symbol> symbols, NamespaceQuery namespaceQuery)
+        {
+            foreach (var symbol in symbols)
+            {
+                if (!namespaceQuery.IsDefault)
+                {
+                    // Searching for a namespace.  Only return a result if the full namespace name matches.
+                    if (symbol.Type == SymbolType.Namespace &&
+                        GetFullName(symbol.FullName).SequenceEqual(namespaceQuery.Names))
+                    {
+                        yield return symbol;
+                    }
+                }
+                else
+                {
+                    // Don't return nested types.  Currently their value does not seem worth it given all the extra stuff
+                    // we'd have to plumb through.  Namely going down the "using static" code path and whatnot.
+                    if (IsType(symbol) && !IsType(symbol.Parent()))
+                        yield return symbol;
+                }
+            }
+        }
     }
 
     public ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
@@ -118,7 +181,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
             return ValueTaskFactory.FromResult(ImmutableArray<PackageWithAssemblyResult>.Empty);
         }
 
-        var result = ArrayBuilder<PackageWithAssemblyResult>.GetInstance();
+        using var _ = ArrayBuilder<PackageWithAssemblyResult>.GetInstance(out var result);
 
         var database = databaseWrapper.Database;
         var index = database.Index;
@@ -147,80 +210,7 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
             }
         }
 
-        return ValueTaskFactory.FromResult(result.ToImmutableAndFree());
-    }
-
-    public ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-        string name, int arity, CancellationToken cancellationToken)
-    {
-        // Our reference assembly data is stored in the nuget.org DB.
-        if (!_sourceToDatabase.TryGetValue(PackageSourceHelper.NugetOrgSourceName, out var databaseWrapper))
-        {
-            // Don't have a database to search.  
-            return ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
-        }
-
-        var database = databaseWrapper.Database;
-        if (name == "var")
-        {
-            // never find anything named 'var'.
-            return ValueTaskFactory.FromResult(ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty);
-        }
-
-        var query = new MemberQuery(name, isFullSuffix: true, isFullNamespace: false);
-        var symbols = new PartialArray<Symbol>(100);
-
-        var results = ArrayBuilder<ReferenceAssemblyWithTypeResult>.GetInstance();
-        if (query.TryFindMembers(database, ref symbols))
-        {
-            var types = FilterToViableTypes(symbols);
-
-            foreach (var type in types)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Only look at reference assembly results.
-                if (type.PackageName.ToString() == MicrosoftAssemblyReferencesName)
-                {
-                    var nameParts = ArrayBuilder<string>.GetInstance();
-                    GetFullName(nameParts, type.FullName.Parent);
-                    var result = new ReferenceAssemblyWithTypeResult(
-                        type.AssemblyName.ToString(), type.Name.ToString(),
-                        containingNamespaceNames: nameParts.ToImmutableAndFree());
-                    results.Add(result);
-                }
-            }
-        }
-
-        return ValueTaskFactory.FromResult(results.ToImmutableAndFree());
-    }
-
-    private static List<Symbol> FilterToViableTypes(PartialArray<Symbol> symbols)
-    {
-        // Don't return nested types.  Currently their value does not seem worth
-        // it given all the extra stuff we'd have to plumb through.  Namely 
-        // going down the "using static" code path and whatnot.
-        return new List<Symbol>(
-            from symbol in symbols
-            where IsType(symbol) && !IsType(symbol.Parent())
-            select symbol);
-    }
-
-    private static PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
-    {
-        var nameParts = ArrayBuilder<string>.GetInstance();
-        GetFullName(nameParts, type.FullName.Parent);
-
-        var packageName = type.PackageName.ToString();
-
-        var version = database.GetPackageVersion(type.Index).ToString();
-
-        return new PackageWithTypeResult(
-            packageName: packageName,
-            rank: GetRank(type),
-            typeName: type.Name.ToString(),
-            version: string.IsNullOrWhiteSpace(version) ? null : version,
-            containingNamespaceNames: nameParts.ToImmutableAndFree());
+        return ValueTaskFactory.FromResult(result.ToImmutableAndClear());
     }
 
     private static int GetRank(Symbol symbol)
@@ -266,12 +256,13 @@ internal sealed partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngi
     private static bool IsType(Symbol symbol)
         => symbol.Type.IsType();
 
-    private static void GetFullName(ArrayBuilder<string> nameParts, Path8 path)
+    private static ImmutableArray<string> GetFullName(Path8 path)
     {
-        if (!path.IsEmpty)
-        {
-            GetFullName(nameParts, path.Parent);
-            nameParts.Add(path.Name.ToString());
-        }
+        using var result = TemporaryArray<string>.Empty;
+        for (var current = path; !current.IsEmpty; current = current.Parent)
+            result.Add(current.Name.ToString());
+
+        result.ReverseContents();
+        return result.ToImmutableAndClear();
     }
 }

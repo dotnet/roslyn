@@ -261,7 +261,7 @@ internal static class DiagnosticDescriptorExtensions
 #pragma warning disable RS0030 // Do not used banned APIs - DiagnosticDescriptor .ctor is banned in this project, but fine to use here.
         return new DiagnosticDescriptor(descriptor.Id, descriptor.Title, messageFormat,
             descriptor.Category, descriptor.DefaultSeverity, descriptor.IsEnabledByDefault,
-            descriptor.Description, descriptor.HelpLinkUri, descriptor.CustomTags.ToArray());
+            descriptor.Description, descriptor.HelpLinkUri, [.. descriptor.CustomTags]);
 #pragma warning restore RS0030 // Do not used banned APIs
     }
 }

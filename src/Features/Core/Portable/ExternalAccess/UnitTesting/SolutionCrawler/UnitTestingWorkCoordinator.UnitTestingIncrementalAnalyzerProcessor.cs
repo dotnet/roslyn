@@ -283,7 +283,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 
             private sealed class UnitTestingAnalyzersGetter(IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders)
             {
-                private readonly List<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> _analyzerProviders = analyzerProviders.ToList();
+                private readonly List<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> _analyzerProviders = [.. analyzerProviders];
                 private readonly Dictionary<(string workspaceKind, SolutionServices services), ImmutableArray<IUnitTestingIncrementalAnalyzer>> _analyzerMap = [];
 
                 public ImmutableArray<IUnitTestingIncrementalAnalyzer> GetOrderedAnalyzers(string workspaceKind, SolutionServices services, bool onlyHighPriorityAnalyzer)
@@ -292,10 +292,9 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                     {
                         if (!_analyzerMap.TryGetValue((workspaceKind, services), out var analyzers))
                         {
-                            analyzers = _analyzerProviders
+                            analyzers = [.. _analyzerProviders
                                 .Select(p => p.Value.CreateIncrementalAnalyzer())
-                                .WhereNotNull()
-                                .ToImmutableArray();
+                                .WhereNotNull()];
 
                             _analyzerMap[(workspaceKind, services)] = analyzers;
                         }

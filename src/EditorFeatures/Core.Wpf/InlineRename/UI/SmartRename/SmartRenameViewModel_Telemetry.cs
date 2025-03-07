@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                     m["smartRenameSessionInProgress"] = _smartRenameSession.IsInProgress;
                     m["smartRenameCorrelationId"] = _smartRenameSession.CorrelationId;
                     m["smartRenameSemanticContextUsed"] = _semanticContextUsed;
-                    m["smartRenameSemanticContextDelay"] = _semanticContextDelay;
+                    m["smartRenameSemanticContextDelay"] = _semanticContextDelay.TotalMilliseconds;
                     m["smartRenameSemanticContextError"] = _semanticContextError;
                 }));
             }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                     m["smartRenameSessionInProgress"] = _smartRenameSession.IsInProgress;
                     m["smartRenameCorrelationId"] = _smartRenameSession.CorrelationId;
                     m["smartRenameSemanticContextUsed"] = _semanticContextUsed;
-                    m["smartRenameSemanticContextDelay"] = _semanticContextDelay;
+                    m["smartRenameSemanticContextDelay"] = _semanticContextDelay.TotalMilliseconds;
                     m["smartRenameSemanticContextError"] = _semanticContextError;
                 }));
             }

@@ -11749,7 +11749,7 @@ class C
         var expectedDiagnostics = from errorMessage in errorMessages ?? [newStatement]
                                   select Diagnostic(RudeEditKind.AwaitStatementUpdate, errorMessage);
 
-        edits.VerifySemanticDiagnostics(expectedDiagnostics.ToArray());
+        edits.VerifySemanticDiagnostics([.. expectedDiagnostics]);
     }
 
     [Fact]

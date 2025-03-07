@@ -50,7 +50,7 @@ internal abstract class EnumSettingViewModel<T> : IEnumSettingViewModel
     }
 
     public string[] GetValueDescriptions()
-        => _mapping.Keys.ToArray();
+        => [.. _mapping.Keys];
 
     public int GetValueIndex()
     {

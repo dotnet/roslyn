@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         internal virtual CompletionService GetCompletionService(Project project)
         {
             var completionService = project.Services.GetRequiredService<CompletionService>();
-            var completionProviders = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet<string>.Empty);
+            var completionProviders = completionService.GetTestAccessor().GetImportedAndBuiltInProviders([]);
             var completionProvider = Assert.Single(completionProviders);
             Assert.IsType(GetCompletionProviderType(), completionProvider);
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         internal static ImmutableHashSet<string> GetRoles(Document document)
-            => document.SourceCodeKind == SourceCodeKind.Regular ? ImmutableHashSet<string>.Empty : ImmutableHashSet.Create(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole);
+            => document.SourceCodeKind == SourceCodeKind.Regular ? [] : [PredefinedInteractiveTextViewRoles.InteractiveTextViewRole];
 
         protected abstract string ItemPartiallyWritten(string expectedItemOrNull);
 

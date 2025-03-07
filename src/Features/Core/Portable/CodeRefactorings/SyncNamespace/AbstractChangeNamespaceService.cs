@@ -165,10 +165,9 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            return syntaxRoot
+            return [.. syntaxRoot
                 .DescendantNodes(n => !syntaxFacts.IsDeclaration(n))
-                .Where(syntaxFacts.IsBaseNamespaceDeclaration)
-                .ToImmutableArray();
+                .Where(syntaxFacts.IsBaseNamespaceDeclaration)];
         }
     }
 

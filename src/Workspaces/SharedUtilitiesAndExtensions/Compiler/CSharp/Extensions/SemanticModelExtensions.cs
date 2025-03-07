@@ -169,10 +169,10 @@ internal static partial class SemanticModelExtensions
             {
                 Contract.ThrowIfNull(@using.NamespaceOrType);
                 var symbolInfo = semanticModel.GetSymbolInfo(@using.NamespaceOrType);
-                if (symbolInfo.Symbol != null && symbolInfo.Symbol.Kind == SymbolKind.Namespace)
+                if (symbolInfo.Symbol is INamespaceSymbol namespaceSymbol)
                 {
                     result ??= [];
-                    result.Add((INamespaceSymbol)symbolInfo.Symbol);
+                    result.Add(namespaceSymbol);
                 }
             }
         }
@@ -482,6 +482,12 @@ internal static partial class SemanticModelExtensions
     }
 
     public static IPropertySymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, PropertyDeclarationSyntax syntax, CancellationToken cancellationToken)
+    {
+        return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+            ?? throw new InvalidOperationException();
+    }
+
+    public static IMethodSymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, BaseMethodDeclarationSyntax syntax, CancellationToken cancellationToken)
     {
         return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
             ?? throw new InvalidOperationException();

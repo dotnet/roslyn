@@ -145,7 +145,7 @@ internal sealed partial class ConstructorInitializerSignatureHelpProvider : Abst
             GetPreambleParts(constructor, semanticModel, position),
             GetSeparatorParts(),
             GetPostambleParts(),
-            constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+            [.. constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         return item;
     }
 

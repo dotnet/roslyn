@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
@@ -49,10 +47,11 @@ internal sealed partial class ProjectState
     private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
     private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentTopLevelChangeVersion;
 
-    // Checksums for this solution state
-    private readonly AsyncLazy<ProjectStateChecksums> _lazyChecksums;
+    // Checksums for this solution state (access via LazyChecksums)
+    private AsyncLazy<ProjectStateChecksums>? _lazyChecksums;
 
-    private readonly AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>> _lazyContentHashToDocumentId;
+    // Mapping from content has to document id (access via LazyContentHashToDocumentId)
+    private AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>>? _lazyContentHashToDocumentId;
 
     /// <summary>
     /// Analyzer config options to be used for specific trees.
@@ -87,9 +86,6 @@ internal sealed partial class ProjectState
         // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
         // the info has changed by DocumentState.
         ProjectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
-
-        _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
-        _lazyContentHashToDocumentId = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this);
     }
 
     public ProjectState(LanguageServices languageServices, ProjectInfo projectInfo, StructuredAnalyzerConfigOptions fallbackAnalyzerOptions)
@@ -120,7 +116,7 @@ internal sealed partial class ProjectState
         DocumentStates = new TextDocumentStates<DocumentState>(projectInfoFixed.Documents, info => CreateDocument(info, parseOptions, loadTextOptions));
         AdditionalDocumentStates = new TextDocumentStates<AdditionalDocumentState>(projectInfoFixed.AdditionalDocuments, info => new AdditionalDocumentState(languageServices.SolutionServices, info, loadTextOptions));
 
-        _lazyLatestDocumentVersion = AsyncLazy.Create(static (self, c) => ComputeLatestDocumentVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c), arg: this);
+        _lazyLatestDocumentVersion = AsyncLazy.Create(static async (self, c) => await ComputeLatestDocumentVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c).ConfigureAwait(false), arg: this);
         _lazyLatestDocumentTopLevelChangeVersion = AsyncLazy.Create(static (self, c) => ComputeLatestDocumentTopLevelChangeVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c), arg: this);
 
         // ownership of information on document has moved to project state. clear out documentInfo the state is
@@ -128,9 +124,6 @@ internal sealed partial class ProjectState
         // the info has changed by DocumentState.
         // we hold onto the info so that we don't need to duplicate all information info already has in the state
         ProjectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
-
-        _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
-        _lazyContentHashToDocumentId = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this);
     }
 
     public TextDocumentStates<TDocumentState> GetDocumentStates<TDocumentState>()
@@ -158,6 +151,38 @@ internal sealed partial class ProjectState
         return result;
     }
 
+    private AsyncLazy<ProjectStateChecksums> LazyChecksums
+    {
+        get
+        {
+            if (_lazyChecksums is null)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyChecksums,
+                    AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this),
+                    null);
+            }
+
+            return _lazyChecksums;
+        }
+    }
+
+    private AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>> LazyContentHashToDocumentId
+    {
+        get
+        {
+            if (_lazyContentHashToDocumentId is null)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyContentHashToDocumentId,
+                    AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this),
+                    null);
+            }
+
+            return _lazyContentHashToDocumentId;
+        }
+    }
+
     private static ProjectInfo ClearAllDocumentsFromProjectInfo(ProjectInfo projectInfo)
     {
         return projectInfo
@@ -168,7 +193,7 @@ internal sealed partial class ProjectState
 
     public async ValueTask<DocumentId?> GetDocumentIdAsync(ImmutableArray<byte> contentHash, CancellationToken cancellationToken)
     {
-        var map = await _lazyContentHashToDocumentId.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        var map = await LazyContentHashToDocumentId.GetValueAsync(cancellationToken).ConfigureAwait(false);
         return map.TryGetValue(contentHash, out var documentId) ? documentId : null;
     }
 
@@ -195,7 +220,7 @@ internal sealed partial class ProjectState
         return projectInfo;
     }
 
-    private static async Task<VersionStamp> ComputeLatestDocumentVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<AdditionalDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
+    private static async ValueTask<VersionStamp> ComputeLatestDocumentVersionAsync(TextDocumentStates<DocumentState> documentStates, TextDocumentStates<AdditionalDocumentState> additionalDocumentStates, CancellationToken cancellationToken)
     {
         // this may produce a version that is out of sync with the actual Document versions.
         var latestVersion = VersionStamp.Default;
@@ -1065,8 +1090,8 @@ internal sealed partial class ProjectState
 
         if (recalculateDocumentVersion)
         {
-            dependentDocumentVersion = AsyncLazy.Create(static (arg, cancellationToken) =>
-                ComputeLatestDocumentVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, cancellationToken),
+            dependentDocumentVersion = AsyncLazy.Create(static async (arg, cancellationToken) =>
+                await ComputeLatestDocumentVersionAsync(arg.newDocumentStates, arg.newAdditionalDocumentStates, cancellationToken).ConfigureAwait(false),
                 arg: (newDocumentStates, newAdditionalDocumentStates));
         }
         else if (contentChanged)

@@ -991,12 +991,12 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [PartNotDiscoverable]
-    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test), System.Composition.Shared]
+    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private sealed class TestWorkspaceConfigurationService(IGlobalOptionService globalOptionService) : IWorkspaceConfigurationService
+    private sealed class TestWorkspaceConfigurationService() : IWorkspaceConfigurationService
     {
-        public WorkspaceConfigurationOptions Options => globalOptionService.GetWorkspaceConfigurationOptions();
+        public WorkspaceConfigurationOptions Options { get; set; } = WorkspaceConfigurationOptions.Default;
     }
 
     [Theory, CombinatorialData]
@@ -1009,11 +1009,11 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         const string AnalyzerResourceV2 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2";
 
         using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)], TestHost.OutOfProcess);
+        var mefServices = (VisualStudioMefHostServices)workspace.Services.HostServices;
 
         // Ensure the local and remote sides agree on how we're executing source generators.
-        var mefServices = (VisualStudioMefHostServices)workspace.Services.HostServices;
-        var globalOptionService = mefServices.GetExportedValue<IGlobalOptionService>();
-        globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
+        var configService = (TestWorkspaceConfigurationService)workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+        configService.Options = configService.Options with { SourceGeneratorExecution = executionPreference };
 
         using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
 

@@ -41,12 +41,11 @@ internal class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest, I
     /// </summary>
     public ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken)
     {
-        var services = (IReadOnlyCollection<ServiceMoniker>)_serviceBrokerFactory.GetRequiredServiceBrokerContainer().GetRegisteredServices()
+        var services = (IReadOnlyCollection<ServiceMoniker>)[.. _serviceBrokerFactory.GetRequiredServiceBrokerContainer().GetRegisteredServices()
             .Select(s => s.Key)
             .Where(s => s.Name.StartsWith("Microsoft.CodeAnalysis.LanguageServer.", StringComparison.Ordinal) ||
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServer.", StringComparison.Ordinal) ||
-                        s.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal))
-            .ToImmutableArray();
+                        s.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal))];
         _logger.LogDebug($"Proffered services: {string.Join(',', services.Select(s => s.ToString()))}");
         return ValueTask.FromResult(services);
     }

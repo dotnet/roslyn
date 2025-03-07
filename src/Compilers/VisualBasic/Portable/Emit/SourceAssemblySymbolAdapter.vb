@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                           emittingRefAssembly As Boolean,
                                                           emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
 
-            Dim synthesized As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
+            Dim synthesized As ArrayBuilder(Of VisualBasicAttributeData) = Nothing
             AddSynthesizedAttributes(moduleBuilder, synthesized)
 
             If emittingRefAssembly AndAlso Not HasReferenceAssemblyAttribute Then

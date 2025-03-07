@@ -486,7 +486,7 @@ internal sealed class CSharpGenerateTypeService() :
     {
         if (objectCreationExpression != null && objectCreationExpression.ArgumentList != null)
         {
-            argumentList = objectCreationExpression.ArgumentList.Arguments.ToList();
+            argumentList = [.. objectCreationExpression.ArgumentList.Arguments];
             return true;
         }
 

@@ -206,6 +206,7 @@ End Namespace
 
             Dim expected = "
 Imports A
+
 Imports B
 
 Imports System

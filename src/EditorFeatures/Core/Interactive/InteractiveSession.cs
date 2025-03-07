@@ -13,10 +13,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -27,17 +25,17 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Interactive;
 
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Threading;
 using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
 internal sealed class InteractiveSession : IDisposable
 {
     public InteractiveHost Host { get; }
 
-    private readonly IThreadingContext _threadingContext;
     private readonly InteractiveEvaluatorLanguageInfoProvider _languageInfo;
     private readonly InteractiveWorkspace _workspace;
     private readonly ITextDocumentFactoryService _textDocumentFactoryService;
-    private readonly EditorOptionsService _editorOptionsService;
 
     private readonly CancellationTokenSource _shutdownCancellationSource;
 
@@ -54,7 +52,7 @@ internal sealed class InteractiveSession : IDisposable
     // At the same time a code submission might be in progress.
     // If we left these operations run in parallel we might get into a state
     // inconsistent with the state of the host.
-    private readonly TaskQueue _taskQueue;
+    private readonly AsyncBatchingWorkQueue<Func<Task>> _workQueue;
 
     private ProjectId? _lastSuccessfulSubmissionProjectId;
     private ProjectId? _currentSubmissionProjectId;
@@ -76,21 +74,21 @@ internal sealed class InteractiveSession : IDisposable
 
     public InteractiveSession(
         InteractiveWorkspace workspace,
-        IThreadingContext threadingContext,
         IAsynchronousOperationListener listener,
         ITextDocumentFactoryService documentFactory,
-        EditorOptionsService editorOptionsService,
         InteractiveEvaluatorLanguageInfoProvider languageInfo,
         string initialWorkingDirectory)
     {
         _workspace = workspace;
-        _threadingContext = threadingContext;
         _languageInfo = languageInfo;
         _textDocumentFactoryService = documentFactory;
-        _editorOptionsService = editorOptionsService;
 
-        _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
         _shutdownCancellationSource = new CancellationTokenSource();
+        _workQueue = new(
+            TimeSpan.Zero,
+            ProcessWorkQueueAsync,
+            listener,
+            _shutdownCancellationSource.Token);
 
         // The following settings will apply when the REPL starts without .rsp file.
         // They are discarded once the REPL is reset.
@@ -112,6 +110,21 @@ internal sealed class InteractiveSession : IDisposable
         Host.Dispose();
     }
 
+    private async ValueTask ProcessWorkQueueAsync(ImmutableSegmentedList<Func<Task>> list, CancellationToken cancellationToken)
+    {
+        foreach (var taskCreator in list)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Kick off the task to run.  This also ensures that if the taskCreator func throws synchronously, that we
+            // appropriately handle reporting it in ReportNonFatalErrorAsync.  Also,  ensure we always process the next
+            // piece of work, even if the current work fails.
+            var task = Task.Run(taskCreator, cancellationToken);
+            _ = task.ReportNonFatalErrorAsync();
+            await task.NoThrowAwaitableInternal(captureContext: false);
+        }
+    }
+
     /// <summary>
     /// Invoked by <see cref="InteractiveHost"/> when a new process initialization completes.
     /// </summary>
@@ -119,7 +132,7 @@ internal sealed class InteractiveSession : IDisposable
     {
         Contract.ThrowIfFalse(result.InitializationResult != null);
 
-        _ = _taskQueue.ScheduleTask(nameof(ProcessInitialized), () =>
+        _workQueue.AddWork(() =>
         {
             _workspace.ResetSolution();
 
@@ -140,7 +153,8 @@ internal sealed class InteractiveSession : IDisposable
             }
 
             _pendingBuffers.Clear();
-        }, _shutdownCancellationSource.Token);
+            return Task.CompletedTask;
+        });
     }
 
     /// <summary>
@@ -148,10 +162,12 @@ internal sealed class InteractiveSession : IDisposable
     /// </summary>
     internal void AddSubmissionProject(ITextBuffer submissionBuffer)
     {
-        _taskQueue.ScheduleTask(
-            nameof(AddSubmissionProject),
-            () => AddSubmissionProjectNoLock(submissionBuffer, _languageInfo.LanguageName),
-            _shutdownCancellationSource.Token);
+        _workQueue.AddWork(
+            () =>
+            {
+                AddSubmissionProjectNoLock(submissionBuffer, _languageInfo.LanguageName);
+                return Task.CompletedTask;
+            });
     }
 
     private void AddSubmissionProjectNoLock(ITextBuffer submissionBuffer, string languageName)
@@ -316,9 +332,10 @@ internal sealed class InteractiveSession : IDisposable
     /// Called once a code snippet is submitted.
     /// Followed by creation of a new language buffer and call to <see cref="AddSubmissionProject(ITextBuffer)"/>.
     /// </summary>
-    internal Task<bool> ExecuteCodeAsync(string text)
+    internal async Task<bool> ExecuteCodeAsync(string text)
     {
-        return _taskQueue.ScheduleTask(nameof(ExecuteCodeAsync), async () =>
+        var returnValue = false;
+        _workQueue.AddWork(async () =>
         {
             var result = await Host.ExecuteAsync(text).ConfigureAwait(false);
             if (result.Success)
@@ -329,8 +346,11 @@ internal sealed class InteractiveSession : IDisposable
                 UpdatePathsNoLock(result);
             }
 
-            return result.Success;
-        }, _shutdownCancellationSource.Token);
+            returnValue = result.Success;
+        });
+
+        await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+        return returnValue;
     }
 
     internal async Task<bool> ResetAsync(InteractiveHostOptions options)
@@ -377,11 +397,13 @@ internal sealed class InteractiveSession : IDisposable
 
     public Task SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string workingDirectory)
     {
-        return _taskQueue.ScheduleTask(nameof(ExecuteCodeAsync), async () =>
+        _workQueue.AddWork(async () =>
         {
             var result = await Host.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, workingDirectory).ConfigureAwait(false);
             UpdatePathsNoLock(result);
-        }, _shutdownCancellationSource.Token);
+        });
+
+        return _workQueue.WaitUntilCurrentBatchCompletesAsync();
     }
 
     private void UpdatePathsNoLock(RemoteExecutionResult result)

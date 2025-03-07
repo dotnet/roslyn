@@ -663,7 +663,7 @@ public partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTests
             var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
             // Now make the PDB a zero byte file
-            File.WriteAllBytes(GetPdbPath(path), new byte[0]);
+            File.WriteAllBytes(GetPdbPath(path), []);
 
             await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
         });

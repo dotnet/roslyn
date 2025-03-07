@@ -1679,7 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (name == null)
-                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: default(VoidResult));
+                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: 0);
 
             return results.ToImmutableAndFree();
         }
@@ -5229,7 +5229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lineNumberOneIndexed = lineSpan.Line + 1;
             var characterNumberOneIndexed = lineSpan.Character + 1;
 
-            return new InterceptableLocation1(checksum, path, nameSyntax.Position, lineNumberOneIndexed, characterNumberOneIndexed);
+            return new InterceptableLocation1(checksum, path, Compilation.Options.SourceReferenceResolver, nameSyntax.Position, lineNumberOneIndexed, characterNumberOneIndexed);
         }
 #nullable disable
 

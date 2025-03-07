@@ -76,7 +76,7 @@ public class MapTests
         Assert.Equal(1, map.Count);
 
         map = map.Remove("5");
-        Assert.Equal(0, map.Count);
+        Assert.Empty(map);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class MapTests
         Assert.Equal(1, map.Count);
 
         map = map.Remove("5");
-        Assert.Equal(0, map.Count);
+        Assert.Empty(map);
     }
 
     private class PathologicalComparer<T> : IEqualityComparer<T>

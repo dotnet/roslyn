@@ -352,7 +352,7 @@ public class Class1
     void Test(int i) {{ }}
     void M()
     {{
-{{|conflict:{{|conflict:<<<<<<< {String.Format(WorkspacesResources.Unmerged_change_from_project_0, "CSharpAssembly1")}, {WorkspacesResources.Before_colon}
+{{|conflict:{{|conflict:<<<<<<< {String.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, "CSharpAssembly1")}, {WorkspacesResources.Before_colon}
         Test(5);
 =======
         Test((long)5);

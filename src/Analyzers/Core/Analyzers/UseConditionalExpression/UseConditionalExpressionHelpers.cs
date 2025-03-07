@@ -4,8 +4,12 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression;
 
@@ -18,7 +22,7 @@ internal static partial class UseConditionalExpressionHelpers
 
     public static bool CanConvert(
         ISyntaxFacts syntaxFacts, IConditionalOperation ifOperation,
-        IOperation whenTrue, IOperation whenFalse)
+        IOperation whenTrue, IOperation whenFalse, CancellationToken cancellationToken)
     {
         // Will likely not work as intended if the if directive spans any preprocessor directives. So
         // do not offer for now.  Note: we pass in both the node for the ifOperation and the
@@ -35,9 +39,7 @@ internal static partial class UseConditionalExpressionHelpers
         //
         // In this case, we want to see that this cross the `#endif`
         if (syntaxFacts.SpansPreprocessorDirective(ifOperation.Syntax, whenFalse.Syntax))
-        {
             return false;
-        }
 
         // User may have comments on the when-true/when-false statements.  These statements can
         // be very important. Often they indicate why the true/false branches are important in
@@ -47,6 +49,17 @@ internal static partial class UseConditionalExpressionHelpers
         {
             return false;
         }
+
+        // Can't convert if the two branches declare variables with the same name (for example, with an `out var`).
+        // These will then collide when we convert to a conditional expression.
+        var semanticModel = ifOperation.SemanticModel;
+        Contract.ThrowIfNull(semanticModel);
+
+        var whenTrueSymbols = semanticModel.GetAllDeclaredSymbols(whenTrue.Syntax, cancellationToken, n => !syntaxFacts.IsAnonymousOrLocalFunction(n));
+        var whenFalseSymbols = semanticModel.GetAllDeclaredSymbols(whenFalse.Syntax, cancellationToken, n => !syntaxFacts.IsAnonymousOrLocalFunction(n));
+
+        if (whenTrueSymbols.Select(s => s.Name).Intersect(whenFalseSymbols.Select(s => s.Name)).Any())
+            return false;
 
         return true;
     }

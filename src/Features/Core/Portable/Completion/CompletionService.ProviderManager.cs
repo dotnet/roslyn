@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion;
@@ -193,7 +194,7 @@ public abstract partial class CompletionService
             if (snippetsRule is SnippetsRule.Default or
                 SnippetsRule.NeverInclude)
             {
-                return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
+                return [.. providers.Where(p => !p.IsSnippetProvider)];
             }
             else if (snippetsRule == SnippetsRule.AlwaysInclude)
             {
@@ -203,11 +204,11 @@ public abstract partial class CompletionService
             {
                 if (trigger.Kind == CompletionTriggerKind.Snippets)
                 {
-                    return providers.Where(p => p.IsSnippetProvider).ToImmutableArray();
+                    return [.. providers.Where(p => p.IsSnippetProvider)];
                 }
                 else
                 {
-                    return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
+                    return [.. providers.Where(p => !p.IsSnippetProvider)];
                 }
             }
 

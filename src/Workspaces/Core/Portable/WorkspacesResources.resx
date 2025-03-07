@@ -249,8 +249,9 @@
   <data name="Solution_file_not_found_colon_0" xml:space="preserve">
     <value>Solution file not found: '{0}'</value>
   </data>
-  <data name="Unmerged_change_from_project_0" xml:space="preserve">
-    <value>Unmerged change from project '{0}'</value>
+  <data name="TODO_Unmerged_change_from_project_0" xml:space="preserve">
+    <value>TODO: Unmerged change from project '{0}'</value>
+    <comment>{Locked="TODO"}</comment>
   </data>
   <data name="After" xml:space="preserve">
     <value>After</value>

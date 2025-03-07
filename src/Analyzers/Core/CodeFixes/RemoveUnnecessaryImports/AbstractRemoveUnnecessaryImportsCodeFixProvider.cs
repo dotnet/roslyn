@@ -29,7 +29,10 @@ internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFi
             CodeAction.Create(
                 title,
                 cancellationToken => RemoveUnnecessaryImportsAsync(context.Document, cancellationToken),
-                title),
+                title,
+                // If the user is on a using/import that is marked as unnecessary, then we want to make sure that this
+                // code action is preferred over virtually any others that could be located at that position.
+                priority: CodeActionPriority.High),
             context.Diagnostics);
         return Task.CompletedTask;
     }

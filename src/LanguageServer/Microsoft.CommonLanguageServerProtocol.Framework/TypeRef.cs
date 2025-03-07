@@ -61,14 +61,16 @@ internal sealed partial class TypeRef : IEquatable<TypeRef>
         var comparer = StringComparer.Ordinal;
 
         var hashCode = 2037759866;
-        hashCode = hashCode * -1521134295 + comparer.GetHashCode(TypeName);
-        hashCode = hashCode * -1521134295 + comparer.GetHashCode(AssemblyName);
-
-        if (CodeBase is string codeBase)
+        unchecked
         {
-            hashCode = hashCode * -1521134295 + comparer.GetHashCode(codeBase);
-        }
+            hashCode = hashCode * -1521134295 + comparer.GetHashCode(TypeName);
+            hashCode = hashCode * -1521134295 + comparer.GetHashCode(AssemblyName);
 
+            if (CodeBase is string codeBase)
+            {
+                hashCode = hashCode * -1521134295 + comparer.GetHashCode(codeBase);
+            }
+        }
         return hashCode;
     }
 

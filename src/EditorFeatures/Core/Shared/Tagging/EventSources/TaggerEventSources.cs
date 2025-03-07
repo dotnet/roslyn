@@ -23,7 +23,7 @@ internal static partial class TaggerEventSources
     }
 
     public static ITaggerEventSource Compose(IEnumerable<ITaggerEventSource> eventSources)
-        => new CompositionEventSource(eventSources.ToArray());
+        => new CompositionEventSource([.. eventSources]);
 
     public static ITaggerEventSource OnCaretPositionChanged(ITextView textView, ITextBuffer subjectBuffer)
         => new CaretPositionChangedEventSource(textView, subjectBuffer);

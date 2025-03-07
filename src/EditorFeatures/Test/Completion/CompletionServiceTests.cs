@@ -83,13 +83,13 @@ class Test {
         public override object Id => nameof(MockAnalyzerReference);
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public ImmutableArray<CompletionProvider> GetCompletionProviders()
-            => ImmutableArray.Create(_completionProvider);
+            => [_completionProvider];
     }
 
     private sealed class DebugAssertTestCompletionProvider : CompletionProvider

@@ -286,6 +286,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
 
+        Friend MustOverride ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+
         ''' <summary>
         ''' A Named type is an extensible interface if both the following are true:
         ''' (a) It is an interface type and

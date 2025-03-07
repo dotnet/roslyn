@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12791,6 +12790,64 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             matchingFilters: [FilterSet.MethodFilter, FilterSet.TargetTypedFilter]);
     }
 
+    [InlineData("IGoo", new string[] { "Goo", "GooDerived", "GooGeneric" })]
+    [InlineData("IGoo[]", new string[] { "IGoo", "IGooGeneric", "Goo", "GooAbstract", "GooDerived", "GooGeneric" })]
+    [InlineData("IGooGeneric<int>", new string[] { "GooGeneric" })]
+    [InlineData("IGooGeneric<int>[]", new string[] { "IGooGeneric", "GooGeneric" })]
+    [InlineData("IOther", new string[] { })]
+    [InlineData("Goo", new string[] { "Goo" })]
+    [InlineData("GooAbstract", new string[] { "GooDerived" })]
+    [InlineData("GooDerived", new string[] { "GooDerived" })]
+    [InlineData("GooGeneric<int>", new string[] { "GooGeneric" })]
+    [InlineData("object", new string[] { "C", "Goo", "GooDerived", "GooGeneric" })]
+    [Theory, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
+    public async Task TestTargetTypeCompletionInCreationContext(string targetType, string[] expectedItems)
+    {
+        ShowTargetTypedCompletionFilter = true;
+
+        var markup =
+            $$"""
+            interface IGoo { }
+            interface IGooGeneric<T> : IGoo { }
+            interface IOther { }
+            class Goo : IGoo { }
+            abstract class GooAbstract : IGoo { }
+            class GooDerived : GooAbstract { }
+            class GooGeneric<T> : IGooGeneric<T> { }
+            
+            class C
+            {
+                void M1({{targetType}} arg) { }
+
+                void M2()
+                    => M1(new $$);
+            }
+            """;
+
+        (string Name, bool IsClass, string? DisplaySuffix)[] types = [
+            ("IGoo", false, null),
+            ("IGooGeneric", false, "<>"),
+            ("IOther", false, null),
+            ("Goo", true, null),
+            ("GooAbstract", true, null),
+            ("GooDerived", true, null),
+            ("GooGeneric", true, "<>"),
+            ("C", true, null)
+        ];
+
+        foreach (var item in types.Where(t => t.IsClass && expectedItems.Contains(t.Name)))
+            await VerifyItemExistsAsync(markup, item.Name, matchingFilters: [FilterSet.ClassFilter, FilterSet.TargetTypedFilter], displayTextSuffix: item.DisplaySuffix);
+
+        foreach (var item in types.Where(t => t.IsClass && !expectedItems.Contains(t.Name)))
+            await VerifyItemExistsAsync(markup, item.Name, matchingFilters: [FilterSet.ClassFilter], displayTextSuffix: item.DisplaySuffix);
+
+        foreach (var item in types.Where(t => !t.IsClass && expectedItems.Contains(t.Name)))
+            await VerifyItemExistsAsync(markup, item.Name, matchingFilters: [FilterSet.InterfaceFilter, FilterSet.TargetTypedFilter], displayTextSuffix: item.DisplaySuffix);
+
+        foreach (var item in types.Where(t => !t.IsClass && !expectedItems.Contains(t.Name)))
+            await VerifyItemExistsAsync(markup, item.Name, matchingFilters: [FilterSet.InterfaceFilter], displayTextSuffix: item.DisplaySuffix);
+    }
+
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task TestTypesNotSuggestedInDeclarationDeconstruction()
     {
@@ -13400,15 +13457,16 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         await VerifyAnyItemExistsAsync(source);
     }
 
-    [Fact]
-    public async Task AfterScopedInsideMethod()
+    [Theory, CombinatorialData]
+    public async Task AfterScopedInsideMethod(bool useRef)
     {
-        var source = """
+        var refKeyword = useRef ? "ref " : "";
+        var source = $$"""
             class C
             {
                 void M()
                 {
-                    scoped $$
+                    scoped {{refKeyword}}$$
                 }
             }
 
@@ -13417,24 +13475,54 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
     }
 
-    [Fact]
-    public async Task AfterScopedGlobalStatement_FollowedByType()
+    [Theory, CombinatorialData]
+    public async Task AfterScopedGlobalStatement_FollowedByRefStruct(bool useRef)
     {
-        var source = """
-            scoped $$
+        var refKeyword = useRef ? "ref " : "";
+        var source = $$"""
+            scoped {{refKeyword}}$$
 
             ref struct MyRefStruct { }
             """;
         await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
     }
 
-    [Fact]
-    public async Task AfterScopedGlobalStatement_NotFollowedByType()
+    [Theory, CombinatorialData]
+    public async Task AfterScopedGlobalStatement_FollowedByStruct(bool useRef)
     {
-        var source = """
+        var refKeyword = useRef ? "ref " : "";
+        var source = $$"""
             using System;
 
-            scoped $$
+            scoped {{refKeyword}}$$
+
+            struct S { }
+            """;
+        await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AfterScopedGlobalStatement_FollowedByPartialStruct(bool useRef)
+    {
+        var refKeyword = useRef ? "ref " : "";
+        var source = $$"""
+            using System;
+
+            scoped {{refKeyword}}$$
+
+            partial struct S { }
+            """;
+        await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AfterScopedGlobalStatement_NotFollowedByType(bool useRef)
+    {
+        var refKeyword = useRef ? "ref " : "";
+        var source = $"""
+            using System;
+
+            scoped {refKeyword}$$
             """;
 
         await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
@@ -14787,6 +14875,210 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     }
 
     #endregion
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
+    [InlineData("class")]
+    [InlineData("struct")]
+    [InlineData("record class")]
+    [InlineData("record struct")]
+    public async Task RecommendedPrimaryConstructorParameters01(string typeKind)
+    {
+        var markup = $$"""
+            namespace PrimaryConstructor;
+
+            public {{typeKind}} Point(int X, int Y)
+            {
+                public static Point Parse(string line)
+                {
+                    $$
+                }
+            }
+            """;
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Absent("X"),
+            ItemExpectation.Absent("Y"),
+        ]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
+    [InlineData("class")]
+    [InlineData("record class")]
+    public async Task RecommendedPrimaryConstructorParameters02(string typeKind)
+    {
+        var markup = $$"""
+            namespace PrimaryConstructor;
+
+            public abstract {{typeKind}} BasePoint(int X);
+
+            public {{typeKind}} Point(int X, int Y)
+                : BasePoint(X)
+            {
+                public static Point Parse(string line)
+                {
+                    $$
+                }
+            }
+            """;
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Absent("X"),
+            ItemExpectation.Absent("Y"),
+        ]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
+    [InlineData("class")]
+    [InlineData("record class")]
+    public async Task RecommendedPrimaryConstructorParameters03(string typeKind)
+    {
+        var markup = $$"""
+            namespace PrimaryConstructor;
+
+            public abstract {{typeKind}} BasePoint(int X);
+
+            public {{typeKind}} Point(int X, int Y)
+                : BasePoint(X)
+            {
+                public int Y { get; init; } = Y;
+
+                public static Point Parse(string line)
+                {
+                    $$
+                }
+            }
+            """;
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Absent("X"),
+            ItemExpectation.Absent("Y"),
+        ]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
+    [InlineData("class")]
+    [InlineData("struct")]
+    [InlineData("record class")]
+    [InlineData("record struct")]
+    public async Task RecommendedPrimaryConstructorParameters04(string typeKind)
+    {
+        var markup = $$"""
+            namespace PrimaryConstructor;
+
+            public {{typeKind}} Point(int X, int Y)
+            {
+                public static Point Parse(string line)
+                {
+                    var n = nameof($$
+                }
+            }
+            """;
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Exists("Y"),
+        ]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
+    [InlineData("record class")]
+    [InlineData("class")]
+    public async Task RecommendedPrimaryConstructorParameters05(string typeKind)
+    {
+        var markup = $$"""
+            namespace PrimaryConstructor;
+
+            public abstract {{typeKind}} BasePoint(int X);
+
+            public {{typeKind}} Point(int X, int Y)
+                : BasePoint(X)
+            {
+                public static Point Parse(string line)
+                {
+                    var n = nameof($$
+                }
+            }
+            """;
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Exists("Y"),
+        ]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
+    [InlineData("record")]
+    [InlineData("class")]
+    public async Task RecommendedPrimaryConstructorParameters06(string typeKind)
+    {
+        var markup = $$"""
+            namespace PrimaryConstructor;
+
+            public abstract {{typeKind}} BasePoint(int X);
+
+            public {{typeKind}} Point(int X, int Y)
+                : BasePoint(X)
+            {
+                public int Y { get; init; } = Y;
+
+                public static Point Parse(string line)
+                {
+                    var n = nameof($$
+                }
+            }
+            """;
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Exists("Y"),
+        ]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
+    [InlineData("class")]
+    [InlineData("struct")]
+    [InlineData("record class")]
+    [InlineData("record struct")]
+    public async Task RecommendedPrimaryConstructorParameters07(string typeKind)
+    {
+        var markup = $$"""
+            namespace PrimaryConstructor;
+
+            public {{typeKind}} Point(int X, int Y)
+            {
+                public static int Y { get; } = 0;
+
+                public static Point Parse(string line)
+                {
+                    $$
+                }
+            }
+            """;
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Absent("X"),
+            ItemExpectation.Exists("Y"),
+        ]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74327")]
+    [InlineData("class")]
+    [InlineData("struct")]
+    [InlineData("record class")]
+    [InlineData("record struct")]
+    public async Task RecommendedPrimaryConstructorParameters08(string typeKind)
+    {
+        var markup = $$"""
+            namespace PrimaryConstructor;
+
+            public {{typeKind}} Point(int X, int Y)
+            {
+                public static int Y { get; } = 0;
+
+                public static Point Parse(string line)
+                {
+                    var n = nameof($$
+                }
+            }
+            """;
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Exists("Y"),
+        ]);
+    }
 
     private static string MakeMarkup([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source, string languageVersion = "Preview")
     {

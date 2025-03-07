@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
             foreach (var (headerText, span, isGlobal) in sections)
             {
                 var section = new Section(editorconfigFilePath, isGlobal, span, headerText, $"[{headerText}]");
-                var parseResult = new EditorConfigOption(section, null);
+                var parseResult = new EditorConfigOption<object?>(section, Span: null, Value: null);
                 list.Add(parseResult);
             }
 

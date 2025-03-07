@@ -781,7 +781,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
             {
                 object M()
                 {
-                    return true ? "a" : (object)"b";
+                    return true ? "a" : "b";
                 }
             }
             """, parseOptions: CSharp8);
@@ -812,7 +812,7 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
             {
                 object M()
                 {
-                    return true ? "a" : (object)"b";
+                    return true ? "a" : "b";
                 }
             }
             """, parseOptions: CSharp9);
@@ -2335,6 +2335,65 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                 int[] M()
                 {
                     return true ? [0] : [1];
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
+    public async Task UnnecessaryWithinConditionalBranch2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            public class IssueClass
+            {
+                double ID;
+
+                public object ConvertFieldValueForStorage(object value)
+                {
+                    [|if|] (value is IssueClass issue)
+                    {
+                        return (decimal)issue.ID;
+                    }
+                    else
+                    {
+                        return -1m;
+                    }
+                }
+            }
+            """,
+            """
+            public class IssueClass
+            {
+                double ID;
+            
+                public object ConvertFieldValueForStorage(object value)
+                {
+                    return value is IssueClass issue ? (decimal)issue.ID : -1m;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72464")]
+    public async Task TestMissingWithVariableCollisions()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            public class IssueClass
+            {
+                public object Convert(Type type, string body)
+                {
+                    [||]if (type == typeof(bool))
+                    {
+                        return bool.TryParse(body, out bool value) ? 0 : 1;
+                    }
+                    else
+                    {
+                        return int.TryParse(body, out int value) ? 2 : 3;
+                    }
                 }
             }
             """);

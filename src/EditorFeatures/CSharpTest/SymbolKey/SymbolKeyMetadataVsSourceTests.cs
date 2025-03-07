@@ -150,7 +150,7 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         // ---------------------------
         // Source symbols
         var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.NonTypeMember | SymbolCategory.Parameter).ToList();
-        originalSymbols = originalSymbols.Where(s => !s.IsAccessor() && s.Kind != SymbolKind.Parameter).OrderBy(s => s.Name).Select(s => s).ToList();
+        originalSymbols = [.. originalSymbols.Where(s => !s.IsAccessor() && s.Kind != SymbolKind.Parameter).OrderBy(s => s.Name).Select(s => s)];
         Assert.Equal(8, originalSymbols.Count);
 
         // ---------------------------

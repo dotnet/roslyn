@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers;
+namespace Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers;
 
-internal static partial class AddAccessibilityModifiersHelpers
+internal static partial class AddOrRemoveAccessibilityModifiersHelpers
 {
     public static void UpdateDeclaration(
         SyntaxEditor editor, ISymbol symbol, SyntaxNode declaration)
@@ -49,6 +49,9 @@ internal static partial class AddAccessibilityModifiersHelpers
         // that's not legal.  And these are reasonable default values for them.
         if (symbol is IMethodSymbol or IPropertySymbol or IEventSymbol)
         {
+            if (symbol.ContainingType?.TypeKind == TypeKind.Interface)
+                return Accessibility.Public;
+
             if (symbol.IsAbstract)
                 return Accessibility.Protected;
 

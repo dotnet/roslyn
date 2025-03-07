@@ -41,6 +41,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation
 
         public bool IsStale => false;
 
-        public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
+        public ImmutableArray<INavigableItem> ChildItems => [];
     }
 }

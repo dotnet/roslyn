@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SourceGeneration;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
@@ -145,7 +146,7 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
 
             // If we can't make a remote call.  Fall back to processing in the VS host.
             if (client is null)
-                return project.AnalyzerReferences.Where(r => r is not AnalyzerFileReference || r.HasAnalyzersOrSourceGenerators(project.Language)).ToImmutableArray();
+                return [.. project.AnalyzerReferences.Where(r => r is not AnalyzerFileReference || r.HasAnalyzersOrSourceGenerators(project.Language))];
 
             using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
 

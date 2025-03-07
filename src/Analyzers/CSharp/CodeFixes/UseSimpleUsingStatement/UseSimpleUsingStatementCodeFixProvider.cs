@@ -67,8 +67,8 @@ internal sealed class UseSimpleUsingStatementCodeFixProvider() : SyntaxEditorBas
         SyntaxNode currentBlockLike,
         ISet<UsingStatementSyntax> topmostUsingStatements)
     {
-        var originalBlockStatements = (IReadOnlyList<StatementSyntax>)CSharpBlockFacts.Instance.GetExecutableBlockStatements(originalBlockLike);
-        var currentBlockStatements = (IReadOnlyList<StatementSyntax>)CSharpBlockFacts.Instance.GetExecutableBlockStatements(currentBlockLike);
+        var originalBlockStatements = CSharpBlockFacts.Instance.GetExecutableBlockStatements(originalBlockLike);
+        var currentBlockStatements = CSharpBlockFacts.Instance.GetExecutableBlockStatements(currentBlockLike);
 
         if (originalBlockStatements.Count == currentBlockStatements.Count)
         {

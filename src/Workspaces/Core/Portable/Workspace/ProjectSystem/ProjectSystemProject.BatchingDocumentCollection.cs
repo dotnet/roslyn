@@ -547,7 +547,7 @@ internal sealed partial class ProjectSystemProject
             // State is cleared at the end once the solution changes are actually applied via ClearBatchState.
             return UpdateSolutionForBatch(solutionChanges, documentFileNamesAdded, addDocuments,
                 addDocumentChangeKind, removeDocuments, removeDocumentChangeKind, _project.Id, _documentsAddedInBatch.ToImmutableArray(),
-                _documentsRemovedInBatch.ToImmutableArray(), _orderedDocumentsInBatch,
+                [.. _documentsRemovedInBatch], _orderedDocumentsInBatch,
                 documentId => _sourceTextContainersToDocumentIds.GetKeyOrDefault(documentId));
 
             static ImmutableArray<(DocumentId documentId, SourceTextContainer textContainer)> UpdateSolutionForBatch(

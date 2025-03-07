@@ -22,6 +22,6 @@ internal static class SymbolAnnotation
 
     public static ImmutableArray<ISymbol> GetSymbols(SyntaxAnnotation annotation, Compilation compilation)
         => annotation.Data is null
-            ? ImmutableArray<ISymbol>.Empty
+            ? []
             : DocumentationCommentId.GetSymbolsForReferenceId(annotation.Data, compilation);
 }

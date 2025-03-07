@@ -51,7 +51,7 @@ public class Option<T> : IPublicOption
                name ?? throw new ArgumentNullException(nameof(name)),
                OptionGroup.Default,
                defaultValue,
-               PublicContract.RequireNonNullItems(storageLocations, nameof(storageLocations)).ToImmutableArray(),
+               [.. PublicContract.RequireNonNullItems(storageLocations, nameof(storageLocations))],
                storageMapping: null,
                isEditorConfigOption: false)
     {

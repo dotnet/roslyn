@@ -135,14 +135,14 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     private static ImmutableArray<string> GetRuntimeDirectories()
     {
-        return GetReferencePaths().Concat(
+        return [.. GetReferencePaths().Concat(
             new string[]
             {
                 Environment.GetFolderPath(Environment.SpecialFolder.Windows),
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
                 RuntimeEnvironment.GetRuntimeDirectory()
-            }).Select(FileUtilities.NormalizeDirectoryPath).ToImmutableArray();
+            }).Select(FileUtilities.NormalizeDirectoryPath)];
     }
 
     /// <exception cref="IOException"/>

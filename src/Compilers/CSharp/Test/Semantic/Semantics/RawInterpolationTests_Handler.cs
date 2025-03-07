@@ -3633,6 +3633,7 @@ literal:Literal");
 using System;
 CultureInfoNormalizer.Normalize();
 C.M(() => " + expression + @");
+CultureInfoNormalizer.Reset();
 
 class C
 {
@@ -3902,6 +3903,7 @@ C.M(b =>
         if (b) return default(CustomHandler);
         else return " + expression + @";
     });
+CultureInfoNormalizer.Reset();
 
 static class C
 {
@@ -4178,6 +4180,7 @@ using System;
 CultureInfoNormalizer.Normalize();
 var x = (bool)(object)false ? default(CustomHandler) : " + expression + @";
 Console.WriteLine(x);
+CultureInfoNormalizer.Reset();
 
 public partial struct CustomHandler
 {
@@ -4190,7 +4193,7 @@ public partial struct CustomHandler
 
         verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
 {
-  // Code size       56 (0x38)
+  // Code size       61 (0x3d)
   .maxstack  2
   .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
@@ -4208,12 +4211,13 @@ public partial struct CustomHandler
   IL_002c:  ldloc.0
   IL_002d:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
   IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
+  IL_0037:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_003c:  ret
 }
 "
 : @"
 {
-  // Code size       66 (0x42)
+  // Code size       71 (0x47)
   .maxstack  2
   .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
@@ -4233,7 +4237,8 @@ public partial struct CustomHandler
   IL_0036:  ldloc.0
   IL_0037:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
   IL_003c:  call       ""void System.Console.WriteLine(string)""
-  IL_0041:  ret
+  IL_0041:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_0046:  ret
 }
 ");
     }
@@ -4443,6 +4448,7 @@ using System;
 CultureInfoNormalizer.Normalize();
 var x = (bool)(object)false switch { true => default(CustomHandler), false => " + expression + @" };
 Console.WriteLine(x);
+CultureInfoNormalizer.Reset();
 
 public partial struct CustomHandler
 {
@@ -4455,7 +4461,7 @@ public partial struct CustomHandler
 
         verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
 {
-  // Code size       59 (0x3b)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (string V_0,
                 CustomHandler V_1)
@@ -4477,12 +4483,13 @@ public partial struct CustomHandler
   IL_0033:  stloc.0
   IL_0034:  ldloc.0
   IL_0035:  call       ""void System.Console.WriteLine(string)""
-  IL_003a:  ret
+  IL_003a:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_003f:  ret
 }
 "
 : @"
 {
-  // Code size       69 (0x45)
+  // Code size       74 (0x4a)
   .maxstack  2
   .locals init (string V_0,
                 CustomHandler V_1)
@@ -4506,7 +4513,8 @@ public partial struct CustomHandler
   IL_003d:  stloc.0
   IL_003e:  ldloc.0
   IL_003f:  call       ""void System.Console.WriteLine(string)""
-  IL_0044:  ret
+  IL_0044:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_0049:  ret
 }
 ");
     }

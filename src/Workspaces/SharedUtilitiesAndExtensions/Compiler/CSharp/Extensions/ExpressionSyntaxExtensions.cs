@@ -364,7 +364,7 @@ internal static partial class ExpressionSyntaxExtensions
             return true;
 
         // An extension method invocation with a ref-this parameter can write to an expression.
-        if (expression.Parent is MemberAccessExpressionSyntax memberAccess &&
+        if (expression.Parent is MemberAccessExpressionSyntax { Parent: InvocationExpressionSyntax } memberAccess &&
             expression == memberAccess.Expression)
         {
             var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;

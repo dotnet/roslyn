@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
                 solution,
                 new ManagedHotReloadServiceBridge(_debuggerService),
                 NullPdbMatchingSourceTextProvider.Instance,
-                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureMatchingDocuments: [],
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,
                 cancellationToken).ConfigureAwait(false);

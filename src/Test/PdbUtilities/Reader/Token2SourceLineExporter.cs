@@ -1143,7 +1143,7 @@ namespace Roslyn.Test.PdbUtilities
             {
                 writer.WriteStartElement("token-map");
 
-                List<PdbTokenLine> list = new List<PdbTokenLine>(LoadTokenToSourceMapping(read).Values);
+                List<PdbTokenLine> list = [.. LoadTokenToSourceMapping(read).Values];
                 list.Sort(
                     (x, y) =>
                     {
@@ -1463,7 +1463,7 @@ namespace Roslyn.Test.PdbUtilities
 
             if (modList.Count > 0)
             {
-                modules = modList.ToArray();
+                modules = [.. modList];
             }
             else
             {

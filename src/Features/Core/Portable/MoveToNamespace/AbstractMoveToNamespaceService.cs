@@ -100,7 +100,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
                 var namespaceName = GetNamespaceName(declarationSyntax);
                 var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
 
-                return new MoveToNamespaceAnalysisResult(document, declarationSyntax, namespaceName, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.Namespace);
+                return new MoveToNamespaceAnalysisResult(document, declarationSyntax, namespaceName, [.. namespaces], MoveToNamespaceAnalysisResult.ContainerType.Namespace);
             }
         }
 
@@ -142,7 +142,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
             if (await changeNamespaceService.CanChangeNamespaceAsync(document, container, cancellationToken).ConfigureAwait(false))
             {
                 var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
-                return new MoveToNamespaceAnalysisResult(document, namedTypeDeclarationSyntax, GetNamespaceName(container), namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.NamedType);
+                return new MoveToNamespaceAnalysisResult(document, namedTypeDeclarationSyntax, GetNamespaceName(container), [.. namespaces], MoveToNamespaceAnalysisResult.ContainerType.NamedType);
             }
         }
 

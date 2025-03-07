@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="AbsolutePathExpected">
         <source>Absolute path expected</source>
-        <target state="new">Absolute path expected</target>
+        <target state="translated">절대 경로가 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="After">
         <source>After</source>
-        <target state="new">After</target>
+        <target state="translated">이후</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -196,6 +196,11 @@
         <source>Sync namespace to folder structure</source>
         <target state="translated">네임스페이스를 폴더 구조로 동기화</target>
         <note />
+      </trans-unit>
+      <trans-unit id="TODO_Unmerged_change_from_project_0">
+        <source>TODO: Unmerged change from project '{0}'</source>
+        <target state="translated">TODO: '{0}' 프로젝트에서 병합되지 않은 변경 내용</target>
+        <note>{Locked="TODO"}</note>
       </trans-unit>
       <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
         <source>The contents of a SourceGeneratedDocument may not be changed.</source>
@@ -405,11 +410,6 @@
       <trans-unit id="Solution_file_not_found_colon_0">
         <source>Solution file not found: '{0}'</source>
         <target state="translated">'{0}' 솔루션 파일을 찾을 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unmerged_change_from_project_0">
-        <source>Unmerged change from project '{0}'</source>
-        <target state="translated">'{0}' 프로젝트에서 병합되지 않은 변경 내용</target>
         <note />
       </trans-unit>
       <trans-unit id="Before_colon">

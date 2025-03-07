@@ -73,6 +73,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\CSharpSimplifyInterpolationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\CSharpSimplifyInterpolationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqTypeCheckAndCastDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyPropertyPattern\CSharpSimplifyPropertyPatternDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyPropertyPattern\SimplifyPropertyPatternHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertProgram\ConvertToProgramMainDiagnosticAnalyzer.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\CSharpRemoveUnusedMembersDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\CSharpUseCollectionInitializerDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseImplicitlyTypedLambdaExpression\CSharpUseImplicitlyTypedLambdaExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitObjectCreation\CSharpUseImplicitObjectCreationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpTypeStyleDiagnosticAnalyzerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\CSharpUseExplicitTypeDiagnosticAnalyzer.cs" />

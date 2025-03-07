@@ -8,16 +8,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BasicVSResources.Completion_Lists
 
         Public ReadOnly Property Option_Show_completion_list_after_a_character_is_typed As String =
-            ServicesVSResources.Show_completion_list_after_a_character_is_typed
+            ServicesVSResources._Show_completion_list_after_a_character_is_typed
 
         Public ReadOnly Property Option_Show_completion_list_after_a_character_is_deleted As String =
-            ServicesVSResources.Show_completion_list_after_a_character_is_deleted
+            ServicesVSResources.Show_completion_list_after_a_character_is__deleted
 
         Public ReadOnly Property Option_Highlight_matching_portions_of_completion_list_items As String =
-            ServicesVSResources.Highlight_matching_portions_of_completion_list_items
+            ServicesVSResources._Highlight_matching_portions_of_completion_list_items
 
         Public ReadOnly Property Option_Show_completion_item_filters As String =
-            ServicesVSResources.Show_completion_item_filters
+            ServicesVSResources.Show_completion_item__filters
 
         Public ReadOnly Property Option_Only_add_new_line_on_enter_with_whole_word As String =
             ServicesVSResources.Only_add_new_line_on_enter_after_end_of_fully_typed_word
@@ -46,8 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_items_from_unimported_namespaces As String =
             ServicesVSResources.Show_items_from_unimported_namespaces
 
-        Public ReadOnly Property Option_Tab_twice_to_insert_arguments As String =
-            ServicesVSResources.Tab_twice_to_insert_arguments
-
+        Public ReadOnly Property Option_Tab_twice_to_insert_arguments_experimental As String =
+            ServicesVSResources.Tab_twice_to_insert_arguments_experimental
     End Module
 End Namespace

@@ -99,6 +99,9 @@ internal static class ICompilationExtensions
     public static INamedTypeSymbol? ThreadStaticAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(ThreadStaticAttribute).FullName!);
 
+    public static INamedTypeSymbol? FormattableStringType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(FormattableString).FullName!);
+
     public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);
 

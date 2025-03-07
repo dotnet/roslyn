@@ -287,7 +287,7 @@ internal static class CodeGenerationSymbolFactory
     /// <summary>
     /// Creates a parameter symbol that can be used to describe a parameter declaration.
     /// </summary>
-    internal static IParameterSymbol CreateParameterSymbol(
+    public static IParameterSymbol CreateParameterSymbol(
         IParameterSymbol parameter,
         ImmutableArray<AttributeData>? attributes = null,
         RefKind? refKind = null,
@@ -454,7 +454,7 @@ internal static class CodeGenerationSymbolFactory
             containingAssembly, null, attributes, accessibility, modifiers, isRecord, typeKind, name,
             typeParameters, baseType, interfaces, specialType, nullableAnnotation,
             members.WhereAsArray(m => m is not INamedTypeSymbol),
-            members.OfType<INamedTypeSymbol>().Select(n => n.ToCodeGenerationSymbol()).ToImmutableArray(),
+            [.. members.OfType<INamedTypeSymbol>().Select(n => n.ToCodeGenerationSymbol())],
             enumUnderlyingType: null);
     }
 

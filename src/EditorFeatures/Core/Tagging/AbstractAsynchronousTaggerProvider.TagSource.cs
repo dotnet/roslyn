@@ -7,12 +7,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -221,8 +221,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
                 _eventSource.Changed += OnEventSourceChanged;
 
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags) ||
-                    _dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits))
+                if (_dataSource.TextChangeBehavior != TaggerTextChangeBehavior.None)
                 {
                     _subjectBuffer.Changed += OnSubjectBufferChanged;
                 }
@@ -269,8 +268,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     _textView.Caret.PositionChanged -= OnCaretPositionChanged;
                 }
 
-                if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags) ||
-                    _dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits))
+                if (_dataSource.TextChangeBehavior != TaggerTextChangeBehavior.None)
                 {
                     _subjectBuffer.Changed -= OnSubjectBufferChanged;
                 }

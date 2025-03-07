@@ -168,7 +168,7 @@ public static class NavigateTo
         await TestServices.EditorVerifier.CurrentLineTextAsync("            System.Console.WriteLine();$$", assertCaretPosition: true, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync([VirtualKeyCode.HOME, (VirtualKeyCode.END, VirtualKeyCode.SHIFT), VirtualKeyCode.DELETE], HangMitigatingCancellationToken);
-        await TestServices.Input.SendAsync(new InputKey(VirtualKeyCode.SPACE, ImmutableArray.Create(VirtualKeyCode.CONTROL, VirtualKeyCode.MENU)), HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync(new InputKey(VirtualKeyCode.SPACE, [VirtualKeyCode.CONTROL, VirtualKeyCode.MENU]), HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("System.Console.", HangMitigatingCancellationToken);
         Assert.True(await TestServices.Editor.IsCompletionActiveAsync(HangMitigatingCancellationToken));

@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
 
             Protected Overrides Function GetCapturedTypeParameters(cancellationToken As CancellationToken) As ImmutableArray(Of ITypeParameterSymbol)
                 Dim result = New List(Of ITypeParameterSymbol)()
-                If Not Me.InvocationExpression.ArgumentList Is Nothing Then
+                If Me.InvocationExpression.ArgumentList IsNot Nothing Then
                     For Each argument In Me.InvocationExpression.ArgumentList.Arguments
                         Dim type = DetermineParameterType(argument, cancellationToken)
                         type.GetReferencedTypeParameters(result)

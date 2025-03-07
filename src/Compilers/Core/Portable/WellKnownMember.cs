@@ -715,6 +715,9 @@ namespace Microsoft.CodeAnalysis
         System_Linq_Expressions_Expression__Default,
         System_Linq_Expressions_Expression__Power_MethodInfo,
 
+        System_Text_Encoding__get_UTF8,
+        System_Text_Encoding__GetString,
+
         System_Runtime_CompilerServices_RuntimeHelpers__UnsafeAwaitAwaiterFromRuntimeAsync_TAwaiter,
 
         System_Runtime_CompilerServices_RuntimeHelpers__Await_Task,

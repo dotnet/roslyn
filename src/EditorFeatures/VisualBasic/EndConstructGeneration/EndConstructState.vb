@@ -2,15 +2,17 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
-    Friend Class EndConstructState
+    Friend NotInheritable Class EndConstructState
         Private ReadOnly _caretPosition As Integer
-        Private ReadOnly _semanticModel As Lazy(Of SemanticModel)
+        Private ReadOnly _semanticModel As AsyncLazy(Of SemanticModel)
         Private ReadOnly _tree As SyntaxTree
         Private ReadOnly _tokenToLeft As SyntaxToken
         Private ReadOnly _newLineCharacter As String
 
-        Public Sub New(caretPosition As Integer, semanticModel As Lazy(Of SemanticModel), syntaxTree As SyntaxTree, tokenToLeft As SyntaxToken, newLineCharacter As String)
+        Public Sub New(caretPosition As Integer, semanticModel As AsyncLazy(Of SemanticModel), syntaxTree As SyntaxTree, tokenToLeft As SyntaxToken, newLineCharacter As String)
             ThrowIfNull(syntaxTree)
 
             _caretPosition = caretPosition
@@ -26,11 +28,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             End Get
         End Property
 
-        Public ReadOnly Property SemanticModel As SemanticModel
-            Get
-                Return _semanticModel.Value
-            End Get
-        End Property
+        Public Function GetSemanticModelAsync(cancellationToken As CancellationToken) As Task(Of SemanticModel)
+            Return _semanticModel.GetValueAsync(cancellationToken)
+        End Function
 
         Public ReadOnly Property SyntaxTree As SyntaxTree
             Get

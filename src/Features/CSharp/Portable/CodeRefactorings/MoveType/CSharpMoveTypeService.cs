@@ -18,8 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveType;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpMoveTypeService() :
-    AbstractMoveTypeService<CSharpMoveTypeService, BaseTypeDeclarationSyntax, BaseNamespaceDeclarationSyntax, MemberDeclarationSyntax, CompilationUnitSyntax>
+    AbstractMoveTypeService<CSharpMoveTypeService, BaseTypeDeclarationSyntax, BaseNamespaceDeclarationSyntax, CompilationUnitSyntax>
 {
+    protected override (string name, int arity) GetSymbolNameAndArity(BaseTypeDeclarationSyntax syntax)
+        => (syntax.Identifier.ValueText, syntax is TypeDeclarationSyntax { TypeParameterList.Parameters.Count: var arity } ? arity : 0);
+
+    protected override bool IsMemberDeclaration(SyntaxNode syntaxNode)
+        => syntaxNode is MemberDeclarationSyntax;
+
     protected override async Task<BaseTypeDeclarationSyntax?> GetRelevantNodeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         => await document.TryGetRelevantNodeAsync<BaseTypeDeclarationSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
 }

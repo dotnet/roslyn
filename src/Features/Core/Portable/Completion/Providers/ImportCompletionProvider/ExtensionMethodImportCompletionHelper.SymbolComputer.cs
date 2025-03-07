@@ -143,12 +143,12 @@ internal static partial class ExtensionMethodImportCompletionHelper
         {
             var graph = project.Solution.GetProjectDependencyGraph();
             var relevantProjectIds = graph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id).Concat(project.Id);
-            return relevantProjectIds.Select(project.Solution.GetRequiredProject).Where(p => p.SupportsCompilation).ToImmutableArray();
+            return [.. relevantProjectIds.Select(project.Solution.GetRequiredProject).Where(p => p.SupportsCompilation)];
         }
 
         // Returns all PEs referenced by originating project.
         private static ImmutableArray<PortableExecutableReference> GetAllRelevantPeReferences(Project project)
-            => project.MetadataReferences.OfType<PortableExecutableReference>().ToImmutableArray();
+            => [.. project.MetadataReferences.OfType<PortableExecutableReference>()];
 
         private async Task GetExtensionMethodSymbolsFromProjectAsync(
             Project project,

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -31,22 +32,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 /// code that can be used).
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
+        EnforceOnBuildValues.InlineIsTypeWithoutName,
+        CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
+        new LocalizableResourceString(
+            nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
     private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
     private const string CS0103 = nameof(CS0103); // Name of the variable doesn't live in context
     private static readonly SyntaxAnnotation s_referenceAnnotation = new();
 
     public static readonly CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer Instance = new();
-
-    public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
-               EnforceOnBuildValues.InlineIsTypeWithoutName,
-               CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
-               new LocalizableResourceString(
-                   nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -55,8 +53,8 @@ internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuilt
     {
         context.RegisterCompilationStartAction(context =>
         {
-            var expressionTypeOpt = context.Compilation.ExpressionOfTType();
-            context.RegisterSyntaxNodeAction(context => SyntaxNodeAction(context, expressionTypeOpt), SyntaxKind.IsExpression);
+            var expressionType = context.Compilation.ExpressionOfTType();
+            context.RegisterSyntaxNodeAction(context => SyntaxNodeAction(context, expressionType), SyntaxKind.IsExpression);
         });
     }
 
@@ -71,9 +69,7 @@ internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuilt
         // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
         // in projects targeting a lesser version.
         if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp7)
-        {
             return;
-        }
 
         var styleOption = context.GetCSharpAnalyzerOptions().PreferPatternMatchingOverIsWithCastCheck;
         if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
@@ -92,8 +88,9 @@ internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuilt
             return;
         }
 
-        var (matches, _) = AnalyzeExpression(semanticModel, isExpression, expressionType, cancellationToken);
-        if (matches == null || matches.Count == 0)
+        using var _1 = PooledHashSet<CastExpressionSyntax>.GetInstance(out var matches);
+        AnalyzeExpression(semanticModel, isExpression, expressionType, matches, cancellationToken);
+        if (matches.Count == 0)
             return;
 
         context.ReportDiagnostic(
@@ -105,47 +102,45 @@ internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuilt
                 ImmutableDictionary<string, string?>.Empty));
     }
 
-    public static (HashSet<CastExpressionSyntax>, string localName) AnalyzeExpression(
+    /// <summary>
+    /// Returns the name of the local to generate.
+    /// </summary>
+    public static string? AnalyzeExpression(
         SemanticModel semanticModel,
         BinaryExpressionSyntax isExpression,
         INamedTypeSymbol? expressionType,
+        HashSet<CastExpressionSyntax> matches,
         CancellationToken cancellationToken)
     {
         var container = GetContainer(isExpression);
         if (container == null)
-            return default;
+            return null;
 
         // Pattern matching is not supported in expression tree.  So we can't fix this up.
         if (CSharpSemanticFactsService.Instance.IsInExpressionTree(semanticModel, isExpression, expressionType, cancellationToken))
-            return default;
+            return null;
 
         var expr = isExpression.Left.WalkDownParentheses();
         var type = (TypeSyntax)isExpression.Right;
 
+        // not legal to write "(x is int? y)"
         var typeSymbol = semanticModel.GetTypeInfo(type, cancellationToken).Type;
         if (typeSymbol == null || typeSymbol.IsNullable())
-        {
-            // not legal to write "(x is int? y)"
-            return default;
-        }
+            return null;
 
-        // First, find all the potential cast locations we can replace with a reference to
-        // our new local.
-        var matches = new HashSet<CastExpressionSyntax>();
-        AddMatches(container, expr, type, matches);
-
+        // First, find all the potential cast locations we can replace with a reference to our new local.
+        AddMatches(container);
         if (matches.Count == 0)
-        {
-            return default;
-        }
+            return null;
 
         // Find a reasonable name for the local we're going to make.  It should ideally 
         // relate to the type the user is casting to, and it should not collide with anything
         // in scope.
-        var reservedNames = semanticModel.LookupSymbols(isExpression.SpanStart)
-                                         .Concat(semanticModel.GetExistingSymbols(container, cancellationToken))
-                                         .Select(s => s.Name)
-                                         .ToSet();
+        var reservedNames = semanticModel
+            .LookupSymbols(isExpression.SpanStart)
+            .Concat(semanticModel.GetAllDeclaredSymbols(container, cancellationToken))
+            .Select(s => s.Name)
+            .ToSet();
 
         var localName = NameGenerator.EnsureUniqueness(
             SyntaxGeneratorExtensions.GetLocalName(typeSymbol),
@@ -168,7 +163,37 @@ internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuilt
             }
         }
 
-        return (matches, localName);
+        return localName;
+
+        void AddMatches(SyntaxNode node)
+        {
+            // Don't bother recursing down nodes that are before the type in the is-expression.
+            if (node.Span.End >= type.Span.End)
+            {
+                if (node is CastExpressionSyntax castExpression)
+                {
+                    if (SyntaxFactory.AreEquivalent(castExpression.Type, type) &&
+                        SemanticEquivalence.AreEquivalent(semanticModel, castExpression.Expression.WalkDownParentheses(), expr))
+                    {
+                        matches.Add(castExpression);
+                    }
+                }
+
+                // A local variable we're creating would not be able to be captured in a static lambda/local-func.  So we
+                // can avoid walking into those entirely.
+                if (node is LocalFunctionStatementSyntax localFunction && localFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
+                    return;
+
+                if (node is AnonymousFunctionExpressionSyntax anonymousFunction && anonymousFunction.Modifiers.Any(SyntaxKind.StaticKeyword))
+                    return;
+
+                foreach (var child in node.ChildNodesAndTokens())
+                {
+                    if (child.AsNode(out var childNode))
+                        AddMatches(childNode);
+                }
+            }
+        }
     }
 
     private static bool ReplacementCausesError(
@@ -242,28 +267,5 @@ internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuilt
         }
 
         return null;
-    }
-
-    private static void AddMatches(
-        SyntaxNode node, ExpressionSyntax expr, TypeSyntax type, HashSet<CastExpressionSyntax> matches)
-    {
-        // Don't bother recursing down nodes that are before the type in the is-expression.
-        if (node.Span.End >= type.Span.End)
-        {
-            if (node is CastExpressionSyntax castExpression)
-            {
-                if (SyntaxFactory.AreEquivalent(castExpression.Type, type) &&
-                    SyntaxFactory.AreEquivalent(castExpression.Expression.WalkDownParentheses(), expr))
-                {
-                    matches.Add(castExpression);
-                }
-            }
-
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.AsNode(out var childNode))
-                    AddMatches(childNode, expr, type, matches);
-            }
-        }
     }
 }

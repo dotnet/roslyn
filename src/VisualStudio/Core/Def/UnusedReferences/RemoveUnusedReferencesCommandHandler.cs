@@ -170,13 +170,13 @@ internal sealed class RemoveUnusedReferencesCommandHandler
     {
         if (!TryGetPropertyValue(projectHierarchy, ProjectAssetsFilePropertyName, out var projectAssetsFile))
         {
-            return (null, null, ImmutableArray<ReferenceUpdate>.Empty);
+            return (null, null, []);
         }
 
         var projectFilePath = projectHierarchy.TryGetProjectFilePath();
         if (string.IsNullOrEmpty(projectFilePath))
         {
-            return (null, null, ImmutableArray<ReferenceUpdate>.Empty);
+            return (null, null, []);
         }
 
         var solution = _workspace.CurrentSolution;

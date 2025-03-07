@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -13,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     Partial Friend Class VisualBasicIntroduceVariableService
         Protected Overrides Function IntroduceLocal(
                 document As SemanticDocument,
+                options As CodeCleanupOptions,
                 expression As ExpressionSyntax,
                 allOccurrences As Boolean,
                 isConstant As Boolean,
