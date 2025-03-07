@@ -97,13 +97,14 @@
                 </Grid.ColumnDefinitions>
 
                 <imaging:CrispImage Grid.Column="0" Moniker="{Binding StatusImageMoniker}" />
-                <TextBlock Grid.Column="1" Text="{Binding StatusText}" />
+                <TextBlock Grid.Column="1" Text="{Binding StatusText}" TextWrapping="Wrap" />
             </Grid>
 
             <TextBlock
                 Text="{Binding SearchText}"
                 Visibility="{Binding ShowSearchText, Converter={StaticResource BooleanToVisibilityConverter}}"
                 FontWeight="Light"
+                TextWrapping="Wrap"
                 VerticalAlignment="Center"
                 Margin="0,0,0,5" />
 
@@ -125,6 +126,7 @@
                 Text="{Binding ElementName=control, Path=SubmitText}"
                 Margin="5, 5, 0, 0"
                 FontStyle="Italic"
+                TextWrapping="Wrap"
                 />
         </StackPanel>
     </Border>

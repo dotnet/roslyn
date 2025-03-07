@@ -147,8 +147,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 ? _textView.ViewportRight - width
                 : desiredLeft;
 
-            Canvas.SetTop(this, top);
-            Canvas.SetLeft(this, left);
+            MaxWidth = _textView.ViewportRight;
+            if (MinWidth > _textView.ViewportWidth)
+            {
+                MinWidth = _textView.ViewportWidth;
+            }
+
+            Canvas.SetTop(this, Math.Max(0, top));
+            Canvas.SetLeft(this, Math.Max(0, left));
         }
 
         public override void Dispose()
