@@ -10947,6 +10947,26 @@ class C<T>
                 #nullable enable
                 class C
                 {
+                    public C() { Prop = "b"; }
+                    public string Prop { get => field ?? "a"; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_Resilient_Initialized_03()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
                     public C()
                     {
                         Prop = null;
@@ -10965,7 +10985,7 @@ class C<T>
         }
 
         [Fact]
-        public void Nullable_Resilient_Initialized_03()
+        public void Nullable_Resilient_Initialized_04()
         {
             // This case is a bit funky. The inference does not affect signature of the setter.
             // In general, we don't want an inference to affect shape of a public API.
@@ -10995,9 +11015,9 @@ class C<T>
         }
 
         [Fact]
-        public void Nullable_Resilient_Initialized_04()
+        public void Nullable_Resilient_Initialized_05()
         {
-            // Suggested fix for the nullable warning in Nullable_Resilient_Initialized_03
+            // Suggested fix for the nullable warning in Nullable_Resilient_Initialized_04
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -11038,7 +11058,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (8,24): warning CS8602: Dereference of a possibly null reference.
                 //         set => field = field.ToString();
@@ -11065,7 +11085,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
@@ -11223,7 +11243,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop
@@ -11250,7 +11270,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop
@@ -11284,7 +11304,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
@@ -11320,7 +11340,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (8,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // 1
@@ -11352,7 +11372,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (8,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // 1
@@ -11420,7 +11440,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
@@ -11444,7 +11464,7 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
@@ -11452,8 +11472,9 @@ class C<T>
             Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
-        [Fact]
-        public void Nullable_NotResilient_DiagnosticSuppressor()
+        [Theory]
+        [CombinatorialData]
+        public void Nullable_NotResilient_DiagnosticSuppressor(bool useSuppressor)
         {
             // DiagnosticSuppressors don't affect the inferred nullability of the backing field.
             var source = """
@@ -11469,7 +11490,18 @@ class C<T>
                 }
                 """;
 
-            var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
+            var comp = CreateCompilation(source);
+            if (useSuppressor)
+            {
+                // The 8603 is a "hypothetical" diagnostic which occurs only internally in the compiler.
+                // We don't run DiagnosticSuppressors in that context.
+                // So, it's not clear that this suppressor would ever do anything.
+                // Still, it seems useful to express our intent with this test, that DiagnosticSuppressors don't have an effect.
+                comp = comp.VerifySuppressedDiagnostics(
+                    [new CommonDiagnosticAnalyzers.DiagnosticSuppressorForId("CS8603"), new CommonDiagnosticAnalyzers.DiagnosticSuppressorForId("CS8625")],
+                    expected: [Diagnostic("CS8625", "null", isSuppressed: true).WithLocation(8, 24)]);
+            }
+
             comp.VerifyEmitDiagnostics(
                 // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop
@@ -11478,24 +11510,6 @@ class C<T>
                 //         set => field = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 24));
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
-
-            // The 8603 is a "hypothetical" diagnostic which occurs only internally in the compiler.
-            // We don't run DiagnosticSuppressors in that context.
-            // So, it's not clear that this suppressor would ever do anything.
-            // Still, it seems useful to express our intent with this test, that DiagnosticSuppressors don't have an effect.
-            comp = comp.VerifySuppressedDiagnostics(
-                [new CommonDiagnosticAnalyzers.DiagnosticSuppressorForId("CS8603"), new CommonDiagnosticAnalyzers.DiagnosticSuppressorForId("CS8625")],
-                expected: [Diagnostic("CS8625", "null", isSuppressed: true).WithLocation(8, 24)]);
-            comp.VerifyEmitDiagnostics(
-                // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
-                //     public string Prop
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19),
-                // (8,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         set => field = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 24));
-            prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
             Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
             Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
