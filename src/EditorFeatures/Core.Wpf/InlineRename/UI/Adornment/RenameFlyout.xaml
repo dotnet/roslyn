@@ -12,7 +12,6 @@
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800"
-             MinWidth="200"
              KeyDown="Adornment_KeyDown"
              MouseDown="Adornment_ConsumeMouseEvent"
              MouseUp="Adornment_ConsumeMouseEvent"

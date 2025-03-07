@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     /// </summary>
     internal partial class RenameFlyout : InlineRenameAdornment
     {
+        private const int DefaultMinWidth = 200;
+
         private readonly RenameFlyoutViewModel _viewModel;
         private readonly IEditorFormatMap _editorFormatMap;
         private readonly IWpfTextView _textView;
@@ -148,10 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 : desiredLeft;
 
             MaxWidth = _textView.ViewportRight;
-            if (MinWidth > _textView.ViewportWidth)
-            {
-                MinWidth = _textView.ViewportWidth;
-            }
+            MinWidth = Math.Min(DefaultMinWidth, _textView.ViewportWidth);
 
             Canvas.SetTop(this, Math.Max(0, top));
             Canvas.SetLeft(this, Math.Max(0, left));
