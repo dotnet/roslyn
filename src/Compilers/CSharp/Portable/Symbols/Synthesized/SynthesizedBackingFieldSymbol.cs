@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedBackingFieldSymbol : SynthesizedBackingFieldSymbolBase
     {
         private readonly SourcePropertySymbolBase _property;
-        private int _inferredNullableAnnotation = (int)NullableAnnotation.Ignored;
+        private int _isNullResilient = (int)ThreeState.Unknown;
         internal override bool HasInitializer { get; }
 
         public SynthesizedBackingFieldSymbol(
@@ -123,17 +123,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _property.RefCustomModifiers;
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
-            => _property.TypeWithAnnotations;
+            => _property.TypeWithAnnotations.AsAnnotated();
 
 #nullable enable
-        internal bool InfersNullableAnnotation
+        internal bool InfersNullResilience
         {
             get
             {
-                if (FlowAnalysisAnnotations != FlowAnalysisAnnotations.None)
-                {
-                    return false;
-                }
+                // TODO2: no longer need this?
+                // if (FlowAnalysisAnnotations != FlowAnalysisAnnotations.None)
+                // {
+                //     return false;
+                // }
 
                 var propertyType = _property.TypeWithAnnotations;
                 if (propertyType.NullableAnnotation != NullableAnnotation.NotAnnotated
@@ -146,53 +147,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal NullableAnnotation GetInferredNullableAnnotation()
+        internal bool GetIsNullResilient() // TODO2 property
         {
-            if (_inferredNullableAnnotation == (int)NullableAnnotation.Ignored)
+            if (_isNullResilient == (int)ThreeState.Unknown)
             {
-                var inferredAnnotation = ComputeInferredNullableAnnotation();
-                Debug.Assert(inferredAnnotation is not NullableAnnotation.Ignored);
-                Interlocked.CompareExchange(ref _inferredNullableAnnotation, (int)inferredAnnotation, (int)NullableAnnotation.Ignored);
+                var inferredAnnotation = ComputeInferredNullResilience();
+                Interlocked.CompareExchange(ref _isNullResilient, (int)inferredAnnotation.ToThreeState(), (int)ThreeState.Unknown);
             }
-            Debug.Assert((NullableAnnotation)_inferredNullableAnnotation is NullableAnnotation.NotAnnotated or NullableAnnotation.Annotated);
-            return (NullableAnnotation)_inferredNullableAnnotation;
+
+            return ((ThreeState)_isNullResilient).Value();
         }
 
-        private NullableAnnotation ComputeInferredNullableAnnotation()
+        private bool ComputeInferredNullResilience()
         {
             // https://github.com/dotnet/csharplang/blob/94205582d0f5c73e5765cb5888311c2f14890b95/proposals/field-keyword.md#nullability-of-the-backing-field
-            Debug.Assert(InfersNullableAnnotation);
+            Debug.Assert(InfersNullResilience);
 
             // If the property does not have a get accessor, it is (vacuously) null-resilient.
             if (_property.GetMethod is not SourcePropertyAccessorSymbol getAccessor)
             {
                 Debug.Assert(_property.GetMethod is null);
-                return NullableAnnotation.Annotated;
+                return true;
             }
 
             // If the get accessor is auto-implemented, the property is not null-resilient.
             if (getAccessor.IsAutoPropertyAccessor)
-                return NullableAnnotation.NotAnnotated;
+                return false;
 
             getAccessor = (SourcePropertyAccessorSymbol?)getAccessor.PartialImplementationPart ?? getAccessor;
             var binder = getAccessor.TryGetBodyBinder() ?? throw ExceptionUtilities.UnexpectedValue(getAccessor);
             var boundGetAccessor = binder.BindMethodBody(getAccessor.SyntaxNode, BindingDiagnosticBag.Discarded);
 
-            var annotatedDiagnostics = nullableAnalyzeAndFilterDiagnostics(assumedNullableAnnotation: NullableAnnotation.Annotated);
+            var annotatedDiagnostics = nullableAnalyzeAndFilterDiagnostics(assumedNullResilient: true);
             if (annotatedDiagnostics.IsEmptyWithoutResolution)
             {
                 // If the pass where the field was annotated results in no diagnostics at all, then the property is null-resilient and the not-annotated pass can be skipped.
                 annotatedDiagnostics.Free();
-                return NullableAnnotation.Annotated;
+                return true;
             }
 
-            var notAnnotatedDiagnostics = nullableAnalyzeAndFilterDiagnostics(assumedNullableAnnotation: NullableAnnotation.NotAnnotated);
+            var notAnnotatedDiagnostics = nullableAnalyzeAndFilterDiagnostics(assumedNullResilient: false);
             if (notAnnotatedDiagnostics.IsEmptyWithoutResolution)
             {
                 // annotated pass had diagnostics, and not-annotated pass had no diagnostics.
                 annotatedDiagnostics.Free();
                 notAnnotatedDiagnostics.Free();
-                return NullableAnnotation.NotAnnotated;
+                return false;
             }
 
             // Both annotated and not-annotated cases had nullable warnings.
@@ -206,17 +206,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // There is a nullable diagnostic in the pass where the field was *annotated*,
                     // which was not present in the pass where the field is *not-annotated*. The property is not null-resilient.
                     annotatedDiagnostics.Free();
-                    return NullableAnnotation.NotAnnotated;
+                    return false;
                 }
             }
 
             annotatedDiagnostics.Free();
-            return NullableAnnotation.Annotated;
+            return true;
 
-            DiagnosticBag nullableAnalyzeAndFilterDiagnostics(NullableAnnotation assumedNullableAnnotation)
+            DiagnosticBag nullableAnalyzeAndFilterDiagnostics(bool assumedNullResilient)
             {
                 var diagnostics = DiagnosticBag.GetInstance();
-                NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, diagnostics, getterNullResilienceData: (getAccessor, _property.BackingField, assumedNullableAnnotation));
+                NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, diagnostics, getterNullResilienceData: (getAccessor, _property.BackingField, assumedNullResilient));
                 if (diagnostics.IsEmptyWithoutResolution)
                 {
                     return diagnostics;

@@ -2252,17 +2252,17 @@ record struct C1(object O1, object O2, object O3) // 1, 2
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldnull
-  IL_0002:  stfld      ""object C1.<O1>k__BackingField""
+  IL_0002:  stfld      ""object? C1.<O1>k__BackingField""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.2
   IL_0009:  call       ""object C1.M(object)""
-  IL_000e:  stfld      ""object C1.<O2>k__BackingField""
+  IL_000e:  stfld      ""object? C1.<O2>k__BackingField""
   IL_0013:  ldarg.0
   IL_0014:  ldnull
   IL_0015:  dup
   IL_0016:  starg.s    V_3
   IL_0018:  call       ""object C1.M(object)""
-  IL_001d:  stfld      ""object C1.<O3>k__BackingField""
+  IL_001d:  stfld      ""object? C1.<O3>k__BackingField""
   IL_0022:  ret
 }
 ");
@@ -4638,9 +4638,9 @@ record struct A(int I, string S)
   IL_0016:  brfalse.s  IL_005f
   IL_0018:  call       ""System.Collections.Generic.EqualityComparer<string> System.Collections.Generic.EqualityComparer<string>.Default.get""
   IL_001d:  ldarg.0
-  IL_001e:  ldfld      ""string A.<S>k__BackingField""
+  IL_001e:  ldfld      ""string? A.<S>k__BackingField""
   IL_0023:  ldarg.1
-  IL_0024:  ldfld      ""string A.<S>k__BackingField""
+  IL_0024:  ldfld      ""string? A.<S>k__BackingField""
   IL_0029:  callvirt   ""bool System.Collections.Generic.EqualityComparer<string>.Equals(string, string)""
   IL_002e:  brfalse.s  IL_005f
   IL_0030:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
@@ -4689,7 +4689,7 @@ record struct A(int I, string S)
   IL_0015:  mul
   IL_0016:  call       ""System.Collections.Generic.EqualityComparer<string> System.Collections.Generic.EqualityComparer<string>.Default.get""
   IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""string A.<S>k__BackingField""
+  IL_001c:  ldfld      ""string? A.<S>k__BackingField""
   IL_0021:  callvirt   ""int System.Collections.Generic.EqualityComparer<string>.GetHashCode(string)""
   IL_0026:  add
   IL_0027:  ldc.i4     0xa5555529

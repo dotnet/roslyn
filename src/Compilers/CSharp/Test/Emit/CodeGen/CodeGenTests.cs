@@ -2187,7 +2187,7 @@ class C
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0   
-  IL_0001:  stsfld     ""string C.<S>k__BackingField""
+  IL_0001:  stsfld     ""string? C.<S>k__BackingField""
   IL_0006:  ret       
 }
 ");
@@ -2260,7 +2260,7 @@ class P
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0   
-  IL_0001:  stsfld     ""string C<T>.<S>k__BackingField""
+  IL_0001:  stsfld     ""string? C<T>.<S>k__BackingField""
   IL_0006:  ret       
 }
 ");

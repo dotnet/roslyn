@@ -2335,7 +2335,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.2
   IL_0002:  box        ""int""
-  IL_0007:  stfld      ""object S2.<X>k__BackingField""
+  IL_0007:  stfld      ""object? S2.<X>k__BackingField""
   IL_000c:  ldarg.0
   IL_000d:  ldc.i4.2
   IL_000e:  box        ""int""
@@ -2350,7 +2350,7 @@ class Program
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.3
   IL_0002:  box        ""int""
-  IL_0007:  stfld      ""object S3.<X>k__BackingField""
+  IL_0007:  stfld      ""object? S3.<X>k__BackingField""
   IL_000c:  ldarg.0
   IL_000d:  ldc.i4.3
   IL_000e:  box        ""int""
@@ -2792,12 +2792,12 @@ S3 { X = , Y = 3 }
   // sequence point: <hidden>
   IL_0000:  ldarg.0
   IL_0001:  ldnull
-  IL_0002:  stfld      ""object S2.<Y>k__BackingField""
+  IL_0002:  stfld      ""object? S2.<Y>k__BackingField""
   // sequence point: 2
   IL_0007:  ldarg.0
   IL_0008:  ldc.i4.2
   IL_0009:  box        ""int""
-  IL_000e:  stfld      ""object S2.<X>k__BackingField""
+  IL_000e:  stfld      ""object? S2.<X>k__BackingField""
   IL_0013:  ret
 }", sequencePoints: "S2..ctor", source: source);
 
@@ -2808,12 +2808,12 @@ S3 { X = , Y = 3 }
   // sequence point: <hidden>
   IL_0000:  ldarg.0
   IL_0001:  ldnull
-  IL_0002:  stfld      ""object S3.<X>k__BackingField""
+  IL_0002:  stfld      ""object? S3.<X>k__BackingField""
   // sequence point: 3
   IL_0007:  ldarg.0
   IL_0008:  ldc.i4.3
   IL_0009:  box        ""int""
-  IL_000e:  stfld      ""object S3.<Y>k__BackingField""
+  IL_000e:  stfld      ""object? S3.<Y>k__BackingField""
   IL_0013:  ret
 }", sequencePoints: "S3..ctor", source: source);
         }
@@ -4672,7 +4672,7 @@ public struct S<T>
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldnull
-  IL_0003:  stfld      ""string S<T>.<AutoProp>k__BackingField""
+  IL_0003:  stfld      ""string? S<T>.<AutoProp>k__BackingField""
   IL_0008:  ldarg.0
   IL_0009:  ldflda     ""T S<T>.TField""
   IL_000e:  initobj    ""T""

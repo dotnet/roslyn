@@ -3788,15 +3788,15 @@ public partial class C
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(10, 27));
 
             AssertEx.Equal([
-                "System.String C.<P1>k__BackingField",
+                "System.string? C.<P1>k__BackingField",
                 "System.String C.P1 { get; set; }",
                 "System.String C.P1.get",
                 "void C.P1.set",
                 "System.String C.P2 { get; set; }",
                 "System.String C.P2.get",
                 "void C.P2.set",
-                "System.String C.<P2>k__BackingField",
-                "System.String C.<P3>k__BackingField",
+                "System.string? C.<P2>k__BackingField",
+                "System.string? C.<P3>k__BackingField",
                 "System.String C.P3 { get; set; }",
                 "System.String C.P3.get",
                 "void C.P3.set",
@@ -3856,15 +3856,15 @@ public partial class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(10, 55));
 
             AssertEx.Equal([
-                "System.String C.<P1>k__BackingField",
+                "System.string? C.<P1>k__BackingField",
                 "System.String C.P1 { get; set; }",
                 "System.String C.P1.get",
                 "void C.P1.set",
                 "System.String C.P2 { get; set; }",
                 "System.String C.P2.get",
                 "void C.P2.set",
-                "System.String C.<P2>k__BackingField",
-                "System.String C.<P3>k__BackingField",
+                "System.string? C.<P2>k__BackingField",
+                "System.string? C.<P3>k__BackingField",
                 "System.String C.P3 { get; set; }",
                 "System.String C.P3.get",
                 "void C.P3.set",
@@ -3940,15 +3940,15 @@ public partial class C
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(19, 27));
 
             AssertEx.Equal([
-                "System.String C.<P1>k__BackingField",
+                "System.string? C.<P1>k__BackingField",
                 "System.String C.P1 { get; set; }",
                 "System.String C.P1.get",
                 "void C.P1.set",
                 "System.String C.P2 { get; set; }",
                 "System.String C.P2.get",
                 "void C.P2.set",
-                "System.String C.<P2>k__BackingField",
-                "System.String C.<P3>k__BackingField",
+                "System.string? C.<P2>k__BackingField",
+                "System.string? C.<P3>k__BackingField",
                 "System.String C.P3 { get; set; }",
                 "System.String C.P3.get",
                 "void C.P3.set",

@@ -80,10 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "System.Object C.<P>k__BackingField",
+                "System.Object? C.<P>k__BackingField",
                 "System.Object C.P { get; }",
                 "System.Object C.P.get",
-                "System.Object C.<Q>k__BackingField",
+                "System.Object? C.<Q>k__BackingField",
                 "System.Object C.Q { get; }",
                 "System.Object C.Q.get",
                 "C..ctor()"
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // Code size       18 (0x12)
                   .maxstack  2
                   IL_0000:  ldarg.0
-                  IL_0001:  ldflda     "object C.<Q>k__BackingField"
+                  IL_0001:  ldflda     "object? C.<Q>k__BackingField"
                   IL_0006:  ldc.i4.2
                   IL_0007:  box        "int"
                   IL_000c:  call       "object C.Initialize(out object, object)"
@@ -144,10 +144,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "System.Object C.<P>k__BackingField",
+                "System.Object? C.<P>k__BackingField",
                 "System.Object C.P { get; }",
                 "System.Object C.P.get",
-                "System.Object C.<Q>k__BackingField",
+                "System.Object? C.<Q>k__BackingField",
                 "System.Object C.Q { get; }",
                 "System.Object C.Q.get",
                 "System.Object C.Initialize(out System.Object field, System.Object value)",
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "C C.<P>k__BackingField",
+                "C? C.<P>k__BackingField",
                 "C C.P { get; set; }",
                 "C C.P.get",
                 "void C.P.set",
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
-                "System.Object C.<P>k__BackingField",
+                "System.Object? C.<P>k__BackingField",
                 "System.Object C.P { get; }",
                 "System.Object C.P.get",
                 "System.Object C.F(System.Object value)",
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0007:  ldfld      "object C.<>c__DisplayClass5_0.value"
                   IL_000c:  dup
                   IL_000d:  stloc.0
-                  IL_000e:  stfld      "object C.<P2>k__BackingField"
+                  IL_000e:  stfld      "object? C.<P2>k__BackingField"
                   IL_0013:  ldloc.0
                   IL_0014:  ret
                 }
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                   // Code size        6 (0x6)
                   .maxstack  1
-                  IL_0000:  ldsfld     "object C.<P3>k__BackingField"
+                  IL_0000:  ldsfld     "object? C.<P3>k__BackingField"
                   IL_0005:  ret
                 }
                 """);
@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   .maxstack  2
                   IL_0000:  ldarg.0
                   IL_0001:  ldarg.1
-                  IL_0002:  stfld      "object A.<Q3>k__BackingField"
+                  IL_0002:  stfld      "object? A.<Q3>k__BackingField"
                   IL_0007:  ret
                 }
                 """);
@@ -784,35 +784,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 string readonlyQualifier = typeKind.EndsWith("struct") ? "readonly " : "";
                 var expectedMembers = new[]
                 {
-                    "System.Object A.<P1>k__BackingField",
+                    "System.Object? A.<P1>k__BackingField",
                     "System.Object A.P1 { get; set; }",
                     "System.Object A.P1.get",
                     "void A.P1.set",
-                    "System.Object A.<P2>k__BackingField",
+                    "System.Object? A.<P2>k__BackingField",
                     "System.Object A.P2 { get; set; }",
                     "System.Object A.P2.get",
                     "void A.P2.set",
-                    "System.Object A.<P3>k__BackingField",
+                    "System.Object? A.<P3>k__BackingField",
                     "System.Object A.P3 { get; set; }",
                     "System.Object A.P3.get",
                     "void A.P3.set",
-                    "System.Object A.<Q1>k__BackingField",
+                    "System.Object? A.<Q1>k__BackingField",
                     "System.Object A.Q1 { get; set; }",
                     readonlyQualifier + "System.Object A.Q1.get",
                     "void A.Q1.set",
-                    "System.Object A.<Q2>k__BackingField",
+                    "System.Object? A.<Q2>k__BackingField",
                     "System.Object A.Q2 { get; set; }",
                     "System.Object A.Q2.get",
                     "void A.Q2.set",
-                    "System.Object A.<Q3>k__BackingField",
+                    "System.Object? A.<Q3>k__BackingField",
                     "System.Object A.Q3 { get; init; }",
                     "System.Object A.Q3.get",
                     "void modreq(System.Runtime.CompilerServices.IsExternalInit) A.Q3.init",
-                    "System.Object A.<Q4>k__BackingField",
+                    "System.Object? A.<Q4>k__BackingField",
                     "System.Object A.Q4 { get; set; }",
                     readonlyQualifier + "System.Object A.Q4.get",
                     "void A.Q4.set",
-                    "System.Object A.<Q5>k__BackingField",
+                    "System.Object? A.<Q5>k__BackingField",
                     "System.Object A.Q5 { get; init; }",
                     readonlyQualifier + "System.Object A.Q5.get",
                     "void modreq(System.Runtime.CompilerServices.IsExternalInit) A.Q5.init",
@@ -909,12 +909,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object I.<P1>k__BackingField",
-                "System.Object I.<P2>k__BackingField",
-                "System.Object I.<P3>k__BackingField",
-                "System.Object I.<P4>k__BackingField",
-                "System.Object I.<P5>k__BackingField",
-                "System.Object I.<P6>k__BackingField",
+                "System.Object? I.<P1>k__BackingField",
+                "System.Object? I.<P2>k__BackingField",
+                "System.Object? I.<P3>k__BackingField",
+                "System.Object? I.<P4>k__BackingField",
+                "System.Object? I.<P5>k__BackingField",
+                "System.Object? I.<P6>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -1014,10 +1014,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object I.<Q1>k__BackingField",
-                "System.Object I.<Q2>k__BackingField",
-                "System.Object I.<Q3>k__BackingField",
-                "System.Object I.<Q4>k__BackingField",
+                "System.Object? I.<Q1>k__BackingField",
+                "System.Object? I.<Q2>k__BackingField",
+                "System.Object? I.<Q3>k__BackingField",
+                "System.Object? I.<Q4>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -1335,15 +1335,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var argument = attributeArguments[0];
             Assert.IsType<FieldExpressionSyntax>(argument);
-            Assert.Equal("System.Object B.<P1>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
+            Assert.Equal("System.Object? B.<P1>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
 
             argument = attributeArguments[1];
             Assert.IsType<FieldExpressionSyntax>(argument);
-            Assert.Equal("System.Object B.<P2>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
+            Assert.Equal("System.Object? B.<P2>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
 
             argument = attributeArguments[2];
             Assert.IsType<FieldExpressionSyntax>(argument);
-            Assert.Equal("System.Object C.<P3>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
+            Assert.Equal("System.Object? C.<P3>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -1434,18 +1434,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 B.Q5:
                 B.Q6:
                 B.Q7:
-                B.<P1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(1),
-                B.<P3>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(3),
-                B.<P4>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
-                B.<Q1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(1),
-                B.<Q3>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(3),
-                B.<Q4>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
-                B.<Q7>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(7),
-                B.<P2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(2), A(-2),
-                B.<P5>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
-                B.<Q2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(2), A(-2),
-                B.<Q5>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
-                B.<Q6>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(6),
+                B.<P1>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(1),
+                B.<P3>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(3),
+                B.<P4>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                B.<Q1>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(1),
+                B.<Q3>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(3),
+                B.<Q4>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                B.<Q7>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(7),
+                B.<P2>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(2), A(-2),
+                B.<P5>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                B.<Q2>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(2), A(-2),
+                B.<Q5>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                B.<Q6>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(6),
                 """));
         }
 
@@ -4655,17 +4655,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
             var expectedMembers = new[]
             {
-                $"System.Object S.<P1>k__BackingField: True",
-                $"System.Object S.<P2>k__BackingField: {useReadOnlyType || useReadOnlyProperty}",
-                $"System.Object S.<P3>k__BackingField: {useReadOnlyType || useReadOnlyProperty}",
-                $"System.Object S.<P4>k__BackingField: {useReadOnlyType || useReadOnlyProperty}",
-                $"System.Object S.<P6>k__BackingField: {useReadOnlyType || useReadOnlyProperty}",
-                $"System.Object S.<P8>k__BackingField: {useReadOnlyType || useReadOnlyProperty}",
-                $"System.Object S.<P9>k__BackingField: {useReadOnlyType || useReadOnlyProperty || useInit}",
-                $"System.Object S.<PA>k__BackingField: {useReadOnlyType || useReadOnlyProperty || useInit}",
-                $"System.Object S.<PB>k__BackingField: {useReadOnlyType || useReadOnlyProperty || useInit}",
-                $"System.Object S.<PC>k__BackingField: {useReadOnlyType || useReadOnlyProperty || useInit}",
-                $"System.Object S.<PD>k__BackingField: {useReadOnlyType || useReadOnlyProperty || useInit}",
+                $"System.Object? S.<P1>k__BackingField: True",
+                $"System.Object? S.<P2>k__BackingField: {useReadOnlyType || useReadOnlyProperty}",
+                $"System.Object? S.<P3>k__BackingField: {useReadOnlyType || useReadOnlyProperty}",
+                $"System.Object? S.<P4>k__BackingField: {useReadOnlyType || useReadOnlyProperty}",
+                $"System.Object? S.<P6>k__BackingField: {useReadOnlyType || useReadOnlyProperty}",
+                $"System.Object? S.<P8>k__BackingField: {useReadOnlyType || useReadOnlyProperty}",
+                $"System.Object? S.<P9>k__BackingField: {useReadOnlyType || useReadOnlyProperty || useInit}",
+                $"System.Object? S.<PA>k__BackingField: {useReadOnlyType || useReadOnlyProperty || useInit}",
+                $"System.Object? S.<PB>k__BackingField: {useReadOnlyType || useReadOnlyProperty || useInit}",
+                $"System.Object? S.<PC>k__BackingField: {useReadOnlyType || useReadOnlyProperty || useInit}",
+                $"System.Object? S.<PD>k__BackingField: {useReadOnlyType || useReadOnlyProperty || useInit}",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -4810,13 +4810,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
             var expectedMembers = new[]
             {
-                $"System.Object S.<P3>k__BackingField: {useReadOnlyType}",
-                $"System.Object S.<P4>k__BackingField: {useReadOnlyType}",
-                $"System.Object S.<P6>k__BackingField: {useReadOnlyType}",
-                $"System.Object S.<P8>k__BackingField: {useReadOnlyType}",
-                $"System.Object S.<P9>k__BackingField: {useReadOnlyType || !useReadOnlyOnGet}",
-                $"System.Object S.<PA>k__BackingField: {useReadOnlyType || !useReadOnlyOnGet}",
-                $"System.Object S.<PC>k__BackingField: {useReadOnlyType || !useReadOnlyOnGet}",
+                $"System.Object? S.<P3>k__BackingField: {useReadOnlyType}",
+                $"System.Object? S.<P4>k__BackingField: {useReadOnlyType}",
+                $"System.Object? S.<P6>k__BackingField: {useReadOnlyType}",
+                $"System.Object? S.<P8>k__BackingField: {useReadOnlyType}",
+                $"System.Object? S.<P9>k__BackingField: {useReadOnlyType || !useReadOnlyOnGet}",
+                $"System.Object? S.<PA>k__BackingField: {useReadOnlyType || !useReadOnlyOnGet}",
+                $"System.Object? S.<PC>k__BackingField: {useReadOnlyType || !useReadOnlyOnGet}",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -4878,17 +4878,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
             var expectedMembers = new[]
             {
-                $"System.Object S.<P1>k__BackingField: True",
-                $"System.Object S.<P5>k__BackingField: True",
-                $"System.Object S.<P7>k__BackingField: True",
-                $"System.Object S.<Q1>k__BackingField: {useReadOnlyType || useReadOnlyMember}",
-                $"System.Object S.<Q2>k__BackingField: {useReadOnlyType || useReadOnlyMember}",
-                $"System.Object S.<Q3>k__BackingField: True",
-                $"System.Object S.<Q4>k__BackingField: {useReadOnlyType || useReadOnlyMember}",
-                $"System.Object S.<Q5>k__BackingField: True",
-                $"System.Object S.<Q6>k__BackingField: {useReadOnlyType}",
-                $"System.Object S.<Q7>k__BackingField: True",
-                $"System.Object S.<Q8>k__BackingField: {useReadOnlyType || useReadOnlyMember}",
+                $"System.Object? S.<P1>k__BackingField: True",
+                $"System.Object? S.<P5>k__BackingField: True",
+                $"System.Object? S.<P7>k__BackingField: True",
+                $"System.Object? S.<Q1>k__BackingField: {useReadOnlyType || useReadOnlyMember}",
+                $"System.Object? S.<Q2>k__BackingField: {useReadOnlyType || useReadOnlyMember}",
+                $"System.Object? S.<Q3>k__BackingField: True",
+                $"System.Object? S.<Q4>k__BackingField: {useReadOnlyType || useReadOnlyMember}",
+                $"System.Object? S.<Q5>k__BackingField: True",
+                $"System.Object? S.<Q6>k__BackingField: {useReadOnlyType}",
+                $"System.Object? S.<Q7>k__BackingField: True",
+                $"System.Object? S.<Q8>k__BackingField: {useReadOnlyType || useReadOnlyMember}",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -4962,12 +4962,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
             var expectedMembers = new[]
             {
-                $"System.Object S.<P1>k__BackingField: True",
-                $"System.Object S.<Q1>k__BackingField: {useReadOnlyMember}",
-                $"System.Object S.<Q2>k__BackingField: {useReadOnlyMember}",
-                $"System.Object S.<Q4>k__BackingField: {useReadOnlyMember}",
-                $"System.Object S.<Q6>k__BackingField: False",
-                $"System.Object S.<Q8>k__BackingField: {useReadOnlyMember}",
+                $"System.Object? S.<P1>k__BackingField: True",
+                $"System.Object? S.<Q1>k__BackingField: {useReadOnlyMember}",
+                $"System.Object? S.<Q2>k__BackingField: {useReadOnlyMember}",
+                $"System.Object? S.<Q4>k__BackingField: {useReadOnlyMember}",
+                $"System.Object? S.<Q6>k__BackingField: False",
+                $"System.Object? S.<Q8>k__BackingField: {useReadOnlyMember}",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -5085,16 +5085,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
             var expectedMembers = new[]
             {
-                $"System.Object S.<P1>k__BackingField: True",
-                $"System.Object S.<P2>k__BackingField: True",
-                $"System.Object S.<P3>k__BackingField: {useInit}",
-                $"System.Object S.<P4>k__BackingField: True",
-                $"System.Object S.<P5>k__BackingField: True",
-                $"System.Object S.<Q1>k__BackingField: True",
-                $"System.Object S.<Q2>k__BackingField: True",
-                $"System.Object S.<Q3>k__BackingField: {useInit}",
-                $"System.Object S.<Q4>k__BackingField: True",
-                $"System.Object S.<Q5>k__BackingField: True",
+                $"System.Object? S.<P1>k__BackingField: True",
+                $"System.Object? S.<P2>k__BackingField: True",
+                $"System.Object? S.<P3>k__BackingField: {useInit}",
+                $"System.Object? S.<P4>k__BackingField: True",
+                $"System.Object? S.<P5>k__BackingField: True",
+                $"System.Object? S.<Q1>k__BackingField: True",
+                $"System.Object? S.<Q2>k__BackingField: True",
+                $"System.Object? S.<Q3>k__BackingField: {useInit}",
+                $"System.Object? S.<Q4>k__BackingField: True",
+                $"System.Object? S.<Q5>k__BackingField: True",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -5148,21 +5148,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C1").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
             var expectedMembers = new[]
             {
-                $"System.Object C1.<P1>k__BackingField: True",
-                $"System.Object C1.<P2>k__BackingField: False",
-                $"System.Object C1.<P3>k__BackingField: False",
-                $"System.Object C1.<P4>k__BackingField: False",
+                $"System.Object? C1.<P1>k__BackingField: True",
+                $"System.Object? C1.<P2>k__BackingField: False",
+                $"System.Object? C1.<P3>k__BackingField: False",
+                $"System.Object? C1.<P4>k__BackingField: False",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
             actualMembers = comp.GetMember<NamedTypeSymbol>("C2").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
             expectedMembers = new[]
             {
-                $"System.Object C2.<P1>k__BackingField: True",
-                $"System.Object C2.<P2>k__BackingField: False",
-                $"System.Object C2.<P3>k__BackingField: False",
-                $"System.Object C2.<P4>k__BackingField: False",
-                $"System.Object C2.<P5>k__BackingField: False",
-                $"System.Object C2.<P6>k__BackingField: False",
+                $"System.Object? C2.<P1>k__BackingField: True",
+                $"System.Object? C2.<P2>k__BackingField: False",
+                $"System.Object? C2.<P3>k__BackingField: False",
+                $"System.Object? C2.<P4>k__BackingField: False",
+                $"System.Object? C2.<P5>k__BackingField: False",
+                $"System.Object? C2.<P6>k__BackingField: False",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -5752,6 +5752,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else
             {
+                // TODO2: should props not using field keyword also have a nullable backing field? Or only ones that use the keyword?
+                // TODO2: it seems like we can't skip initialization warnings just because property has an initializer now.
+                // TODO2: or, maybe an initializer check should use null resilience to decide whether to blame the value going in.
                 comp.VerifyEmitDiagnostics(
                     // (4,27): warning CS8601: Possible null reference assignment.
                     //     object  P1 { get; } = MaybeNull();
@@ -6036,6 +6039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Nullability_09()
         {
             // MaybeNull on the field
+            // TODO2: the change to field initial state is ignoring field nullability attributes
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -6122,6 +6126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Nullability_12()
         {
+            // TODO2: the field's attributes need to influence its initial flow state.
+            // work needed to reconcile this.
             // MaybeNull+AllowNull on the field.
             var source = """
                 #nullable enable
@@ -6208,6 +6214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             // AllowNull only on the property, and assign null to the field.
             // Constructor warning occurs because property `[AllowNull]` doesn't affect field initial state.
+            // https://github.com/dotnet/roslyn/issues/77215 Safety gap until setter analysis is addressed
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -6240,6 +6247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Nullability_13_AllowNullProp_AssignProp()
         {
             // AllowNull only on the property, and assign null to the field.
+            // https://github.com/dotnet/roslyn/issues/77215 Safety hole until setter analysis is fixed.
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -6260,16 +6268,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
-            comp.VerifyEmitDiagnostics(
-                // (10,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         set => field = null; // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 24));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
         public void Nullability_13_AllowNullProp_AssignValue()
         {
             // AllowNull only on the property, and assign 'value' to the field.
+            // https://github.com/dotnet/roslyn/issues/77215 Safety gap until setter analysis is implemented
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -6361,7 +6367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Nullability_13_AllowNullProp_Initializer(string setAccessor)
         {
             // AllowNull only on the property and assign null
-            // A warning is reported because field keyword is being used, the field itself does not allow null, and the `= null` represents a direct assignment of the backing field.
+            // TODO2: This won't be safe even with nullable setter analysis.
+            // We need to be able to say: this prop does the wrong thing when field is in the default state, thus, ctor must initialize it, and the prop initializer "doesn't count" for that.
             var source = $$"""
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -6373,7 +6380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         get => field;
                         {{setAccessor}}
-                    } = null; // 1
+                    } = null;
 
                     public C()
                     {
@@ -6382,17 +6389,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
-            comp.VerifyEmitDiagnostics(
-                // (11,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //     } = null; // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 9));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
         public void Nullability_13_AllowNullProp_Initializer_ManualSetter()
         {
             // AllowNull only on the property and assign null
-            // A warning is reported because field keyword is being used, the field itself does not allow null, and the `= null` represents a direct assignment of the backing field.
+
+            // https://github.com/dotnet/roslyn/issues/77215
+            // This scenario will be a safety gap until setter analysis is implemented.
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -6403,8 +6409,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public string Prop
                     {
                         get => field;
-                        set => field = value; // 1
-                    } = null; // 2
+                        set => field = value;
+                    } = null;
 
                     public C()
                     {
@@ -6413,19 +6419,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
-            comp.VerifyEmitDiagnostics(
-                // (10,24): warning CS8601: Possible null reference assignment.
-                //         set => field = value; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(10, 24),
-                // (11,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //     } = null; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 9));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
         public void Nullability_13_ReadProp()
         {
             // MaybeNull+AllowNull on the property, and dereference the field, and write the value to the field.
+            // TODO2: should be inferred as not null-resilient and have not null initial state. Possibly the prop annotations are being used to provide the field initial state here and causing problems.
+            // TODO2: have to consider how to rationalize things without breaking `[NotNull] T Prop { get => field...; }`.
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -7075,6 +7077,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Nullability_StaticMismatch_01()
         {
             // instance constructors do not share a slot between static property and backing field
+            // TODO2: we should infer these props are not null resilient and thus warn field is not initialized
             var source = $$"""
                 #nullable enable
 
@@ -7222,6 +7225,7 @@ public class C
         public void AllowNull_Property_WithNotNull_NoSuppression()
         {
             // When 'field' keyword is used, nullability attributes on the property do not affect the field.
+            // TODO2: we need to give ctor exit warnings here even though property initializers are present.
             var source =
 @"using System.Diagnostics.CodeAnalysis;
 #nullable enable
@@ -7281,6 +7285,7 @@ public class CClass<TClass> where TClass : class
         [Fact]
         public void AllowNull_Property_InDeconstructionAssignment()
         {
+            // https://github.com/dotnet/roslyn/issues/77215 safety gap until setter analysis is implemented
             var source =
 @"using System.Diagnostics.CodeAnalysis;
 #nullable enable
@@ -7289,8 +7294,8 @@ public class C
     [AllowNull] public C P
     {
         get => field;
-        set => field = value; // 1
-    } = null; // 2
+        set => field = value;
+    } = null;
 }
 class Program
 {
@@ -7311,13 +7316,7 @@ class Program
     void Deconstruct(out C? x, out C? y) => throw null!;
 }";
             var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition });
-            comp.VerifyDiagnostics(
-                // 0.cs(8,24): warning CS8601: Possible null reference assignment.
-                //         set => field = value; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(8, 24),
-                // 0.cs(9,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //     } = null; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 9));
+            comp.VerifyDiagnostics();
         }
 
         // Based on NullableReferenceTypesTests.MaybeNullT_24
@@ -7339,7 +7338,7 @@ class C<T>
     T P2
     {
         get => field;
-    } = default; // 1
+    } = default;
 
     [MaybeNull, AllowNull]
     T P3
@@ -7358,8 +7357,8 @@ class C<T>
     T P5
     {
         get => field;
-        set => field = value; // 2
-    } = default; // 3
+        set => field = value;
+    } = default;
 
     [MaybeNull, AllowNull]
     T P6
@@ -7371,44 +7370,32 @@ class C<T>
     C([AllowNull]T t)
     {
         P1 = t;
-        P2 = t; // 4
+        P2 = t;
         P3 = t;
-        P4 = t; // 5
+        P4 = t; // 1
         P5 = t;
         P6 = t;
     }
 }";
             var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, MaybeNullAttributeDefinition });
             comp.VerifyDiagnostics(
-                // 0.cs(15,9): warning CS8601: Possible null reference assignment.
-                //     } = default; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(15, 9),
-                // 0.cs(34,24): warning CS8601: Possible null reference assignment.
-                //         set => field = value; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(34, 24),
-                // 0.cs(35,9): warning CS8601: Possible null reference assignment.
-                //     } = default; // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(35, 9),
-                // 0.cs(47,14): warning CS8601: Possible null reference assignment.
-                //         P2 = t; // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(47, 14),
                 // 0.cs(49,14): warning CS8601: Possible null reference assignment.
-                //         P4 = t; // 5
+                //         P4 = t; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(49, 14)
                 );
 
             var classC = comp.GetMember<NamedTypeSymbol>("C");
-            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P1>k__BackingField"), NullableAnnotation.Annotated);
-            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P2>k__BackingField"), NullableAnnotation.NotAnnotated);
-            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P3>k__BackingField"), NullableAnnotation.Annotated);
-            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P4>k__BackingField"), NullableAnnotation.Annotated);
-            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P5>k__BackingField"), NullableAnnotation.NotAnnotated);
-            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P6>k__BackingField"), NullableAnnotation.Annotated);
+            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P1>k__BackingField"), expectedIsNullResilient: true);
+            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P2>k__BackingField"), expectedIsNullResilient: false);
+            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P3>k__BackingField"), expectedIsNullResilient: true);
+            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P4>k__BackingField"), expectedIsNullResilient: true);
+            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P5>k__BackingField"), expectedIsNullResilient: false);
+            verify(classC.GetMember<SynthesizedBackingFieldSymbol>("<P6>k__BackingField"), expectedIsNullResilient: true);
 
-            void verify(SynthesizedBackingFieldSymbol field, NullableAnnotation expectedInferredAnnotation)
+            void verify(SynthesizedBackingFieldSymbol field, bool expectedIsNullResilient)
             {
                 Assert.Equal(NullableAnnotation.NotAnnotated, field.TypeWithAnnotations.NullableAnnotation);
-                Assert.Equal(expectedInferredAnnotation, field.GetInferredNullableAnnotation());
+                Assert.Equal(expectedIsNullResilient, field.GetIsNullResilient());
             }
         }
 
@@ -8021,11 +8008,11 @@ class C<T>
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("""
-                    C.<P3>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
-                    C.<P4>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
-                    C.<P5>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
-                    C.<P1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
-                    C.<P2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                    C.<P3>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                    C.<P4>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                    C.<P5>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                    C.<P1>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                    C.<P2>k__BackingField: System.Runtime.CompilerServices.NullableAttribute, System.Runtime.CompilerServices.CompilerGeneratedAttribute,
                     """));
 
             if (useDEBUG)
@@ -8034,7 +8021,7 @@ class C<T>
                     {
                       // Code size       12 (0xc)
                       .maxstack  1
-                      IL_0000:  ldsfld     "object C.<P1>k__BackingField"
+                      IL_0000:  ldsfld     "object? C.<P1>k__BackingField"
                       IL_0005:  call       "void C.M(object)"
                       IL_000a:  ldnull
                       IL_000b:  ret
@@ -8045,7 +8032,7 @@ class C<T>
                       // Code size       12 (0xc)
                       .maxstack  1
                       IL_0000:  ldarg.0
-                      IL_0001:  ldfld      "object C.<P4>k__BackingField"
+                      IL_0001:  ldfld      "object? C.<P4>k__BackingField"
                       IL_0006:  call       "void C.M(object)"
                       IL_000b:  ret
                     }
@@ -8075,11 +8062,11 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object C.<P1>k__BackingField",
-                "System.Object C.<P2>k__BackingField",
-                "System.Object C.<P3>k__BackingField",
-                "System.Object C.<P4>k__BackingField",
-                "System.Object C.<P5>k__BackingField",
+                "System.Object? C.<P1>k__BackingField",
+                "System.Object? C.<P2>k__BackingField",
+                "System.Object? C.<P3>k__BackingField",
+                "System.Object? C.<P4>k__BackingField",
+                "System.Object? C.<P5>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -8375,8 +8362,8 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object C.<P3>k__BackingField",
-                "System.Object C.<P4>k__BackingField",
+                "System.Object? C.<P3>k__BackingField",
+                "System.Object? C.<P4>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -8446,11 +8433,11 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object C.<P1>k__BackingField",
-                "System.Object C.<P2>k__BackingField",
-                "System.Object C.<P3>k__BackingField",
-                "System.Object C.<P4>k__BackingField",
-                "System.Object C.<P5>k__BackingField",
+                "System.Object? C.<P1>k__BackingField",
+                "System.Object? C.<P2>k__BackingField",
+                "System.Object? C.<P3>k__BackingField",
+                "System.Object? C.<P4>k__BackingField",
+                "System.Object? C.<P5>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -8617,8 +8604,8 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object I.<P1>k__BackingField",
-                "System.Object I.<P2>k__BackingField",
+                "System.Object? I.<P1>k__BackingField",
+                "System.Object? I.<P2>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -8680,8 +8667,8 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object I.<P1>k__BackingField",
-                "System.Object I.<P2>k__BackingField",
+                "System.Object? I.<P1>k__BackingField",
+                "System.Object? I.<P2>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -8734,8 +8721,8 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object I.<P1>k__BackingField",
-                "System.Object I.<P2>k__BackingField",
+                "System.Object? I.<P1>k__BackingField",
+                "System.Object? I.<P2>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -8810,10 +8797,10 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object I.<P1>k__BackingField",
-                "System.Object I.<P2>k__BackingField",
-                "System.Object I.<P3>k__BackingField",
-                "System.Object I.<P4>k__BackingField",
+                "System.Object? I.<P1>k__BackingField",
+                "System.Object? I.<P2>k__BackingField",
+                "System.Object? I.<P3>k__BackingField",
+                "System.Object? I.<P4>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -8885,10 +8872,10 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object I.<P1>k__BackingField",
-                "System.Object I.<P2>k__BackingField",
-                "System.Object I.<P3>k__BackingField",
-                "System.Object I.<P4>k__BackingField",
+                "System.Object? I.<P1>k__BackingField",
+                "System.Object? I.<P2>k__BackingField",
+                "System.Object? I.<P3>k__BackingField",
+                "System.Object? I.<P4>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -8987,8 +8974,8 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object C.<P1>k__BackingField",
-                "System.Object C.<P2>k__BackingField",
+                "System.Object? C.<P1>k__BackingField",
+                "System.Object? C.<P2>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -9062,9 +9049,9 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object C.<P1>k__BackingField",
-                "System.Object C.<P2>k__BackingField",
-                "System.Object C.<P3>k__BackingField",
+                "System.Object? C.<P1>k__BackingField",
+                "System.Object? C.<P2>k__BackingField",
+                "System.Object? C.<P3>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -9136,12 +9123,12 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object C.<P1>k__BackingField",
-                "System.Object C.<P2>k__BackingField",
-                "System.Object C.<P3>k__BackingField",
-                "System.Object C.<Q1>k__BackingField",
-                "System.Object C.<Q2>k__BackingField",
-                "System.Object C.<Q3>k__BackingField",
+                "System.Object? C.<P1>k__BackingField",
+                "System.Object? C.<P2>k__BackingField",
+                "System.Object? C.<P3>k__BackingField",
+                "System.Object? C.<Q1>k__BackingField",
+                "System.Object? C.<Q2>k__BackingField",
+                "System.Object? C.<Q3>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -9251,20 +9238,20 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object C.<P1>k__BackingField",
-                "System.Object C.<P2>k__BackingField",
-                "System.Object C.<P3>k__BackingField",
-                "System.Object C.<P4>k__BackingField",
-                "System.Object C.<P5>k__BackingField",
-                "System.Object C.<P6>k__BackingField",
-                "System.Object C.<P7>k__BackingField",
-                "System.Object C.<Q1>k__BackingField",
-                "System.Object C.<Q2>k__BackingField",
-                "System.Object C.<Q3>k__BackingField",
-                "System.Object C.<Q4>k__BackingField",
-                "System.Object C.<Q5>k__BackingField",
-                "System.Object C.<Q6>k__BackingField",
-                "System.Object C.<Q7>k__BackingField",
+                "System.Object? C.<P1>k__BackingField",
+                "System.Object? C.<P2>k__BackingField",
+                "System.Object? C.<P3>k__BackingField",
+                "System.Object? C.<P4>k__BackingField",
+                "System.Object? C.<P5>k__BackingField",
+                "System.Object? C.<P6>k__BackingField",
+                "System.Object? C.<P7>k__BackingField",
+                "System.Object? C.<Q1>k__BackingField",
+                "System.Object? C.<Q2>k__BackingField",
+                "System.Object? C.<Q3>k__BackingField",
+                "System.Object? C.<Q4>k__BackingField",
+                "System.Object? C.<Q5>k__BackingField",
+                "System.Object? C.<Q6>k__BackingField",
+                "System.Object? C.<Q7>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -9347,9 +9334,9 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object C.<P1>k__BackingField",
-                "System.Object C.<P2>k__BackingField",
-                "System.Object C.<P3>k__BackingField",
+                "System.Object? C.<P1>k__BackingField",
+                "System.Object? C.<P2>k__BackingField",
+                "System.Object? C.<P3>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -9414,11 +9401,11 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object C.<P1>k__BackingField",
-                "System.Object C.<P2>k__BackingField",
-                "System.Object C.<P3>k__BackingField",
-                "System.Object C.<P4>k__BackingField",
-                "System.Object C.<P5>k__BackingField",
+                "System.Object? C.<P1>k__BackingField",
+                "System.Object? C.<P2>k__BackingField",
+                "System.Object? C.<P3>k__BackingField",
+                "System.Object? C.<P4>k__BackingField",
+                "System.Object? C.<P5>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -9539,15 +9526,15 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object C.<P1>k__BackingField",
-                "System.Object C.<P3>k__BackingField",
-                "System.Object C.<P5>k__BackingField",
-                "System.Object C.<P4>k__BackingField",
-                "System.Object C.<P6>k__BackingField",
-                "System.Object C.<P2>k__BackingField",
-                "System.Object C.<P3>k__BackingField",
-                "System.Object C.<P4>k__BackingField",
-                "System.Object C.<P6>k__BackingField",
+                "System.Object? C.<P1>k__BackingField",
+                "System.Object? C.<P3>k__BackingField",
+                "System.Object? C.<P5>k__BackingField",
+                "System.Object? C.<P4>k__BackingField",
+                "System.Object? C.<P6>k__BackingField",
+                "System.Object? C.<P2>k__BackingField",
+                "System.Object? C.<P3>k__BackingField",
+                "System.Object? C.<P4>k__BackingField",
+                "System.Object? C.<P6>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -9770,15 +9757,15 @@ class C<T>
                 ToArray();
             var expectedMembers = new[]
             {
-                $"System.Object S.<P1>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
-                $"System.Object S.<P2>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
-                $"System.Object S.<P3>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
-                $"System.Object S.<P4>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
-                $"System.Object S.<P5>k__BackingField: IsAutoProperty: True, UsesFieldKeyword: False, BackingField.IsReadOnly: {useReadOnlyImplementation}",
-                $"System.Object S.<P6>k__BackingField: IsAutoProperty: True, UsesFieldKeyword: False, BackingField.IsReadOnly: False",
-                $"System.Object S.<P7>k__BackingField: IsAutoProperty: True, UsesFieldKeyword: False, BackingField.IsReadOnly: {useReadOnlyImplementation}",
-                $"System.Object S.<P8>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: False",
-                $"System.Object S.<P9>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: False",
+                $"System.Object? S.<P1>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
+                $"System.Object? S.<P2>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
+                $"System.Object? S.<P3>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
+                $"System.Object? S.<P4>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
+                $"System.Object? S.<P5>k__BackingField: IsAutoProperty: True, UsesFieldKeyword: False, BackingField.IsReadOnly: {useReadOnlyImplementation}",
+                $"System.Object? S.<P6>k__BackingField: IsAutoProperty: True, UsesFieldKeyword: False, BackingField.IsReadOnly: False",
+                $"System.Object? S.<P7>k__BackingField: IsAutoProperty: True, UsesFieldKeyword: False, BackingField.IsReadOnly: {useReadOnlyImplementation}",
+                $"System.Object? S.<P8>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: False",
+                $"System.Object? S.<P9>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: False",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -9835,10 +9822,10 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object B.<P1>k__BackingField",
-                "System.Object B.<P2>k__BackingField",
-                "System.Object B.<P3>k__BackingField",
-                "System.Object B.<P4>k__BackingField",
+                "System.Object? B.<P1>k__BackingField",
+                "System.Object? B.<P2>k__BackingField",
+                "System.Object? B.<P3>k__BackingField",
+                "System.Object? B.<P4>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -9912,10 +9899,10 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object B.<P1>k__BackingField",
-                "System.Object B.<P2>k__BackingField",
-                "System.Object B.<P3>k__BackingField",
-                "System.Object B.<P4>k__BackingField",
+                "System.Object? B.<P1>k__BackingField",
+                "System.Object? B.<P2>k__BackingField",
+                "System.Object? B.<P3>k__BackingField",
+                "System.Object? B.<P4>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -9986,10 +9973,10 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object B.<P2>k__BackingField",
-                "System.Object B.<P3>k__BackingField",
-                "System.Object B.<Q2>k__BackingField",
-                "System.Object B.<Q3>k__BackingField",
+                "System.Object? B.<P2>k__BackingField",
+                "System.Object? B.<P3>k__BackingField",
+                "System.Object? B.<Q2>k__BackingField",
+                "System.Object? B.<Q3>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -10071,9 +10058,9 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object B.<P1>k__BackingField",
-                "System.Object B.<P2>k__BackingField",
-                "System.Object B.<P3>k__BackingField",
+                "System.Object? B.<P1>k__BackingField",
+                "System.Object? B.<P2>k__BackingField",
+                "System.Object? B.<P3>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -10138,9 +10125,9 @@ class C<T>
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
-                "System.Object B.<P1>k__BackingField",
-                "System.Object B.<P2>k__BackingField",
-                "System.Object B.<P3>k__BackingField",
+                "System.Object? B.<P1>k__BackingField",
+                "System.Object? B.<P2>k__BackingField",
+                "System.Object? B.<P3>k__BackingField",
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
@@ -10242,7 +10229,7 @@ class C<T>
                       .locals init (System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_0)
                       IL_0000:  ldarg.0
                       IL_0001:  ldarg.1
-                      IL_0002:  stfld      "object C.<P2>k__BackingField"
+                      IL_0002:  stfld      "object? C.<P2>k__BackingField"
                       IL_0007:  ldarg.0
                       IL_0008:  ldloca.s   V_0
                       IL_000a:  ldc.i4.0
@@ -10250,11 +10237,11 @@ class C<T>
                       IL_000c:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
                       IL_0011:  ldloca.s   V_0
                       IL_0013:  ldarg.0
-                      IL_0014:  ldfld      "object C.<P2>k__BackingField"
+                      IL_0014:  ldfld      "object? C.<P2>k__BackingField"
                       IL_0019:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<object>(object)"
                       IL_001e:  ldloca.s   V_0
                       IL_0020:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
-                      IL_0025:  stfld      "object C.<P2>k__BackingField"
+                      IL_0025:  stfld      "object? C.<P2>k__BackingField"
                       IL_002a:  ret
                     }
                     """);
@@ -10515,7 +10502,7 @@ class C<T>
             var expr = modifiedAccessor.DescendantNodes().OfType<FieldExpressionSyntax>().Single();
             Assert.Equal("return field;", expr.Parent.ToString());
             var symbolInfo = speculativeModel.GetSymbolInfo(expr);
-            Assert.Equal("System.Object C.<P>k__BackingField", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Object? C.<P>k__BackingField", symbolInfo.Symbol.ToTestDisplayString());
         }
 
         [Theory]
@@ -10742,8 +10729,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(4, 19));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.False(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -10764,8 +10751,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(4, 19));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.False(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -10796,8 +10783,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 32));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -10856,9 +10843,9 @@ class C<T>
             // We could further scope this by saying: do not infer if the getter specifically doesn't use 'field',
             // regardless of whether the setter uses it, and perhaps skip some additional work.
             // However, this is considered a pathological case.
-            Assert.True(field.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.Annotated, field.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, field.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(field.InfersNullResilience);
+            Assert.True(field.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, field.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -10876,8 +10863,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.False(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -10896,8 +10883,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.False(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Theory]
@@ -10917,8 +10904,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -10936,8 +10923,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -10956,8 +10943,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -10980,8 +10967,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11010,8 +10997,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 16));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11038,8 +11025,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11065,8 +11052,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(8, 24));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11089,8 +11076,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11115,7 +11102,7 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.False(prop.BackingField.InfersNullableAnnotation);
+            Assert.False(prop.BackingField.InfersNullResilience);
             Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
@@ -11141,8 +11128,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11170,8 +11157,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, "field ??= fallback").WithLocation(9, 16));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11194,8 +11181,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11221,8 +11208,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 14));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.False(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11250,8 +11237,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.False(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11274,14 +11261,11 @@ class C<T>
             comp.VerifyEmitDiagnostics(
                 // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public string Prop
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19),
-                // (8,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         set => field = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 24));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.False(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Theory]
@@ -11308,8 +11292,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Theory]
@@ -11347,8 +11331,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(8, 9));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11379,8 +11363,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(8, 9));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11414,8 +11398,8 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(9, 9));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.False(prop.BackingField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.False(prop.BackingField.InfersNullResilience);
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11444,8 +11428,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.False(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11468,8 +11452,8 @@ class C<T>
             comp.VerifyEmitDiagnostics();
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Theory]
@@ -11482,7 +11466,7 @@ class C<T>
 
                 class C
                 {
-                    public string Prop
+                    public string Prop // 1
                     {
                         get => field;
                         set => field = null;
@@ -11497,21 +11481,16 @@ class C<T>
                 // We don't run DiagnosticSuppressors in that context.
                 // So, it's not clear that this suppressor would ever do anything.
                 // Still, it seems useful to express our intent with this test, that DiagnosticSuppressors don't have an effect.
-                comp = comp.VerifySuppressedDiagnostics(
-                    [new CommonDiagnosticAnalyzers.DiagnosticSuppressorForId("CS8603"), new CommonDiagnosticAnalyzers.DiagnosticSuppressorForId("CS8625")],
-                    expected: [Diagnostic("CS8625", "null", isSuppressed: true).WithLocation(8, 24)]);
+                comp = comp.VerifySuppressedDiagnostics([new CommonDiagnosticAnalyzers.DiagnosticSuppressorForId("CS8603")], expected: []);
             }
 
             comp.VerifyEmitDiagnostics(
                 // (5,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
-                //     public string Prop
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19),
-                // (8,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         set => field = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 24));
+                //     public string Prop // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19));
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+            Assert.False(prop.BackingField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11533,13 +11512,13 @@ class C<T>
             var comp0 = CreateCompilation(source);
             comp0.VerifyEmitDiagnostics();
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
-            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.GetIsNullResilient());
 
             var comp1 = CreateCompilation("", references: [comp0.EmitToImageReference()], options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var metadataField = comp1.GetMember<FieldSymbol>("C.<Prop>k__BackingField");
-            Assert.Equal(NullableAnnotation.NotAnnotated, metadataField.TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, metadataField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11572,7 +11551,7 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, "null").WithLocation(8, 16));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.False(sourceField.InfersNullableAnnotation);
+            Assert.False(sourceField.InfersNullResilience);
             Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
             Assert.Equal("System.Int32?", sourceField.TypeWithAnnotations.ToTestDisplayString());
         }
@@ -11609,9 +11588,9 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(15, 13));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.True(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11630,9 +11609,9 @@ class C<T>
             comp0.VerifyEmitDiagnostics();
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.True(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11654,9 +11633,9 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 26));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.False(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11679,9 +11658,9 @@ class C<T>
             comp0.VerifyEmitDiagnostics();
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.False(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11700,9 +11679,9 @@ class C<T>
             comp0.VerifyEmitDiagnostics();
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.False(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11732,15 +11711,14 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(6, 19));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.False(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
-        public void Ref_Resilient_01()
+        public void Ref_Resilience_01()
         {
-            // "Resilient" in the sense that same warnings occur whether field is nullable or not.
             var source = """
                 #nullable enable
 
@@ -11765,9 +11743,9 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "field").WithLocation(11, 20));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.True(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11795,9 +11773,9 @@ class C<T>
             comp0.VerifyEmitDiagnostics();
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.True(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11822,25 +11800,25 @@ class C<T>
                     {
                         get
                         {
-                            M(ref field); // 1
-                            return field; // 2
+                            M(ref field);
+                            return field; // 1
                         }
                     }
                 }
                 """;
             var comp0 = CreateCompilation([source, MaybeNullAttributeDefinition]);
             comp0.VerifyEmitDiagnostics(
-                // (11,19): warning CS8601: Possible null reference assignment.
-                //             M(ref field); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "field").WithLocation(11, 19),
+                // (7,19): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public string Prop
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 19),
                 // (12,20): warning CS8603: Possible null reference return.
                 //             return field; // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "field").WithLocation(12, 20));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.False(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11867,9 +11845,9 @@ class C<T>
             comp0.VerifyEmitDiagnostics();
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.True(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11899,9 +11877,9 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.False(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11934,9 +11912,9 @@ class C<T>
                       Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(10, 18));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.False(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11965,9 +11943,9 @@ class C<T>
             comp0.VerifyEmitDiagnostics();
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.True(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -11999,9 +11977,9 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.False(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -12029,9 +12007,9 @@ class C<T>
             comp0.VerifyEmitDiagnostics();
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.True(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -12062,9 +12040,9 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(6, 19));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.False(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -12096,9 +12074,9 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(5, 19));
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.False(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -12127,9 +12105,9 @@ class C<T>
             comp0.VerifyEmitDiagnostics();
 
             var sourceField = comp0.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
-            Assert.True(sourceField.InfersNullableAnnotation);
-            Assert.Equal(NullableAnnotation.Annotated, sourceField.GetInferredNullableAnnotation());
-            Assert.Equal(NullableAnnotation.NotAnnotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.True(sourceField.GetIsNullResilient());
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
         }
     }
 }

@@ -1564,11 +1564,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var expr = syntaxTree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
 
                 var symbolInfo = model.GetSymbolInfo(expr);
-                string expectedSymbol = synthesizeField ? "System.String Derived.<P>k__BackingField" : "System.String Base.field";
+                string expectedSymbol = synthesizeField ? "System.string? Derived.<P>k__BackingField" : "System.String Base.field";
                 Assert.Equal(expectedSymbol, symbolInfo.Symbol.ToTestDisplayString());
 
                 var actualFields = comp.GetMember<NamedTypeSymbol>("Derived").GetMembers().Where(m => m.Kind == SymbolKind.Field).ToTestDisplayStrings();
-                string[] expectedFields = synthesizeField ? ["System.String Derived.<P>k__BackingField"] : [];
+                string[] expectedFields = synthesizeField ? ["System.string? Derived.<P>k__BackingField"] : [];
                 AssertEx.Equal(expectedFields, actualFields);
             }
         }
