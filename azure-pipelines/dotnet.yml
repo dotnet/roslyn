@@ -8,7 +8,7 @@ parameters:
 
 steps:
 
-- script: dotnet build -t:build,pack --no-restore -c $(BuildConfiguration) -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904 /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
+- script: dotnet build -t:build,pack --no-restore -c $(BuildConfiguration) -warnAsError -warnNotAsError:NU1901,NU1902,NU1903,NU1904,LOCTASK002 /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
   displayName: 🛠 dotnet build
 
 - ${{ if not(parameters.IsOptProf) }}:
