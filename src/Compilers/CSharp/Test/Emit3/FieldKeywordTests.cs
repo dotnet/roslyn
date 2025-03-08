@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // Code size       18 (0x12)
                   .maxstack  2
                   IL_0000:  ldarg.0
-                  IL_0001:  ldflda     "object? C.<Q>k__BackingField"
+                  IL_0001:  ldflda     "object C.<Q>k__BackingField"
                   IL_0006:  ldc.i4.2
                   IL_0007:  box        "int"
                   IL_000c:  call       "object C.Initialize(out object, object)"
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0007:  ldfld      "object C.<>c__DisplayClass5_0.value"
                   IL_000c:  dup
                   IL_000d:  stloc.0
-                  IL_000e:  stfld      "object? C.<P2>k__BackingField"
+                  IL_000e:  stfld      "object C.<P2>k__BackingField"
                   IL_0013:  ldloc.0
                   IL_0014:  ret
                 }
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                   // Code size        6 (0x6)
                   .maxstack  1
-                  IL_0000:  ldsfld     "object? C.<P3>k__BackingField"
+                  IL_0000:  ldsfld     "object C.<P3>k__BackingField"
                   IL_0005:  ret
                 }
                 """);
@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   .maxstack  2
                   IL_0000:  ldarg.0
                   IL_0001:  ldarg.1
-                  IL_0002:  stfld      "object? A.<Q3>k__BackingField"
+                  IL_0002:  stfld      "object A.<Q3>k__BackingField"
                   IL_0007:  ret
                 }
                 """);
@@ -5753,24 +5753,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 // TODO2: should props not using field keyword also have a nullable backing field? Or only ones that use the keyword?
-                // TODO2: it seems like we can't skip initialization warnings just because property has an initializer now.
-                // TODO2: or, maybe an initializer check should use null resilience to decide whether to blame the value going in.
+                // It seems like our design when not using keyword was to "ignore" the field and use only the prop when checking prop assignments, exit warnings, etc.
+                // Perhaps we should also test an empty constructor here
                 comp.VerifyEmitDiagnostics(
-                    // (4,27): warning CS8601: Possible null reference assignment.
-                    //     object  P1 { get; } = MaybeNull();
-                    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(4, 27),
-                    // (5,36): warning CS8601: Possible null reference assignment.
-                    //     object  P2 { get => field; } = MaybeNull();
-                    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(5, 36),
-                    // (6,42): warning CS8601: Possible null reference assignment.
-                    //     object  P3 { get => field; set ; } = MaybeNull();
-                    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(6, 42),
-                    // (7,33): warning CS8601: Possible null reference assignment.
-                    //     object  P4 { get; set ; } = MaybeNull();
-                    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(7, 33),
-                    // (8,51): warning CS8601: Possible null reference assignment.
-                    //     object  P5 { get; set  { field = value; } } = MaybeNull();
-                    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(8, 51),
                     // (14,9): warning CS8602: Dereference of a possibly null reference.
                     //         P1.ToString();
                     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P1").WithLocation(14, 9),
@@ -6079,7 +6064,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public string Prop
                     {
                         get => field; // 1
-                        set => field = null; // 2
+                        set => field = null;
                     }
                     public C()
                     {
@@ -6091,10 +6076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // (9,16): warning CS8603: Possible null reference return.
                 //         get => field; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "field").WithLocation(9, 16),
-                // (10,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         set => field = null; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 24));
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "field").WithLocation(9, 16));
         }
 
         [Fact]
@@ -6225,19 +6207,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public string Prop
                     {
                         get => field;
-                        set => field = null; // 1
+                        set => field = null;
                     }
                     public C() // 2
                     {
+                    }
+                    public C(bool ignored)
+                    {
+                        Prop = "a";
+                        Prop.ToString(); // will NRE due to setter not initializing the field
                     }
                 }
                 """;
 
             var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (10,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         set => field = null; // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 24),
                 // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C() // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(12, 12));
@@ -6296,9 +6280,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (10,24): warning CS8601: Possible null reference assignment.
-                //         set => field = value; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(10, 24),
                 // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public C() // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(12, 12));
@@ -6367,8 +6348,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Nullability_13_AllowNullProp_Initializer(string setAccessor)
         {
             // AllowNull only on the property and assign null
-            // TODO2: This won't be safe even with nullable setter analysis.
-            // We need to be able to say: this prop does the wrong thing when field is in the default state, thus, ctor must initialize it, and the prop initializer "doesn't count" for that.
             var source = $$"""
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -6382,23 +6361,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {{setAccessor}}
                     } = null;
 
-                    public C()
+                    public C() // 1
                     {
                     }
                 }
                 """;
 
             var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (13,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public C() // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(13, 12));
         }
 
         [Fact]
         public void Nullability_13_AllowNullProp_Initializer_ManualSetter()
         {
             // AllowNull only on the property and assign null
-
-            // https://github.com/dotnet/roslyn/issues/77215
-            // This scenario will be a safety gap until setter analysis is implemented.
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -6412,22 +6391,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         set => field = value;
                     } = null;
 
-                    public C()
+                    public C() // 1
                     {
                     }
                 }
                 """;
 
             var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (13,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public C() // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(13, 12));
         }
 
         [Fact]
         public void Nullability_13_ReadProp()
         {
+            // nullable prop, dereference the field, and write the value to the field.
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string? Prop
+                    {
+                        get => field.ToString(); // 1
+                        set => field = value;
+                    }
+                    public C()
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,16): warning CS8602: Dereference of a possibly null reference.
+                //         get => field.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(7, 16));
+
+            var sourceField = comp.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.False(sourceField.GetIsNullResilient());
+        }
+
+        [Fact]
+        public void Nullability_13_Attributes_ReadProp()
+        {
             // MaybeNull+AllowNull on the property, and dereference the field, and write the value to the field.
-            // TODO2: should be inferred as not null-resilient and have not null initial state. Possibly the prop annotations are being used to provide the field initial state here and causing problems.
-            // TODO2: have to consider how to rationalize things without breaking `[NotNull] T Prop { get => field...; }`.
+            // TODO2: Interesting case. Prop is "morally" nullable, but it behaves badly when 'field' is in maybe-null state. Therefore we enforce initialization of the prop.
+            // Maybe we should say that if property has '[MaybeNull]' it is not subject to resilience inference and always warn on that field dereference.
+            // Otherwise this becomes a very strange point of control to express "the field must be non-nullable despite property being nullable".
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -6438,9 +6453,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public string Prop
                     {
                         get => field.ToString();
-                        set => field = value; // 1
+                        set => field = value;
                     }
-                    public C() // 2
+                    public C() // 1
                     {
                     }
                 }
@@ -6448,12 +6463,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (10,24): warning CS8601: Possible null reference assignment.
-                //         set => field = value; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(10, 24),
-                // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
-                //     public C() // 2
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(12, 12));
+                      // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                      //     public C() // 1
+                      Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(12, 12));
+
+            var sourceField = comp.GetMember<SynthesizedBackingFieldSymbol>("C.<Prop>k__BackingField");
+            Assert.True(sourceField.InfersNullResilience);
+            Assert.Equal(NullableAnnotation.Annotated, sourceField.TypeWithAnnotations.NullableAnnotation);
+            Assert.False(sourceField.GetIsNullResilient());
         }
 
         [Fact]
@@ -6646,7 +6663,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Nullability_20_ManualGetter_AutoSetter_NullInitializer()
         {
             // NotNull on field with manual getter and auto-setter and null initializer
-            // No diagnostic is expected here as the field's nullability+attrs is equivalent to `[AllowNull] string`--so, assigning null to it actually puts it into a non-null state.
+            // No diagnostic is expected here as the field's nullability+attrs is equivalent to `[AllowNull] string`.
+            // TODO2: investigate this one more closely
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -7077,7 +7095,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Nullability_StaticMismatch_01()
         {
             // instance constructors do not share a slot between static property and backing field
-            // TODO2: we should infer these props are not null resilient and thus warn field is not initialized
             var source = $$"""
                 #nullable enable
 
@@ -7096,12 +7113,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,48): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // (5,26): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public static string Prop1 { get; set; } = null; // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 48),
-                // (6,74): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Prop1").WithArguments("property", "Prop1").WithLocation(5, 26),
+                // (6,26): warning CS9264: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
                 //     public static string Prop2 { get => field; set => field = value; } = null; // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 74));
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop2").WithArguments("property", "Prop2").WithLocation(6, 26));
         }
 
         [Fact]
@@ -7225,7 +7242,7 @@ public class C
         public void AllowNull_Property_WithNotNull_NoSuppression()
         {
             // When 'field' keyword is used, nullability attributes on the property do not affect the field.
-            // TODO2: we need to give ctor exit warnings here even though property initializers are present.
+            // TODO2: figure out if this is the behavior we want.
             var source =
 @"using System.Diagnostics.CodeAnalysis;
 #nullable enable
@@ -7241,7 +7258,7 @@ public class COpen<TOpen>
 public class CNotNull<TNotNull> where TNotNull : notnull
 {
     [AllowNull, NotNull]
-    public TNotNull P1
+    public TNotNull P2
     {
         get => field;
         set => field = value; // 4
@@ -7250,7 +7267,7 @@ public class CNotNull<TNotNull> where TNotNull : notnull
 public class CClass<TClass> where TClass : class
 {
     [AllowNull, NotNull]
-    public TClass P2
+    public TClass P3
     {
         get => field;
         set => field = value; // 6
@@ -7258,27 +7275,18 @@ public class CClass<TClass> where TClass : class
 }";
             var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, NotNullAttributeDefinition, MaybeNullAttributeDefinition });
             comp.VerifyDiagnostics(
+                // 0.cs(6,18): warning CS9264: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public TOpen P1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P1").WithArguments("property", "P1").WithLocation(6, 18),
                 // 0.cs(8,16): warning CS8607: A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]
                 //         get => field; // 1
                 Diagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, "field").WithLocation(8, 16),
-                // 0.cs(9,24): warning CS8601: Possible null reference assignment.
-                //         set => field = value; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(9, 24),
-                // 0.cs(10,9): warning CS8601: Possible null reference assignment.
-                //     } = default; // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(10, 9),
-                // 0.cs(18,24): warning CS8601: Possible null reference assignment.
-                //         set => field = value; // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(18, 24),
-                // 0.cs(19,9): warning CS8601: Possible null reference assignment.
-                //     } = default; // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(19, 9),
-                // 0.cs(27,24): warning CS8601: Possible null reference assignment.
-                //         set => field = value; // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(27, 24),
-                // 0.cs(28,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //     } = null; // 7
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(28, 9));
+                // 0.cs(15,21): warning CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public TNotNull P2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P2").WithArguments("property", "P2").WithLocation(15, 21),
+                // 0.cs(24,19): warning CS9264: Non-nullable property 'P3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     public TClass P3
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P3").WithArguments("property", "P3").WithLocation(24, 19));
         }
 
         // Based on NullableReferenceTypesTests.AllowNull_Property_InDeconstructionAssignment
@@ -7291,7 +7299,7 @@ public class CClass<TClass> where TClass : class
 #nullable enable
 public class C
 {
-    [AllowNull] public C P
+    [AllowNull] public C P // 1
     {
         get => field;
         set => field = value;
@@ -7316,7 +7324,10 @@ class Program
     void Deconstruct(out C? x, out C? y) => throw null!;
 }";
             var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition });
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // 0.cs(5,26): warning CS9264: Non-nullable property 'P' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     [AllowNull] public C P // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P").WithArguments("property", "P").WithLocation(5, 26));
         }
 
         // Based on NullableReferenceTypesTests.MaybeNullT_24
@@ -7377,8 +7388,15 @@ class C<T>
         P6 = t;
     }
 }";
+            // TODO2: P5 warning is wrong here. Constructor assigns a valid value to prop setter, so flow state afterward should be valid. Need an exit warning on the setter though.
             var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, MaybeNullAttributeDefinition });
             comp.VerifyDiagnostics(
+                // 0.cs(44,5): warning CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     C([AllowNull]T t)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "P2").WithLocation(44, 5),
+                // 0.cs(44,5): warning CS9264: Non-nullable property 'P5' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.
+                //     C([AllowNull]T t)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "P5").WithLocation(44, 5),
                 // 0.cs(49,14): warning CS8601: Possible null reference assignment.
                 //         P4 = t; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(49, 14)
@@ -7394,7 +7412,7 @@ class C<T>
 
             void verify(SynthesizedBackingFieldSymbol field, bool expectedIsNullResilient)
             {
-                Assert.Equal(NullableAnnotation.NotAnnotated, field.TypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Annotated, field.TypeWithAnnotations.NullableAnnotation);
                 Assert.Equal(expectedIsNullResilient, field.GetIsNullResilient());
             }
         }
@@ -8021,7 +8039,7 @@ class C<T>
                     {
                       // Code size       12 (0xc)
                       .maxstack  1
-                      IL_0000:  ldsfld     "object? C.<P1>k__BackingField"
+                      IL_0000:  ldsfld     "object C.<P1>k__BackingField"
                       IL_0005:  call       "void C.M(object)"
                       IL_000a:  ldnull
                       IL_000b:  ret
@@ -8032,7 +8050,7 @@ class C<T>
                       // Code size       12 (0xc)
                       .maxstack  1
                       IL_0000:  ldarg.0
-                      IL_0001:  ldfld      "object? C.<P4>k__BackingField"
+                      IL_0001:  ldfld      "object C.<P4>k__BackingField"
                       IL_0006:  call       "void C.M(object)"
                       IL_000b:  ret
                     }
@@ -10229,7 +10247,7 @@ class C<T>
                       .locals init (System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_0)
                       IL_0000:  ldarg.0
                       IL_0001:  ldarg.1
-                      IL_0002:  stfld      "object? C.<P2>k__BackingField"
+                      IL_0002:  stfld      "object C.<P2>k__BackingField"
                       IL_0007:  ldarg.0
                       IL_0008:  ldloca.s   V_0
                       IL_000a:  ldc.i4.0
@@ -10237,11 +10255,11 @@ class C<T>
                       IL_000c:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
                       IL_0011:  ldloca.s   V_0
                       IL_0013:  ldarg.0
-                      IL_0014:  ldfld      "object? C.<P2>k__BackingField"
+                      IL_0014:  ldfld      "object C.<P2>k__BackingField"
                       IL_0019:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<object>(object)"
                       IL_001e:  ldloca.s   V_0
                       IL_0020:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
-                      IL_0025:  stfld      "object? C.<P2>k__BackingField"
+                      IL_0025:  stfld      "object C.<P2>k__BackingField"
                       IL_002a:  ret
                     }
                     """);
@@ -11370,7 +11388,7 @@ class C<T>
         [Fact]
         public void Nullable_Explicit_ChainedConstructor_01()
         {
-            // Behavior is consistent with inferred nullable backing field compared with explicitly attributed backing field.
+            // Behavior is consistent with inferred null resilient backing field compared with explicitly attributed backing field.
             var source = $$"""
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -11398,7 +11416,7 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(9, 9));
 
             var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
-            Assert.False(prop.BackingField.InfersNullResilience);
+            Assert.True(prop.BackingField.InfersNullResilience);
             Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 

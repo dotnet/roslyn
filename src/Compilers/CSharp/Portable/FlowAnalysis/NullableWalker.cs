@@ -721,7 +721,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // an initializer, we know we've assigned to the member and
                 // have given any applicable warnings about a bad value going in.
                 // Therefore we skip this check when the member has an initializer to reduce noise.
-                if (HasInitializer(member) && constructor.IncludeFieldInitializersInBody())
+                // Backing fields still need the check because their postconditions may be ignored otherwise. (TODO2: perhaps '[NotNull] T? _field' in general has a bug here.)
+                if (HasInitializer(member) && member is not SynthesizedBackingFieldSymbol && constructor.IncludeFieldInitializersInBody())
                 {
                     return;
                 }
@@ -2859,14 +2860,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (isNullResilient)
                     return NullableFlowState.MaybeDefault;
                 else
-                    return getDefaultInitializedState(backingField.AssociatedSymbol);
+                    return getDefaultInitializedState(((PropertySymbol)backingField.AssociatedSymbol).TypeWithAnnotations, GetFieldAnnotations(backingField)); // TODO2: should mask similar to GetRValueAnnotations?
             }
 
-            return getDefaultInitializedState(symbol);
+            return getDefaultInitializedState(symbol.GetTypeOrReturnType(), GetRValueAnnotations(symbol));
 
-            NullableFlowState getDefaultInitializedState(Symbol symbol)
+            NullableFlowState getDefaultInitializedState(TypeWithAnnotations type, FlowAnalysisAnnotations flowAnnotations)
             {
-                return ApplyUnconditionalAnnotations(symbol.GetTypeOrReturnType().ToTypeWithState(), GetRValueAnnotations(symbol)).State;
+                return ApplyUnconditionalAnnotations(type.ToTypeWithState(), flowAnnotations).State;
             }
         }
 
