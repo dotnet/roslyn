@@ -21519,6 +21519,32 @@ static class E
     }
 
     [Fact]
+    public void PropertyAccess_AmbiguityWithNoArguments()
+    {
+        var src = """
+int x = new object().M;
+
+public static class E1
+{
+    extension(object o)
+    {
+        public int M => 42;
+    }
+}
+
+public static class E2
+{
+    public static void M(this object o) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS9505: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // int x = new object().M;
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().M").WithArguments("object", "M").WithLocation(1, 9));
+    }
+
+    [Fact]
     public void ConstAccess()
     {
         var src = """
@@ -21585,6 +21611,26 @@ i.M();
         var comp = CreateCompilationWithIL(src, ilSrc);
         comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: "ran");
+
+        src = """
+int i = 0;
+i.M();
+""";
+        comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (2,1): error CS1929: 'int' does not contain a definition for 'M' and the best extension method overload 'E.extension(params int[]).M()' requires a receiver of type 'params int[]'
+            // i.M();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("int", "M", "E.extension(params int[]).M()", "params int[]").WithLocation(2, 1));
+
+        src = """
+int i = 0;
+i.M(2);
+""";
+        comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (2,3): error CS1501: No overload for method 'M' takes 1 arguments
+            // i.M(2);
+            Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "1").WithLocation(2, 3));
     }
 
     [Fact]
@@ -21634,5 +21680,25 @@ _ = i.P;
         var comp = CreateCompilationWithIL(src, ilSrc);
         comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: "ran");
+
+        src = """
+int i = 0;
+_ = i.P;
+""";
+        comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS9505: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // _ = i.P;
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.P").WithArguments("int", "P").WithLocation(2, 5));
+
+        src = """
+int i = 0;
+_ = i.P(1);
+""";
+        comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (2,7): error CS1061: 'int' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // _ = i.P(1);
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("int", "P").WithLocation(2, 7));
     }
 }

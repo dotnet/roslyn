@@ -4475,13 +4475,12 @@ outerDefault:
             // in "Infer" for details.
 
             PooledDictionary<TypeParameterSymbol, int> ordinals = makeOrdinalsIfNeeded(member, originalTypeParameters);
-            NamedTypeSymbol containingType = member.GetIsNewExtensionMember() ? member.ContainingType.ContainingType : member.ContainingType;
 
             var inferenceResult = MethodTypeInferrer.Infer(
                 _binder,
                 _binder.Conversions,
                 originalTypeParameters,
-                containingType,
+                member.ContainingType,
                 originalEffectiveParameters.ParameterTypes,
                 originalEffectiveParameters.ParameterRefKinds,
                 args,
