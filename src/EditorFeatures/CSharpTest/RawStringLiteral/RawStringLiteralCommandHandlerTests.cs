@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RawStringLiteral;
 
 [UseExportProvider]
-public class RawStringLiteralCommandHandlerTests
+public sealed class RawStringLiteralCommandHandlerTests
 {
     internal sealed class RawStringLiteralTestState : AbstractCommandHandlerTestState
     {
@@ -517,6 +517,48 @@ public class RawStringLiteralCommandHandlerTests
             ""$$";
             """");
 
+        testState.SendReturn(handled: false);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/76773")]
+    public void TestReturnPriorToStartingQuotes1()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(
+            """"
+            var v = Goo($$"""
+                bar);
+                """
+            """");
+
+        // Should not handle this as we're not inside the raw string.
+        testState.SendReturn(handled: false);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/76773")]
+    public void TestReturnPriorToStartingQuotes2()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(
+            """"
+            var v = Goo("$$""
+                bar);
+                """
+            """");
+
+        // Should not handle this as we're not inside the raw string.
+        testState.SendReturn(handled: false);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/76773")]
+    public void TestReturnPriorToStartingQuotes3()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(
+            """"
+            var v = Goo(""$$"
+                bar);
+                """
+            """");
+
+        // Should not handle this as we're not inside the raw string.
         testState.SendReturn(handled: false);
     }
 
