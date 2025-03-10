@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private NullableAnnotation ComputeInferredNullableAnnotation()
         {
-            // https://github.com/dotnet/csharplang/blob/main/proposals/field-keyword.md#nullability-of-the-backing-field
+            // https://github.com/dotnet/csharplang/blob/94205582d0f5c73e5765cb5888311c2f14890b95/proposals/field-keyword.md#nullability-of-the-backing-field
             Debug.Assert(InfersNullableAnnotation);
 
             // If the property does not have a get accessor, it is (vacuously) null-resilient.

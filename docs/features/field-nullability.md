@@ -1,6 +1,6 @@
 # `field` keyword nullable analysis implementation
 
-See also [specification](https://github.com/dotnet/csharplang/blob/main/proposals/field-keyword.md#nullability).
+See also [specification](https://github.com/dotnet/csharplang/blob/94205582d0f5c73e5765cb5888311c2f14890b95/proposals/field-keyword.md#nullability).
 
 ## Symbol API behavior
 
