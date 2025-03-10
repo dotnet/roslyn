@@ -5,7 +5,6 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
