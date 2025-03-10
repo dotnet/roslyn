@@ -8,6 +8,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -10977,6 +10978,35 @@ f( [Attribute] () => { });
         public async Task TestNormalizeUsingAlias(string text, string expected)
         {
             await AssertFormatAsync(expected, text);
+        }
+
+        [Fact]
+        public async Task TestExtension1()
+        {
+            await AssertFormatAsync(
+                """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        public void M()
+                        {
+                        }
+                    }
+                }
+                """,
+                """
+                static class C
+                {
+                        extension   (   string   s   )
+                            {
+                                public  void    M   (   )
+                                    {
+                                    }
+                            }
+                }
+                """,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
         }
     }
 }
