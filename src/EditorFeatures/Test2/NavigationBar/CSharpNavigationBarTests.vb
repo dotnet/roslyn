@@ -387,8 +387,8 @@ static class C
                     </Project>
                 </Workspace>,
                 host,
-                Item("C", Glyph.ClassInternal), False,
-                Item("operator checked +(C x, C y)", Glyph.Operator), False)
+                Item("C.extension(string)", Glyph.ClassPublic), False,
+                Item("Goo()", Glyph.MethodPublic), False)
         End Function
     End Class
 End Namespace
