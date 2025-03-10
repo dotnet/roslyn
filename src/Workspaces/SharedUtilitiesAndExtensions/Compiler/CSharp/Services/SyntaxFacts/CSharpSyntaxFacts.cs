@@ -793,7 +793,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         return pooled.ToStringAndFree();
     }
 
-    private static string? GetName(SyntaxNode node, DisplayNameOptions options)
+    private string? GetName(SyntaxNode node, DisplayNameOptions options)
     {
         const string missingTokenPlaceholder = "?";
 
@@ -817,7 +817,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         if (node is MemberDeclarationSyntax memberDeclaration)
         {
             if (memberDeclaration is ConversionOperatorDeclarationSyntax conversionOperator)
-                return Instance.ConvertToSingleLine(conversionOperator.Type).ToString();
+                return ConvertToSingleLine(conversionOperator.Type).ToString();
 
             var nameToken = memberDeclaration.GetNameToken();
             if (nameToken != default)
@@ -869,12 +869,12 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
             }
         }
 
-        static void AppendParameterList(StringBuilder builder, ParameterListSyntax? parameterList)
+        void AppendParameterList(StringBuilder builder, ParameterListSyntax? parameterList)
         {
             if (parameterList != null)
             {
                 builder.Append('(');
-                builder.Append(string.Join(", ", parameterList.Parameters.Select(static p => Instance.ConvertToSingleLine(p.Type))));
+                builder.Append(string.Join(", ", parameterList.Parameters.Select(p => ConvertToSingleLine(p.Type))));
                 builder.Append(')');
             }
         }
