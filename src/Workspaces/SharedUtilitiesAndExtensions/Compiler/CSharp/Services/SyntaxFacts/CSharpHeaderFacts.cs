@@ -40,6 +40,7 @@ internal class CSharpHeaderFacts : AbstractHeaderFacts
                 if (typeDeclaration.TypeParameterList != null)
                     return typeDeclaration.TypeParameterList.GreaterThanToken;
 
+                // .Identifier may be default in the case of an extension type.
                 if (typeDeclaration.Identifier != default)
                     return typeDeclaration.Identifier;
 
