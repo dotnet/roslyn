@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Copilot;
@@ -63,16 +64,9 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </summary>
     Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Method to fetch the on-the-fly documentation based on a a symbols <paramref name="symbolSignature"/>
-    /// and the code for the symbols in <paramref name="declarationCode"/>.
-    /// <para>
-    /// <paramref name="symbolSignature"/> is a formatted string representation of an <see cref="ISymbol"/>.<br/>
-    /// <paramref name="declarationCode"/> is a list of a code definitions from an <see cref="ISymbol"/>.
-    /// <paramref name="language"/> is the language of the originating <see cref="ISymbol"/>.
-    /// </para>
-    /// </summary>
-    Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
+    string GetOnTheFlyDocsPrompt(OnTheFlyDocsInfo onTheFlyDocsInfo);
+
+    Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken);
 
     /// <summary>
     /// Determines if the given <paramref name="filePath"/> is excluded in the workspace.

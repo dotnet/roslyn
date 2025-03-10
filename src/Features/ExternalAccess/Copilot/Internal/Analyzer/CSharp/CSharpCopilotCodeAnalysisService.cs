@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,23 +30,29 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
 {
     private IExternalCSharpCopilotCodeAnalysisService? AnalysisService { get; }
     private IExternalCSharpCopilotGenerateDocumentationService? GenerateDocumentationService { get; }
+    private IExternalCSharpOnTheFlyDocsService? OnTheFlyDocsService { get; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpCopilotCodeAnalysisService(
         [Import(AllowDefault = true)] IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
         [Import(AllowDefault = true)] IExternalCSharpCopilotGenerateDocumentationService? externalCSharpCopilotGenerateDocumentationService,
+        [Import(AllowDefault = true)] IExternalCSharpOnTheFlyDocsService? externalCSharpOnTheFlyDocsService,
         IDiagnosticsRefresher diagnosticsRefresher
         ) : base(diagnosticsRefresher)
     {
         if (externalCopilotService is null)
-            FatalError.ReportAndCatch(new NullReferenceException("ExternalCSharpCopilotCodeAnalysisService is unavailable."), ErrorSeverity.Diagnostic);
+            FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCopilotService)), ErrorSeverity.Diagnostic);
 
         if (externalCSharpCopilotGenerateDocumentationService is null)
-            FatalError.ReportAndCatch(new NullReferenceException("ExternalCSharpCopilotGenerateDocumentationService is unavailable."), ErrorSeverity.Diagnostic);
+            FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpCopilotGenerateDocumentationService)), ErrorSeverity.Diagnostic);
+
+        if (externalCSharpOnTheFlyDocsService is null)
+            FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpOnTheFlyDocsService)), ErrorSeverity.Diagnostic);
 
         AnalysisService = externalCopilotService;
         GenerateDocumentationService = externalCSharpCopilotGenerateDocumentationService;
+        OnTheFlyDocsService = externalCSharpOnTheFlyDocsService;
     }
 
     protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
@@ -88,10 +95,18 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return Task.CompletedTask;
     }
 
-    protected override Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken)
+    protected override string GetOnTheFlyDocsPromptCore(OnTheFlyDocsInfo onTheFlyDocsInfo)
     {
-        if (AnalysisService is not null)
-            return AnalysisService.GetOnTheFlyDocsAsync(symbolSignature, declarationCode, language, cancellationToken);
+        if (OnTheFlyDocsService is not null)
+            return OnTheFlyDocsService.GetOnTheFlyDocsPrompt(new CopilotOnTheFlyDocsInfoWrapper(onTheFlyDocsInfo));
+
+        return string.Empty;
+    }
+
+    protected override Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseCoreAsync(string prompt, CancellationToken cancellationToken)
+    {
+        if (OnTheFlyDocsService is not null)
+            return OnTheFlyDocsService.GetOnTheFlyDocsResponseAsync(prompt, cancellationToken);
 
         return Task.FromResult((string.Empty, false));
     }

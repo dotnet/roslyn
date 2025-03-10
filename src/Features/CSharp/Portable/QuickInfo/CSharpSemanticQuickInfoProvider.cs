@@ -192,8 +192,8 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
                 break;
             }
         }
-
         var maxLength = 1000;
+
         var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference =>
         {
             var span = reference.Span;
@@ -201,6 +201,50 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
         }).ToImmutableArray();
 
-        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), symbolStrings, symbol.Language, hasContentExcluded);
+        var additionalContext = GetAdditionalOnTheFlyDocsContext(symbol, maxLength, cancellationToken);
+
+        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), symbolStrings, symbol.Language, hasContentExcluded, additionalContext);
+    }
+
+    private static ImmutableArray<string> GetAdditionalOnTheFlyDocsContext(ISymbol symbol, int maxLength, CancellationToken cancellationToken)
+    {
+        var parameters = symbol.GetParameters();
+        var typeParameters = symbol.GetTypeParameters();
+        var parameterStrings = parameters.Select(parameter =>
+        {
+            // Check if the parameter is a type and get its source code
+            if (parameter.Type is ITypeSymbol typeSymbol)
+            {
+                var typeSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
+                if (typeSyntaxReference is not null)
+                {
+                    var typeSpan = typeSyntaxReference.Span;
+                    var typeSourceText = typeSyntaxReference.SyntaxTree.GetText(cancellationToken);
+                    return typeSourceText.GetSubText(new Text.TextSpan(typeSpan.Start, Math.Min(maxLength, typeSpan.Length))).ToString();
+                }
+            }
+
+            return string.Empty;
+
+        }).ToImmutableArray();
+
+        var typeParameterStrings = typeParameters.Select(typeParameter =>
+        {
+            if (typeParameter.DeclaringType is ITypeSymbol typeSymbol)
+            {
+                var typeSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
+                if (typeSyntaxReference is not null)
+                {
+                    var typeSpan = typeSyntaxReference.Span;
+                    var typeSourceText = typeSyntaxReference.SyntaxTree.GetText(cancellationToken);
+                    return typeSourceText.GetSubText(new Text.TextSpan(typeSpan.Start, Math.Min(maxLength, typeSpan.Length))).ToString();
+                }
+            }
+
+            return string.Empty;
+
+        }).ToImmutableArray();
+
+        return parameterStrings.AddRange(typeParameterStrings);
     }
 }
