@@ -8,9 +8,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -555,7 +557,7 @@ public static class Extensions<T>
         AssertExtensionDeclaration(symbol);
         Assert.True(symbol.IsGenericType);
         var members = symbol.ContainingType.GetMembers();
-        Assert.Equal(["Extensions<T>.<>E__0", "void Extensions<T>.<StaticExtension>M()"], members.ToTestDisplayStrings());
+        Assert.Equal(["Extensions<T>.<>E__0", "void Extensions<T>.M()"], members.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -624,7 +626,7 @@ public static class Extensions
         AssertExtensionDeclaration(nestedExtensionSymbol);
         Assert.Equal("Extensions.Extensions2", nestedExtensionSymbol.ContainingType.ToTestDisplayString());
         var members = nestedExtensionSymbol.ContainingType.GetMembers();
-        Assert.Equal(["Extensions.Extensions2.<>E__0", "void Extensions.Extensions2.<StaticExtension>M()"], members.ToTestDisplayStrings());
+        Assert.Equal(["Extensions.Extensions2.<>E__0", "void Extensions.Extensions2.M()"], members.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -635,7 +637,7 @@ string.M();
 
 public static class Extensions
 {
-    static void Method()
+    static void Method2()
     {
         string.M();
     }
@@ -1044,6 +1046,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
@@ -1074,15 +1079,18 @@ public static class Extensions
     } // end of class <>E__0
     // Methods
     .method private hidebysig specialname static 
-        void '<Extension>M' (
+        void M (
             object o
         ) cil managed 
     {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
-    } // end of method Extensions::'<Extension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """);
 
@@ -1174,13 +1182,13 @@ public static class Extensions
     } // end of class <>E__0
     // Methods
     .method private hidebysig specialname static 
-        void '<StaticExtension>M' () cil managed 
+        void M () cil managed 
     {
         // Method begins at RVA 0x2067
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
-    } // end of method Extensions::'<StaticExtension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """);
 
@@ -1258,6 +1266,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
@@ -1305,27 +1316,33 @@ public static class Extensions
     } // end of class <>E__0
     // Methods
     .method private hidebysig specialname static 
-        int32 '<Extension>get_Property' (
+        int32 get_Property (
             object o
         ) cil managed 
     {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 3 (0x3)
         .maxstack 8
         IL_0000: ldc.i4.s 42
         IL_0002: ret
-    } // end of method Extensions::'<Extension>get_Property'
+    } // end of method Extensions::get_Property
     .method private hidebysig specialname static 
-        void '<Extension>set_Property' (
+        void set_Property (
             object o,
             int32 'value'
         ) cil managed 
     {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x206b
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
-    } // end of method Extensions::'<Extension>set_Property'
+    } // end of method Extensions::set_Property
 } // end of class Extensions
 """);
 
@@ -1471,16 +1488,16 @@ extends [netstandard]System.Object
     } // end of class <>E__0
     // Methods
     .method private hidebysig specialname static 
-        int32 '<StaticExtension>get_Property' () cil managed 
+        int32 get_Property () cil managed 
     {
         // Method begins at RVA 0x2067
         // Code size 3 (0x3)
         .maxstack 8
         IL_0000: ldc.i4.s 42
         IL_0002: ret
-    } // end of method Extensions::'<StaticExtension>get_Property'
+    } // end of method Extensions::get_Property
     .method private hidebysig specialname static 
-        void '<StaticExtension>set_Property' (
+        void set_Property (
             int32 'value'
         ) cil managed 
     {
@@ -1488,7 +1505,7 @@ extends [netstandard]System.Object
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
-    } // end of method Extensions::'<StaticExtension>set_Property'
+    } // end of method Extensions::set_Property
 } // end of class Extensions
 """);
 
@@ -1557,6 +1574,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
@@ -1612,29 +1632,35 @@ public static class Extensions
     } // end of class <>E__0
     // Methods
     .method private hidebysig specialname static 
-        int32 '<Extension>get_Item' (
+        int32 get_Item (
             object o,
             int32 i
         ) cil managed 
     {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 3 (0x3)
         .maxstack 8
         IL_0000: ldc.i4.s 42
         IL_0002: ret
-    } // end of method Extensions::'<Extension>get_Item'
+    } // end of method Extensions::get_Item
     .method private hidebysig specialname static 
-        void '<Extension>set_Item' (
+        void set_Item (
             object o,
             int32 i,
             int32 'value'
         ) cil managed 
     {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x206b
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
-    } // end of method Extensions::'<Extension>set_Item'
+    } // end of method Extensions::set_Item
 } // end of class Extensions
 """);
 
@@ -1652,6 +1678,16 @@ public static class Extensions
             "System.Int32 Extensions.<>E__0.this[System.Int32 i].get",
             "void Extensions.<>E__0.this[System.Int32 i].set"],
             symbol.GetMembers().ToTestDisplayStrings());
+
+        var comp5 = CreateCompilation(src);
+        comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+        comp5.VerifyDiagnostics(
+            // PROTOTYPE: The wording of the message is somewhat confusing because it calls indexer a "method". Perhaps the wording should be changed to use "member" instead.
+
+            // (5,13): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //         int this[int i] { get => 42; set { } }
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(5, 13)
+            );
     }
 
     [Fact]
@@ -1667,10 +1703,15 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
+        comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
         comp.VerifyEmitDiagnostics(
             // (5,20): error CS0106: The modifier 'static' is not valid for this item
             //         static int this[int i] { get => 42; set { } }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(5, 20));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(5, 20),
+            // (5,20): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //         static int this[int i] { get => 42; set { } }
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(5, 20)
+            );
     }
 
     [Fact]
@@ -3206,7 +3247,7 @@ public static class Extensions
 }
 """);
 
-        verifier.VerifyIL("Extensions.<Extension>M", """
+        verifier.VerifyIL("Extensions.M", """
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -3486,6 +3527,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -3518,11 +3562,14 @@ public static class Extensions
     } // end of class <>E__0
     // Methods
     .method private hidebysig specialname static 
-        void '<Extension>M' (
+        void M (
             object o,
             string s
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 15 (0xf)
         .maxstack 8
@@ -3533,7 +3580,7 @@ public static class Extensions
         IL_0008: callvirt instance int32 [mscorlib]System.String::get_Length()
         IL_000d: pop
         IL_000e: ret
-    } // end of method Extensions::'<Extension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
     }
@@ -3552,22 +3599,35 @@ public static class Extensions
 """;
         var comp1 = CreateCompilation(src1);
 
-        MethodSymbol implementation = comp1.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
-        Assert.True(implementation.IsStatic);
-        Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
-        Assert.Equal(2, implementation.ParameterCount);
-        AssertEx.Equal("System.String Extensions.<Extension>M(System.Object o, System.String s)", implementation.ToTestDisplayString());
-        Assert.True(implementation.IsImplicitlyDeclared);
-        Assert.False(implementation.IsExtensionMethod);
-        Assert.True(implementation.HasSpecialName);
-        Assert.False(implementation.HasRuntimeSpecialName);
+        var verifier1 = CompileAndVerify(comp1, sourceSymbolValidator: verifySymbols, symbolValidator: verifySymbols).VerifyDiagnostics();
 
-        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
+        static void verifySymbols(ModuleSymbol m)
+        {
+            MethodSymbol implementation = m.ContainingAssembly.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+            Assert.True(implementation.IsStatic);
+            Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
+            Assert.Equal(2, implementation.ParameterCount);
+            AssertEx.Equal("System.String Extensions.M(this System.Object o, System.String s)", implementation.ToTestDisplayString());
+            Assert.Equal(m is not PEModuleSymbol, implementation.IsImplicitlyDeclared);
+            Assert.True(implementation.IsExtensionMethod);
+            Assert.True(implementation.HasSpecialName);
+            Assert.False(implementation.HasRuntimeSpecialName);
+
+            Assert.True(implementation.ContainingType.MightContainExtensionMethods);
+
+            if (m is PEModuleSymbol peModuleSymbol)
+            {
+                Assert.True(peModuleSymbol.Module.HasExtensionAttribute(((PEAssemblySymbol)peModuleSymbol.ContainingAssembly).Assembly.Handle, ignoreCase: false));
+            }
+        }
 
         verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -3600,11 +3660,14 @@ public static class Extensions
     } // end of class <>E__0
     // Methods
     .method public hidebysig specialname static 
-        string '<Extension>M' (
+        string M (
             object o,
             string s
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 19 (0x13)
         .maxstack 8
@@ -3617,7 +3680,7 @@ public static class Extensions
         IL_000c: ldarg.1
         IL_000d: call string [mscorlib]System.String::Concat(string, string)
         IL_0012: ret
-    } // end of method Extensions::'<Extension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -3645,8 +3708,9 @@ static class Extensions
 }
 """;
 
-        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        var verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+        var comp1MetadataReference = comp1.ToMetadataReference();
+        var comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        var verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -3657,7 +3721,7 @@ static class Extensions
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldstr      ""2""
-  IL_0007:  call       ""string Extensions.<Extension>M(object, string)""
+  IL_0007:  call       ""string Extensions.M(object, string)""
   IL_000c:  stloc.0
   IL_000d:  br.s       IL_000f
   IL_000f:  ldloc.0
@@ -3673,17 +3737,202 @@ static class Extensions
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""string Extensions.<Extension>M(object, string)""
+  IL_0002:  call       ""string Extensions.M(object, string)""
   IL_0007:  ret
 }
 ";
-        verifier2.VerifyIL("Extensions.<Extension>M2", m2IL);
+        verifier2.VerifyIL("Extensions.M2", m2IL);
 
-        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+        var comp1ImageReference = comp1.EmitToImageReference();
+        comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
         verifier2.VerifyIL("Program.Test", testIL);
-        verifier2.VerifyIL("Extensions.<Extension>M2", m2IL);
+        verifier2.VerifyIL("Extensions.M2", m2IL);
+
+        src2 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write("3".M2("4"));
+    }
+
+    static string Test(object o)
+    {
+        return Extensions.M(o, "2");
+    }
+}
+
+static class Extensions_
+{
+    extension(object o)
+    {
+        public string M2(string s) => Extensions.M(o, s);
+    }
+
+    public static void NotUsed(this object o) {}
+}
+""";
+
+        comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+        verifier2.VerifyIL("Program.Test", testIL);
+        verifier2.VerifyIL("Extensions_.M2", m2IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+        verifier2.VerifyIL("Program.Test", testIL);
+        verifier2.VerifyIL("Extensions_.M2", m2IL);
+
+        var vbComp = CreateVisualBasicCompilation("""
+Class Program
+    Shared Sub Main()
+        System.Console.Write(Test1("1"))
+        System.Console.Write(Test2("3"))
+    End Sub
+
+    Shared Function Test1(o As String) As String
+        return o.M("2")
+    End Function
+    Shared Function Test2(o As String) As String
+        return Extensions.M(o, "4")
+    End Function
+End Class
+""",
+            referencedAssemblies: comp2.References, compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        CompileAndVerify(vbComp, expectedOutput: "1234").VerifyDiagnostics();
+
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
+        {
+            var src4 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write("3".M2("4"));
+    }
+
+    static string Test(object o)
+    {
+        System.Func<string, string> d = o.M;
+        return d("2");
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public string M2(string s) => new System.Func<string, string>(o.M)(s);
+    }
+}
+""";
+
+            var comp4 = CreateCompilation(src4, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+            var verifier4 = CompileAndVerify(comp4, expectedOutput: "1234").VerifyDiagnostics();
+
+            testIL =
+    @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (System.Func<string, string> V_0, //d
+            string V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldftn      ""string Extensions.M(object, string)""
+  IL_0008:  newobj     ""System.Func<string, string>..ctor(object, System.IntPtr)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  ldstr      ""2""
+  IL_0014:  callvirt   ""string System.Func<string, string>.Invoke(string)""
+  IL_0019:  stloc.1
+  IL_001a:  br.s       IL_001c
+  IL_001c:  ldloc.1
+  IL_001d:  ret
+}
+";
+            verifier4.VerifyIL("Program.Test", testIL);
+
+            m2IL =
+    @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      ""string Extensions.M(object, string)""
+  IL_0007:  newobj     ""System.Func<string, string>..ctor(object, System.IntPtr)""
+  IL_000c:  ldarg.1
+  IL_000d:  callvirt   ""string System.Func<string, string>.Invoke(string)""
+  IL_0012:  ret
+}
+";
+            verifier4.VerifyIL("Extensions.M2", m2IL);
+
+            comp4 = CreateCompilation(src4, references: [comp1ImageReference], options: TestOptions.DebugExe);
+            verifier4 = CompileAndVerify(comp4, expectedOutput: "1234").VerifyDiagnostics();
+
+            verifier4.VerifyIL("Program.Test", testIL);
+            verifier4.VerifyIL("Extensions.M2", m2IL);
+        }
+
+        var comp5 = CreateCompilation(src1);
+        comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+        comp5.VerifyDiagnostics(
+            // (5,23): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //         public string M(string s) => o + s;
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "M").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(5, 23)
+            );
+    }
+
+    [Fact(Skip = "Regression")] // PROTOTYPE: REGRESSION - This scenario is broken, works in 'main'
+    public void UseSiteInfoTracking_01()
+    {
+        var src1 = """
+public static class Extensions
+{
+    public static string M(this object o, string s) => o + s;
+}
+""";
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
+
+        var src4 = """
+class Program
+{
+    static void Main()
+    {
+        // Extensions.M(null, null); // Uncomment this line to make the test pass
+        System.Console.Write(Test("1"));
+        System.Console.Write("3".M2("4"));
+    }
+
+    static string Test(object o)
+    {
+        System.Func<string, string> d = o.M;
+        return d("2");
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public string M2(string s) => new System.Func<string, string>(o.M)(s);
+    }
+}
+""";
+
+        var comp1MetadataReference = comp1.ToMetadataReference();
+        var comp4 = CreateCompilation(src4, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        var refs = comp4.GetUsedAssemblyReferences();
+        Assert.Contains(comp1MetadataReference, refs);
     }
 
     [Fact]
@@ -3709,6 +3958,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -3751,11 +4003,14 @@ public static class Extensions
     } // end of class <>c__DisplayClass1_0
     // Methods
     .method public hidebysig specialname static 
-        string '<Extension>M' (
+        string M (
             object o,
             string s
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2068
         // Code size 24 (0x18)
         .maxstack 2
@@ -3769,11 +4024,11 @@ public static class Extensions
         IL_000a: ldarg.1
         IL_000b: stfld string Extensions/'<>c__DisplayClass1_0'::s
         IL_0010: ldloca.s 0
-        IL_0012: call string Extensions::'<<Extension>M>b__1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
+        IL_0012: call string Extensions::'<M>b__1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
         IL_0017: ret
-    } // end of method Extensions::'<Extension>M'
+    } // end of method Extensions::M
     .method assembly hidebysig static 
-        string '<<Extension>M>b__1_0' (
+        string '<M>b__1_0' (
             valuetype Extensions/'<>c__DisplayClass1_0'& ''
         ) cil managed 
     {
@@ -3795,7 +4050,7 @@ public static class Extensions
         IL_0013: ldfld string Extensions/'<>c__DisplayClass1_0'::s
         IL_0018: call string [mscorlib]System.String::Concat(string, string)
         IL_001d: ret
-    } // end of method Extensions::'<<Extension>M>b__1_0'
+    } // end of method Extensions::'<M>b__1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -3854,10 +4109,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -3883,6 +4138,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -3934,7 +4192,7 @@ public static class Extensions
             IL_0006: ret
         } // end of method '<>c__DisplayClass1_0'::.ctor
         .method assembly hidebysig 
-            instance string '<<Extension>M>b__0' () cil managed 
+            instance string '<M>b__0' () cil managed 
         {
             // Method begins at RVA 0x2099
             // Code size 30 (0x1e)
@@ -3951,15 +4209,18 @@ public static class Extensions
             IL_0013: ldfld string Extensions/'<>c__DisplayClass1_0'::s
             IL_0018: call string [mscorlib]System.String::Concat(string, string)
             IL_001d: ret
-        } // end of method '<>c__DisplayClass1_0'::'<<Extension>M>b__0'
+        } // end of method '<>c__DisplayClass1_0'::'<M>b__0'
     } // end of class <>c__DisplayClass1_0
     // Methods
     .method public hidebysig specialname static 
-        string '<Extension>M' (
+        string M (
             object o,
             string s
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 36 (0x24)
         .maxstack 8
@@ -3970,11 +4231,11 @@ public static class Extensions
         IL_000c: dup
         IL_000d: ldarg.1
         IL_000e: stfld string Extensions/'<>c__DisplayClass1_0'::s
-        IL_0013: ldftn instance string Extensions/'<>c__DisplayClass1_0'::'<<Extension>M>b__0'()
+        IL_0013: ldftn instance string Extensions/'<>c__DisplayClass1_0'::'<M>b__0'()
         IL_0019: newobj instance void class [mscorlib]System.Func`1<string>::.ctor(object, native int)
         IL_001e: callvirt instance !0 class [mscorlib]System.Func`1<string>::Invoke()
         IL_0023: ret
-    } // end of method Extensions::'<Extension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -4033,10 +4294,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -4055,12 +4316,19 @@ public static class Extensions
 }
 """;
         var comp1 = CreateCompilation(src1);
-        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
+        var verifier1 = CompileAndVerify(comp1, symbolValidator: (m) =>
+        {
+            MethodSymbol implementation = m.ContainingAssembly.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.IteratorStateMachineAttribute(typeof(Extensions.<M>d__1))", implementation.GetAttributes().Single().ToString());
+        }).VerifyDiagnostics();
 
         verifier1.VerifyTypeIL("Extensions", ("""
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -4084,11 +4352,6 @@ public static class Extensions
                 string s
             ) cil managed 
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.IteratorStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-                01 00 1d 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 3c
-                45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
-                00 00
-            )
             // Method begins at RVA 0x2080
             // Code size 2 (0x2)
             .maxstack 8
@@ -4096,7 +4359,7 @@ public static class Extensions
             IL_0001: throw
         } // end of method '<>E__0'::M
     } // end of class <>E__0
-    .class nested private auto ansi sealed beforefieldinit '<<Extension>M>d__1'
+    .class nested private auto ansi sealed beforefieldinit '<M>d__1'
         extends [mscorlib]System.Object
         implements class [mscorlib]System.Collections.Generic.IEnumerable`1<string>,
                    [mscorlib]System.Collections.IEnumerable,
@@ -4143,12 +4406,12 @@ public static class Extensions
             IL_0001: call instance void [mscorlib]System.Object::.ctor()
             IL_0006: ldarg.0
             IL_0007: ldarg.1
-            IL_0008: stfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+            IL_0008: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_000d: ldarg.0
             IL_000e: call int32 [mscorlib]System.Environment::get_CurrentManagedThreadId()
-            IL_0013: stfld int32 Extensions/'<<Extension>M>d__1'::'<>l__initialThreadId'
+            IL_0013: stfld int32 Extensions/'<M>d__1'::'<>l__initialThreadId'
             IL_0018: ret
-        } // end of method '<<Extension>M>d__1'::.ctor
+        } // end of method '<M>d__1'::.ctor
         .method private final hidebysig newslot virtual 
             instance void System.IDisposable.Dispose () cil managed 
         {
@@ -4161,9 +4424,9 @@ public static class Extensions
             .maxstack 8
             IL_0000: ldarg.0
             IL_0001: ldc.i4.s -2
-            IL_0003: stfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+            IL_0003: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0008: ret
-        } // end of method '<<Extension>M>d__1'::System.IDisposable.Dispose
+        } // end of method '<M>d__1'::System.IDisposable.Dispose
         .method private final hidebysig newslot virtual 
             instance bool MoveNext () cil managed 
         {
@@ -4175,7 +4438,7 @@ public static class Extensions
                 [0] int32
             )
             IL_0000: ldarg.0
-            IL_0001: ldfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+            IL_0001: ldfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0006: stloc.0
             IL_0007: ldloc.0
             IL_0008: brfalse.s IL_0010
@@ -4186,10 +4449,10 @@ public static class Extensions
             IL_000f: ret
             IL_0010: ldarg.0
             IL_0011: ldc.i4.m1
-            IL_0012: stfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+            IL_0012: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0017: ldarg.0
             IL_0018: ldarg.0
-            IL_0019: ldfld object Extensions/'<<Extension>M>d__1'::o
+            IL_0019: ldfld object Extensions/'<M>d__1'::o
             IL_001e: dup
             IL_001f: brtrue.s IL_0025
             IL_0021: pop
@@ -4197,20 +4460,20 @@ public static class Extensions
             IL_0023: br.s IL_002a
             IL_0025: callvirt instance string [mscorlib]System.Object::ToString()
             IL_002a: ldarg.0
-            IL_002b: ldfld string Extensions/'<<Extension>M>d__1'::s
+            IL_002b: ldfld string Extensions/'<M>d__1'::s
             IL_0030: call string [mscorlib]System.String::Concat(string, string)
-            IL_0035: stfld string Extensions/'<<Extension>M>d__1'::'<>2__current'
+            IL_0035: stfld string Extensions/'<M>d__1'::'<>2__current'
             IL_003a: ldarg.0
             IL_003b: ldc.i4.1
-            IL_003c: stfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+            IL_003c: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0041: ldc.i4.1
             IL_0042: ret
             IL_0043: ldarg.0
             IL_0044: ldc.i4.m1
-            IL_0045: stfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+            IL_0045: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_004a: ldc.i4.0
             IL_004b: ret
-        } // end of method '<<Extension>M>d__1'::MoveNext
+        } // end of method '<M>d__1'::MoveNext
         .method private final hidebysig specialname newslot virtual 
             instance string 'System.Collections.Generic.IEnumerator<System.String>.get_Current' () cil managed 
         {
@@ -4222,9 +4485,9 @@ public static class Extensions
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: ldfld string Extensions/'<<Extension>M>d__1'::'<>2__current'
+            IL_0001: ldfld string Extensions/'<M>d__1'::'<>2__current'
             IL_0006: ret
-        } // end of method '<<Extension>M>d__1'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'
+        } // end of method '<M>d__1'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'
         .method private final hidebysig newslot virtual 
             instance void System.Collections.IEnumerator.Reset () cil managed 
         {
@@ -4237,7 +4500,7 @@ public static class Extensions
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
             IL_0005: throw
-        } // end of method '<<Extension>M>d__1'::System.Collections.IEnumerator.Reset
+        } // end of method '<M>d__1'::System.Collections.IEnumerator.Reset
         .method private final hidebysig specialname newslot virtual 
             instance object System.Collections.IEnumerator.get_Current () cil managed 
         {
@@ -4249,9 +4512,9 @@ public static class Extensions
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: ldfld string Extensions/'<<Extension>M>d__1'::'<>2__current'
+            IL_0001: ldfld string Extensions/'<M>d__1'::'<>2__current'
             IL_0006: ret
-        } // end of method '<<Extension>M>d__1'::System.Collections.IEnumerator.get_Current
+        } // end of method '<M>d__1'::System.Collections.IEnumerator.get_Current
         .method private final hidebysig newslot virtual 
             instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> 'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator' () cil managed 
         {
@@ -4263,36 +4526,36 @@ public static class Extensions
             // Code size 67 (0x43)
             .maxstack 2
             .locals init (
-                [0] class Extensions/'<<Extension>M>d__1'
+                [0] class Extensions/'<M>d__1'
             )
             IL_0000: ldarg.0
-            IL_0001: ldfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+            IL_0001: ldfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0006: ldc.i4.s -2
             IL_0008: bne.un.s IL_0022
             IL_000a: ldarg.0
-            IL_000b: ldfld int32 Extensions/'<<Extension>M>d__1'::'<>l__initialThreadId'
+            IL_000b: ldfld int32 Extensions/'<M>d__1'::'<>l__initialThreadId'
             IL_0010: call int32 [mscorlib]System.Environment::get_CurrentManagedThreadId()
             IL_0015: bne.un.s IL_0022
             IL_0017: ldarg.0
             IL_0018: ldc.i4.0
-            IL_0019: stfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+            IL_0019: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_001e: ldarg.0
             IL_001f: stloc.0
             IL_0020: br.s IL_0029
             IL_0022: ldc.i4.0
-            IL_0023: newobj instance void Extensions/'<<Extension>M>d__1'::.ctor(int32)
+            IL_0023: newobj instance void Extensions/'<M>d__1'::.ctor(int32)
             IL_0028: stloc.0
             IL_0029: ldloc.0
             IL_002a: ldarg.0
-            IL_002b: ldfld object Extensions/'<<Extension>M>d__1'::'<>3__o'
-            IL_0030: stfld object Extensions/'<<Extension>M>d__1'::o
+            IL_002b: ldfld object Extensions/'<M>d__1'::'<>3__o'
+            IL_0030: stfld object Extensions/'<M>d__1'::o
             IL_0035: ldloc.0
             IL_0036: ldarg.0
-            IL_0037: ldfld string Extensions/'<<Extension>M>d__1'::'<>3__s'
-            IL_003c: stfld string Extensions/'<<Extension>M>d__1'::s
+            IL_0037: ldfld string Extensions/'<M>d__1'::'<>3__s'
+            IL_003c: stfld string Extensions/'<M>d__1'::s
             IL_0041: ldloc.0
             IL_0042: ret
-        } // end of method '<<Extension>M>d__1'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'
+        } // end of method '<M>d__1'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'
         .method private final hidebysig newslot virtual 
             instance class [mscorlib]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed 
         {
@@ -4304,44 +4567,46 @@ public static class Extensions
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: call instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> Extensions/'<<Extension>M>d__1'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'()
+            IL_0001: call instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> Extensions/'<M>d__1'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'()
             IL_0006: ret
-        } // end of method '<<Extension>M>d__1'::System.Collections.IEnumerable.GetEnumerator
+        } // end of method '<M>d__1'::System.Collections.IEnumerable.GetEnumerator
         // Properties
         .property instance string 'System.Collections.Generic.IEnumerator<System.String>.Current'()
         {
-            .get instance string Extensions/'<<Extension>M>d__1'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'()
+            .get instance string Extensions/'<M>d__1'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'()
         }
         .property instance object System.Collections.IEnumerator.Current()
         {
-            .get instance object Extensions/'<<Extension>M>d__1'::System.Collections.IEnumerator.get_Current()
+            .get instance object Extensions/'<M>d__1'::System.Collections.IEnumerator.get_Current()
         }
-    } // end of class <<Extension>M>d__1
+    } // end of class <M>d__1
     // Methods
     .method public hidebysig specialname static 
-        class [mscorlib]System.Collections.Generic.IEnumerable`1<string> '<Extension>M' (
+        class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
             object o,
             string s
         ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.IteratorStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-            01 00 1d 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 3c
-            45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
-            00 00
+            01 00 12 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
+            3e 64 5f 5f 31 00 00
+        )
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
         )
         // Method begins at RVA 0x2067
         // Code size 22 (0x16)
         .maxstack 8
         IL_0000: ldc.i4.s -2
-        IL_0002: newobj instance void Extensions/'<<Extension>M>d__1'::.ctor(int32)
+        IL_0002: newobj instance void Extensions/'<M>d__1'::.ctor(int32)
         IL_0007: dup
         IL_0008: ldarg.0
-        IL_0009: stfld object Extensions/'<<Extension>M>d__1'::'<>3__o'
+        IL_0009: stfld object Extensions/'<M>d__1'::'<>3__o'
         IL_000e: dup
         IL_000f: ldarg.1
-        IL_0010: stfld string Extensions/'<<Extension>M>d__1'::'<>3__s'
+        IL_0010: stfld string Extensions/'<M>d__1'::'<>3__s'
         IL_0015: ret
-    } // end of method Extensions::'<Extension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """).Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -4395,7 +4660,7 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        var verifier3 = CompileAndVerify(comp3, expectedOutput: "1234");
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -4406,7 +4671,7 @@ static class Extensions
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldstr      ""2""
-  IL_0007:  call       ""System.Collections.Generic.IEnumerable<string> Extensions.<Extension>M(object, string)""
+  IL_0007:  call       ""System.Collections.Generic.IEnumerable<string> Extensions.M(object, string)""
   IL_000c:  stloc.0
   IL_000d:  br.s       IL_000f
   IL_000f:  ldloc.0
@@ -4422,17 +4687,17 @@ static class Extensions
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""System.Collections.Generic.IEnumerable<string> Extensions.<Extension>M(object, string)""
+  IL_0002:  call       ""System.Collections.Generic.IEnumerable<string> Extensions.M(object, string)""
   IL_0007:  ret
 }
 ";
-        verifier3.VerifyIL("Extensions.<Extension>M2", m2IL);
+        verifier3.VerifyIL("Extensions.M2", m2IL);
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "1234");
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test", testIL);
-        verifier3.VerifyIL("Extensions.<Extension>M2", m2IL);
+        verifier3.VerifyIL("Extensions.M2", m2IL);
     }
 
     [Fact]
@@ -4452,12 +4717,19 @@ public static class Extensions
 }
 """;
         var comp1 = CreateCompilation(src1);
-        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
+        var verifier1 = CompileAndVerify(comp1, symbolValidator: (m) =>
+        {
+            MethodSymbol implementation = m.ContainingAssembly.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.AsyncStateMachineAttribute(typeof(Extensions.<M>d__1))", implementation.GetAttributes().Single().ToString());
+        }).VerifyDiagnostics();
 
         verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -4481,11 +4753,6 @@ public static class Extensions
                 string s
             ) cil managed 
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.AsyncStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-                01 00 1d 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 3c
-                45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
-                00 00
-            )
             // Method begins at RVA 0x20b5
             // Code size 2 (0x2)
             .maxstack 8
@@ -4493,7 +4760,7 @@ public static class Extensions
             IL_0001: throw
         } // end of method '<>E__0'::M
     } // end of class <>E__0
-    .class nested private auto ansi sealed beforefieldinit '<<Extension>M>d__1'
+    .class nested private auto ansi sealed beforefieldinit '<M>d__1'
         extends [mscorlib]System.ValueType
         implements [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine
     {
@@ -4522,7 +4789,7 @@ public static class Extensions
                 [4] class [mscorlib]System.Exception
             )
             IL_0000: ldarg.0
-            IL_0001: ldfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+            IL_0001: ldfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0006: stloc.0
             .try
             {
@@ -4540,31 +4807,31 @@ public static class Extensions
                 IL_0022: ldc.i4.0
                 IL_0023: dup
                 IL_0024: stloc.0
-                IL_0025: stfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+                IL_0025: stfld int32 Extensions/'<M>d__1'::'<>1__state'
                 IL_002a: ldarg.0
                 IL_002b: ldloc.2
-                IL_002c: stfld valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter Extensions/'<<Extension>M>d__1'::'<>u__1'
+                IL_002c: stfld valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter Extensions/'<M>d__1'::'<>u__1'
                 IL_0031: ldarg.0
-                IL_0032: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<Extension>M>d__1'::'<>t__builder'
+                IL_0032: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
                 IL_0037: ldloca.s 2
                 IL_0039: ldarg.0
-                IL_003a: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter, valuetype Extensions/'<<Extension>M>d__1'>(!!0&, !!1&)
+                IL_003a: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter, valuetype Extensions/'<M>d__1'>(!!0&, !!1&)
                 IL_003f: leave.s IL_00b1
                 IL_0041: ldarg.0
-                IL_0042: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter Extensions/'<<Extension>M>d__1'::'<>u__1'
+                IL_0042: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter Extensions/'<M>d__1'::'<>u__1'
                 IL_0047: stloc.2
                 IL_0048: ldarg.0
-                IL_0049: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter Extensions/'<<Extension>M>d__1'::'<>u__1'
+                IL_0049: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter Extensions/'<M>d__1'::'<>u__1'
                 IL_004e: initobj [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter
                 IL_0054: ldarg.0
                 IL_0055: ldc.i4.m1
                 IL_0056: dup
                 IL_0057: stloc.0
-                IL_0058: stfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+                IL_0058: stfld int32 Extensions/'<M>d__1'::'<>1__state'
                 IL_005d: ldloca.s 2
                 IL_005f: call instance void [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::GetResult()
                 IL_0064: ldarg.0
-                IL_0065: ldfld object Extensions/'<<Extension>M>d__1'::o
+                IL_0065: ldfld object Extensions/'<M>d__1'::o
                 IL_006a: dup
                 IL_006b: brtrue.s IL_0071
                 IL_006d: pop
@@ -4572,7 +4839,7 @@ public static class Extensions
                 IL_006f: br.s IL_0076
                 IL_0071: callvirt instance string [mscorlib]System.Object::ToString()
                 IL_0076: ldarg.0
-                IL_0077: ldfld string Extensions/'<<Extension>M>d__1'::s
+                IL_0077: ldfld string Extensions/'<M>d__1'::s
                 IL_007c: call string [mscorlib]System.String::Concat(string, string)
                 IL_0081: stloc.1
                 IL_0082: leave.s IL_009d
@@ -4582,22 +4849,22 @@ public static class Extensions
                 IL_0084: stloc.s 4
                 IL_0086: ldarg.0
                 IL_0087: ldc.i4.s -2
-                IL_0089: stfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+                IL_0089: stfld int32 Extensions/'<M>d__1'::'<>1__state'
                 IL_008e: ldarg.0
-                IL_008f: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<Extension>M>d__1'::'<>t__builder'
+                IL_008f: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
                 IL_0094: ldloc.s 4
                 IL_0096: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::SetException(class [mscorlib]System.Exception)
                 IL_009b: leave.s IL_00b1
             } // end handler
             IL_009d: ldarg.0
             IL_009e: ldc.i4.s -2
-            IL_00a0: stfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+            IL_00a0: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_00a5: ldarg.0
-            IL_00a6: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<Extension>M>d__1'::'<>t__builder'
+            IL_00a6: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
             IL_00ab: ldloc.1
             IL_00ac: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::SetResult(!0)
             IL_00b1: ret
-        } // end of method '<<Extension>M>d__1'::MoveNext
+        } // end of method '<M>d__1'::MoveNext
         .method private final hidebysig newslot virtual 
             instance void SetStateMachine (
                 class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine stateMachine
@@ -4611,51 +4878,53 @@ public static class Extensions
             // Code size 13 (0xd)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<Extension>M>d__1'::'<>t__builder'
+            IL_0001: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
             IL_0006: ldarg.1
             IL_0007: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
             IL_000c: ret
-        } // end of method '<<Extension>M>d__1'::SetStateMachine
-    } // end of class <<Extension>M>d__1
+        } // end of method '<M>d__1'::SetStateMachine
+    } // end of class <M>d__1
     // Methods
     .method public hidebysig specialname static 
-        class [mscorlib]System.Threading.Tasks.Task`1<string> '<Extension>M' (
+        class [mscorlib]System.Threading.Tasks.Task`1<string> M (
             object o,
             string s
         ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.AsyncStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-            01 00 1d 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 3c
-            45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
-            00 00
+            01 00 12 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
+            3e 64 5f 5f 31 00 00
+        )
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
         )
         // Method begins at RVA 0x2068
         // Code size 63 (0x3f)
         .maxstack 2
         .locals init (
-            [0] valuetype Extensions/'<<Extension>M>d__1'
+            [0] valuetype Extensions/'<M>d__1'
         )
         IL_0000: ldloca.s 0
         IL_0002: call valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<!0> valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::Create()
-        IL_0007: stfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<Extension>M>d__1'::'<>t__builder'
+        IL_0007: stfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
         IL_000c: ldloca.s 0
         IL_000e: ldarg.0
-        IL_000f: stfld object Extensions/'<<Extension>M>d__1'::o
+        IL_000f: stfld object Extensions/'<M>d__1'::o
         IL_0014: ldloca.s 0
         IL_0016: ldarg.1
-        IL_0017: stfld string Extensions/'<<Extension>M>d__1'::s
+        IL_0017: stfld string Extensions/'<M>d__1'::s
         IL_001c: ldloca.s 0
         IL_001e: ldc.i4.m1
-        IL_001f: stfld int32 Extensions/'<<Extension>M>d__1'::'<>1__state'
+        IL_001f: stfld int32 Extensions/'<M>d__1'::'<>1__state'
         IL_0024: ldloca.s 0
-        IL_0026: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<Extension>M>d__1'::'<>t__builder'
+        IL_0026: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
         IL_002b: ldloca.s 0
-        IL_002d: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::Start<valuetype Extensions/'<<Extension>M>d__1'>(!!0&)
+        IL_002d: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::Start<valuetype Extensions/'<M>d__1'>(!!0&)
         IL_0032: ldloca.s 0
-        IL_0034: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<Extension>M>d__1'::'<>t__builder'
+        IL_0034: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
         IL_0039: call instance class [mscorlib]System.Threading.Tasks.Task`1<!0> valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::get_Task()
         IL_003e: ret
-    } // end of method Extensions::'<Extension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -4714,10 +4983,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -4746,9 +5015,9 @@ public class C<T>(string v)
         Assert.True(implementation.IsStatic);
         Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
         Assert.Equal(3, implementation.ParameterCount);
-        AssertEx.Equal("System.String Extensions.<Extension>M<T, U>(C<T> o, T t, U u)", implementation.ToTestDisplayString());
+        AssertEx.Equal("System.String Extensions.M<T, U>(this C<T> o, T t, U u)", implementation.ToTestDisplayString());
         Assert.True(implementation.IsImplicitlyDeclared);
-        Assert.False(implementation.IsExtensionMethod);
+        Assert.True(implementation.IsExtensionMethod);
         Assert.True(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
@@ -4758,6 +5027,9 @@ public class C<T>(string v)
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
@@ -4791,12 +5063,15 @@ public class C<T>(string v)
     } // end of class <>E__0`1
     // Methods
     .method public hidebysig specialname static 
-        string '<Extension>M'<T, U> (
+        string M<T, U> (
             class C`1<!!T> o,
             !!T t,
             !!U u
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 38 (0x26)
         .maxstack 8
@@ -4810,7 +5085,7 @@ public class C<T>(string v)
         IL_001b: callvirt instance string [mscorlib]System.Object::ToString()
         IL_0020: call string [mscorlib]System.String::Concat(string, string, string)
         IL_0025: ret
-    } // end of method Extensions::'<Extension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -4838,8 +5113,9 @@ static class Extensions
 }
 """;
 
-        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        var verifier3 = CompileAndVerify(comp3, expectedOutput: "132465");
+        var comp1MetadataReference = comp1.ToMetadataReference();
+        var comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -4851,7 +5127,7 @@ static class Extensions
   IL_0001:  ldarg.0
   IL_0002:  ldarg.1
   IL_0003:  ldarg.2
-  IL_0004:  call       ""string Extensions.<Extension>M<T, U>(C<T>, T, U)""
+  IL_0004:  call       ""string Extensions.M<T, U>(C<T>, T, U)""
   IL_0009:  stloc.0
   IL_000a:  br.s       IL_000c
   IL_000c:  ldloc.0
@@ -4868,17 +5144,120 @@ static class Extensions
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
   IL_0002:  ldarg.2
-  IL_0003:  call       ""string Extensions.<Extension>M<T, U>(C<T>, T, U)""
+  IL_0003:  call       ""string Extensions.M<T, U>(C<T>, T, U)""
   IL_0008:  ret
 }
 ";
-        verifier3.VerifyIL("Extensions.<Extension>M2<T, U>(C<T>, T, U)", m2IL);
+        verifier3.VerifyIL("Extensions.M2<T, U>(this C<T>, T, U)", m2IL);
 
-        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "132465");
+        var comp1ImageReference = comp1.EmitToImageReference();
+        comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
-        verifier3.VerifyIL("Extensions.<Extension>M2<T, U>(C<T>, T, U)", m2IL);
+        verifier3.VerifyIL("Extensions.M2<T, U>(this C<T>, T, U)", m2IL);
+
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
+        {
+            src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test(new C<string>("1"), "2", 3));
+        System.Console.Write(new C<string>("4").M2("5", 6));
+    }
+
+    static string Test<T, U>(C<T> o, T t, U u)
+    {
+        System.Func<T, U, string> d = o.M;
+        return d(t, u);
+    }
+}
+
+static class Extensions
+{
+    extension<T>(C<T> o)
+    {
+        public string M2<U>(T t, U u) => new System.Func<T, U, string>(o.M)(t, u);
+    }
+}
+""";
+
+            comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+#if true
+            // PROTOTYPE: The errors are unexpected. The scenario got broken after https://github.com/dotnet/roslyn/pull/77343
+            comp3.VerifyDiagnostics(
+                // (11,41): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
+                //         System.Func<T, U, string> d = o.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Func<T, U, string>").WithLocation(11, 41),
+                // (20,42): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
+                //         public string M2<U>(T t, U u) => new System.Func<T, U, string>(o.M)(t, u);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Func<T, U, string>(o.M)").WithArguments("M", "System.Func<T, U, string>").WithLocation(20, 42)
+                );
+#else
+            verifier3 = CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
+
+            testIL =
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (System.Func<T, U, string> V_0, //d
+            string V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldftn      ""string Extensions.M<T, U>(C<T>, T, U)""
+  IL_0008:  newobj     ""System.Func<T, U, string>..ctor(object, System.IntPtr)""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  ldarg.1
+  IL_0010:  ldarg.2
+  IL_0011:  callvirt   ""string System.Func<T, U, string>.Invoke(T, U)""
+  IL_0016:  stloc.1
+  IL_0017:  br.s       IL_0019
+  IL_0019:  ldloc.1
+  IL_001a:  ret
+}
+";
+            verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
+
+            m2IL =
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldftn      ""string Extensions.M<T, U>(C<T>, T, U)""
+  IL_0007:  newobj     ""System.Func<T, U, string>..ctor(object, System.IntPtr)""
+  IL_000c:  ldarg.1
+  IL_000d:  ldarg.2
+  IL_000e:  callvirt   ""string System.Func<T, U, string>.Invoke(T, U)""
+  IL_0013:  ret
+}
+";
+            verifier3.VerifyIL("Extensions.M2<T, U>(C<T>, T, U)", m2IL);
+#endif
+
+            comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+
+#if true
+            // PROTOTYPE: The errors are unexpected. The scenario got broken after https://github.com/dotnet/roslyn/pull/77343
+            comp3.VerifyDiagnostics(
+                // (11,41): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
+                //         System.Func<T, U, string> d = o.M;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Func<T, U, string>").WithLocation(11, 41),
+                // (20,42): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
+                //         public string M2<U>(T t, U u) => new System.Func<T, U, string>(o.M)(t, u);
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Func<T, U, string>(o.M)").WithArguments("M", "System.Func<T, U, string>").WithLocation(20, 42)
+                );
+#else
+            verifier3 = CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
+
+            verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
+            verifier3.VerifyIL("Extensions.M2<T, U>(C<T>, T, U)", m2IL);
+#endif
+        }
     }
 
     [Fact]
@@ -4913,6 +5292,9 @@ public class C<T>(string val)
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
@@ -4957,12 +5339,15 @@ public class C<T>(string val)
     } // end of class <>c__DisplayClass1_0`2
     // Methods
     .method public hidebysig specialname static 
-        class C`1<!!U> '<Extension>M'<T, U> (
+        class C`1<!!U> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
             !!U u1
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2068
         // Code size 57 (0x39)
         .maxstack 6
@@ -4988,11 +5373,11 @@ public class C<T>(string val)
         IL_002b: ldloc.0
         IL_002c: ldfld !1 valuetype Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::u1
         IL_0031: ldloca.s 0
-        IL_0033: call class C`1<!!1> Extensions::'<<Extension>M>b__1_0'<!!T, !!U, int32, !!T, !!U>(!!0, !!1, !!2, !!3, !!4, valuetype Extensions/'<>c__DisplayClass1_0`2'<!!0, !!1>&)
+        IL_0033: call class C`1<!!1> Extensions::'<M>b__1_0'<!!T, !!U, int32, !!T, !!U>(!!0, !!1, !!2, !!3, !!4, valuetype Extensions/'<>c__DisplayClass1_0`2'<!!0, !!1>&)
         IL_0038: ret
-    } // end of method Extensions::'<Extension>M'
+    } // end of method Extensions::M
     .method assembly hidebysig static 
-        class C`1<!!U> '<<Extension>M>b__1_0'<T, U, X, Y, Z> (
+        class C`1<!!U> '<M>b__1_0'<T, U, X, Y, Z> (
             !!T t2,
             !!U u2,
             !!X x2,
@@ -5062,7 +5447,7 @@ public class C<T>(string val)
         IL_008f: call string [mscorlib]System.String::Concat(string[])
         IL_0094: newobj instance void class C`1<!!U>::.ctor(string)
         IL_0099: ret
-    } // end of method Extensions::'<<Extension>M>b__1_0'
+    } // end of method Extensions::'<M>b__1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -5144,10 +5529,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1323202346565056");
+        CompileAndVerify(comp3, expectedOutput: "1323202346565056").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1323202346565056");
+        CompileAndVerify(comp3, expectedOutput: "1323202346565056").VerifyDiagnostics();
     }
 
     [Fact]
@@ -5182,6 +5567,9 @@ public class C<T>(string val)
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
@@ -5235,7 +5623,7 @@ public class C<T>(string val)
             IL_0006: ret
         } // end of method '<>c__DisplayClass1_0`2'::.ctor
         .method assembly hidebysig 
-            instance class C`1<!U> '<<Extension>M>b__0' (
+            instance class C`1<!U> '<M>b__0' (
                 !T t2,
                 !U u2
             ) cil managed 
@@ -5280,16 +5668,19 @@ public class C<T>(string val)
             IL_005c: call string [mscorlib]System.String::Concat(string[])
             IL_0061: newobj instance void class C`1<!U>::.ctor(string)
             IL_0066: ret
-        } // end of method '<>c__DisplayClass1_0`2'::'<<Extension>M>b__0'
+        } // end of method '<>c__DisplayClass1_0`2'::'<M>b__0'
     } // end of class <>c__DisplayClass1_0`2
     // Methods
     .method public hidebysig specialname static 
-        class C`1<!!U> '<Extension>M'<T, U> (
+        class C`1<!!U> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
             !!U u1
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2068
         // Code size 57 (0x39)
         .maxstack 3
@@ -5308,7 +5699,7 @@ public class C<T>(string val)
         IL_0015: ldarg.1
         IL_0016: stfld !0 class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::t1
         IL_001b: ldloc.0
-        IL_001c: ldftn instance class C`1<!1> class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::'<<Extension>M>b__0'(!0, !1)
+        IL_001c: ldftn instance class C`1<!1> class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::'<M>b__0'(!0, !1)
         IL_0022: newobj instance void class [mscorlib]System.Func`3<!!T, !!U, class C`1<!!U>>::.ctor(object, native int)
         IL_0027: ldloc.0
         IL_0028: ldfld !0 class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::t1
@@ -5316,7 +5707,7 @@ public class C<T>(string val)
         IL_002e: ldfld !1 class Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::u1
         IL_0033: callvirt instance !2 class [mscorlib]System.Func`3<!!T, !!U, class C`1<!!U>>::Invoke(!0, !1)
         IL_0038: ret
-    } // end of method Extensions::'<Extension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -5398,10 +5789,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1323246565");
+        CompileAndVerify(comp3, expectedOutput: "1323246565").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1323246565");
+        CompileAndVerify(comp3, expectedOutput: "1323246565").VerifyDiagnostics();
     }
 
     [Fact]
@@ -5425,12 +5816,19 @@ public class C<T>(string val)
 }
 """;
         var comp1 = CreateCompilation(src1);
-        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
+        var verifier1 = CompileAndVerify(comp1, symbolValidator: (m) =>
+        {
+            MethodSymbol implementation = m.ContainingAssembly.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.IteratorStateMachineAttribute(typeof(Extensions.<M>d__1<,>))", implementation.GetAttributes().Single().ToString());
+        }).VerifyDiagnostics();
 
         verifier1.VerifyTypeIL("Extensions", ("""
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
@@ -5455,11 +5853,6 @@ public class C<T>(string val)
                 !!U u1
             ) cil managed 
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.IteratorStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-                01 00 1f 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 3c
-                45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
-                60 32 00 00
-            )
             // Method begins at RVA 0x209e
             // Code size 2 (0x2)
             .maxstack 8
@@ -5467,7 +5860,7 @@ public class C<T>(string val)
             IL_0001: throw
         } // end of method '<>E__0`1'::M
     } // end of class <>E__0`1
-    .class nested private auto ansi sealed beforefieldinit '<<Extension>M>d__1`2'<T, U>
+    .class nested private auto ansi sealed beforefieldinit '<M>d__1`2'<T, U>
         extends [mscorlib]System.Object
         implements class [mscorlib]System.Collections.Generic.IEnumerable`1<string>,
                    [mscorlib]System.Collections.IEnumerable,
@@ -5516,12 +5909,12 @@ public class C<T>(string val)
             IL_0001: call instance void [mscorlib]System.Object::.ctor()
             IL_0006: ldarg.0
             IL_0007: ldarg.1
-            IL_0008: stfld int32 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+            IL_0008: stfld int32 class Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
             IL_000d: ldarg.0
             IL_000e: call int32 [mscorlib]System.Environment::get_CurrentManagedThreadId()
-            IL_0013: stfld int32 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>l__initialThreadId'
+            IL_0013: stfld int32 class Extensions/'<M>d__1`2'<!T, !U>::'<>l__initialThreadId'
             IL_0018: ret
-        } // end of method '<<Extension>M>d__1`2'::.ctor
+        } // end of method '<M>d__1`2'::.ctor
         .method private final hidebysig newslot virtual 
             instance void System.IDisposable.Dispose () cil managed 
         {
@@ -5534,9 +5927,9 @@ public class C<T>(string val)
             .maxstack 8
             IL_0000: ldarg.0
             IL_0001: ldc.i4.s -2
-            IL_0003: stfld int32 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+            IL_0003: stfld int32 class Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
             IL_0008: ret
-        } // end of method '<<Extension>M>d__1`2'::System.IDisposable.Dispose
+        } // end of method '<M>d__1`2'::System.IDisposable.Dispose
         .method private final hidebysig newslot virtual 
             instance bool MoveNext () cil managed 
         {
@@ -5548,7 +5941,7 @@ public class C<T>(string val)
                 [0] int32
             )
             IL_0000: ldarg.0
-            IL_0001: ldfld int32 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+            IL_0001: ldfld int32 class Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
             IL_0006: stloc.0
             IL_0007: ldloc.0
             IL_0008: brfalse.s IL_0010
@@ -5559,32 +5952,32 @@ public class C<T>(string val)
             IL_000f: ret
             IL_0010: ldarg.0
             IL_0011: ldc.i4.m1
-            IL_0012: stfld int32 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+            IL_0012: stfld int32 class Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
             IL_0017: ldarg.0
             IL_0018: ldarg.0
-            IL_0019: ldfld class C`1<!0> class Extensions/'<<Extension>M>d__1`2'<!T, !U>::o
+            IL_0019: ldfld class C`1<!0> class Extensions/'<M>d__1`2'<!T, !U>::o
             IL_001e: callvirt instance string class C`1<!T>::GetString()
             IL_0023: ldarg.0
-            IL_0024: ldflda !1 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::u1
+            IL_0024: ldflda !1 class Extensions/'<M>d__1`2'<!T, !U>::u1
             IL_0029: constrained. !U
             IL_002f: callvirt instance string [mscorlib]System.Object::ToString()
             IL_0034: ldarg.0
-            IL_0035: ldflda !0 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::t1
+            IL_0035: ldflda !0 class Extensions/'<M>d__1`2'<!T, !U>::t1
             IL_003a: constrained. !T
             IL_0040: callvirt instance string [mscorlib]System.Object::ToString()
             IL_0045: call string [mscorlib]System.String::Concat(string, string, string)
-            IL_004a: stfld string class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>2__current'
+            IL_004a: stfld string class Extensions/'<M>d__1`2'<!T, !U>::'<>2__current'
             IL_004f: ldarg.0
             IL_0050: ldc.i4.1
-            IL_0051: stfld int32 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+            IL_0051: stfld int32 class Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
             IL_0056: ldc.i4.1
             IL_0057: ret
             IL_0058: ldarg.0
             IL_0059: ldc.i4.m1
-            IL_005a: stfld int32 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+            IL_005a: stfld int32 class Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
             IL_005f: ldc.i4.0
             IL_0060: ret
-        } // end of method '<<Extension>M>d__1`2'::MoveNext
+        } // end of method '<M>d__1`2'::MoveNext
         .method private final hidebysig specialname newslot virtual 
             instance string 'System.Collections.Generic.IEnumerator<System.String>.get_Current' () cil managed 
         {
@@ -5596,9 +5989,9 @@ public class C<T>(string val)
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: ldfld string class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>2__current'
+            IL_0001: ldfld string class Extensions/'<M>d__1`2'<!T, !U>::'<>2__current'
             IL_0006: ret
-        } // end of method '<<Extension>M>d__1`2'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'
+        } // end of method '<M>d__1`2'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'
         .method private final hidebysig newslot virtual 
             instance void System.Collections.IEnumerator.Reset () cil managed 
         {
@@ -5611,7 +6004,7 @@ public class C<T>(string val)
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
             IL_0005: throw
-        } // end of method '<<Extension>M>d__1`2'::System.Collections.IEnumerator.Reset
+        } // end of method '<M>d__1`2'::System.Collections.IEnumerator.Reset
         .method private final hidebysig specialname newslot virtual 
             instance object System.Collections.IEnumerator.get_Current () cil managed 
         {
@@ -5623,9 +6016,9 @@ public class C<T>(string val)
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: ldfld string class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>2__current'
+            IL_0001: ldfld string class Extensions/'<M>d__1`2'<!T, !U>::'<>2__current'
             IL_0006: ret
-        } // end of method '<<Extension>M>d__1`2'::System.Collections.IEnumerator.get_Current
+        } // end of method '<M>d__1`2'::System.Collections.IEnumerator.get_Current
         .method private final hidebysig newslot virtual 
             instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> 'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator' () cil managed 
         {
@@ -5637,40 +6030,40 @@ public class C<T>(string val)
             // Code size 79 (0x4f)
             .maxstack 2
             .locals init (
-                [0] class Extensions/'<<Extension>M>d__1`2'<!T, !U>
+                [0] class Extensions/'<M>d__1`2'<!T, !U>
             )
             IL_0000: ldarg.0
-            IL_0001: ldfld int32 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+            IL_0001: ldfld int32 class Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
             IL_0006: ldc.i4.s -2
             IL_0008: bne.un.s IL_0022
             IL_000a: ldarg.0
-            IL_000b: ldfld int32 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>l__initialThreadId'
+            IL_000b: ldfld int32 class Extensions/'<M>d__1`2'<!T, !U>::'<>l__initialThreadId'
             IL_0010: call int32 [mscorlib]System.Environment::get_CurrentManagedThreadId()
             IL_0015: bne.un.s IL_0022
             IL_0017: ldarg.0
             IL_0018: ldc.i4.0
-            IL_0019: stfld int32 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+            IL_0019: stfld int32 class Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
             IL_001e: ldarg.0
             IL_001f: stloc.0
             IL_0020: br.s IL_0029
             IL_0022: ldc.i4.0
-            IL_0023: newobj instance void class Extensions/'<<Extension>M>d__1`2'<!T, !U>::.ctor(int32)
+            IL_0023: newobj instance void class Extensions/'<M>d__1`2'<!T, !U>::.ctor(int32)
             IL_0028: stloc.0
             IL_0029: ldloc.0
             IL_002a: ldarg.0
-            IL_002b: ldfld class C`1<!0> class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>3__o'
-            IL_0030: stfld class C`1<!0> class Extensions/'<<Extension>M>d__1`2'<!T, !U>::o
+            IL_002b: ldfld class C`1<!0> class Extensions/'<M>d__1`2'<!T, !U>::'<>3__o'
+            IL_0030: stfld class C`1<!0> class Extensions/'<M>d__1`2'<!T, !U>::o
             IL_0035: ldloc.0
             IL_0036: ldarg.0
-            IL_0037: ldfld !0 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>3__t1'
-            IL_003c: stfld !0 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::t1
+            IL_0037: ldfld !0 class Extensions/'<M>d__1`2'<!T, !U>::'<>3__t1'
+            IL_003c: stfld !0 class Extensions/'<M>d__1`2'<!T, !U>::t1
             IL_0041: ldloc.0
             IL_0042: ldarg.0
-            IL_0043: ldfld !1 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>3__u1'
-            IL_0048: stfld !1 class Extensions/'<<Extension>M>d__1`2'<!T, !U>::u1
+            IL_0043: ldfld !1 class Extensions/'<M>d__1`2'<!T, !U>::'<>3__u1'
+            IL_0048: stfld !1 class Extensions/'<M>d__1`2'<!T, !U>::u1
             IL_004d: ldloc.0
             IL_004e: ret
-        } // end of method '<<Extension>M>d__1`2'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'
+        } // end of method '<M>d__1`2'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'
         .method private final hidebysig newslot virtual 
             instance class [mscorlib]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed 
         {
@@ -5682,48 +6075,50 @@ public class C<T>(string val)
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: call instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> class Extensions/'<<Extension>M>d__1`2'<!T, !U>::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'()
+            IL_0001: call instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> class Extensions/'<M>d__1`2'<!T, !U>::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'()
             IL_0006: ret
-        } // end of method '<<Extension>M>d__1`2'::System.Collections.IEnumerable.GetEnumerator
+        } // end of method '<M>d__1`2'::System.Collections.IEnumerable.GetEnumerator
         // Properties
         .property instance string 'System.Collections.Generic.IEnumerator<System.String>.Current'()
         {
-            .get instance string Extensions/'<<Extension>M>d__1`2'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'()
+            .get instance string Extensions/'<M>d__1`2'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'()
         }
         .property instance object System.Collections.IEnumerator.Current()
         {
-            .get instance object Extensions/'<<Extension>M>d__1`2'::System.Collections.IEnumerator.get_Current()
+            .get instance object Extensions/'<M>d__1`2'::System.Collections.IEnumerator.get_Current()
         }
-    } // end of class <<Extension>M>d__1`2
+    } // end of class <M>d__1`2
     // Methods
     .method public hidebysig specialname static 
-        class [mscorlib]System.Collections.Generic.IEnumerable`1<string> '<Extension>M'<T, U> (
+        class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
             !!U u1
         ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.IteratorStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-            01 00 1f 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 3c
-            45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
-            60 32 00 00
+            01 00 14 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
+            3e 64 5f 5f 31 60 32 00 00
+        )
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
         )
         // Method begins at RVA 0x2067
         // Code size 29 (0x1d)
         .maxstack 8
         IL_0000: ldc.i4.s -2
-        IL_0002: newobj instance void class Extensions/'<<Extension>M>d__1`2'<!!T, !!U>::.ctor(int32)
+        IL_0002: newobj instance void class Extensions/'<M>d__1`2'<!!T, !!U>::.ctor(int32)
         IL_0007: dup
         IL_0008: ldarg.0
-        IL_0009: stfld class C`1<!0> class Extensions/'<<Extension>M>d__1`2'<!!T, !!U>::'<>3__o'
+        IL_0009: stfld class C`1<!0> class Extensions/'<M>d__1`2'<!!T, !!U>::'<>3__o'
         IL_000e: dup
         IL_000f: ldarg.1
-        IL_0010: stfld !0 class Extensions/'<<Extension>M>d__1`2'<!!T, !!U>::'<>3__t1'
+        IL_0010: stfld !0 class Extensions/'<M>d__1`2'<!!T, !!U>::'<>3__t1'
         IL_0015: dup
         IL_0016: ldarg.2
-        IL_0017: stfld !1 class Extensions/'<<Extension>M>d__1`2'<!!T, !!U>::'<>3__u1'
+        IL_0017: stfld !1 class Extensions/'<M>d__1`2'<!!T, !!U>::'<>3__u1'
         IL_001c: ret
-    } // end of method Extensions::'<Extension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """).Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -5782,10 +6177,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "132465");
+        CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "132465");
+        CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
     }
 
     [Fact]
@@ -5810,12 +6205,19 @@ public class C<T>(string val)
 }
 """;
         var comp1 = CreateCompilation(src1);
-        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
+        var verifier1 = CompileAndVerify(comp1, symbolValidator: (m) =>
+        {
+            MethodSymbol implementation = m.ContainingAssembly.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.AsyncStateMachineAttribute(typeof(Extensions.<M>d__1<,>))", implementation.GetAttributes().Single().ToString());
+        }).VerifyDiagnostics();
 
         verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
@@ -5840,11 +6242,6 @@ public class C<T>(string val)
                 !!U u1
             ) cil managed 
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.AsyncStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-                01 00 1f 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 3c
-                45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
-                60 32 00 00
-            )
             // Method begins at RVA 0x20d4
             // Code size 2 (0x2)
             .maxstack 8
@@ -5852,7 +6249,7 @@ public class C<T>(string val)
             IL_0001: throw
         } // end of method '<>E__0`1'::M
     } // end of class <>E__0`1
-    .class nested private auto ansi sealed beforefieldinit '<<Extension>M>d__1`2'<T, U>
+    .class nested private auto ansi sealed beforefieldinit '<M>d__1`2'<T, U>
         extends [mscorlib]System.ValueType
         implements [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine
     {
@@ -5882,7 +6279,7 @@ public class C<T>(string val)
                 [4] class [mscorlib]System.Exception
             )
             IL_0000: ldarg.0
-            IL_0001: ldfld int32 valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+            IL_0001: ldfld int32 valuetype Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
             IL_0006: stloc.0
             .try
             {
@@ -5900,38 +6297,38 @@ public class C<T>(string val)
                 IL_0022: ldc.i4.0
                 IL_0023: dup
                 IL_0024: stloc.0
-                IL_0025: stfld int32 valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+                IL_0025: stfld int32 valuetype Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
                 IL_002a: ldarg.0
                 IL_002b: ldloc.2
-                IL_002c: stfld valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>u__1'
+                IL_002c: stfld valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter valuetype Extensions/'<M>d__1`2'<!T, !U>::'<>u__1'
                 IL_0031: ldarg.0
-                IL_0032: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>t__builder'
+                IL_0032: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<M>d__1`2'<!T, !U>::'<>t__builder'
                 IL_0037: ldloca.s 2
                 IL_0039: ldarg.0
-                IL_003a: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter, valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>>(!!0&, !!1&)
+                IL_003a: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter, valuetype Extensions/'<M>d__1`2'<!T, !U>>(!!0&, !!1&)
                 IL_003f: leave IL_00c9
                 IL_0044: ldarg.0
-                IL_0045: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>u__1'
+                IL_0045: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter valuetype Extensions/'<M>d__1`2'<!T, !U>::'<>u__1'
                 IL_004a: stloc.2
                 IL_004b: ldarg.0
-                IL_004c: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>u__1'
+                IL_004c: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter valuetype Extensions/'<M>d__1`2'<!T, !U>::'<>u__1'
                 IL_0051: initobj [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter
                 IL_0057: ldarg.0
                 IL_0058: ldc.i4.m1
                 IL_0059: dup
                 IL_005a: stloc.0
-                IL_005b: stfld int32 valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+                IL_005b: stfld int32 valuetype Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
                 IL_0060: ldloca.s 2
                 IL_0062: call instance void [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::GetResult()
                 IL_0067: ldarg.0
-                IL_0068: ldfld class C`1<!0> valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::o
+                IL_0068: ldfld class C`1<!0> valuetype Extensions/'<M>d__1`2'<!T, !U>::o
                 IL_006d: callvirt instance string class C`1<!T>::GetString()
                 IL_0072: ldarg.0
-                IL_0073: ldflda !1 valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::u1
+                IL_0073: ldflda !1 valuetype Extensions/'<M>d__1`2'<!T, !U>::u1
                 IL_0078: constrained. !U
                 IL_007e: callvirt instance string [mscorlib]System.Object::ToString()
                 IL_0083: ldarg.0
-                IL_0084: ldflda !0 valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::t1
+                IL_0084: ldflda !0 valuetype Extensions/'<M>d__1`2'<!T, !U>::t1
                 IL_0089: constrained. !T
                 IL_008f: callvirt instance string [mscorlib]System.Object::ToString()
                 IL_0094: call string [mscorlib]System.String::Concat(string, string, string)
@@ -5943,22 +6340,22 @@ public class C<T>(string val)
                 IL_009c: stloc.s 4
                 IL_009e: ldarg.0
                 IL_009f: ldc.i4.s -2
-                IL_00a1: stfld int32 valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+                IL_00a1: stfld int32 valuetype Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
                 IL_00a6: ldarg.0
-                IL_00a7: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>t__builder'
+                IL_00a7: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<M>d__1`2'<!T, !U>::'<>t__builder'
                 IL_00ac: ldloc.s 4
                 IL_00ae: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::SetException(class [mscorlib]System.Exception)
                 IL_00b3: leave.s IL_00c9
             } // end handler
             IL_00b5: ldarg.0
             IL_00b6: ldc.i4.s -2
-            IL_00b8: stfld int32 valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>1__state'
+            IL_00b8: stfld int32 valuetype Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
             IL_00bd: ldarg.0
-            IL_00be: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>t__builder'
+            IL_00be: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<M>d__1`2'<!T, !U>::'<>t__builder'
             IL_00c3: ldloc.1
             IL_00c4: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::SetResult(!0)
             IL_00c9: ret
-        } // end of method '<<Extension>M>d__1`2'::MoveNext
+        } // end of method '<M>d__1`2'::MoveNext
         .method private final hidebysig newslot virtual 
             instance void SetStateMachine (
                 class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine stateMachine
@@ -5972,55 +6369,57 @@ public class C<T>(string val)
             // Code size 13 (0xd)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<<Extension>M>d__1`2'<!T, !U>::'<>t__builder'
+            IL_0001: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<M>d__1`2'<!T, !U>::'<>t__builder'
             IL_0006: ldarg.1
             IL_0007: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
             IL_000c: ret
-        } // end of method '<<Extension>M>d__1`2'::SetStateMachine
-    } // end of class <<Extension>M>d__1`2
+        } // end of method '<M>d__1`2'::SetStateMachine
+    } // end of class <M>d__1`2
     // Methods
     .method public hidebysig specialname static 
-        class [mscorlib]System.Threading.Tasks.Task`1<string> '<Extension>M'<T, U> (
+        class [mscorlib]System.Threading.Tasks.Task`1<string> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
             !!U u1
         ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.AsyncStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-            01 00 1f 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 3c
-            45 78 74 65 6e 73 69 6f 6e 3e 4d 3e 64 5f 5f 31
-            60 32 00 00
+            01 00 14 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
+            3e 64 5f 5f 31 60 32 00 00
+        )
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
         )
         // Method begins at RVA 0x2068
         // Code size 71 (0x47)
         .maxstack 2
         .locals init (
-            [0] valuetype Extensions/'<<Extension>M>d__1`2'<!!T, !!U>
+            [0] valuetype Extensions/'<M>d__1`2'<!!T, !!U>
         )
         IL_0000: ldloca.s 0
         IL_0002: call valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<!0> valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::Create()
-        IL_0007: stfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<<Extension>M>d__1`2'<!!T, !!U>::'<>t__builder'
+        IL_0007: stfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<M>d__1`2'<!!T, !!U>::'<>t__builder'
         IL_000c: ldloca.s 0
         IL_000e: ldarg.0
-        IL_000f: stfld class C`1<!0> valuetype Extensions/'<<Extension>M>d__1`2'<!!T, !!U>::o
+        IL_000f: stfld class C`1<!0> valuetype Extensions/'<M>d__1`2'<!!T, !!U>::o
         IL_0014: ldloca.s 0
         IL_0016: ldarg.1
-        IL_0017: stfld !0 valuetype Extensions/'<<Extension>M>d__1`2'<!!T, !!U>::t1
+        IL_0017: stfld !0 valuetype Extensions/'<M>d__1`2'<!!T, !!U>::t1
         IL_001c: ldloca.s 0
         IL_001e: ldarg.2
-        IL_001f: stfld !1 valuetype Extensions/'<<Extension>M>d__1`2'<!!T, !!U>::u1
+        IL_001f: stfld !1 valuetype Extensions/'<M>d__1`2'<!!T, !!U>::u1
         IL_0024: ldloca.s 0
         IL_0026: ldc.i4.m1
-        IL_0027: stfld int32 valuetype Extensions/'<<Extension>M>d__1`2'<!!T, !!U>::'<>1__state'
+        IL_0027: stfld int32 valuetype Extensions/'<M>d__1`2'<!!T, !!U>::'<>1__state'
         IL_002c: ldloca.s 0
-        IL_002e: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<<Extension>M>d__1`2'<!!T, !!U>::'<>t__builder'
+        IL_002e: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<M>d__1`2'<!!T, !!U>::'<>t__builder'
         IL_0033: ldloca.s 0
-        IL_0035: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::Start<valuetype Extensions/'<<Extension>M>d__1`2'<!!T, !!U>>(!!0&)
+        IL_0035: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::Start<valuetype Extensions/'<M>d__1`2'<!!T, !!U>>(!!0&)
         IL_003a: ldloca.s 0
-        IL_003c: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<<Extension>M>d__1`2'<!!T, !!U>::'<>t__builder'
+        IL_003c: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> valuetype Extensions/'<M>d__1`2'<!!T, !!U>::'<>t__builder'
         IL_0041: call instance class [mscorlib]System.Threading.Tasks.Task`1<!0> valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::get_Task()
         IL_0046: ret
-    } // end of method Extensions::'<Extension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -6084,10 +6483,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "132465");
+        CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "132465");
+        CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
     }
 
     [Fact]
@@ -6107,17 +6506,27 @@ public static class Extensions
 """;
         var comp1 = CreateCompilation(src1);
 
-        MethodSymbol implementation = comp1.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
-        Assert.True(implementation.IsStatic);
-        Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
-        Assert.Equal(2, implementation.ParameterCount);
-        AssertEx.Equal("System.String Extensions.<StaticExtension>M(System.Object o, System.String s)", implementation.ToTestDisplayString());
-        Assert.True(implementation.IsImplicitlyDeclared);
-        Assert.False(implementation.IsExtensionMethod);
-        Assert.True(implementation.HasSpecialName);
-        Assert.False(implementation.HasRuntimeSpecialName);
+        var verifier1 = CompileAndVerify(comp1, sourceSymbolValidator: verifySymbols, symbolValidator: verifySymbols).VerifyDiagnostics();
 
-        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics(); // PROTOTYPE: Consider executing and verifying behavior
+        static void verifySymbols(ModuleSymbol m)
+        {
+            MethodSymbol implementation = m.ContainingAssembly.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+            Assert.True(implementation.IsStatic);
+            Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
+            Assert.Equal(2, implementation.ParameterCount);
+            AssertEx.Equal("System.String Extensions.M(System.Object o, System.String s)", implementation.ToTestDisplayString());
+            Assert.Equal(m is not PEModuleSymbol, implementation.IsImplicitlyDeclared);
+            Assert.False(implementation.IsExtensionMethod);
+            Assert.True(implementation.HasSpecialName);
+            Assert.False(implementation.HasRuntimeSpecialName);
+
+            Assert.False(implementation.ContainingType.MightContainExtensionMethods);
+
+            if (m is PEModuleSymbol peModuleSymbol)
+            {
+                Assert.False(peModuleSymbol.Module.HasExtensionAttribute(((PEAssemblySymbol)peModuleSymbol.ContainingAssembly).Assembly.Handle, ignoreCase: false));
+            }
+        }
 
         verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -6156,7 +6565,7 @@ public static class Extensions
     } // end of class <>E__0
     // Methods
     .method public hidebysig specialname static 
-        string '<StaticExtension>M' (
+        string M (
             object o,
             string s
         ) cil managed 
@@ -6173,7 +6582,7 @@ public static class Extensions
         IL_000c: ldarg.1
         IL_000d: call string [mscorlib]System.String::Concat(string, string)
         IL_0012: ret
-    } // end of method Extensions::'<StaticExtension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -6204,8 +6613,9 @@ static class Extensions
 }
 """;
 
-        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        var verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+        var comp1MetadataReference = comp1.ToMetadataReference();
+        var comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        var verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -6216,7 +6626,7 @@ static class Extensions
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldstr      ""2""
-  IL_0007:  call       ""string Extensions.<StaticExtension>M(object, string)""
+  IL_0007:  call       ""string Extensions.M(object, string)""
   IL_000c:  stloc.0
   IL_000d:  br.s       IL_000f
   IL_000f:  ldloc.0
@@ -6233,17 +6643,323 @@ static class Extensions
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldarg.1
-  IL_0003:  call       ""string Extensions.<StaticExtension>M(object, string)""
+  IL_0003:  call       ""string Extensions.M(object, string)""
   IL_0008:  ret
 }
 ";
-        verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
+        verifier2.VerifyIL("Extensions.M2", m2IL);
 
-        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234");
+        var comp1ImageReference = comp1.EmitToImageReference();
+        comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
 
         verifier2.VerifyIL("Program.Test", testIL);
-        verifier2.VerifyIL("Extensions.<StaticExtension>M2", m2IL);
+        verifier2.VerifyIL("Extensions.M2", m2IL);
+
+        src2 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write(object.M2("3", "4"));
+    }
+
+    static string Test(object o)
+    {
+        return Extensions.M(o, "2");
+    }
+}
+
+static class Extensions_
+{
+    extension(object o)
+    {
+        public static string M2(object o, string s)
+        {
+            return Extensions.M(o, s);
+        }
+    }
+}
+""";
+
+        comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+        verifier2.VerifyIL("Program.Test", testIL);
+        verifier2.VerifyIL("Extensions_.M2", m2IL);
+
+        comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+        verifier2.VerifyIL("Program.Test", testIL);
+        verifier2.VerifyIL("Extensions_.M2", m2IL);
+
+        var vbComp = CreateVisualBasicCompilation("""
+Class Program
+    Shared Sub Main()
+        System.Console.Write(Test2("3"))
+    End Sub
+
+    Shared Function Test2(o As String) As String
+        return Extensions.M(o, "4")
+    End Function
+End Class
+""",
+            referencedAssemblies: comp2.References, compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        CompileAndVerify(vbComp, expectedOutput: "34").VerifyDiagnostics();
+
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
+        {
+            src2 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write(object.M2("3", "4"));
+    }
+
+    static string Test(object o)
+    {
+        System.Func<object, string, string> d = object.M;
+        return d(o, "2");
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public static string M2(object o, string s)
+        {
+            return new System.Func<object, string, string>(object.M)(o, s);
+        }
+    }
+}
+""";
+
+            comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+            testIL =
+    @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  3
+  .locals init (System.Func<object, string, string> V_0, //d
+                string V_1)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""System.Func<object, string, string> Program.<>O.<0>__M""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_001c
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  ldftn      ""string Extensions.M(object, string)""
+  IL_0011:  newobj     ""System.Func<object, string, string>..ctor(object, System.IntPtr)""
+  IL_0016:  dup
+  IL_0017:  stsfld     ""System.Func<object, string, string> Program.<>O.<0>__M""
+  IL_001c:  stloc.0
+  IL_001d:  ldloc.0
+  IL_001e:  ldarg.0
+  IL_001f:  ldstr      ""2""
+  IL_0024:  callvirt   ""string System.Func<object, string, string>.Invoke(object, string)""
+  IL_0029:  stloc.1
+  IL_002a:  br.s       IL_002c
+  IL_002c:  ldloc.1
+  IL_002d:  ret
+}
+";
+            verifier2.VerifyIL("Program.Test", testIL);
+
+            m2IL =
+    @"
+{
+  // Code size       21 (0x15)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  ldftn      ""string Extensions.M(object, string)""
+  IL_0008:  newobj     ""System.Func<object, string, string>..ctor(object, System.IntPtr)""
+  IL_000d:  ldarg.0
+  IL_000e:  ldarg.1
+  IL_000f:  callvirt   ""string System.Func<object, string, string>.Invoke(object, string)""
+  IL_0014:  ret
+}
+";
+            verifier2.VerifyIL("Extensions.M2", m2IL);
+
+            comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+            verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Extensions.M2", m2IL);
+
+            src2 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write(object.M2("3", "4"));
+    }
+
+    static string Test(object o)
+    {
+        System.Func<object, string, string> d = Extensions.M;
+        return d(o, "2");
+    }
+}
+
+static class Extensions_
+{
+    extension(object o)
+    {
+        public static string M2(object o, string s)
+        {
+            return new System.Func<object, string, string>(Extensions.M)(o, s);
+        }
+    }
+}
+""";
+
+            comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+            verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Extensions_.M2", m2IL);
+
+            comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe);
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+            verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Extensions_.M2", m2IL);
+
+            src2 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write(object.M2("3", "4"));
+    }
+
+    unsafe static string Test(object o)
+    {
+        delegate*<object, string, string> d = &object.M;
+        return d(o, "2");
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        unsafe public static string M2(object o, string s)
+        {
+            return ((delegate*<object, string, string>)&object.M)(o, s);
+        }
+    }
+}
+""";
+
+            comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped).VerifyDiagnostics();
+
+            testIL =
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (delegate*<object, string, string> V_0, //d
+                delegate*<object, string, string> V_1,
+                string V_2)
+  IL_0000:  nop
+  IL_0001:  ldftn      ""string Extensions.M(object, string)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.1
+  IL_000a:  ldarg.0
+  IL_000b:  ldstr      ""2""
+  IL_0010:  ldloc.1
+  IL_0011:  calli      ""delegate*<object, string, string>""
+  IL_0016:  stloc.2
+  IL_0017:  br.s       IL_0019
+  IL_0019:  ldloc.2
+  IL_001a:  ret
+}
+";
+            verifier2.VerifyIL("Program.Test", testIL);
+
+            m2IL =
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  3
+  .locals init (delegate*<object, string, string> V_0)
+  IL_0000:  nop
+  IL_0001:  ldftn      ""string Extensions.M(object, string)""
+  IL_0007:  stloc.0
+  IL_0008:  ldarg.0
+  IL_0009:  ldarg.1
+  IL_000a:  ldloc.0
+  IL_000b:  calli      ""delegate*<object, string, string>""
+  IL_0010:  ret
+}
+";
+            verifier2.VerifyIL("Extensions.M2", m2IL);
+
+            comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Extensions.M2", m2IL);
+
+            src2 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write(object.M2("3", "4"));
+    }
+
+    unsafe static string Test(object o)
+    {
+        delegate*<object, string, string> d = &Extensions.M;
+        return d(o, "2");
+    }
+}
+
+static class Extensions_
+{
+    extension(object o)
+    {
+        unsafe public static string M2(object o, string s)
+        {
+            return ((delegate*<object, string, string>)&Extensions.M)(o, s);
+        }
+    }
+}
+""";
+
+            comp2 = CreateCompilation(src2, references: [comp1MetadataReference], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Extensions_.M2", m2IL);
+
+            comp2 = CreateCompilation(src2, references: [comp1ImageReference], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            verifier2 = CompileAndVerify(comp2, expectedOutput: "1234", verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier2.VerifyIL("Program.Test", testIL);
+            verifier2.VerifyIL("Extensions_.M2", m2IL);
+        }
+
+        var comp5 = CreateCompilation(src1);
+        comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+        comp5.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -6312,7 +7028,7 @@ public static class Extensions
     } // end of class <>c__DisplayClass1_0
     // Methods
     .method public hidebysig specialname static 
-        string '<StaticExtension>M' (
+        string M (
             object o,
             string s
         ) cil managed 
@@ -6330,11 +7046,11 @@ public static class Extensions
         IL_000a: ldarg.1
         IL_000b: stfld string Extensions/'<>c__DisplayClass1_0'::s
         IL_0010: ldloca.s 0
-        IL_0012: call string Extensions::'<<StaticExtension>M>b__1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
+        IL_0012: call string Extensions::'<M>b__1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
         IL_0017: ret
-    } // end of method Extensions::'<StaticExtension>M'
+    } // end of method Extensions::M
     .method assembly hidebysig static 
-        string '<<StaticExtension>M>b__1_0' (
+        string '<M>b__1_0' (
             valuetype Extensions/'<>c__DisplayClass1_0'& ''
         ) cil managed 
     {
@@ -6356,7 +7072,7 @@ public static class Extensions
         IL_0013: ldfld string Extensions/'<>c__DisplayClass1_0'::s
         IL_0018: call string [mscorlib]System.String::Concat(string, string)
         IL_001d: ret
-    } // end of method Extensions::'<<StaticExtension>M>b__1_0'
+    } // end of method Extensions::'<M>b__1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -6415,10 +7131,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -6496,7 +7212,7 @@ public static class Extensions
             IL_0006: ret
         } // end of method '<>c__DisplayClass1_0'::.ctor
         .method assembly hidebysig 
-            instance string '<<StaticExtension>M>b__0' () cil managed 
+            instance string '<M>b__0' () cil managed 
         {
             // Method begins at RVA 0x2099
             // Code size 30 (0x1e)
@@ -6513,11 +7229,11 @@ public static class Extensions
             IL_0013: ldfld string Extensions/'<>c__DisplayClass1_0'::s
             IL_0018: call string [mscorlib]System.String::Concat(string, string)
             IL_001d: ret
-        } // end of method '<>c__DisplayClass1_0'::'<<StaticExtension>M>b__0'
+        } // end of method '<>c__DisplayClass1_0'::'<M>b__0'
     } // end of class <>c__DisplayClass1_0
     // Methods
     .method public hidebysig specialname static 
-        string '<StaticExtension>M' (
+        string M (
             object o,
             string s
         ) cil managed 
@@ -6532,11 +7248,11 @@ public static class Extensions
         IL_000c: dup
         IL_000d: ldarg.1
         IL_000e: stfld string Extensions/'<>c__DisplayClass1_0'::s
-        IL_0013: ldftn instance string Extensions/'<>c__DisplayClass1_0'::'<<StaticExtension>M>b__0'()
+        IL_0013: ldftn instance string Extensions/'<>c__DisplayClass1_0'::'<M>b__0'()
         IL_0019: newobj instance void class [mscorlib]System.Func`1<string>::.ctor(object, native int)
         IL_001e: callvirt instance !0 class [mscorlib]System.Func`1<string>::Invoke()
         IL_0023: ret
-    } // end of method Extensions::'<StaticExtension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -6595,10 +7311,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -6617,7 +7333,11 @@ public static class Extensions
 }
 """;
         var comp1 = CreateCompilation(src1);
-        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
+        var verifier1 = CompileAndVerify(comp1, symbolValidator: (m) =>
+        {
+            MethodSymbol implementation = m.ContainingAssembly.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.IteratorStateMachineAttribute(typeof(Extensions.<M>d__1))", implementation.GetAttributes().Single().ToString());
+        }).VerifyDiagnostics();
 
         verifier1.VerifyTypeIL("Extensions", ("""
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -6647,11 +7367,6 @@ public static class Extensions
                 string s
             ) cil managed 
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.IteratorStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-                01 00 23 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 3c
-                53 74 61 74 69 63 45 78 74 65 6e 73 69 6f 6e 3e
-                4d 3e 64 5f 5f 31 00 00
-            )
             // Method begins at RVA 0x2080
             // Code size 2 (0x2)
             .maxstack 8
@@ -6659,7 +7374,7 @@ public static class Extensions
             IL_0001: throw
         } // end of method '<>E__0'::M
     } // end of class <>E__0
-    .class nested private auto ansi sealed beforefieldinit '<<StaticExtension>M>d__1'
+    .class nested private auto ansi sealed beforefieldinit '<M>d__1'
         extends [mscorlib]System.Object
         implements class [mscorlib]System.Collections.Generic.IEnumerable`1<string>,
                    [mscorlib]System.Collections.IEnumerable,
@@ -6706,12 +7421,12 @@ public static class Extensions
             IL_0001: call instance void [mscorlib]System.Object::.ctor()
             IL_0006: ldarg.0
             IL_0007: ldarg.1
-            IL_0008: stfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+            IL_0008: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_000d: ldarg.0
             IL_000e: call int32 [mscorlib]System.Environment::get_CurrentManagedThreadId()
-            IL_0013: stfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>l__initialThreadId'
+            IL_0013: stfld int32 Extensions/'<M>d__1'::'<>l__initialThreadId'
             IL_0018: ret
-        } // end of method '<<StaticExtension>M>d__1'::.ctor
+        } // end of method '<M>d__1'::.ctor
         .method private final hidebysig newslot virtual 
             instance void System.IDisposable.Dispose () cil managed 
         {
@@ -6724,9 +7439,9 @@ public static class Extensions
             .maxstack 8
             IL_0000: ldarg.0
             IL_0001: ldc.i4.s -2
-            IL_0003: stfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+            IL_0003: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0008: ret
-        } // end of method '<<StaticExtension>M>d__1'::System.IDisposable.Dispose
+        } // end of method '<M>d__1'::System.IDisposable.Dispose
         .method private final hidebysig newslot virtual 
             instance bool MoveNext () cil managed 
         {
@@ -6738,7 +7453,7 @@ public static class Extensions
                 [0] int32
             )
             IL_0000: ldarg.0
-            IL_0001: ldfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+            IL_0001: ldfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0006: stloc.0
             IL_0007: ldloc.0
             IL_0008: brfalse.s IL_0010
@@ -6749,10 +7464,10 @@ public static class Extensions
             IL_000f: ret
             IL_0010: ldarg.0
             IL_0011: ldc.i4.m1
-            IL_0012: stfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+            IL_0012: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0017: ldarg.0
             IL_0018: ldarg.0
-            IL_0019: ldfld object Extensions/'<<StaticExtension>M>d__1'::o
+            IL_0019: ldfld object Extensions/'<M>d__1'::o
             IL_001e: dup
             IL_001f: brtrue.s IL_0025
             IL_0021: pop
@@ -6760,20 +7475,20 @@ public static class Extensions
             IL_0023: br.s IL_002a
             IL_0025: callvirt instance string [mscorlib]System.Object::ToString()
             IL_002a: ldarg.0
-            IL_002b: ldfld string Extensions/'<<StaticExtension>M>d__1'::s
+            IL_002b: ldfld string Extensions/'<M>d__1'::s
             IL_0030: call string [mscorlib]System.String::Concat(string, string)
-            IL_0035: stfld string Extensions/'<<StaticExtension>M>d__1'::'<>2__current'
+            IL_0035: stfld string Extensions/'<M>d__1'::'<>2__current'
             IL_003a: ldarg.0
             IL_003b: ldc.i4.1
-            IL_003c: stfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+            IL_003c: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0041: ldc.i4.1
             IL_0042: ret
             IL_0043: ldarg.0
             IL_0044: ldc.i4.m1
-            IL_0045: stfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+            IL_0045: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_004a: ldc.i4.0
             IL_004b: ret
-        } // end of method '<<StaticExtension>M>d__1'::MoveNext
+        } // end of method '<M>d__1'::MoveNext
         .method private final hidebysig specialname newslot virtual 
             instance string 'System.Collections.Generic.IEnumerator<System.String>.get_Current' () cil managed 
         {
@@ -6785,9 +7500,9 @@ public static class Extensions
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: ldfld string Extensions/'<<StaticExtension>M>d__1'::'<>2__current'
+            IL_0001: ldfld string Extensions/'<M>d__1'::'<>2__current'
             IL_0006: ret
-        } // end of method '<<StaticExtension>M>d__1'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'
+        } // end of method '<M>d__1'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'
         .method private final hidebysig newslot virtual 
             instance void System.Collections.IEnumerator.Reset () cil managed 
         {
@@ -6800,7 +7515,7 @@ public static class Extensions
             .maxstack 8
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
             IL_0005: throw
-        } // end of method '<<StaticExtension>M>d__1'::System.Collections.IEnumerator.Reset
+        } // end of method '<M>d__1'::System.Collections.IEnumerator.Reset
         .method private final hidebysig specialname newslot virtual 
             instance object System.Collections.IEnumerator.get_Current () cil managed 
         {
@@ -6812,9 +7527,9 @@ public static class Extensions
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: ldfld string Extensions/'<<StaticExtension>M>d__1'::'<>2__current'
+            IL_0001: ldfld string Extensions/'<M>d__1'::'<>2__current'
             IL_0006: ret
-        } // end of method '<<StaticExtension>M>d__1'::System.Collections.IEnumerator.get_Current
+        } // end of method '<M>d__1'::System.Collections.IEnumerator.get_Current
         .method private final hidebysig newslot virtual 
             instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> 'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator' () cil managed 
         {
@@ -6826,36 +7541,36 @@ public static class Extensions
             // Code size 67 (0x43)
             .maxstack 2
             .locals init (
-                [0] class Extensions/'<<StaticExtension>M>d__1'
+                [0] class Extensions/'<M>d__1'
             )
             IL_0000: ldarg.0
-            IL_0001: ldfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+            IL_0001: ldfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0006: ldc.i4.s -2
             IL_0008: bne.un.s IL_0022
             IL_000a: ldarg.0
-            IL_000b: ldfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>l__initialThreadId'
+            IL_000b: ldfld int32 Extensions/'<M>d__1'::'<>l__initialThreadId'
             IL_0010: call int32 [mscorlib]System.Environment::get_CurrentManagedThreadId()
             IL_0015: bne.un.s IL_0022
             IL_0017: ldarg.0
             IL_0018: ldc.i4.0
-            IL_0019: stfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+            IL_0019: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_001e: ldarg.0
             IL_001f: stloc.0
             IL_0020: br.s IL_0029
             IL_0022: ldc.i4.0
-            IL_0023: newobj instance void Extensions/'<<StaticExtension>M>d__1'::.ctor(int32)
+            IL_0023: newobj instance void Extensions/'<M>d__1'::.ctor(int32)
             IL_0028: stloc.0
             IL_0029: ldloc.0
             IL_002a: ldarg.0
-            IL_002b: ldfld object Extensions/'<<StaticExtension>M>d__1'::'<>3__o'
-            IL_0030: stfld object Extensions/'<<StaticExtension>M>d__1'::o
+            IL_002b: ldfld object Extensions/'<M>d__1'::'<>3__o'
+            IL_0030: stfld object Extensions/'<M>d__1'::o
             IL_0035: ldloc.0
             IL_0036: ldarg.0
-            IL_0037: ldfld string Extensions/'<<StaticExtension>M>d__1'::'<>3__s'
-            IL_003c: stfld string Extensions/'<<StaticExtension>M>d__1'::s
+            IL_0037: ldfld string Extensions/'<M>d__1'::'<>3__s'
+            IL_003c: stfld string Extensions/'<M>d__1'::s
             IL_0041: ldloc.0
             IL_0042: ret
-        } // end of method '<<StaticExtension>M>d__1'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'
+        } // end of method '<M>d__1'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'
         .method private final hidebysig newslot virtual 
             instance class [mscorlib]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed 
         {
@@ -6867,44 +7582,43 @@ public static class Extensions
             // Code size 7 (0x7)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: call instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> Extensions/'<<StaticExtension>M>d__1'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'()
+            IL_0001: call instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> Extensions/'<M>d__1'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'()
             IL_0006: ret
-        } // end of method '<<StaticExtension>M>d__1'::System.Collections.IEnumerable.GetEnumerator
+        } // end of method '<M>d__1'::System.Collections.IEnumerable.GetEnumerator
         // Properties
         .property instance string 'System.Collections.Generic.IEnumerator<System.String>.Current'()
         {
-            .get instance string Extensions/'<<StaticExtension>M>d__1'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'()
+            .get instance string Extensions/'<M>d__1'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'()
         }
         .property instance object System.Collections.IEnumerator.Current()
         {
-            .get instance object Extensions/'<<StaticExtension>M>d__1'::System.Collections.IEnumerator.get_Current()
+            .get instance object Extensions/'<M>d__1'::System.Collections.IEnumerator.get_Current()
         }
-    } // end of class <<StaticExtension>M>d__1
+    } // end of class <M>d__1
     // Methods
     .method public hidebysig specialname static 
-        class [mscorlib]System.Collections.Generic.IEnumerable`1<string> '<StaticExtension>M' (
+        class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
             object o,
             string s
         ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.IteratorStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-            01 00 23 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 3c
-            53 74 61 74 69 63 45 78 74 65 6e 73 69 6f 6e 3e
-            4d 3e 64 5f 5f 31 00 00
+            01 00 12 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
+            3e 64 5f 5f 31 00 00
         )
         // Method begins at RVA 0x2067
         // Code size 22 (0x16)
         .maxstack 8
         IL_0000: ldc.i4.s -2
-        IL_0002: newobj instance void Extensions/'<<StaticExtension>M>d__1'::.ctor(int32)
+        IL_0002: newobj instance void Extensions/'<M>d__1'::.ctor(int32)
         IL_0007: dup
         IL_0008: ldarg.0
-        IL_0009: stfld object Extensions/'<<StaticExtension>M>d__1'::'<>3__o'
+        IL_0009: stfld object Extensions/'<M>d__1'::'<>3__o'
         IL_000e: dup
         IL_000f: ldarg.1
-        IL_0010: stfld string Extensions/'<<StaticExtension>M>d__1'::'<>3__s'
+        IL_0010: stfld string Extensions/'<M>d__1'::'<>3__s'
         IL_0015: ret
-    } // end of method Extensions::'<StaticExtension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """).Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -6958,10 +7672,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -6981,7 +7695,11 @@ public static class Extensions
 }
 """;
         var comp1 = CreateCompilation(src1);
-        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
+        var verifier1 = CompileAndVerify(comp1, symbolValidator: (m) =>
+        {
+            MethodSymbol implementation = m.ContainingAssembly.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.AsyncStateMachineAttribute(typeof(Extensions.<M>d__1))", implementation.GetAttributes().Single().ToString());
+        }).VerifyDiagnostics();
 
         verifier1.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -7011,11 +7729,6 @@ public static class Extensions
                 string s
             ) cil managed 
         {
-            .custom instance void [mscorlib]System.Runtime.CompilerServices.AsyncStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-                01 00 23 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 3c
-                53 74 61 74 69 63 45 78 74 65 6e 73 69 6f 6e 3e
-                4d 3e 64 5f 5f 31 00 00
-            )
             // Method begins at RVA 0x20b5
             // Code size 2 (0x2)
             .maxstack 8
@@ -7023,7 +7736,7 @@ public static class Extensions
             IL_0001: throw
         } // end of method '<>E__0'::M
     } // end of class <>E__0
-    .class nested private auto ansi sealed beforefieldinit '<<StaticExtension>M>d__1'
+    .class nested private auto ansi sealed beforefieldinit '<M>d__1'
         extends [mscorlib]System.ValueType
         implements [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine
     {
@@ -7052,7 +7765,7 @@ public static class Extensions
                 [4] class [mscorlib]System.Exception
             )
             IL_0000: ldarg.0
-            IL_0001: ldfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+            IL_0001: ldfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0006: stloc.0
             .try
             {
@@ -7070,31 +7783,31 @@ public static class Extensions
                 IL_0022: ldc.i4.0
                 IL_0023: dup
                 IL_0024: stloc.0
-                IL_0025: stfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+                IL_0025: stfld int32 Extensions/'<M>d__1'::'<>1__state'
                 IL_002a: ldarg.0
                 IL_002b: ldloc.2
-                IL_002c: stfld valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter Extensions/'<<StaticExtension>M>d__1'::'<>u__1'
+                IL_002c: stfld valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter Extensions/'<M>d__1'::'<>u__1'
                 IL_0031: ldarg.0
-                IL_0032: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<StaticExtension>M>d__1'::'<>t__builder'
+                IL_0032: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
                 IL_0037: ldloca.s 2
                 IL_0039: ldarg.0
-                IL_003a: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter, valuetype Extensions/'<<StaticExtension>M>d__1'>(!!0&, !!1&)
+                IL_003a: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::AwaitUnsafeOnCompleted<valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter, valuetype Extensions/'<M>d__1'>(!!0&, !!1&)
                 IL_003f: leave.s IL_00b1
                 IL_0041: ldarg.0
-                IL_0042: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter Extensions/'<<StaticExtension>M>d__1'::'<>u__1'
+                IL_0042: ldfld valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter Extensions/'<M>d__1'::'<>u__1'
                 IL_0047: stloc.2
                 IL_0048: ldarg.0
-                IL_0049: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter Extensions/'<<StaticExtension>M>d__1'::'<>u__1'
+                IL_0049: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter Extensions/'<M>d__1'::'<>u__1'
                 IL_004e: initobj [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter
                 IL_0054: ldarg.0
                 IL_0055: ldc.i4.m1
                 IL_0056: dup
                 IL_0057: stloc.0
-                IL_0058: stfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+                IL_0058: stfld int32 Extensions/'<M>d__1'::'<>1__state'
                 IL_005d: ldloca.s 2
                 IL_005f: call instance void [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter::GetResult()
                 IL_0064: ldarg.0
-                IL_0065: ldfld object Extensions/'<<StaticExtension>M>d__1'::o
+                IL_0065: ldfld object Extensions/'<M>d__1'::o
                 IL_006a: dup
                 IL_006b: brtrue.s IL_0071
                 IL_006d: pop
@@ -7102,7 +7815,7 @@ public static class Extensions
                 IL_006f: br.s IL_0076
                 IL_0071: callvirt instance string [mscorlib]System.Object::ToString()
                 IL_0076: ldarg.0
-                IL_0077: ldfld string Extensions/'<<StaticExtension>M>d__1'::s
+                IL_0077: ldfld string Extensions/'<M>d__1'::s
                 IL_007c: call string [mscorlib]System.String::Concat(string, string)
                 IL_0081: stloc.1
                 IL_0082: leave.s IL_009d
@@ -7112,22 +7825,22 @@ public static class Extensions
                 IL_0084: stloc.s 4
                 IL_0086: ldarg.0
                 IL_0087: ldc.i4.s -2
-                IL_0089: stfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+                IL_0089: stfld int32 Extensions/'<M>d__1'::'<>1__state'
                 IL_008e: ldarg.0
-                IL_008f: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<StaticExtension>M>d__1'::'<>t__builder'
+                IL_008f: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
                 IL_0094: ldloc.s 4
                 IL_0096: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::SetException(class [mscorlib]System.Exception)
                 IL_009b: leave.s IL_00b1
             } // end handler
             IL_009d: ldarg.0
             IL_009e: ldc.i4.s -2
-            IL_00a0: stfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+            IL_00a0: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_00a5: ldarg.0
-            IL_00a6: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<StaticExtension>M>d__1'::'<>t__builder'
+            IL_00a6: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
             IL_00ab: ldloc.1
             IL_00ac: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::SetResult(!0)
             IL_00b1: ret
-        } // end of method '<<StaticExtension>M>d__1'::MoveNext
+        } // end of method '<M>d__1'::MoveNext
         .method private final hidebysig newslot virtual 
             instance void SetStateMachine (
                 class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine stateMachine
@@ -7141,51 +7854,50 @@ public static class Extensions
             // Code size 13 (0xd)
             .maxstack 8
             IL_0000: ldarg.0
-            IL_0001: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<StaticExtension>M>d__1'::'<>t__builder'
+            IL_0001: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
             IL_0006: ldarg.1
             IL_0007: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::SetStateMachine(class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine)
             IL_000c: ret
-        } // end of method '<<StaticExtension>M>d__1'::SetStateMachine
-    } // end of class <<StaticExtension>M>d__1
+        } // end of method '<M>d__1'::SetStateMachine
+    } // end of class <M>d__1
     // Methods
     .method public hidebysig specialname static 
-        class [mscorlib]System.Threading.Tasks.Task`1<string> '<StaticExtension>M' (
+        class [mscorlib]System.Threading.Tasks.Task`1<string> M (
             object o,
             string s
         ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.AsyncStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
-            01 00 23 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 3c
-            53 74 61 74 69 63 45 78 74 65 6e 73 69 6f 6e 3e
-            4d 3e 64 5f 5f 31 00 00
+            01 00 12 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
+            3e 64 5f 5f 31 00 00
         )
         // Method begins at RVA 0x2068
         // Code size 63 (0x3f)
         .maxstack 2
         .locals init (
-            [0] valuetype Extensions/'<<StaticExtension>M>d__1'
+            [0] valuetype Extensions/'<M>d__1'
         )
         IL_0000: ldloca.s 0
         IL_0002: call valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<!0> valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::Create()
-        IL_0007: stfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<StaticExtension>M>d__1'::'<>t__builder'
+        IL_0007: stfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
         IL_000c: ldloca.s 0
         IL_000e: ldarg.0
-        IL_000f: stfld object Extensions/'<<StaticExtension>M>d__1'::o
+        IL_000f: stfld object Extensions/'<M>d__1'::o
         IL_0014: ldloca.s 0
         IL_0016: ldarg.1
-        IL_0017: stfld string Extensions/'<<StaticExtension>M>d__1'::s
+        IL_0017: stfld string Extensions/'<M>d__1'::s
         IL_001c: ldloca.s 0
         IL_001e: ldc.i4.m1
-        IL_001f: stfld int32 Extensions/'<<StaticExtension>M>d__1'::'<>1__state'
+        IL_001f: stfld int32 Extensions/'<M>d__1'::'<>1__state'
         IL_0024: ldloca.s 0
-        IL_0026: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<StaticExtension>M>d__1'::'<>t__builder'
+        IL_0026: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
         IL_002b: ldloca.s 0
-        IL_002d: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::Start<valuetype Extensions/'<<StaticExtension>M>d__1'>(!!0&)
+        IL_002d: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::Start<valuetype Extensions/'<M>d__1'>(!!0&)
         IL_0032: ldloca.s 0
-        IL_0034: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<<StaticExtension>M>d__1'::'<>t__builder'
+        IL_0034: ldflda valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string> Extensions/'<M>d__1'::'<>t__builder'
         IL_0039: call instance class [mscorlib]System.Threading.Tasks.Task`1<!0> valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::get_Task()
         IL_003e: ret
-    } // end of method Extensions::'<StaticExtension>M'
+    } // end of method Extensions::M
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -7244,10 +7956,10 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        CompileAndVerify(comp3, expectedOutput: "1234");
+        CompileAndVerify(comp3, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]
@@ -7268,9 +7980,9 @@ public static class Extensions
         Assert.True(implementation.IsStatic);
         Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
         Assert.Equal(1, implementation.ParameterCount);
-        AssertEx.Equal("System.String Extensions.<Extension>get_P(System.Object o)", implementation.ToTestDisplayString());
+        AssertEx.Equal("System.String Extensions.get_P(this System.Object o)", implementation.ToTestDisplayString());
         Assert.True(implementation.IsImplicitlyDeclared);
-        Assert.False(implementation.IsExtensionMethod);
+        Assert.True(implementation.IsExtensionMethod);
         Assert.True(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
@@ -7280,6 +7992,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -7315,17 +8030,20 @@ public static class Extensions
     } // end of class <>E__0
     // Methods
     .method public hidebysig specialname static 
-        string '<Extension>get_P' (
+        string get_P (
             object o
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 7 (0x7)
         .maxstack 8
         IL_0000: ldarg.0
         IL_0001: callvirt instance string [mscorlib]System.Object::ToString()
         IL_0006: ret
-    } // end of method Extensions::'<Extension>get_P'
+    } // end of method Extensions::get_P
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -7353,8 +8071,9 @@ static class Extensions
 }
 """;
 
-        var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        var verifier3 = CompileAndVerify(comp3, expectedOutput: "12");
+        var comp1MetadataReference = comp1.ToMetadataReference();
+        var comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -7364,7 +8083,7 @@ static class Extensions
   .locals init (string V_0)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  call       ""string Extensions.<Extension>get_P(object)""
+  IL_0002:  call       ""string Extensions.get_P(object)""
   IL_0007:  stloc.0
   IL_0008:  br.s       IL_000a
   IL_000a:  ldloc.0
@@ -7379,17 +8098,313 @@ static class Extensions
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""string Extensions.<Extension>get_P(object)""
+  IL_0001:  call       ""string Extensions.get_P(object)""
   IL_0006:  ret
 }
 ";
-        verifier3.VerifyIL("Extensions.<Extension>get_P2(object)", m2IL);
+        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
 
-        comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "12");
+        var comp1ImageReference = comp1.EmitToImageReference();
+        comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test", testIL);
-        verifier3.VerifyIL("Extensions.<Extension>get_P2(object)", m2IL);
+        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
+
+        src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write("2".P2);
+    }
+
+    static string Test(object o)
+    {
+        return o.get_P();
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public string P2 => o.get_P();
+    }
+}
+""";
+
+        comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
+
+        comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
+
+        src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test("1"));
+        System.Console.Write("2".P2);
+    }
+
+    static string Test(object o)
+    {
+        return Extensions.get_P(o);
+    }
+}
+
+static class Extensions_
+{
+    extension(object o)
+    {
+        public string P2 => Extensions.get_P(o);
+    }
+}
+""";
+
+        comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions_.get_P2(this object)", m2IL);
+
+        comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions_.get_P2(this object)", m2IL);
+
+        var vbComp = CreateVisualBasicCompilation("""
+Class Program
+    Shared Sub Main()
+        System.Console.Write(Test1("1"))
+        System.Console.Write(Test2("3"))
+    End Sub
+
+    Shared Function Test1(o As String) As String
+        return o.get_P()
+    End Function
+    Shared Function Test2(o As String) As String
+        return Extensions.get_P(o)
+    End Function
+End Class
+""",
+            referencedAssemblies: comp3.References, compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        CompileAndVerify(vbComp, expectedOutput: "13").VerifyDiagnostics();
+
+        var comp5 = CreateCompilation(src1);
+        comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+        comp5.VerifyDiagnostics(
+            // PROTOTYPE: The wording of the message is somewhat confusing because it calls property a "method". Perhaps the wording should be changed to use "member" instead.
+
+            // (5,23): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //         public string P => o.ToString();
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "P").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(5, 23)
+            );
+    }
+
+    [Fact]
+    public void Implementation_StaticProperty_01()
+    {
+        var src1 = """
+public static class Extensions
+{
+    extension(object)
+    {
+        public static string P => "P";
+    }
+}
+""";
+        var comp1 = CreateCompilation(src1);
+
+        MethodSymbol implementation = comp1.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+        Assert.True(implementation.IsStatic);
+        Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
+        Assert.Equal(0, implementation.ParameterCount);
+        AssertEx.Equal("System.String Extensions.get_P()", implementation.ToTestDisplayString());
+        Assert.True(implementation.IsImplicitlyDeclared);
+        Assert.False(implementation.IsExtensionMethod);
+        Assert.True(implementation.HasSpecialName);
+        Assert.False(implementation.HasRuntimeSpecialName);
+
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
+
+        verifier1.VerifyTypeIL("Extensions", """
+.class public auto ansi abstract sealed beforefieldinit Extensions
+    extends [mscorlib]System.Object
+{
+    // Nested Types
+    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        // Methods
+        .method public hidebysig specialname static 
+            void '<Extension>$' (
+                object ''
+            ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x206e
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method public hidebysig specialname static 
+            string get_P () cil managed 
+        {
+            // Method begins at RVA 0x2070
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::get_P
+        // Properties
+        .property string P()
+        {
+            .get string Extensions/'<>E__0'::get_P()
+        }
+    } // end of class <>E__0
+    // Methods
+    .method public hidebysig specialname static 
+        string get_P () cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 6 (0x6)
+        .maxstack 8
+        IL_0000: ldstr "P"
+        IL_0005: ret
+    } // end of method Extensions::get_P
+} // end of class Extensions
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        var src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test());
+        System.Console.Write(object.P2);
+    }
+
+    static string Test()
+    {
+        return object.P;
+    }
+}
+
+static class Extensions
+{
+    extension(object o)
+    {
+        public static string P2 => object.P;
+    }
+}
+""";
+
+        var comp1MetadataReference = comp1.ToMetadataReference();
+        var comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "PP").VerifyDiagnostics();
+
+        var testIL =
+@"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (string V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""string Extensions.get_P()""
+  IL_0006:  stloc.0
+  IL_0007:  br.s       IL_0009
+  IL_0009:  ldloc.0
+  IL_000a:  ret
+}
+";
+        verifier3.VerifyIL("Program.Test", testIL);
+
+        var m2IL =
+@"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  call       ""string Extensions.get_P()""
+  IL_0005:  ret
+}
+";
+        verifier3.VerifyIL("Extensions.get_P2()", m2IL);
+
+        var comp1ImageReference = comp1.EmitToImageReference();
+        comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "PP").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions.get_P2()", m2IL);
+
+        src3 = """
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test());
+        System.Console.Write(object.P2);
+    }
+
+    static string Test()
+    {
+        return Extensions.get_P();
+    }
+}
+
+static class Extensions_
+{
+    extension(object o)
+    {
+        public static string P2 => Extensions.get_P();
+    }
+}
+""";
+
+        comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "PP").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions_.get_P2()", m2IL);
+
+        comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "PP").VerifyDiagnostics();
+
+        verifier3.VerifyIL("Program.Test", testIL);
+        verifier3.VerifyIL("Extensions_.get_P2()", m2IL);
+
+        var vbComp = CreateVisualBasicCompilation("""
+Class Program
+    Shared Sub Main()
+        System.Console.Write(Test2())
+    End Sub
+
+    Shared Function Test2() As String
+        return Extensions.get_P()
+    End Function
+End Class
+""",
+            referencedAssemblies: comp3.References, compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        CompileAndVerify(vbComp, expectedOutput: "P").VerifyDiagnostics();
+
+        var comp5 = CreateCompilation(src1);
+        comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+        comp5.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -7411,6 +8426,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -7446,17 +8464,20 @@ public static class Extensions
     } // end of class <>E__0
     // Methods
     .method public hidebysig specialname static 
-        string '<Extension>get_P' (
+        string get_P (
             object o
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 7 (0x7)
         .maxstack 8
         IL_0000: ldarg.0
         IL_0001: callvirt instance string [mscorlib]System.Object::ToString()
         IL_0006: ret
-    } // end of method Extensions::'<Extension>get_P'
+    } // end of method Extensions::get_P
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -7485,7 +8506,7 @@ static class Extensions
 """;
 
         var comp3 = CreateCompilation(src3, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
-        var verifier3 = CompileAndVerify(comp3, expectedOutput: "12");
+        var verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         var testIL =
 @"
@@ -7495,7 +8516,7 @@ static class Extensions
   .locals init (string V_0)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  call       ""string Extensions.<Extension>get_P(object)""
+  IL_0002:  call       ""string Extensions.get_P(object)""
   IL_0007:  stloc.0
   IL_0008:  br.s       IL_000a
   IL_000a:  ldloc.0
@@ -7510,17 +8531,17 @@ static class Extensions
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  call       ""string Extensions.<Extension>get_P(object)""
+  IL_0001:  call       ""string Extensions.get_P(object)""
   IL_0006:  ret
 }
 ";
-        verifier3.VerifyIL("Extensions.<Extension>get_P2(object)", m2IL);
+        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "12");
+        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test", testIL);
-        verifier3.VerifyIL("Extensions.<Extension>get_P2(object)", m2IL);
+        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
     }
 
     [Fact]
@@ -7554,6 +8575,9 @@ class C1
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
@@ -7593,17 +8617,20 @@ class C1
     } // end of class <local>O__1_0`3
     // Methods
     .method private hidebysig specialname static 
-        void '<Extension>M2'<T, U> (
+        void M2<T, U> (
             !!T o
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
-    } // end of method Extensions::'<Extension>M2'
+    } // end of method Extensions::M2
     .method assembly hidebysig static 
-        class [mscorlib]System.Func`1<!!V> '<<Extension>M2>b__1_0'<T, U, V> () cil managed 
+        class [mscorlib]System.Func`1<!!V> '<M2>b__1_0'<T, U, V> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -7621,7 +8648,7 @@ class C1
         IL_0015: dup
         IL_0016: stsfld class [mscorlib]System.Func`1<!2> class Extensions/'<local>O__1_0`3'<!!T, !!U, !!V>::'<0>__M1'
         IL_001b: ret
-    } // end of method Extensions::'<<Extension>M2>b__1_0'
+    } // end of method Extensions::'<M2>b__1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -7692,6 +8719,9 @@ class C1
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
@@ -7731,17 +8761,20 @@ class C1
     } // end of class <>O__1_0`1
     // Methods
     .method private hidebysig specialname static 
-        void '<Extension>M2'<T> (
+        void M2<T> (
             !!T o
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
-    } // end of method Extensions::'<Extension>M2'
+    } // end of method Extensions::M2
     .method assembly hidebysig static 
-        class [mscorlib]System.Action '<<Extension>M2>b__1_0'<T> () cil managed 
+        class [mscorlib]System.Action '<M2>b__1_0'<T> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -7759,7 +8792,7 @@ class C1
         IL_0015: dup
         IL_0016: stsfld class [mscorlib]System.Action class Extensions/'<>O__1_0`1'<!!T>::'<0>__M1'
         IL_001b: ret
-    } // end of method Extensions::'<<Extension>M2>b__1_0'
+    } // end of method Extensions::'<M2>b__1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -7831,6 +8864,9 @@ class C1
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -7870,17 +8906,20 @@ class C1
     } // end of class <>O
     // Methods
     .method private hidebysig specialname static 
-        void '<Extension>M2' (
+        void M2 (
             object o
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
-    } // end of method Extensions::'<Extension>M2'
+    } // end of method Extensions::M2
     .method assembly hidebysig static 
-        class [mscorlib]System.Action '<<Extension>M2>b__1_0' () cil managed 
+        class [mscorlib]System.Action '<M2>b__1_0' () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -7898,7 +8937,7 @@ class C1
         IL_0015: dup
         IL_0016: stsfld class [mscorlib]System.Action Extensions/'<>O'::'<0>__M1'
         IL_001b: ret
-    } // end of method Extensions::'<<Extension>M2>b__1_0'
+    } // end of method Extensions::'<M2>b__1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -7965,6 +9004,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
@@ -8004,10 +9046,13 @@ public static class Extensions
     } // end of class <>O__1_0`1
     // Methods
     .method private hidebysig specialname static 
-        class [mscorlib]System.Action '<Extension>M2'<T> (
+        class [mscorlib]System.Action M2<T> (
             !!T o
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 28 (0x1c)
         .maxstack 8
@@ -8016,14 +9061,14 @@ public static class Extensions
         IL_0006: brtrue.s IL_001b
         IL_0008: pop
         IL_0009: ldnull
-        IL_000a: ldftn void Extensions::'<<Extension>M2>b__1_0'<!!T>()
+        IL_000a: ldftn void Extensions::'<M2>b__1_0'<!!T>()
         IL_0010: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
         IL_0015: dup
         IL_0016: stsfld class [mscorlib]System.Action class Extensions/'<>O__1_0`1'<!!T>::'<0>__local'
         IL_001b: ret
-    } // end of method Extensions::'<Extension>M2'
+    } // end of method Extensions::M2
     .method assembly hidebysig static 
-        void '<<Extension>M2>b__1_0'<T> () cil managed 
+        void '<M2>b__1_0'<T> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -8036,7 +9081,7 @@ public static class Extensions
         IL_000a: callvirt instance string [mscorlib]System.Object::ToString()
         IL_000f: pop
         IL_0010: ret
-    } // end of method Extensions::'<<Extension>M2>b__1_0'
+    } // end of method Extensions::'<M2>b__1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -8101,6 +9146,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -8140,10 +9188,13 @@ public static class Extensions
     } // end of class <>O
     // Methods
     .method private hidebysig specialname static 
-        class [mscorlib]System.Action '<Extension>M2' (
+        class [mscorlib]System.Action M2 (
             object o
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 28 (0x1c)
         .maxstack 8
@@ -8152,14 +9203,14 @@ public static class Extensions
         IL_0006: brtrue.s IL_001b
         IL_0008: pop
         IL_0009: ldnull
-        IL_000a: ldftn void Extensions::'<<Extension>M2>b__1_0'()
+        IL_000a: ldftn void Extensions::'<M2>b__1_0'()
         IL_0010: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
         IL_0015: dup
         IL_0016: stsfld class [mscorlib]System.Action Extensions/'<>O'::'<0>__local'
         IL_001b: ret
-    } // end of method Extensions::'<Extension>M2'
+    } // end of method Extensions::M2
     .method assembly hidebysig static 
-        void '<<Extension>M2>b__1_0' () cil managed 
+        void '<M2>b__1_0' () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -8172,7 +9223,7 @@ public static class Extensions
         IL_000a: callvirt instance string [mscorlib]System.Object::ToString()
         IL_000f: pop
         IL_0010: ret
-    } // end of method Extensions::'<<Extension>M2>b__1_0'
+    } // end of method Extensions::'<M2>b__1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -8236,6 +9287,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
@@ -8275,17 +9329,20 @@ public static class Extensions
     } // end of class <>o__0|1`3
     // Methods
     .method private hidebysig specialname static 
-        void '<Extension>M2'<T, U> (
+        void M2<T, U> (
             !!T o
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
-    } // end of method Extensions::'<Extension>M2'
+    } // end of method Extensions::M2
     .method assembly hidebysig static 
-        void '<<Extension>M2>b__1_0'<T, U, V> (
+        void '<M2>b__1_0'<T, U, V> (
             object d,
             !!T t,
             !!U u,
@@ -8347,7 +9404,7 @@ public static class Extensions
         IL_006b: ldarg.3
         IL_006c: callvirt instance void class [mscorlib]System.Action`5<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !!T, !!U, !!V>::Invoke(!0, !1, !2, !3, !4)
         IL_0071: ret
-    } // end of method Extensions::'<<Extension>M2>b__1_0'
+    } // end of method Extensions::'<M2>b__1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]").
     Replace("[System.Core]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[System.Core]"));
@@ -8409,6 +9466,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
@@ -8448,17 +9508,20 @@ public static class Extensions
     } // end of class <>o__1`1
     // Methods
     .method private hidebysig specialname static 
-        void '<Extension>M2'<T> (
+        void M2<T> (
             !!T o
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
-    } // end of method Extensions::'<Extension>M2'
+    } // end of method Extensions::M2
     .method assembly hidebysig static 
-        void '<<Extension>M2>b__1_0'<T> (
+        void '<M2>b__1_0'<T> (
             object d,
             !!T t
         ) cil managed 
@@ -8504,7 +9567,7 @@ public static class Extensions
         IL_0055: ldarg.1
         IL_0056: callvirt instance void class [mscorlib]System.Action`3<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !!T>::Invoke(!0, !1, !2)
         IL_005b: ret
-    } // end of method Extensions::'<<Extension>M2>b__1_0'
+    } // end of method Extensions::'<M2>b__1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]").
     Replace("[System.Core]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[System.Core]"));
@@ -8566,6 +9629,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -8605,17 +9671,20 @@ public static class Extensions
     } // end of class <>o__1
     // Methods
     .method private hidebysig specialname static 
-        void '<Extension>M2' (
+        void M2 (
             object o
         ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         // Method begins at RVA 0x2067
         // Code size 1 (0x1)
         .maxstack 8
         IL_0000: ret
-    } // end of method Extensions::'<Extension>M2'
+    } // end of method Extensions::M2
     .method assembly hidebysig static 
-        void '<<Extension>M2>b__1_0' (
+        void '<M2>b__1_0' (
             object d
         ) cil managed 
     {
@@ -8653,7 +9722,7 @@ public static class Extensions
         IL_004a: ldarg.0
         IL_004b: callvirt instance void class [mscorlib]System.Action`2<class [System.Core]System.Runtime.CompilerServices.CallSite, object>::Invoke(!0, !1)
         IL_0050: ret
-    } // end of method Extensions::'<<Extension>M2>b__1_0'
+    } // end of method Extensions::'<M2>b__1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]").
     Replace("[System.Core]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[System.Core]"));
@@ -9048,7 +10117,7 @@ namespace N3
             var invocation = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().Method");
             Assert.Equal($$"""void {{extensionName}}.Method()""", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
             // PROTOTYPE semantic model is undone
-            Assert.Empty(model.GetMemberGroup(invocation));
+            // PROTOTYPE: Assert.Empty(model.GetMemberGroup(invocation));
         }
     }
 
@@ -9092,7 +10161,7 @@ namespace N
         var invocation = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().Method");
         Assert.Equal("void N.E.<>E__0.Method()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         // PROTOTYPE semantic model is undone
-        Assert.Empty(model.GetMemberGroup(invocation));
+        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(invocation));
 
         src = """
 using N;
@@ -9548,12 +10617,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension(string).M()' requires a receiver of type 'string'
+            // PROTOTYPE: Probably should refer to the instance extension in the error
+
+            // (1,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.M(string)' requires a receiver of type 'string'
             // new object().M();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object()").WithArguments("object", "M", "E.extension(string).M()", "string").WithLocation(1, 1),
-            // (2,1): error CS1929: 'object' does not contain a definition for 'M2' and the best extension method overload 'E.M2(string)' requires a receiver of type 'string'
-            // new object().M2();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object()").WithArguments("object", "M2", "E.M2(string)", "string").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object()").WithArguments("object", "M", "E.M(string)", "string").WithLocation(1, 1)
+            );
     }
 
     [Fact]
@@ -9684,12 +10753,12 @@ static class E
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.extension<T>(T)'
+            // PROTOTYPE: Probably should refer to the instance extension in the error
+
+            // (1,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.Method<T>(T)'
             // new object().Method();
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Method").WithArguments("E.extension<T>(T)", "T", "object").WithLocation(1, 14),
-            // (2,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.Method2<T>(T)'
-            // new object().Method2();
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Method2").WithArguments("E.Method2<T>(T)", "T", "object").WithLocation(2, 14));
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Method").WithArguments("E.Method<T>(T)", "T", "object").WithLocation(1, 14)
+            );
     }
 
     [Fact]
@@ -9983,10 +11052,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (1,32): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
-            // System.Console.Write($"{nameof(E.M)} ");
-            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "E.M").WithLocation(1, 32));
+        CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
     }
 
     [Fact]
@@ -10096,7 +11162,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
         Assert.Equal("void E.<>E__0.Method()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(method)); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(method)); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -10130,7 +11196,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
         Assert.Equal("void E.<>E__0.Method()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(method)); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(method)); // PROTOTYPE semantic model is undone
     }
 
     [Fact(Skip = "PROTOTYPE: crash when binding foreach")]
@@ -10234,7 +11300,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -10278,7 +11344,7 @@ namespace N
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void N.E2.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -10315,7 +11381,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["void C.M()", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Equal(["void C.M()", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -10342,13 +11408,17 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'E.extension(C).M(int)' and 'E.M(C, int)'
             // new C().M(42);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.extension(C).M(int)", "E.M(C, int)").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E.extension(C).M(int)", "E.M(C, int)").WithLocation(1, 9),
+            // (12,21): error CS0111: Type 'E' already defines a member called 'M' with the same parameter types
+            //         public void M(int i) => throw null;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "E").WithLocation(12, 21)
+            );
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["void C.M()", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Equal(["void C.M()", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -10385,7 +11455,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void C.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void C.M()", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Equal(["void C.M()", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -10453,7 +11523,7 @@ static class E1
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void E1.<>E__0.M(System.Int32 b)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void C.M(System.Int32 a)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Equal(["void C.M(System.Int32 a)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -10492,8 +11562,8 @@ public static class E2
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void C.M(System.Int32 c)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
-        Assert.Equal(["void C.M(System.Int32 a)", "void C.M(System.Int32 c)"],
-            model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Equal(["void C.M(System.Int32 a)", "void C.M(System.Int32 c)"],
+        //    model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -10653,7 +11723,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object>");
         Assert.Equal("void E.<>E__0.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -10714,7 +11784,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<>");
         Assert.Equal("void E.<>E__0.M<?>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -10744,7 +11814,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void E.<>E__0.M<System.Int32>(System.Int32 t)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -10774,7 +11844,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Empty(model.GetMemberGroup(memberAccess));
+        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess));
 
         source = """
 C.Method();
@@ -11175,18 +12245,13 @@ static class E
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics(
-            // (3,37): error CS0306: The type 'long*' may not be used as a type argument
-            //     new C<long*[]>.Nested<int*[]>().M();
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("long*").WithLocation(3, 37),
-            // (3,37): error CS0306: The type 'int*' may not be used as a type argument
-            //     new C<long*[]>.Nested<int*[]>().M();
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("int*").WithLocation(3, 37),
-            // (4,37): error CS0306: The type 'long*' may not be used as a type argument
-            //     new C<long*[]>.Nested<int*[]>().M2();
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "M2").WithArguments("long*").WithLocation(4, 37),
-            // (4,37): error CS0306: The type 'int*' may not be used as a type argument
-            //     new C<long*[]>.Nested<int*[]>().M2();
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "M2").WithArguments("int*").WithLocation(4, 37));
+            // (3,48): error CS0306: The type 'long*' may not be used as a type argument
+            //     string s = new C<long*[]>.Nested<int*[]>().M();
+            Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("long*").WithLocation(3, 48),
+            // (3,48): error CS0306: The type 'int*' may not be used as a type argument
+            //     string s = new C<long*[]>.Nested<int*[]>().M();
+            Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("int*").WithLocation(3, 48)
+            );
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -11368,7 +12433,7 @@ namespace Inner
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object>");
         Assert.Equal("void E2.<>E__0.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        //Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
     }
 
     [Fact(Skip = "PROTOTYPE explicit type arguments")]
@@ -11450,7 +12515,7 @@ new object().M();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
     }
 
     public class ThreePermutationGenerator : IEnumerable<object[]>
@@ -11558,13 +12623,13 @@ public interface I<out T> { }
 
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
         Assert.Equal("void I<System.Object>.M<System.Object>(out System.Object t)", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(["void I<System.String>.M<System.String>(out System.String t)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+        // PROTOTYPE: Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
+        // PROTOTYPE: Assert.Equal(["void I<System.String>.M<System.String>(out System.String t)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M2");
-        Assert.Equal("void E2.<>E__0<System.Object>.M2(out System.Object t)", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Empty(model.GetMemberGroup(memberAccess2)); // PROTOTYPE semantic model is undone
+        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        // PROTOTYPE: Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
+        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess2)); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -11594,7 +12659,7 @@ static class E
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void System.Collections.Generic.IEnumerable<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.P");
         Assert.Equal("System.Int32 E.<>E__0.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
@@ -11616,13 +12681,14 @@ static class E
 }
 """;
         comp = CreateCompilation(src);
+
         comp.VerifyEmitDiagnostics(
-            // (4,1): error CS1929: 'IEnumerable<object>' does not contain a definition for 'M' and the best extension method overload 'E.extension(IEnumerable<string>).M()' requires a receiver of type 'System.Collections.Generic.IEnumerable<string>'
+            // PROTOTYPE: Should probably refer to instance extension in the error
+
+            // (4,1): error CS1929: 'IEnumerable<object>' does not contain a definition for 'M' and the best extension method overload 'E.M(IEnumerable<string>)' requires a receiver of type 'System.Collections.Generic.IEnumerable<string>'
             // i.M();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("System.Collections.Generic.IEnumerable<object>", "M", "E.extension(System.Collections.Generic.IEnumerable<string>).M()", "System.Collections.Generic.IEnumerable<string>").WithLocation(4, 1),
-            // (5,5): error CS9505: 'IEnumerable<object>' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'IEnumerable<object>' could be found (are you missing a using directive or an assembly reference?)
-            // _ = i.P;
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.P").WithArguments("System.Collections.Generic.IEnumerable<object>", "P").WithLocation(5, 5));
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("System.Collections.Generic.IEnumerable<object>", "M", "E.M(System.Collections.Generic.IEnumerable<string>)", "System.Collections.Generic.IEnumerable<string>").WithLocation(4, 1)
+            );
     }
 
     [Fact]
@@ -11868,6 +12934,9 @@ static class E
             // (1,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // new Derived().M();
             Diagnostic(ErrorCode.ERR_NoTypeDef, "new Derived().M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+            // (1,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // new Derived().M();
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "new Derived().M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
             // (1,15): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // new Derived().M();
             Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 15),
@@ -11946,9 +13015,11 @@ static class E
 """;
         var comp = CreateCompilation(src, references: [derivedRef]);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS1929: 'Derived' does not contain a definition for 'M' and the best extension method overload 'E.extension(I<object>).M()' requires a receiver of type 'I<object>'
+            // PROTOTYPE: Probably should refer to the instance extension in the error
+
+            // (1,1): error CS1929: 'Derived' does not contain a definition for 'M' and the best extension method overload 'E.M(I<object>)' requires a receiver of type 'I<object>'
             // new Derived().M();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new Derived()").WithArguments("Derived", "M", "E.extension(I<object>).M()", "I<object>").WithLocation(1, 1),
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new Derived()").WithArguments("Derived", "M", "E.M(I<object>)", "I<object>").WithLocation(1, 1),
             // (2,1): error CS1929: 'Derived' does not contain a definition for 'M2' and the best extension method overload 'E.M2(I<object>)' requires a receiver of type 'I<object>'
             // new Derived().M2();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new Derived()").WithArguments("Derived", "M2", "E.M2(I<object>)", "I<object>").WithLocation(2, 1));
@@ -14499,7 +15570,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -17170,7 +18241,7 @@ static class E
         // PROTOTYPE metadata is undone
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE: Call site rewrite is not implemented yet
     public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetResult()
     {
         var text = @"
@@ -17202,8 +18273,9 @@ static class E
 
         // PROTOTYPE confirm when spec'ing pattern-based await
         var comp = CreateCompilation(text);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyDiagnostics();
         // PROTOTYPE metadata is undone
+        // PROTOTYPE: Call site rewrite is undone
     }
 
     [Fact]
@@ -17614,7 +18686,7 @@ static class E
         CompileAndVerify(comp, expectedOutput: "add").VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE: Lowering for this scenario is not implemented yet
     public void ExtensionMemberLookup_CollectionInitializer_NoApplicableMethod_ExpressionTree()
     {
         var src = """
@@ -17650,8 +18722,11 @@ static class E
         // PROTOTYPE confirm when spec'ing pattern-based collection initializer
         // PROTOTYPE expression trees
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        var expectedOutput = "Method 'Void Add(Int32)' declared on type 'E+<>E__0' cannot be called with instance of type 'C'";
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        comp.VerifyDiagnostics();
+
+        // RPOTOTYPE: Lowering for this scenario is not implemented yet
+        //var expectedOutput = "Method 'Void Add(Int32)' declared on type 'E+<>E__0' cannot be called with instance of type 'C'";
+        //CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -18332,7 +19407,7 @@ public class Program
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "a.Extension");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Empty(model.GetMemberGroup(memberAccess));
+        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -18658,6 +19733,45 @@ static class Extensions
         comp = CreateCompilation("""
 static class Extensions
 {
+    static void Main()
+    {
+        1.M2();
+    }
+
+    extension(int receiver)
+    {
+        public void M2() {}
+    }
+
+    extension(ref int receiver)
+    {
+        public void M2() {}
+    }
+}
+""");
+
+        comp.VerifyDiagnostics(
+            // (5,11): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions.extension(int).M2()' and 'Extensions.extension(ref int).M2()'
+            //         1.M2();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("Extensions.extension(int).M2()", "Extensions.extension(ref int).M2()").WithLocation(5, 11)
+            );
+
+        comp = CreateCompilation("""
+static class Extensions
+{
+    static void Main()
+    {
+        int i = 0;
+        M2(i);
+        M2(ref i);
+
+        i.M11();
+        "".M11();
+
+        ((long)i).M12(i);
+        ((long)i).M12(ref i);
+    }
+
     extension(int receiver)
     {
         public void M2() {}
@@ -18784,6 +19898,28 @@ static class Extensions
     {
         public static void M9(int x) {}
     }
+
+    extension(ref int receiver)
+    {
+        public void M10() {}
+    }
+
+    extension(int receiver)
+    {
+        public static void M10(in int x) {}
+    }
+
+    extension(int receiver)
+    {
+        public void M11() {}
+        public static void M11(int x) {}
+    }
+
+    extension(ref int receiver)
+    {
+        public void M12() {}
+        public static void M12(in int x) {}
+    }
 }
 """;
         var comp = CreateCompilation(src);
@@ -18816,8 +19952,64 @@ static class Extensions
 
             // (76,28): error CS0111: Type 'Extensions' already defines a member called 'M8' with the same parameter types
             //         public static void M8() {}
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M8").WithArguments("M8", "Extensions").WithLocation(76, 28)
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M8").WithArguments("M8", "Extensions").WithLocation(76, 28),
+
+            // PROTOTYPE: Are we comfortable with these four conflicts?
+
+            // (86,28): error CS0111: Type 'Extensions' already defines a member called 'M9' with the same parameter types
+            //         public static void M9(int x) {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M9").WithArguments("M9", "Extensions").WithLocation(86, 28),
+            // (96,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
+            //         public static void M10(in int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M10").WithArguments("Extensions", "method", "in", "ref").WithLocation(96, 28),
+            // (102,28): error CS0111: Type 'Extensions' already defines a member called 'M11' with the same parameter types
+            //         public static void M11(int x) {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M11").WithArguments("M11", "Extensions").WithLocation(102, 28),
+            // (108,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
+            //         public static void M12(in int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M12").WithArguments("Extensions", "method", "in", "ref").WithLocation(108, 28)
             );
+
+        comp = CreateCompilation("""
+static class Extensions
+{
+    static void Main()
+    {
+        int i = 0;
+        i.M13();
+        int.M13(ref i);
+        M13(i);
+        M13(ref i);
+
+        i.M14();
+        int.M14(i);
+        M14(ref i);
+        M14(i);
+    }
+
+    extension(int receiver)
+    {
+        public void M13() => System.Console.Write(1);
+    }
+
+    extension(int receiver)
+    {
+        public static void M13(ref int x) => System.Console.Write(2);
+    }
+
+    extension(ref int receiver)
+    {
+        public void M14() => System.Console.Write(3);
+    }
+
+    extension(int receiver)
+    {
+        public static void M14(int x) => System.Console.Write(4);
+    }
+}
+""", options: TestOptions.DebugExe);
+
+        CompileAndVerify(comp, expectedOutput: "12123434").VerifyDiagnostics();
     }
 
     [Fact]
@@ -18949,6 +20141,629 @@ static class Extensions
             // (8,15): error CS1669: __arglist is not valid in this context
             //     extension(__arglist)
             Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(8, 15)
+            );
+    }
+
+    [Fact]
+    public void SignatureConflict_08()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        public void M1() {}
+    }
+
+    public static void M1(object receiver) {}
+
+    extension(int receiver)
+    {
+        public void M2() {}
+    }
+
+    public static void M2(ref int receiver) {}
+
+    extension(in int receiver)
+    {
+        public void M3() {}
+    }
+
+    public static void M3(ref int receiver) {}
+
+    extension(ref readonly int receiver)
+    {
+        public void M4() {}
+    }
+
+    public static void M4(ref int receiver) {}
+
+    extension(ref readonly int receiver)
+    {
+        public void M5() {}
+    }
+
+    public static void M5(in int receiver) {}
+
+    extension(object receiver1)
+    {
+        public void M13() {}
+    }
+
+    public static void M13(object receiver2) {}
+}
+""";
+        var comp = CreateCompilation(src);
+
+        // PROTOTYPE: Should we report an error for M2 (the only difference is receiver ref-ness)?
+        comp.VerifyDiagnostics(
+            // (5,21): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
+            //         public void M1() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(5, 21),
+
+            // PROTOTYPE: The error might be somewhat confusing in this scenario because there are no parameters and we complain about ref-ness of the receiver.
+
+            // (19,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
+            //         public void M3() {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M3").WithArguments("Extensions", "method", "in", "ref").WithLocation(19, 21),
+            // (26,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'ref'
+            //         public void M4() {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M4").WithArguments("Extensions", "method", "ref readonly", "ref").WithLocation(26, 21),
+            // (33,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'in'
+            //         public void M5() {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M5").WithArguments("Extensions", "method", "ref readonly", "in").WithLocation(33, 21),
+            // (40,21): error CS0111: Type 'Extensions' already defines a member called 'M13' with the same parameter types
+            //         public void M13() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M13").WithArguments("M13", "Extensions").WithLocation(40, 21)
+            );
+
+        comp = CreateCompilation("""
+static class Extensions
+{
+    static void Main()
+    {
+        1.M2();
+    }
+
+    extension(int receiver)
+    {
+        public void M2() {}
+    }
+
+    public static void M2(this ref int receiver) {}
+}
+""");
+
+        comp.VerifyDiagnostics(
+            // (5,11): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions.extension(int).M2()' and 'Extensions.M2(ref int)'
+            //         1.M2();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("Extensions.extension(int).M2()", "Extensions.M2(ref int)").WithLocation(5, 11)
+            );
+
+        comp = CreateCompilation("""
+static class Extensions
+{
+    static void Main()
+    {
+        int i = 0;
+        1.M2();
+        M2(i);
+        M2(ref i);
+
+        ((long)i).M12(i);
+        ((long)i).M12(ref i);
+    }
+
+    extension(int receiver)
+    {
+        public void M2() {}
+    }
+
+    public static void M2(ref int receiver) {}
+
+    extension(long receiver)
+    {
+        public void M12(int x) {}
+    }
+
+    public static void M12(this long receiver, ref int x) {}
+}
+""");
+
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SignatureConflict_09()
+    {
+        var src = """
+static class Extensions
+{
+    public static void M1(object receiver) {}
+
+    extension(object receiver)
+    {
+        public void M1() {}
+    }
+
+    public static void M2(ref int receiver) {}
+
+    extension(int receiver)
+    {
+        public void M2() {}
+    }
+
+    public static void M3(ref int receiver) {}
+
+    extension(in int receiver)
+    {
+        public void M3() {}
+    }
+
+    public static void M4(ref int receiver) {}
+
+    extension(ref readonly int receiver)
+    {
+        public void M4() {}
+    }
+
+    public static void M5(in int receiver) {}
+
+    extension(ref readonly int receiver)
+    {
+        public void M5() {}
+    }
+
+    public static void M13(object receiver2) {}
+
+    extension(object receiver1)
+    {
+        public void M13() {}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        // PROTOTYPE: Should we report an error for M2 (the only difference is receiver ref-ness)?
+        comp.VerifyDiagnostics(
+            // (7,21): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
+            //         public void M1() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(7, 21),
+
+            // PROTOTYPE: The error might be somewhat confusing in this scenario because there are no parameters and we complain about ref-ness of the receiver.
+
+            // (21,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
+            //         public void M3() {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M3").WithArguments("Extensions", "method", "in", "ref").WithLocation(21, 21),
+            // (28,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'ref'
+            //         public void M4() {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M4").WithArguments("Extensions", "method", "ref readonly", "ref").WithLocation(28, 21),
+            // (35,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref readonly' and 'in'
+            //         public void M5() {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M5").WithArguments("Extensions", "method", "ref readonly", "in").WithLocation(35, 21),
+            // (42,21): error CS0111: Type 'Extensions' already defines a member called 'M13' with the same parameter types
+            //         public void M13() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M13").WithArguments("M13", "Extensions").WithLocation(42, 21)
+            );
+
+        comp = CreateCompilation("""
+static class Extensions
+{
+    static void Main()
+    {
+        1.M2();
+    }
+
+    public static void M2(this ref int receiver) {}
+
+    extension(int receiver)
+    {
+        public void M2() {}
+    }
+}
+""");
+
+        comp.VerifyDiagnostics(
+            // (5,11): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions.extension(int).M2()' and 'Extensions.M2(ref int)'
+            //         1.M2();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("Extensions.extension(int).M2()", "Extensions.M2(ref int)").WithLocation(5, 11)
+            );
+    }
+
+    [Fact]
+    public void SignatureConflict_10()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        static public void M1() {}
+    }
+
+    static public void M1() {}
+
+    extension(object receiver)
+    {
+        static public void M2(ref int x) {}
+    }
+
+    static public void M2(ref readonly int x) {}
+
+    extension(object receiver)
+    {
+        static public void M3(in int x) {}
+    }
+
+    static public void M3(ref readonly int x) {}
+
+    extension(object receiver)
+    {
+        static public void M4(ref int x) {}
+    }
+
+    static public void M4(in int x) {}
+
+
+    extension(int receiver)
+    {
+        static public int M7() => 0;
+    }
+
+    static public long M7() => 0;
+
+
+    public static void M9(int receiver) {}
+
+    extension(int receiver)
+    {
+        public static void M9(int x) {}
+    }
+
+    public static void M10(ref int receiver) {}
+
+    extension(int receiver)
+    {
+        public static void M10(in int x) {}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (5,28): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
+            //         static public void M1() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(5, 28),
+            // (12,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'ref readonly'
+            //         static public void M2(ref int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M2").WithArguments("Extensions", "method", "ref", "ref readonly").WithLocation(12, 28),
+            // (19,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref readonly'
+            //         static public void M3(in int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M3").WithArguments("Extensions", "method", "in", "ref readonly").WithLocation(19, 28),
+            // (26,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'in'
+            //         static public void M4(ref int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M4").WithArguments("Extensions", "method", "ref", "in").WithLocation(26, 28),
+
+            // PROTOTYPE: It feels unfortunate that we generate conflicting signatures
+
+            // (34,27): error CS0111: Type 'Extensions' already defines a member called 'M7' with the same parameter types
+            //         static public int M7() => 0;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "Extensions").WithLocation(34, 27),
+
+            // PROTOTYPE: Are we comfortable with these two conflicts?
+
+            // (44,28): error CS0111: Type 'Extensions' already defines a member called 'M9' with the same parameter types
+            //         public static void M9(int x) {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M9").WithArguments("M9", "Extensions").WithLocation(44, 28),
+            // (51,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
+            //         public static void M10(in int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M10").WithArguments("Extensions", "method", "in", "ref").WithLocation(51, 28)
+            );
+
+        comp = CreateCompilation("""
+static class Extensions
+{
+    static void Main()
+    {
+        int i = 0;
+        i.M13();
+        int.M13(ref i);
+        M13(i);
+        M13(ref i);
+
+        i.M14();
+        int.M14(i);
+        M14(ref i);
+        M14(i);
+    }
+
+    public static void M13(this int receiver) => System.Console.Write(1);
+
+    extension(int receiver)
+    {
+        public static void M13(ref int x) => System.Console.Write(2);
+    }
+
+    public static void M14(this ref int receiver) => System.Console.Write(3);
+
+    extension(int receiver)
+    {
+        public static void M14(int x) => System.Console.Write(4);
+    }
+}
+""", options: TestOptions.DebugExe);
+
+        CompileAndVerify(comp, expectedOutput: "12123434").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SignatureConflict_11()
+    {
+        var src = """
+static class Extensions
+{
+    static public void M1() {}
+
+    extension(object receiver)
+    {
+        static public void M1() {}
+    }
+
+    static public void M2(ref readonly int x) {}
+
+    extension(object receiver)
+    {
+        static public void M2(ref int x) {}
+    }
+
+    static public void M3(ref readonly int x) {}
+
+    extension(object receiver)
+    {
+        static public void M3(in int x) {}
+    }
+
+    static public void M4(in int x) {}
+
+    extension(object receiver)
+    {
+        static public void M4(ref int x) {}
+    }
+
+    static public long M7() => 0;
+
+    extension(int receiver)
+    {
+        static public int M7() => 0;
+    }
+
+    extension(int receiver)
+    {
+        public static void M9(int x) {}
+    }
+
+    public static void M9(int receiver) {}
+
+    extension(int receiver)
+    {
+        public static void M10(in int x) {}
+    }
+
+    public static void M10(ref int receiver) {}
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (7,28): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
+            //         static public void M1() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(7, 28),
+            // (14,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'ref readonly'
+            //         static public void M2(ref int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M2").WithArguments("Extensions", "method", "ref", "ref readonly").WithLocation(14, 28),
+            // (21,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref readonly'
+            //         static public void M3(in int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M3").WithArguments("Extensions", "method", "in", "ref readonly").WithLocation(21, 28),
+            // (28,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'in'
+            //         static public void M4(ref int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M4").WithArguments("Extensions", "method", "ref", "in").WithLocation(28, 28),
+
+            // PROTOTYPE: It feels unfortunate that we generate conflicting signatures
+
+            // (35,27): error CS0111: Type 'Extensions' already defines a member called 'M7' with the same parameter types
+            //         static public int M7() => 0;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "Extensions").WithLocation(35, 27),
+
+            // PROTOTYPE: Are we comfortable with these two conflicts?
+
+            // (40,28): error CS0111: Type 'Extensions' already defines a member called 'M9' with the same parameter types
+            //         public static void M9(int x) {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M9").WithArguments("M9", "Extensions").WithLocation(40, 28),
+            // (47,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
+            //         public static void M10(in int x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M10").WithArguments("Extensions", "method", "in", "ref").WithLocation(47, 28)
+            );
+    }
+
+    [Fact]
+    public void SignatureConflict_12()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        public int P1 => 1;
+    }
+
+    public static int get_P1(object receiver) => 4;
+
+    public static int get_P2(object receiver) => 4;
+
+    extension(object receiver)
+    {
+        public int P2 => 1;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (5,26): error CS0111: Type 'Extensions' already defines a member called 'get_P1' with the same parameter types
+            //         public int P1 => 1;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "1").WithArguments("get_P1", "Extensions").WithLocation(5, 26),
+            // (14,26): error CS0111: Type 'Extensions' already defines a member called 'get_P2' with the same parameter types
+            //         public int P2 => 1;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "1").WithArguments("get_P2", "Extensions").WithLocation(14, 26)
+            );
+    }
+
+    [Fact]
+    public void SignatureConflict_13()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        static public int P1 => 1;
+    }
+
+    public static int P1 => 4;
+
+    public static int P2 => 4;
+
+    extension(object receiver)
+    {
+        static public int P2 => 1;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (8,29): error CS0082: Type 'Extensions' already reserves a member called 'get_P1' with the same parameter types
+            //     public static int P1 => 4;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "4").WithArguments("get_P1", "Extensions").WithLocation(8, 29),
+            // (10,29): error CS0082: Type 'Extensions' already reserves a member called 'get_P2' with the same parameter types
+            //     public static int P2 => 4;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "4").WithArguments("get_P2", "Extensions").WithLocation(10, 29)
+            );
+    }
+
+    [Fact]
+    public void SignatureConflict_14()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        static public int get_P1() => 1;
+    }
+
+    public static int P1 => 4;
+
+    public static int P2 => 4;
+
+    extension(object receiver)
+    {
+        static public int get_P2() => 1;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (8,29): error CS0082: Type 'Extensions' already reserves a member called 'get_P1' with the same parameter types
+            //     public static int P1 => 4;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "4").WithArguments("get_P1", "Extensions").WithLocation(8, 29),
+            // (10,29): error CS0082: Type 'Extensions' already reserves a member called 'get_P2' with the same parameter types
+            //     public static int P2 => 4;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "4").WithArguments("get_P2", "Extensions").WithLocation(10, 29)
+            );
+    }
+
+    [Fact]
+    public void SignatureConflict_15()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        public int P1 => 1;
+    }
+
+    public static int set_P1(object receiver, int x) => 4;
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void SignatureConflict_16()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        static public int P1 => 1;
+    }
+
+    public static int P1 {set{}}
+
+    static public int get_P2() => 1;
+    public static int P2 {set{}}
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // PROTOTYPE: Are we comfortable reporting an error like this?
+
+            // (8,23): error CS0082: Type 'Extensions' already reserves a member called 'get_P1' with the same parameter types
+            //     public static int P1 {set{}}
+            Diagnostic(ErrorCode.ERR_MemberReserved, "P1").WithArguments("get_P1", "Extensions").WithLocation(8, 23),
+
+            // (11,23): error CS0082: Type 'Extensions' already reserves a member called 'get_P2' with the same parameter types
+            //     public static int P2 {set{}}
+            Diagnostic(ErrorCode.ERR_MemberReserved, "P2").WithArguments("get_P2", "Extensions").WithLocation(11, 23)
+            );
+    }
+
+    [Fact]
+    public void SignatureConflict_17()
+    {
+        var src = """
+static class Extensions
+{
+    extension(object receiver)
+    {
+        static public int set_P1(int x) => 1;
+    }
+
+    public static int P1 => 4;
+
+    static public int set_P2(int x) => 1;
+    public static int P2 => 4;
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // PROTOTYPE: Are we comfortable reporting an error like this?
+
+            // (8,23): error CS0082: Type 'Extensions' already reserves a member called 'set_P1' with the same parameter types
+            //     public static int P1 => 4;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "P1").WithArguments("set_P1", "Extensions").WithLocation(8, 23),
+
+            // (11,23): error CS0082: Type 'Extensions' already reserves a member called 'set_P2' with the same parameter types
+            //     public static int P2 => 4;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "P2").WithArguments("set_P2", "Extensions").WithLocation(11, 23)
             );
     }
 
@@ -20628,7 +22443,7 @@ static class E
   IL_0012:  call       "string short.ToString()"
   IL_0017:  stloc.3
   IL_0018:  ldloca.s   V_3
-  IL_001a:  call       "void E.<StaticExtension>M(ref string, ref string)"
+  IL_001a:  call       "void E.M(ref string, ref string)"
   IL_001f:  ret
 }
 """);
@@ -20700,7 +22515,7 @@ static class E
   IL_0002:  stloc.0
   IL_0003:  ldloca.s   V_0
   IL_0005:  call       "string short.ToString()"
-  IL_000a:  call       "void E.<StaticExtension>M(string)"
+  IL_000a:  call       "void E.M(string)"
   IL_000f:  ret
 }
 """);

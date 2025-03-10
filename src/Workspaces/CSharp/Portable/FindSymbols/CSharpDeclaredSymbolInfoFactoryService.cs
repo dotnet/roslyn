@@ -218,6 +218,12 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
             return null;
         }
 
+        // Extensions don't declare a type of their own.  As they have no name, it's not something someone could search
+        // for with navigate-to.  Instead, they just act as a loose block around a set of actual extension members.  So
+        // just return null here to avoid creating anything in this case.
+        if (typeDeclaration.Kind() == SyntaxKind.ExtensionDeclaration)
+            return null;
+
         return DeclaredSymbolInfo.Create(
             stringTable,
             typeDeclaration.Identifier.ValueText,
@@ -233,7 +239,6 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
                 SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
                 SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
                 SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
-                SyntaxKind.ExtensionDeclaration => DeclaredSymbolInfoKind.ExtensionMethod,
                 _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind()),
             },
             GetAccessibility(container, typeDeclaration.Modifiers),

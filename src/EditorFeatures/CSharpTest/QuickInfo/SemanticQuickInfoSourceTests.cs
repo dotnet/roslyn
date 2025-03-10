@@ -7998,6 +7998,44 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
+    public async Task NullableBackingFieldThatIsMaybeNull()
+    {
+        await TestWithOptionsAsync(TestOptions.RegularPreview,
+            """
+            #nullable enable
+
+            class X
+            {
+                string? P
+                {
+                    get => $$field;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.field}) string? X.P.field"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "P.field")));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
+    public async Task NullableBackingFieldThatIsNotNull()
+    {
+        await TestWithOptionsAsync(TestOptions.RegularPreview,
+            """
+            #nullable enable
+
+            class X
+            {
+                string P
+                {
+                    get => $$field;
+                } = "a";
+            }
+            """,
+            MainDescription($"({FeaturesResources.field}) string X.P.field"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "P.field")));
+    }
+
     [Fact]
     public async Task NullablePropertyThatIsMaybeNull()
     {
@@ -10662,5 +10700,145 @@ AnonymousTypes(
             }
             """,
             MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask IAsyncDisposable.DisposeAsync()"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension1()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo() { }
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Goo();
+                }
+            }
+            """,
+            // PROTOTYPE: There should be no overloads here.  Need GetMemberGroup fixed for skeleton vs impl extensions.
+            MainDescription($"void Extensions.extension(string).Goo() (+ 1 {FeaturesResources.overload})"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension2()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo() { }
+                    public void Goo(int i) { }
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Goo();
+                }
+            }
+            """,
+            // PROTOTYPE: There should be one overload here.  Need GetMemberGroup fixed for skeleton vs impl extensions.
+            MainDescription($"void Extensions.extension(string).Goo() (+ 2 {FeaturesResources.overloads_})"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension3()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo() { }
+                    public void Goo(int i) { }
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Goo(0);
+                }
+            }
+            """,
+            // PROTOTYPE: There should be one overload here.  Need GetMemberGroup fixed for skeleton vs impl extensions.
+            MainDescription($"void Extensions.extension(string).Goo(int i) (+ 2 {FeaturesResources.overloads_})"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension4()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public int Prop => 0;
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    var v = s.$$Prop;
+                }
+            }
+            """,
+            MainDescription($$"""int Extensions.extension(string).Prop { get; }"""));
+    }
+
+    [Fact]
+    public async Task TestModernExtension5()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo()
+                    {
+                        Console.WriteLine($$s);
+                    }
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.parameter}) string s"));
     }
 }

@@ -91,20 +91,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract override SourceMemberMethodSymbol BoundAttributesSource { get; }
 
         internal abstract override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations();
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (this.IsExtensionMethod)
-            {
-                // No need to check if [Extension] attribute was explicitly set since
-                // we'll issue CS1112 error in those cases and won't generate IL.
-                var compilation = this.DeclaringCompilation;
-
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
-                    WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
-            }
-        }
     }
 }

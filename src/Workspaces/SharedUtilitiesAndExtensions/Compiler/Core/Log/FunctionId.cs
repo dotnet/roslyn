@@ -634,6 +634,13 @@ internal enum FunctionId
     Copilot_On_The_Fly_Docs_Results_Canceled = 814,
     Copilot_On_The_Fly_Docs_Get_Counts = 815,
     Copilot_On_The_Fly_Docs_Content_Excluded = 816,
+
+    Copilot_Generate_Documentation_Dismissed = 820,
+    Copilot_Generate_Documentation_Diverged = 821,
+    Copilot_Generate_Documentation_Displayed = 822,
+    Copilot_Generate_Documentation_Accepted = 823,
+    Copilot_Generate_Documentation_Canceled = 824,
+
     Copilot_Rename = 851,
 
     VSCode_LanguageServer_Started = 860,

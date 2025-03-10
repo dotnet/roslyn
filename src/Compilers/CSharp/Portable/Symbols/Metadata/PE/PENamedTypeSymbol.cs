@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 Debug.Assert(@this.ExtensionParameter is not null);
 
-                foreach (var member in @this.ContainingType.GetMembers(SourceExtensionImplementationMethodSymbol.GetImplementationName(method)))
+                foreach (var member in @this.ContainingType.GetMembers(method.Name))
                 {
                     if (member is not MethodSymbol { HasSpecialName: true, IsStatic: true } candidate)
                     {

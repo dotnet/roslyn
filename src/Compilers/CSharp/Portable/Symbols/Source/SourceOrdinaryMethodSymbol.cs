@@ -57,13 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  location,
                  syntax,
                  isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
-                 MakeModifiersAndFlags(containingType, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics, out bool hasExplicitAccessMod))
+                 MakeModifiersAndFlags(containingType, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics))
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
             this.CheckUnsafeModifier(DeclarationModifiers, diagnostics);
 
-            HasExplicitAccessModifier = hasExplicitAccessMod;
             bool hasAnyBody = syntax.HasAnyBody();
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasAnyBody, diagnostics);
@@ -88,9 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(
             NamedTypeSymbol containingType, Location location, MethodDeclarationSyntax syntax, MethodKind methodKind,
-            bool isNullableAnalysisEnabled, BindingDiagnosticBag diagnostics, out bool hasExplicitAccessMod)
+            bool isNullableAnalysisEnabled, BindingDiagnosticBag diagnostics)
         {
-            (DeclarationModifiers declarationModifiers, hasExplicitAccessMod) = MakeModifiers(syntax, containingType, methodKind, hasBody: syntax.HasAnyBody(), location, diagnostics);
+            (DeclarationModifiers declarationModifiers, bool hasExplicitAccessMod) = MakeModifiers(syntax, containingType, methodKind, hasBody: syntax.HasAnyBody(), location, diagnostics);
             Flags flags = new Flags(
                                     methodKind, refKind: syntax.ReturnType.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                                     declarationModifiers,
@@ -103,7 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                                     isVararg: syntax.IsVarArg(),
                                     isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation,
-                                    hasThisInitializer: false);
+                                    hasThisInitializer: false,
+                                    hasExplicitAccessModifier: hasExplicitAccessMod);
 
             return (declarationModifiers, flags);
         }
@@ -244,23 +244,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Verify ExtensionAttribute is available.
-                    var attributeConstructor = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, out var useSiteInfo);
-
-                    var thisKeyword = syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword);
-                    if ((object)attributeConstructor == null)
-                    {
-                        var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-                        // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
-                        diagnostics.Add(
-                            ErrorCode.ERR_ExtensionAttrNotFound,
-                            thisKeyword.GetLocation(),
-                            memberDescriptor.DeclaringTypeMetadataName);
-                    }
-                    else
-                    {
-                        diagnostics.Add(useSiteInfo, thisKeyword);
-                    }
+                    CheckExtensionAttributeAvailability(DeclaringCompilation, syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation(), diagnostics);
                 }
+            }
+            else if (!IsStatic && this.GetIsNewExtensionMember())
+            {
+                // Verify ExtensionAttribute is available.
+                CheckExtensionAttributeAvailability(DeclaringCompilation, _location, diagnostics);
+            }
+        }
+
+        internal static void CheckExtensionAttributeAvailability(CSharpCompilation compilation, Location location, BindingDiagnosticBag diagnostics)
+        {
+            var attributeConstructor = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, out var useSiteInfo);
+
+            if ((object)attributeConstructor == null)
+            {
+                var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+                // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
+                diagnostics.Add(
+                    ErrorCode.ERR_ExtensionAttrNotFound,
+                    location,
+                    memberDescriptor.DeclaringTypeMetadataName);
+            }
+            else
+            {
+                diagnostics.Add(useSiteInfo, location);
             }
         }
 
@@ -425,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static DeclarationModifiers MakeDeclarationModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, Location location, DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: containingType.IsInterface,
-                                                                    syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out _);
+                                                                    syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out _, out _);
         }
 
         internal sealed override void ForceComplete(SourceLocation locationOpt, Predicate<Symbol> filter, CancellationToken cancellationToken)
@@ -680,10 +689,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, _location, diagnostics);
         }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            if (this.ReturnType?.IsErrorType() == true && GetSyntax().ReturnType is IdentifierNameSyntax { Identifier.RawContextualKind: (int)SyntaxKind.PartialKeyword })
+            {
+                var available = MessageID.IDS_FeaturePartialEventsAndConstructors.CheckFeatureAvailability(diagnostics, DeclaringCompilation, ReturnTypeLocation);
+                Debug.Assert(!available, "Should have been parsed as partial constructor.");
+            }
+        }
 #nullable disable
 
-        // Consider moving this to flags to save space
-        internal bool HasExplicitAccessModifier { get; }
+        internal bool HasExplicitAccessModifier => flags.HasExplicitAccessModifier;
 
         private static (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, MethodKind methodKind, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {

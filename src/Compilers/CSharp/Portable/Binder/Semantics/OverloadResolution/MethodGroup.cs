@@ -47,14 +47,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.PopulateHelper(receiverOpt, resultKind, error);
             this.IsExtensionMethodGroup = true;
 
+            PooledHashSet<MethodSymbol> implementationsToShadow = null;
+
+            if (members.Any(static m => m is MethodSymbol { IsExtensionMethod: true }) &&
+                members.Any(static m => m is MethodSymbol { IsExtensionMethod: false, IsStatic: false }))
+            {
+                implementationsToShadow = PooledHashSet<MethodSymbol>.GetInstance();
+
+                foreach (var member in members)
+                {
+                    if (member is MethodSymbol { IsExtensionMethod: false, IsStatic: false } shadows &&
+                        shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
+                    {
+                        implementationsToShadow.Add(toShadow);
+                    }
+                }
+            }
+
             foreach (var member in members)
             {
                 if (member is MethodSymbol method)
                 {
-                    this.Methods.Add(method);
                     Debug.Assert(method.IsExtensionMethod || method.GetIsNewExtensionMember());
+
+                    // Prefer instance extension declarations vs. their implementations
+                    if (method.IsExtensionMethod && implementationsToShadow?.Remove(method.OriginalDefinition) == true)
+                    {
+                        continue;
+                    }
+
+                    this.Methods.Add((MethodSymbol)member);
                 }
             }
+
+            implementationsToShadow?.Free();
 
             if (!typeArguments.IsDefault)
             {

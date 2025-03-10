@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         internal static bool GetIsNewExtensionMember(this Symbol member)
         {
             switch (member.Kind)
@@ -88,6 +89,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
+
+        internal static bool GetIsNewExtensionMember(this MethodSymbol member)
+        {
+            return member.ContainingSymbol is TypeSymbol { IsExtension: true };
+        }
+
+        internal static bool GetIsNewExtensionMember(this PropertySymbol member)
+        {
+            return member.ContainingSymbol is TypeSymbol { IsExtension: true };
+        }
+#nullable disable
 
         /// <summary>
         /// Get the ref kinds of the parameters of a member symbol.  Should be a method, property, or event.
@@ -563,7 +575,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member
                 is SourceOrdinaryMethodSymbol { IsPartial: true }
                 or SourcePropertySymbol { IsPartial: true }
-                or SourcePropertyAccessorSymbol { IsPartial: true };
+                or SourcePropertyAccessorSymbol { IsPartial: true }
+                or SourceConstructorSymbol { IsPartial: true }
+                or SourceEventSymbol { IsPartial: true }
+                or SourceEventAccessorSymbol { IsPartial: true };
         }
 
         internal static bool IsPartialImplementation(this Symbol member)
@@ -572,7 +587,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member
                 is SourceOrdinaryMethodSymbol { IsPartialImplementation: true }
                 or SourcePropertySymbol { IsPartialImplementation: true }
-                or SourcePropertyAccessorSymbol { IsPartialImplementation: true };
+                or SourcePropertyAccessorSymbol { IsPartialImplementation: true }
+                or SourceConstructorSymbol { IsPartialImplementation: true }
+                or SourceEventSymbol { IsPartialImplementation: true }
+                or SourceEventAccessorSymbol { IsPartialImplementation: true };
         }
 
         internal static bool IsPartialDefinition(this Symbol member)
@@ -581,8 +599,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member
                 is SourceOrdinaryMethodSymbol { IsPartialDefinition: true }
                 or SourcePropertySymbol { IsPartialDefinition: true }
-                or SourcePropertyAccessorSymbol { IsPartialDefinition: true };
+                or SourcePropertyAccessorSymbol { IsPartialDefinition: true }
+                or SourceConstructorSymbol { IsPartialDefinition: true }
+                or SourceEventSymbol { IsPartialDefinition: true }
+                or SourceEventAccessorSymbol { IsPartialDefinition: true };
         }
+
+#nullable enable
+        internal static Symbol? GetPartialImplementationPart(this Symbol member)
+        {
+            Debug.Assert(member.IsDefinition);
+            return member switch
+            {
+                MethodSymbol method => method.PartialImplementationPart,
+                SourcePropertySymbol property => property.PartialImplementationPart,
+                SourceEventSymbol ev => ev.PartialImplementationPart,
+                _ => null,
+            };
+        }
+
+        internal static Symbol? GetPartialDefinitionPart(this Symbol member)
+        {
+            Debug.Assert(member.IsDefinition);
+            return member switch
+            {
+                MethodSymbol method => method.PartialDefinitionPart,
+                SourcePropertySymbol property => property.PartialDefinitionPart,
+                SourceEventSymbol ev => ev.PartialDefinitionPart,
+                _ => null,
+            };
+        }
+#nullable disable
 
         internal static bool ContainsTupleNames(this Symbol member)
         {
