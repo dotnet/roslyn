@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
@@ -12,10 +13,9 @@ internal interface IExtractInterfaceOptionsService : IWorkspaceService
 {
     ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
         Document document,
-        List<ISymbol> extractableMembers,
+        ImmutableArray<ISymbol> extractableMembers,
         string defaultInterfaceName,
         List<string> conflictingTypeNames,
         string defaultNamespace,
-        string generatedNameTypeParameterSuffix,
-        CancellationToken cancellationToken);
+        string generatedNameTypeParameterSuffix);
 }

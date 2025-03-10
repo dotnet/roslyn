@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -91,13 +89,13 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         }
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        if (semanticModel.GetDeclaredSymbol(typeNode, cancellationToken) is not INamedTypeSymbol typeToExtractFrom)
+        if (semanticModel.GetDeclaredSymbol(typeNode, cancellationToken) is not INamedTypeSymbol { TypeKind: not TypeKind.Extension } typeToExtractFrom)
         {
             var errorMessage = FeaturesResources.Could_not_extract_interface_colon_The_selection_is_not_inside_a_class_interface_struct;
             return new ExtractInterfaceTypeAnalysisResult(errorMessage);
         }
 
-        var extractableMembers = typeToExtractFrom.GetMembers().Where(IsExtractableMember);
+        var extractableMembers = typeToExtractFrom.GetMembers().WhereAsArray(IsExtractableMember);
         if (!extractableMembers.Any())
         {
             var errorMessage = FeaturesResources.Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface;
@@ -256,7 +254,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
     internal static ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
         Document document,
         INamedTypeSymbol type,
-        IEnumerable<ISymbol> extractableMembers,
+        ImmutableArray<ISymbol> extractableMembers,
         string containingNamespace,
         SyntaxFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
@@ -269,12 +267,11 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var service = document.Project.Solution.Services.GetRequiredService<IExtractInterfaceOptionsService>();
         return service.GetExtractInterfaceOptions(
             document,
-            [.. extractableMembers],
+            extractableMembers,
             defaultInterfaceName,
             [.. conflictingTypeNames],
             containingNamespace,
-            generatedNameTypeParameterSuffix,
-            cancellationToken);
+            generatedNameTypeParameterSuffix);
     }
 
     private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
