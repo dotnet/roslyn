@@ -37,6 +37,10 @@ parameters:
   displayName: Enable Production SDL
   type: boolean
   default: false
+- name: PublishCodeCoverage
+  displayName: Publish code coverage
+  type: boolean
+  default: true
 
 resources:
   repositories:
@@ -89,3 +93,4 @@ extends:
             os: macOS
           EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
           RunTests: ${{ parameters.RunTests }}
+          PublishCodeCoverage: ${{ parameters.PublishCodeCoverage }}

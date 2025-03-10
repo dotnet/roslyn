@@ -27,6 +27,10 @@ parameters:
   displayName: Include APIScan with compliance tools
   type: boolean
   default: false # enable in individual repos only AFTER updating TSAOptions.json with your own values
+- name: PublishCodeCoverage
+  displayName: Publish code coverage
+  type: boolean
+  default: true
 
 resources:
   repositories:
@@ -77,6 +81,7 @@ extends:
             os: macOS
           EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
           RunTests: ${{ parameters.RunTests }}
+          PublishCodeCoverage: ${{ parameters.PublishCodeCoverage }}
     - template: /azure-pipelines/prepare-insertion-stages.yml@self
       parameters:
         RealSign: true
