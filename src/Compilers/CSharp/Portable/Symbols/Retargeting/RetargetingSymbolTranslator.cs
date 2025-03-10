@@ -732,9 +732,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                                             CSharpCustomModifier.CreateOptional(newModifierSymbol) :
                                             CSharpCustomModifier.CreateRequired(newModifierSymbol));
                     }
-                    else if (newModifiers != null)
+                    else
                     {
-                        newModifiers.Add(oldModifier);
+                        newModifiers?.Add(oldModifier);
                     }
                 }
 

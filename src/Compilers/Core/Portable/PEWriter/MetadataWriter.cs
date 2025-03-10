@@ -616,10 +616,7 @@ namespace Microsoft.Cci
                     parDef.HasDefaultValue || parDef.IsOptional || parDef.IsOut || parDef.IsMarshalledExplicitly ||
                     IteratorHelper.EnumerableIsNotEmpty(parDef.GetAttributes(Context)))
                 {
-                    if (builder != null)
-                    {
-                        builder.Add(parDef);
-                    }
+                    builder?.Add(parDef);
                 }
                 else
                 {

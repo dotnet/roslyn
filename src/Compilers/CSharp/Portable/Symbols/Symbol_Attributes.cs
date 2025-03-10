@@ -800,10 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(boundAttributeOpt is null == earlyAttributeDataOpt is null);
 
                     attributeDataArray[i] = earlyAttributeDataOpt;
-                    if (boundAttributeArray is not null)
-                    {
-                        boundAttributeArray[i] = boundAttributeOpt;
-                    }
+                    boundAttributeArray?[i] = boundAttributeOpt;
                 }
             }
 

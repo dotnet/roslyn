@@ -6644,7 +6644,7 @@ class Cat { }
 
         private static ISymbol[] GetCrefOriginalDefinitions(SemanticModel model, IEnumerable<CrefSyntax> crefs)
         {
-            return crefs.Select(syntax => model.GetSymbolInfo(syntax).Symbol).Select(symbol => (object)symbol == null ? null : symbol.OriginalDefinition).ToArray();
+            return crefs.Select(syntax => model.GetSymbolInfo(syntax).Symbol).Select(symbol => symbol?.OriginalDefinition).ToArray();
         }
 
         [Fact]

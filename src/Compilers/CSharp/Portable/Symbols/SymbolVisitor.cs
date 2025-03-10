@@ -12,10 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public virtual void Visit(Symbol symbol)
         {
-            if ((object)symbol != null)
-            {
-                symbol.Accept(this);
-            }
+            symbol?.Accept(this);
         }
 
         public virtual void DefaultVisit(Symbol symbol)

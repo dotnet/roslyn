@@ -325,10 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     Session.ReplacementsComputed -= OnReplacementsComputed;
                     Session.CommitStateChange -= CommitStateChange;
 
-                    if (SmartRenameViewModel is not null)
-                    {
-                        SmartRenameViewModel.Dispose();
-                    }
+                    SmartRenameViewModel?.Dispose();
 
                     UnregisterOleComponent();
                 }

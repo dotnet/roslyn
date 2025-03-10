@@ -1072,7 +1072,7 @@ next:;
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
                     var data = (TypeEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
-                    return data != null ? data.ObsoleteAttributeData : null;
+                    return data?.ObsoleteAttributeData;
                 }
 
                 foreach (var decl in this.declaration.Declarations)
@@ -1362,7 +1362,7 @@ next:;
             get
             {
                 TypeWellKnownAttributeData data = this.GetDecodedWellKnownAttributeData();
-                return data != null ? data.ComImportCoClass : null;
+                return data?.ComImportCoClass;
             }
         }
 

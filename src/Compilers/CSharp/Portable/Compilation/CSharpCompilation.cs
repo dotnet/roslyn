@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntaxAndDeclarations = syntaxAndDeclarations;
 
             Debug.Assert(_lazyAssemblySymbol is null);
-            if (EventQueue != null) EventQueue.TryEnqueue(new CompilationStartedEvent(this));
+            EventQueue?.TryEnqueue(new CompilationStartedEvent(this));
         }
 
         internal override void ValidateDebugEntryPoint(IMethodSymbol debugEntryPoint, DiagnosticBag diagnostics)

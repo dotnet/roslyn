@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void Free()
             {
-                if (_locals != null) _locals.Free();
-                if (_statements != null) _statements.Free();
+                _locals?.Free();
+                _statements?.Free();
             }
 
             internal void Include(BoundSpillSequenceBuilder other)

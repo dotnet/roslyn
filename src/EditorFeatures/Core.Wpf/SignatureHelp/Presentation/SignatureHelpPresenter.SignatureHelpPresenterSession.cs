@@ -97,10 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     Contract.ThrowIfNull(_signatureMap);
 
                     var defaultValue = _signatureMap.GetValueOrDefault(_selectedItem);
-                    if (_editorSessionOpt != null)
-                    {
-                        _editorSessionOpt.SelectedSignature = defaultValue;
-                    }
+                    _editorSessionOpt?.SelectedSignature = defaultValue;
                 }
                 finally
                 {

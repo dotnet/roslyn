@@ -978,10 +978,7 @@ namespace Microsoft.CodeAnalysis
             // still running because the compilation failed before all of the compilation events were
             // raised.  In the latter case the driver, and all its associated state, will be waiting around
             // for events that are never coming.  Cancel now and let the clean up process begin.
-            if (analyzerCts != null)
-            {
-                analyzerCts.Cancel();
-            }
+            analyzerCts?.Cancel();
 
             var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation)
                 ? Failed

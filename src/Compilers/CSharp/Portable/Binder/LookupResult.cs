@@ -315,10 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void Free()
         {
             this.Clear();
-            if (_pool != null)
-            {
-                _pool.Free(this);
-            }
+            _pool?.Free(this);
         }
     }
 }

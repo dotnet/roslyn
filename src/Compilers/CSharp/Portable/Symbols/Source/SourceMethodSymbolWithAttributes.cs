@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.syntaxReferenceOpt == null ? null : this.syntaxReferenceOpt.SyntaxTree;
+                return this.syntaxReferenceOpt?.SyntaxTree;
             }
         }
 
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
                     var data = (MethodEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
-                    return data != null ? data.ObsoleteAttributeData : null;
+                    return data?.ObsoleteAttributeData;
                 }
 
                 if (syntaxReferenceOpt is null)
@@ -1721,7 +1721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override DllImportData? GetDllImportData()
         {
             var data = this.GetDecodedWellKnownAttributeData();
-            return data != null ? data.DllImportPlatformInvokeData : null;
+            return data?.DllImportPlatformInvokeData;
         }
 
         internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation
@@ -1729,7 +1729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var data = this.GetDecodedReturnTypeWellKnownAttributeData();
-                return data != null ? data.MarshallingInformation : null;
+                return data?.MarshallingInformation;
             }
         }
 

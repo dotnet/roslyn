@@ -67,10 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void AddState(StateMachineState state)
             {
-                if (parent != null)
-                {
-                    parent.AddState(state, this);
-                }
+                parent?.AddState(state, this);
             }
 
             // Notifies all parents about the state recursively. 
@@ -86,11 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 knownStates.Add(state, innerHandler);
 
-                if (parent != null)
-                {
-                    // Present ourselves to the parent as responsible for a handling a state.
-                    parent.AddState(state, this);
-                }
+                // Present ourselves to the parent as responsible for a handling a state.
+                parent?.AddState(state, this);
             }
 
             // returns a proxy for a label if branch must be hijacked to run finally

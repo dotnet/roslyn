@@ -371,9 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //             $"Cannot change the type of {expr} from {expr.Type} to {result.RValueType.Type}");
 #endif
 
-            if (_analyzedNullabilityMapOpt != null)
-            {
-                // https://github.com/dotnet/roslyn/issues/34993: enable and verify these assertions
+            // https://github.com/dotnet/roslyn/issues/34993: enable and verify these assertions
 #if false
                 if (_analyzedNullabilityMapOpt.TryGetValue(expr, out var existing))
                 {
@@ -399,11 +397,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 #endif
-                _analyzedNullabilityMapOpt[expr] = (new NullabilityInfo(result.LValueType.ToPublicAnnotation(), result.RValueType.State.ToPublicFlowState()),
-                                                    // https://github.com/dotnet/roslyn/issues/35046 We're dropping the result if the type doesn't match up completely
-                                                    // with the existing type
-                                                    expr.Type?.Equals(result.RValueType.Type, TypeCompareKind.AllIgnoreOptions) == true ? result.RValueType.Type : expr.Type);
-            }
+            _analyzedNullabilityMapOpt?[expr] = (new NullabilityInfo(result.LValueType.ToPublicAnnotation(), result.RValueType.State.ToPublicFlowState()),
+                                                // https://github.com/dotnet/roslyn/issues/35046 We're dropping the result if the type doesn't match up completely
+                                                // with the existing type
+                                                expr.Type?.Equals(result.RValueType.Type, TypeCompareKind.AllIgnoreOptions) == true ? result.RValueType.Type : expr.Type);
         }
 
         /// <summary>
@@ -578,10 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
         {
-            if (_returnTypesOpt != null)
-            {
-                _returnTypesOpt.Clear();
-            }
+            _returnTypesOpt?.Clear();
             this.Diagnostics.Clear();
             this.regionPlace = RegionPlace.Before;
             if (!_isSpeculative)
@@ -2981,10 +2975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var result = VisitRvalueWithState(expr);
-                if (_returnTypesOpt != null)
-                {
-                    _returnTypesOpt.Add((node, result.ToTypeWithAnnotations(compilation)));
-                }
+                _returnTypesOpt?.Add((node, result.ToTypeWithAnnotations(compilation)));
             }
 
             EnforceDoesNotReturn(node.Syntax);

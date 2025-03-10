@@ -254,10 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 _state.NotePartComplete(CompletionPart.FinishValidatingReferencedAssemblies);
                             }
 
-                            if (diagnostics != null)
-                            {
-                                diagnostics.Free();
-                            }
+                            diagnostics?.Free();
                         }
                         break;
 

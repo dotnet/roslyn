@@ -122,16 +122,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             hasDeclarationErrors |= compilation.CheckDuplicateInterceptions(diagnostics);
 
-            if (compilation.PreviousSubmission != null)
-            {
-                // In case there is a previous submission, we should ensure
-                // it has already created anonymous type/delegates templates
+            // In case there is a previous submission, we should ensure
+            // it has already created anonymous type/delegates templates
 
-                // NOTE: if there are any errors, we will pick up what was created anyway
-                compilation.PreviousSubmission.EnsureAnonymousTypeTemplates(cancellationToken);
-
-                // TODO: revise to use a loop instead of a recursion
-            }
+            // NOTE: if there are any errors, we will pick up what was created anyway
+            compilation.PreviousSubmission?.EnsureAnonymousTypeTemplates(cancellationToken);
 
             MethodSymbol entryPoint = null;
             if (filterOpt is null)
@@ -242,10 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, entryPoint.ContainingType, entryPoint);
                     entryPoint = synthesizedEntryPoint;
-                    if ((object)moduleBeingBuilt != null)
-                    {
-                        moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint.GetCciAdapter());
-                    }
+                    moduleBeingBuilt?.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint.GetCciAdapter());
                 }
             }
 
@@ -638,10 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(scriptCtorOrdinal >= 0);
                 var processedInitializers = new Binder.ProcessedFieldInitializers() { BoundInitializers = ImmutableArray<BoundInitializer>.Empty };
                 CompileMethod(scriptCtor, scriptCtorOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
-                if (synthesizedSubmissionFields != null)
-                {
-                    synthesizedSubmissionFields.AddToType(containingType, compilationState.ModuleBuilderOpt);
-                }
+                synthesizedSubmissionFields?.AddToType(containingType, compilationState.ModuleBuilderOpt);
             }
 
             // Emit synthesized methods produced during lowering if any

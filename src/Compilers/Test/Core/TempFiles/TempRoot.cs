@@ -30,10 +30,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 try
                 {
-                    if (temp != null)
-                    {
-                        temp.Dispose();
-                    }
+                    temp?.Dispose();
                 }
                 catch
                 {

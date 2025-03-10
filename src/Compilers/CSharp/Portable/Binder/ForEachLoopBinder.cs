@@ -1558,9 +1558,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, collectionSyntax.Location, collectionExpr.Type, MessageID.IDS_Collection.Localize(),
                     applicableMembers[0], applicableMembers[1]);
             }
-            else if (overloadResolutionResult != null)
+            else
             {
-                overloadResolutionResult.ReportDiagnostics(
+                overloadResolutionResult?.ReportDiagnostics(
                     binder: this,
                     location: collectionSyntax.Location,
                     nodeOpt: collectionSyntax,

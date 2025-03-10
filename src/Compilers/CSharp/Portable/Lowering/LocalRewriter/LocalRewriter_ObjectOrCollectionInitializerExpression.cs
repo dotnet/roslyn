@@ -625,9 +625,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     newArgs.Add(replacement);
                 }
-                else if (newArgs != null)
+                else
                 {
-                    newArgs.Add(arg);
+                    newArgs?.Add(arg);
                 }
             }
 

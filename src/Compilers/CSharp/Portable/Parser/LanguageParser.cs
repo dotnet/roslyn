@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static CSharp.CSharpSyntaxNode? GetOldParent(CSharp.CSharpSyntaxNode node)
         {
-            return node != null ? node.Parent : null;
+            return node?.Parent;
         }
 
         private struct NamespaceBodyBuilder

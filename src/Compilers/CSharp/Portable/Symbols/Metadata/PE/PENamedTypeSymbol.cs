@@ -1503,10 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            if (members != null)
-            {
-                members.Free();
-            }
+            members?.Free();
         }
 
         internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)

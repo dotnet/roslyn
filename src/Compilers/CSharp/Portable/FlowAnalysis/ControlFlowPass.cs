@@ -192,10 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<PendingBranch> returns = Analyze(ref badRegion);
 
-            if (diagnostics != null)
-            {
-                diagnostics.AddRange(this.Diagnostics);
-            }
+            diagnostics?.AddRange(this.Diagnostics);
 
             // TODO: if in the body of a struct constructor, check that "this" is assigned at each return.
             return State.Alive;

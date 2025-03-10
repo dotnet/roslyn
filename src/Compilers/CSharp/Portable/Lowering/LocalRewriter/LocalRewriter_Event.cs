@@ -320,10 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // but the com event binder needs the event to exist on the local type. We'll poke the pia reference
             // cache directly so that the event is embedded.
             var module = this.EmitModule;
-            if (module != null)
-            {
-                module.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event.GetCciAdapter(), node.Syntax, _diagnostics.DiagnosticBag, isUsedForComAwareEventBinding: true);
-            }
+            module?.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event.GetCciAdapter(), node.Syntax, _diagnostics.DiagnosticBag, isUsedForComAwareEventBinding: true);
 
             if (result != null)
             {

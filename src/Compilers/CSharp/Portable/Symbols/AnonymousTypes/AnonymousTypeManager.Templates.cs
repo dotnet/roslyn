@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CSharpCompilation previousSubmission = this.Compilation.PreviousSubmission;
 
                     // TODO (tomat): avoid recursion
-                    var previousCache = (previousSubmission == null) ? null : previousSubmission.AnonymousTypeManager.AnonymousTypeTemplates;
+                    var previousCache = previousSubmission?.AnonymousTypeManager.AnonymousTypeTemplates;
 
                     Interlocked.CompareExchange(ref _lazyAnonymousTypeTemplates,
                                                 previousCache == null
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CSharpCompilation previousSubmission = this.Compilation.PreviousSubmission;
 
                     // TODO (tomat): avoid recursion
-                    var previousCache = (previousSubmission == null) ? null : previousSubmission.AnonymousTypeManager._lazyAnonymousDelegates;
+                    var previousCache = previousSubmission?.AnonymousTypeManager._lazyAnonymousDelegates;
 
                     Interlocked.CompareExchange(ref _lazyAnonymousDelegates,
                                                 previousCache == null

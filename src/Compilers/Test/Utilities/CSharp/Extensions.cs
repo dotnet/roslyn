@@ -838,7 +838,7 @@ internal static class Extensions
     public static INamedTypeSymbol GetEnumUnderlyingType(this ITypeSymbol type)
     {
         var namedType = type as INamedTypeSymbol;
-        return ((object)namedType != null) ? namedType.EnumUnderlyingType : null;
+        return namedType?.EnumUnderlyingType;
     }
 
     public static ISymbol ConstructedFrom(this ISymbol symbol)

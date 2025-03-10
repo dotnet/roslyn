@@ -384,10 +384,7 @@ namespace Roslyn.Test.Utilities.Desktop
                     }
                 }
 
-                if (_emitData.RuntimeData != null)
-                {
-                    _emitData.RuntimeData.Dispose();
-                }
+                _emitData.RuntimeData?.Dispose();
 
                 _emitData = null;
             }

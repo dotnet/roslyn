@@ -4908,7 +4908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             position = CheckAndAdjustPosition(position);
             var binder = GetEnclosingBinder(position);
-            return binder == null ? null : binder.ContainingMemberOrLambda.GetPublicSymbol();
+            return binder?.ContainingMemberOrLambda.GetPublicSymbol();
         }
 
         #region SemanticModel Members

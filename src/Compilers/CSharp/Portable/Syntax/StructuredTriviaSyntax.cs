@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private SyntaxTrivia _parent;
 
         internal StructuredTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
-            : base(green, position, parent == null ? null : parent.SyntaxTree)
+            : base(green, position, parent?.SyntaxTree)
         {
             System.Diagnostics.Debug.Assert(parent == null || position >= 0);
         }

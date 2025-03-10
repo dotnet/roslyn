@@ -210,10 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
-            if ((object?)this.AssociatedField != null)
-            {
-                this.AssociatedField.ForceComplete(locationOpt, filter, cancellationToken);
-            }
+            this.AssociatedField?.ForceComplete(locationOpt, filter, cancellationToken);
 
             base.ForceComplete(locationOpt, filter, cancellationToken);
         }

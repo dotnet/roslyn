@@ -594,16 +594,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsConst && inProgress == this)
                 {
-                    if (diagnostics != null)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_CircConstValue, node.GetLocation(), this);
-                    }
+                    diagnostics?.Add(ErrorCode.ERR_CircConstValue, node.GetLocation(), this);
 
                     return Microsoft.CodeAnalysis.ConstantValue.Bad;
                 }
 
                 MakeConstantTuple(inProgress, boundInitValue: null);
-                return _constantTuple == null ? null : _constantTuple.Value;
+                return _constantTuple?.Value;
             }
 
             internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)

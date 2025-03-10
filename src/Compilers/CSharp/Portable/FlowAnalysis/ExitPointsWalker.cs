@@ -29,10 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
-            if (_branchesOutOf != null)
-            {
-                _branchesOutOf.Free();
-            }
+            _branchesOutOf?.Free();
 
             _labelsInside.Free();
             base.Free();

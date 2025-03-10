@@ -82,10 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // present.
                 if (sourceIncludeElementNodes.IsEmpty)
                 {
-                    if (writer != null)
-                    {
-                        writer.Write(unprocessed);
-                    }
+                    writer?.Write(unprocessed);
                     return;
                 }
 
@@ -103,10 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Otherwise, we shouldn't see exceptions from XDocument.Parse.
                     Debug.Assert(sourceIncludeElementNodes.All(syntax => syntax.SyntaxTree.Options.DocumentationMode < DocumentationMode.Diagnose),
                         "Why didn't our parser catch this exception? " + e);
-                    if (writer != null)
-                    {
-                        writer.Write(unprocessed);
-                    }
+                    writer?.Write(unprocessed);
                     return;
                 }
 
@@ -126,10 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (writer != null)
-                    {
-                        writer.Write(node);
-                    }
+                    writer?.Write(node);
                 }
 
                 Debug.Assert(expander._nextSourceIncludeElementIndex == expander._sourceIncludeElementNodes.Length);

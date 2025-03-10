@@ -184,10 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void UpdateAnalyzerContextMenu()
         {
-            if (_removeMenuItem != null)
-            {
-                _removeMenuItem.Enabled = _allowProjectSystemOperations;
-            }
+            _removeMenuItem?.Enabled = _allowProjectSystemOperations;
         }
 
         public IContextMenuController DiagnosticContextMenuController
@@ -558,10 +555,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     var codeAnalysisRuleSetFileProperty = properties?.Item("CodeAnalysisRuleSet");
 
-                    if (codeAnalysisRuleSetFileProperty != null)
-                    {
-                        codeAnalysisRuleSetFileProperty.Value = fileName;
-                    }
+                    codeAnalysisRuleSetFileProperty?.Value = fileName;
                 }
                 catch (ArgumentException)
                 {

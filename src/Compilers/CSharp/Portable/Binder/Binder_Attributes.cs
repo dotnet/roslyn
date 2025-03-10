@@ -95,10 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (attribute == null)
                 {
                     (attributeDataArray[i], var boundAttribute) = binder.GetAttribute(attributeSyntax, boundAttributeType, beforeAttributePartBound, afterAttributePartBound, diagnostics);
-                    if (boundAttributeArray is not null)
-                    {
-                        boundAttributeArray[i] = boundAttribute;
-                    }
+                    boundAttributeArray?[i] = boundAttribute;
                 }
                 else
                 {

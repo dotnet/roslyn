@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var tree = syntaxReferences[0].SyntaxTree;
                 var span = syntaxReferences[0].Span;
-                string path = tree.GetDisplayPath(span, (compilation != null) ? compilation.Options.SourceReferenceResolver : null);
+                string path = tree.GetDisplayPath(span, compilation?.Options.SourceReferenceResolver);
                 if (!string.IsNullOrEmpty(path))
                 {
                     return $"{path}({tree.GetDisplayLineNumber(span)})";

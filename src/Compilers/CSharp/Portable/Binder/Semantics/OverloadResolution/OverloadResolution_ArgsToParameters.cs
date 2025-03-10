@@ -107,10 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (parametersPositions != null)
-                {
-                    parametersPositions[argumentPosition] = parameterPosition;
-                }
+                parametersPositions?[argumentPosition] = parameterPosition;
             }
 
             ParameterMap argsToParameters = new ParameterMap(parametersPositions, argumentCount);

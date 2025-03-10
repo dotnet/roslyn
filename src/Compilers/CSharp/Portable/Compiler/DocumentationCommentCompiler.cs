@@ -696,10 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (ContainsXmlParseDiagnostic(trivia))
                     {
-                        if (builder != null)
-                        {
-                            builder.Free();
-                        }
+                        builder?.Free();
                         return false;
                     }
 
@@ -1255,9 +1252,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 StringBuilder builder = _temporaryStringBuilders.Peek().Pooled.Builder;
                 builder.Append(indentedAndWrappedString);
             }
-            else if (_writer != null)
+            else
             {
-                _writer.Write(indentedAndWrappedString);
+                _writer?.Write(indentedAndWrappedString);
             }
         }
 

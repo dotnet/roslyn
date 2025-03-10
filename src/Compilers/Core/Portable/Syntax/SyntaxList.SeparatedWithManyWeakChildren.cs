@@ -39,10 +39,7 @@ namespace Microsoft.CodeAnalysis.Syntax
                 {
                     // not a separator
                     var weak = this._children[i >> 1].Value;
-                    if (weak != null)
-                    {
-                        weak.TryGetTarget(out result);
-                    }
+                    weak?.TryGetTarget(out result);
                 }
 
                 return result;

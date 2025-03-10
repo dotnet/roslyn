@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "moduleassemblyname":
                             value = valueMemoryString();
-                            value = value != null ? value.Unquote() : null;
+                            value = value?.Unquote();
 
                             if (RoslynString.IsNullOrEmpty(value))
                             {

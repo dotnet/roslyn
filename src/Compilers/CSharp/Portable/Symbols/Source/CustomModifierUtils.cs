@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                   destinationParameter.RefKind != RefKind.None ? sourceParameter.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty,
                                                                                   newParams));
                 }
-                else if (builder != null)
+                else
                 {
-                    builder.Add(destinationParameter);
+                    builder?.Add(destinationParameter);
                 }
             }
 

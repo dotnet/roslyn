@@ -133,10 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         assemblyIdentityComparer = DesktopAssemblyIdentityComparer.LoadFromXml(appConfigStream);
                     }
 
-                    if (touchedFilesLogger != null)
-                    {
-                        touchedFilesLogger.AddRead(appConfigPath);
-                    }
+                    touchedFilesLogger?.AddRead(appConfigPath);
                 }
                 catch (Exception ex)
                 {

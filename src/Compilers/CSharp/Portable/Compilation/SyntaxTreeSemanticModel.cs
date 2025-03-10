@@ -446,49 +446,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(declaratorSyntax);
             var model = this.GetMemberModel(declaratorSyntax);
-            return (model == null) ? null : model.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
+            return model?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
         }
 
         public override INamedTypeSymbol GetDeclaredSymbol(AnonymousObjectCreationExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declaratorSyntax);
             var model = this.GetMemberModel(declaratorSyntax);
-            return (model == null) ? null : model.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
+            return model?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
         }
 
         public override INamedTypeSymbol GetDeclaredSymbol(TupleExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declaratorSyntax);
             var model = this.GetMemberModel(declaratorSyntax);
-            return (model == null) ? null : model.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
+            return model?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
         }
 
         public override ISymbol GetDeclaredSymbol(ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declaratorSyntax);
             var model = this.GetMemberModel(declaratorSyntax);
-            return (model == null) ? null : model.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
+            return model?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
         }
 
         public override IRangeVariableSymbol GetDeclaredSymbol(QueryClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(node);
             var model = this.GetMemberModel(node);
-            return (model == null) ? null : model.GetDeclaredSymbol(node, cancellationToken);
+            return model?.GetDeclaredSymbol(node, cancellationToken);
         }
 
         public override IRangeVariableSymbol GetDeclaredSymbol(JoinIntoClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(node);
             var model = this.GetMemberModel(node);
-            return (model == null) ? null : model.GetDeclaredSymbol(node, cancellationToken);
+            return model?.GetDeclaredSymbol(node, cancellationToken);
         }
 
         public override IRangeVariableSymbol GetDeclaredSymbol(QueryContinuationSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(node);
             var model = this.GetMemberModel(node);
-            return (model == null) ? null : model.GetDeclaredSymbol(node, cancellationToken);
+            return model?.GetDeclaredSymbol(node, cancellationToken);
         }
 
         public override SymbolInfo GetSymbolInfo(OrderingSyntax node, CancellationToken cancellationToken = default(CancellationToken))
@@ -1878,7 +1878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(declarationSyntax);
 
             var memberModel = this.GetMemberModel(declarationSyntax);
-            return memberModel == null ? null : memberModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+            return memberModel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1892,7 +1892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(declarationSyntax);
 
             var memberModel = this.GetMemberModel(declarationSyntax);
-            return memberModel == null ? null : memberModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+            return memberModel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>

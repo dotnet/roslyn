@@ -1701,10 +1701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static void GetAllTypeParameters(this NamedTypeSymbol type, ArrayBuilder<TypeParameterSymbol> result)
         {
             var containingType = type.ContainingType;
-            if ((object)containingType != null)
-            {
-                containingType.GetAllTypeParameters(result);
-            }
+            containingType?.GetAllTypeParameters(result);
 
             result.AddRange(type.TypeParameters);
         }

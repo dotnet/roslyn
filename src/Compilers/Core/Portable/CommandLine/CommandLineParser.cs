@@ -1303,10 +1303,7 @@ namespace Microsoft.CodeAnalysis
             }
             finally
             {
-                if (enumerator != null)
-                {
-                    enumerator.Dispose();
-                }
+                enumerator?.Dispose();
             }
         }
 

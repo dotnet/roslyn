@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 returnTypeLocationProvider: m =>
                     {
                         var syntax = m.GetDeclaringSyntax<DelegateDeclarationSyntax>();
-                        return (syntax == null) ? null : syntax.ReturnType.Location;
+                        return syntax?.ReturnType.Location;
                     },
                 diagnostics: diagnostics);
         }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 returnTypeLocationProvider: m =>
                     {
                         var syntax = m.GetDeclaringSyntax<MethodDeclarationSyntax>();
-                        return (syntax == null) ? null : syntax.ReturnType.Location;
+                        return syntax?.ReturnType.Location;
                     },
                 diagnostics: diagnostics);
         }
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     locationProvider: p =>
                         {
                             var syntax = p.GetDeclaringSyntax<BasePropertyDeclarationSyntax>();
-                            return (syntax == null) ? null : syntax.Type.Location;
+                            return syntax?.Type.Location;
                         },
                     locationArg: property,
                     diagnostics: diagnostics);
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     locationProvider: p =>
                         {
                             var syntax = p.GetDeclaringSyntax<ParameterSyntax>();
-                            return (syntax == null) ? null : syntax.Type.Location;
+                            return syntax?.Type.Location;
                         },
                     locationArg: param,
                     diagnostics: diagnostics);

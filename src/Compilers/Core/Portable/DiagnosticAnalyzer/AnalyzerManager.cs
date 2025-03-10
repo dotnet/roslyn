@@ -218,9 +218,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             filteredActionsBuilderOpt.AddRange(symbolStartActions, i);
                         }
                     }
-                    else if (filteredActionsBuilderOpt != null)
+                    else
                     {
-                        filteredActionsBuilderOpt.Add(symbolStartAction);
+                        filteredActionsBuilderOpt?.Add(symbolStartAction);
                     }
                 }
 

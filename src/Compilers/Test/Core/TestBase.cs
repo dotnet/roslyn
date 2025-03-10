@@ -70,10 +70,7 @@ namespace Roslyn.Test.Utilities
                 CultureInfo.CurrentUICulture = _originalUICulture;
             }
 
-            if (_temp != null)
-            {
-                _temp.Dispose();
-            }
+            _temp?.Dispose();
         }
 
         #region Metadata References

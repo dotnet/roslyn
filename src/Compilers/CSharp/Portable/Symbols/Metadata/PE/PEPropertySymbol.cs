@@ -321,15 +321,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (!callMethodsDirectly)
             {
-                if ((object)_getMethod != null)
-                {
-                    _getMethod.SetAssociatedProperty(this, MethodKind.PropertyGet);
-                }
+                _getMethod?.SetAssociatedProperty(this, MethodKind.PropertyGet);
 
-                if ((object)_setMethod != null)
-                {
-                    _setMethod.SetAssociatedProperty(this, MethodKind.PropertySet);
-                }
+                _setMethod?.SetAssociatedProperty(this, MethodKind.PropertySet);
             }
 
             _flags = new PackedFlags(

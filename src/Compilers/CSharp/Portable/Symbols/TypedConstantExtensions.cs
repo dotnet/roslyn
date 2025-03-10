@@ -92,10 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Do we have an exact matching enum field
                     if (memberValue == constantToDecode)
                     {
-                        if (pooledBuilder != null)
-                        {
-                            pooledBuilder.Free();
-                        }
+                        pooledBuilder?.Free();
 
                         return typeName + "." + field.Name;
                     }
@@ -170,10 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Do we have an exact matching enum field
                     if (memberValue == constantToDecode)
                     {
-                        if (pooledBuilder != null)
-                        {
-                            pooledBuilder.Free();
-                        }
+                        pooledBuilder?.Free();
 
                         return typeName + "." + field.Name;
                     }

@@ -850,10 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 currentType = currentType.GetNextBaseTypeNoUseSiteDiagnostics(basesBeingResolved, this.Compilation, ref visited);
-                if ((object)currentType != null)
-                {
-                    currentType.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
-                }
+                currentType?.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
             }
 
             visited?.Free();

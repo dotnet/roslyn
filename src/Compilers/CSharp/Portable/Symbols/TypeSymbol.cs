@@ -163,10 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var result = BaseTypeNoUseSiteDiagnostics;
 
-            if ((object)result != null)
-            {
-                result.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
-            }
+            result?.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
 
             return result;
         }

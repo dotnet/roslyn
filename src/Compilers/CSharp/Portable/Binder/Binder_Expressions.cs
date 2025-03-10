@@ -2536,7 +2536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBaseReference BindBase(BaseExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             bool hasErrors = false;
-            TypeSymbol baseType = this.ContainingType is null ? null : this.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            TypeSymbol baseType = this.ContainingType?.BaseTypeNoUseSiteDiagnostics;
             bool inStaticContext;
 
             if (!HasThis(isExplicit: true, inStaticContext: out inStaticContext))
@@ -8789,7 +8789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors)
         {
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            bool isUsableAsField = eventSymbol.HasAssociatedField && this.IsAccessible(eventSymbol.AssociatedField, ref useSiteInfo, (receiver != null) ? receiver.Type : null);
+            bool isUsableAsField = eventSymbol.HasAssociatedField && this.IsAccessible(eventSymbol.AssociatedField, ref useSiteInfo, receiver?.Type);
             diagnostics.Add(node, useSiteInfo);
 
             bool hasError = this.CheckInstanceOrStatic(node, receiver, eventSymbol, ref lookupResult, diagnostics);

@@ -75,10 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private void Free()
         {
-            if (_indentations != null)
-            {
-                _indentations.Free();
-            }
+            _indentations?.Free();
         }
 
         public override SyntaxToken VisitToken(SyntaxToken token)

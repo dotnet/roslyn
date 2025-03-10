@@ -82,10 +82,7 @@ internal sealed class PackageSettingsPersister : IOptionPersister
         if (!Equals(optionKey.Option, SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption))
             return false;
 
-        if (_lazyRoslynPackage is not null)
-        {
-            _lazyRoslynPackage.AnalysisScope = (BackgroundAnalysisScope?)value;
-        }
+        _lazyRoslynPackage?.AnalysisScope = (BackgroundAnalysisScope?)value;
 
         return true;
     }

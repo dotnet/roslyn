@@ -270,10 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AppendConstraintsUseSiteErrorInfo(ref useSiteInfo);
             var result = EffectiveBaseClassNoUseSiteDiagnostics;
 
-            if ((object)result != null)
-            {
-                result.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
-            }
+            result?.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
 
             return result;
         }

@@ -308,10 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (result != null)
-                {
-                    result[i] = substituted;
-                }
+                result?[i] = substituted;
             }
 
             return result != null ? ImmutableCollectionsMarshal.AsImmutableArray(result) : original;
@@ -425,10 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (result != null)
-                {
-                    result[i] = substituted;
-                }
+                result?[i] = substituted;
             }
 
             return result != null ? ImmutableCollectionsMarshal.AsImmutableArray(result) : original;
