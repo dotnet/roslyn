@@ -10663,4 +10663,90 @@ AnonymousTypes(
             """,
             MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask IAsyncDisposable.DisposeAsync()"));
     }
+
+    [Fact]
+    public async Task TestModernExtension1()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo() { }
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Goo();
+                }
+            }
+            """,
+            MainDescription($"void Extensions.extension(string).Goo() (+ 1 {FeaturesResources.overload})"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension2()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo() { }
+                    public void Goo(int i) { }
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Goo();
+                }
+            }
+            """,
+            MainDescription($"void Extensions.extension(string).Goo() (+ 2 {FeaturesResources.overloads_})"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension3()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo() { }
+                    public void Goo(int i) { }
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Goo(0);
+                }
+            }
+            """,
+            MainDescription($"void Extensions.extension(string).Goo(int i) (+ 2 {FeaturesResources.overloads_})"));
+    }
 }
