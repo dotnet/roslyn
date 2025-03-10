@@ -28,11 +28,32 @@ internal class CSharpHeaderFacts : AbstractHeaderFacts
         if (node == null)
             return false;
 
-        var lastToken = (node as TypeDeclarationSyntax)?.TypeParameterList?.GetLastToken() ?? node.Identifier;
-        if (fullHeader)
-            lastToken = node.BaseList?.GetLastToken() ?? lastToken;
+        return IsOnHeader(root, position, node, GetLastToken());
 
-        return IsOnHeader(root, position, node, lastToken);
+        SyntaxToken GetLastToken()
+        {
+            if (fullHeader && node.BaseList != null)
+                return node.BaseList.GetLastToken();
+
+            if (node is TypeDeclarationSyntax typeDeclaration)
+            {
+                if (typeDeclaration.TypeParameterList != null)
+                    return typeDeclaration.TypeParameterList.GreaterThanToken;
+
+                if (typeDeclaration.Identifier != default)
+                    return typeDeclaration.Identifier;
+
+                return typeDeclaration.Keyword;
+            }
+            else if (node is EnumDeclarationSyntax enumDeclaration)
+            {
+                return enumDeclaration.Identifier;
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
     }
 
     public override bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? propertyDeclaration)
