@@ -10749,4 +10749,32 @@ AnonymousTypes(
             """,
             MainDescription($"void Extensions.extension(string).Goo(int i) (+ 2 {FeaturesResources.overloads_})"));
     }
+
+    [Fact]
+    public async Task TestModernExtension4()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public int Prop => 0;
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    var v = s.$$Prop;
+                }
+            }
+            """,
+            MainDescription($$"""int Extensions.extension(string).Prop { get; }"""));
+    }
 }
