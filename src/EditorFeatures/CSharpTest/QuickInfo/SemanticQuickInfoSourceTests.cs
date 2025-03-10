@@ -10689,6 +10689,7 @@ AnonymousTypes(
                 }
             }
             """,
+            // PROTOTYPE: There should be no overloads here.  Need GetMemberGroup fixed for skeleton vs impl extensions.
             MainDescription($"void Extensions.extension(string).Goo() (+ 1 {FeaturesResources.overload})"));
     }
 
@@ -10718,6 +10719,7 @@ AnonymousTypes(
                 }
             }
             """,
+            // PROTOTYPE: There should be one overload here.  Need GetMemberGroup fixed for skeleton vs impl extensions.
             MainDescription($"void Extensions.extension(string).Goo() (+ 2 {FeaturesResources.overloads_})"));
     }
 
@@ -10747,6 +10749,7 @@ AnonymousTypes(
                 }
             }
             """,
+            // PROTOTYPE: There should be one overload here.  Need GetMemberGroup fixed for skeleton vs impl extensions.
             MainDescription($"void Extensions.extension(string).Goo(int i) (+ 2 {FeaturesResources.overloads_})"));
     }
 
