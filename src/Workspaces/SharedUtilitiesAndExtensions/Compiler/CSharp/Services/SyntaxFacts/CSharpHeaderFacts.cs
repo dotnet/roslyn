@@ -35,24 +35,19 @@ internal class CSharpHeaderFacts : AbstractHeaderFacts
             if (fullHeader && node.BaseList != null)
                 return node.BaseList.GetLastToken();
 
-            if (node is TypeDeclarationSyntax typeDeclaration)
-            {
-                if (typeDeclaration.TypeParameterList != null)
-                    return typeDeclaration.TypeParameterList.GreaterThanToken;
+            if (node is TypeDeclarationSyntax { TypeParameterList.GreaterThanToken: var greaterThanToken })
+                return greaterThanToken;
 
-                if (typeDeclaration.Identifier != default)
-                    return typeDeclaration.Identifier;
+            // .Identifier may be default in the case of an extension type.
+            if (node.Identifier != default)
+                return node.Identifier;
 
-                return typeDeclaration.Keyword;
-            }
-            else if (node is EnumDeclarationSyntax enumDeclaration)
+            return node switch
             {
-                return enumDeclaration.Identifier;
-            }
-            else
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
+                TypeDeclarationSyntax typeDeclaration => typeDeclaration.Keyword,
+                EnumDeclarationSyntax enumDeclaration => enumDeclaration.EnumKeyword,
+                _ => throw ExceptionUtilities.Unreachable(),
+            };
         }
     }
 
