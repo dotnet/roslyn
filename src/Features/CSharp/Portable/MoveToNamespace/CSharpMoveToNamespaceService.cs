@@ -7,7 +7,6 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MoveToNamespace;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace;
 

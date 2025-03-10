@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.SolutionCrawler;
 
 internal readonly partial struct InvocationReasons
