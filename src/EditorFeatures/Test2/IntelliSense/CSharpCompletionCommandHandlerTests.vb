@@ -5848,7 +5848,7 @@ class C
                 Dim textBuffer = testDocument.GetTextBuffer()
 
                 Dim snapshotBeforeCommit = textBuffer.CurrentSnapshot
-                provider.SetInfo(snapshotBeforeCommit.GetText(), testDocument.CursorPosition.Value)
+                provider.SetInfo(testDocument.CursorPosition.Value)
 
                 ' First send a space to trigger out special completionImplementation provider.
                 state.SendInvokeCompletionList()
@@ -5916,7 +5916,7 @@ class C
                 Dim textBuffer = testDocument.GetTextBuffer()
 
                 Dim snapshotBeforeCommit = textBuffer.CurrentSnapshot
-                provider.SetInfo(snapshotBeforeCommit.GetText(), testDocument.CursorPosition.Value)
+                provider.SetInfo(testDocument.CursorPosition.Value)
 
                 ' First send a space to trigger out special completionImplementation provider.
                 state.SendInvokeCompletionList()
@@ -8203,7 +8203,6 @@ namespace NS
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
-            Private _text As String
             Private _caretPosition As Integer
 
             <ImportingConstructor>
@@ -8211,8 +8210,7 @@ namespace NS
             Public Sub New()
             End Sub
 
-            Public Sub SetInfo(text As String, caretPosition As Integer)
-                _text = text
+            Public Sub SetInfo(caretPosition As Integer)
                 _caretPosition = caretPosition
             End Sub
 
