@@ -10777,4 +10777,27 @@ AnonymousTypes(
             """,
             MainDescription($$"""int Extensions.extension(string).Prop { get; }"""));
     }
+
+    [Fact]
+    public async Task TestModernExtension5()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo()
+                    {
+                        Console.WriteLine($$s);
+                    }
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.parameter}) string s"));
+    }
 }

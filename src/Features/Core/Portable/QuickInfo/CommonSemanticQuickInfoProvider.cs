@@ -200,8 +200,8 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var symbolSet = new HashSet<ISymbol>(SymbolEquivalenceComparer.Instance);
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var filteredSymbols);
 
-        AddSymbols(GetSymbolsFromToken(token, services, semanticModel, cancellationToken));
-        AddSymbols(bindableParent != null ? semanticModel.GetMemberGroup(bindableParent, cancellationToken) : []);
+        AddSymbols(GetSymbolsFromToken(token, services, semanticModel, cancellationToken), checkAccessibility: true);
+        AddSymbols(bindableParent != null ? semanticModel.GetMemberGroup(bindableParent, cancellationToken) : [], checkAccessibility: false);
 
         if (filteredSymbols is [var firstSymbol, ..])
         {
@@ -226,11 +226,14 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
         return default;
 
-        void AddSymbols(ImmutableArray<ISymbol> symbols)
+        void AddSymbols(ImmutableArray<ISymbol> symbols, bool checkAccessibility)
         {
             foreach (var symbol in symbols)
             {
-                if (!IsOk(symbol) || !IsAccessible(symbol, enclosingType))
+                if (!IsOk(symbol))
+                    continue;
+
+                if (checkAccessibility && !IsAccessible(symbol, enclosingType))
                     continue;
 
                 if (symbolSet.Add(symbol))
