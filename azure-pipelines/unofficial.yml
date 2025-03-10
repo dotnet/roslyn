@@ -37,6 +37,10 @@ parameters:
   displayName: Enable Production SDL
   type: boolean
   default: false
+- name: PublishCodeCoverage
+  displayName: Publish code coverage
+  type: boolean
+  default: true
 
 resources:
   repositories:
@@ -65,7 +69,7 @@ extends:
         enabled: ${{ parameters.EnableProductionSDL }}
         exclusionsFile: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
       sbom:
-        enabled: ${{ parameters.EnableProductionSDL }}
+        enabled: false # Skip 1ES SBOM because microbuild has our own sbom system
     stages:
     - stage: Build
       variables:
@@ -89,3 +93,4 @@ extends:
             os: macOS
           EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
           RunTests: ${{ parameters.RunTests }}
+          PublishCodeCoverage: ${{ parameters.PublishCodeCoverage }}

@@ -71,6 +71,10 @@ parameters:
   type: boolean
   default: true
 
+- name: PublishCodeCoverage
+  type: boolean
+  default: true
+
 # Whether this is a special one-off build for inserting into VS for a validation insertion PR (that will never be merged).
 - name: SkipCodesignVerify
   type: boolean
@@ -303,7 +307,7 @@ jobs:
       parameters:
         EnableLinuxBuild: ${{ parameters.EnableLinuxBuild }}
         EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
-    - ${{ if parameters.RunTests }}:
+    - ${{ if and(parameters.RunTests, parameters.PublishCodeCoverage) }}:
       - template: publish-codecoverage.yml
         parameters:
           EnableLinuxBuild: ${{ parameters.EnableLinuxBuild }}

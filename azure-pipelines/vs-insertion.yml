@@ -32,6 +32,8 @@ extends:
       - job: insertion
         displayName: VS insertion
         pool: VSEngSS-MicroBuild2022-1ES
+        templateContext:
+          outputParentDirectory: $(Pipeline.Workspace)/CI
         steps:
         - checkout: none
         - powershell: Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
