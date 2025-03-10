@@ -355,16 +355,20 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.CompletedTask
             End Function
 
-            Public Function GetOnTheFlyDocsAsync(onTheFlyDocsInfo As OnTheFlyDocsInfo, cancellationToken As CancellationToken) As Task(Of (responseString As String, isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsAsync
-                Return Task.FromResult(("", False))
-            End Function
-
             Public Function IsFileExcludedAsync(filePath As String, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsFileExcludedAsync
                 Return Task.FromResult(False)
             End Function
 
             Public Function GetDocumentationCommentAsync(proposal As DocumentationCommentProposal, cancellationToken As CancellationToken) As Task(Of (responseDictionary As Dictionary(Of String, String), isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetDocumentationCommentAsync
                 Return Task.FromResult((New Dictionary(Of String, String), False))
+            End Function
+
+            Public Function GetOnTheFlyDocsPrompt(onTheFlyDocsInfo As OnTheFlyDocsInfo) As String Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsPrompt
+                Return String.Empty
+            End Function
+
+            Public Function GetOnTheFlyDocsResponseAsync(prompt As String, cancellationToken As CancellationToken) As Task(Of (responseString As String, isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsResponseAsync
+                Return Task.FromResult((String.Empty, False))
             End Function
         End Class
     End Class
