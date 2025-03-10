@@ -16223,7 +16223,7 @@ class Program
         }
 
         [Fact]
-        public void LambdWithDefaultNamedDelegateConversion_LambdaMissingOptional()
+        public void LambdaWithDefaultNamedDelegateConversion_LambdaMissingOptional()
         {
             var source = """
 class Program

@@ -11311,6 +11311,45 @@ public class C
             Assert.True(verifier.HasLocalsInit("C.<add_EventNoAttribute>g__local1|4_0"));
         }
 
+        [Theory]
+        [InlineData("[SkipLocalsInit]", "")]
+        [InlineData("", "[SkipLocalsInit]")]
+        public void SkipLocalsInit_PartialEventAccessor_ContainsLocalFunction(string defAttrs, string implAttrs)
+        {
+            // SkipLocalsInit applied to either part affects the event and nested functions
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+
+                public partial class C
+                {
+                    {{defAttrs}}
+                    partial event Action EventWithAttribute;
+
+                    {{implAttrs}}
+                    partial event Action EventWithAttribute
+                    {
+                        add
+                        {
+                            int w = 1;
+                            w = w + w + w + w;
+
+                            void local1()
+                            {
+                                int x = 1;
+                                x = x + x + x + x;
+                            }
+                        }
+                        remove { }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source);
+            Assert.False(verifier.HasLocalsInit("C.EventWithAttribute.add"));
+            Assert.False(verifier.HasLocalsInit("C.<add_EventWithAttribute>g__local1|0_0"));
+        }
+
         [Fact]
         public void SkipLocalsInit_Class_ContainsLocalFunction()
         {

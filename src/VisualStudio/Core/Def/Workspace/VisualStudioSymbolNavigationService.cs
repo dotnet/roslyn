@@ -154,7 +154,13 @@ internal sealed partial class VisualStudioSymbolNavigationService(
                 ErrorHandler.ThrowOnFailure(windowFrame.SetProperty((int)__VSFPROPID5.VSFPROPID_OverrideToolTip, result.DocumentTooltip));
             }
 
+            // Subtle issue.  We may already be in a provisional-tab. 'Showing' the window frame here will cause it to
+            // to take over the curren provisional-tab, cause a wait-indicators in the original to be dismissed (causing
+            // cancellation).   To avoid that problem, we disable cancellation from this point.  While not ideal, it is
+            // not problematic as we already forced the document to be opened here.  So actually navigating to the
+            // location in it is effectively free.
             windowFrame.Show();
+            cancellationToken = default;
 
             var openedDocument = textBuffer?.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             if (openedDocument != null)

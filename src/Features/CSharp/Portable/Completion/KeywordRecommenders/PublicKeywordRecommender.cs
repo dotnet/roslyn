@@ -8,13 +8,8 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class PublicKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class PublicKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.PublicKeyword)
 {
-    public PublicKeywordRecommender()
-        : base(SyntaxKind.PublicKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return

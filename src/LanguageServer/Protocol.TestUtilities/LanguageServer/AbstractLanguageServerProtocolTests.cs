@@ -313,7 +313,13 @@ namespace Roslyn.Test.Utilities
             var workspace = CreateWorkspace(lspOptions, workspaceKind: null, mutatingLspWorkspace, composition);
 
             workspace.InitializeDocuments(
-                LspTestWorkspace.CreateWorkspaceElement(languageName, files: markups, fileContainingFolders: lspOptions.DocumentFileContainingFolders, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups, commonReferences: commonReferences),
+                LspTestWorkspace.CreateWorkspaceElement(
+                    languageName,
+                    parseOptions: lspOptions.ParseOptions,
+                    files: markups,
+                    fileContainingFolders: lspOptions.DocumentFileContainingFolders,
+                    sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups,
+                    commonReferences: commonReferences),
                 openDocuments: false);
 
             return CreateTestLspServerAsync(workspace, lspOptions, languageName);
@@ -808,6 +814,12 @@ namespace Roslyn.Test.Utilities
                 await listenerProvider.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
                 await listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawlerLegacy).ExpeditedWaitAsync();
                 await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
+            }
+
+            internal async Task WaitForSourceGeneratorsAsync()
+            {
+                var operations = TestWorkspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+                await operations.WaitAllAsync(TestWorkspace, [FeatureAttribute.Workspace, FeatureAttribute.SourceGenerators]);
             }
 
             internal RequestExecutionQueue<RequestContext>.TestAccessor? GetQueueAccessor() => _languageServer.Value.GetTestAccessor().GetQueueAccessor();

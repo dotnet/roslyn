@@ -29,7 +29,7 @@ internal sealed class SpellCheckPullCache(string uniqueKey) : VersionedPullCache
         return (parseOptionsChecksum, textChecksum);
     }
 
-    public override Checksum ComputeChecksum(ImmutableArray<SpellCheckSpan> data)
+    public override Checksum ComputeChecksum(ImmutableArray<SpellCheckSpan> data, string language)
     {
         var checksums = data.SelectAsArray(s => Checksum.Create(s, SerializeSpellCheckSpan)).Sort();
         return Checksum.Create(checksums);
