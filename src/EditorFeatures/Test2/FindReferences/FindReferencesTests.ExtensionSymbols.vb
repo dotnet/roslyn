@@ -105,5 +105,55 @@ public static class MyExtension
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestModernExtensionMethodParameter1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+using System;
+ 
+public static class MyExtension
+{
+    extension(string $${|Definition:s|})
+    {
+        public static int ExtensionMethod()
+        {
+            return [|s|].Length;
+        }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestModernExtensionMethodTypeParameter1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+using System;
+ 
+public static class MyExtension
+{
+    extension<$${|Definition:T|}>(string s)
+    {
+        public static int ExtensionMethod([|T|] t)
+        {
+            return [|s|].Length;
+        }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace
