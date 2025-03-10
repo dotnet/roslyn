@@ -173,9 +173,6 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Monitor__Enter2, //Monitor.Enter(object, bool&)
         System_Threading_Monitor__Exit,
 
-        System_Threading_Thread__CurrentThread,
-        System_Threading_Thread__ManagedThreadId,
-
         Microsoft_CSharp_RuntimeBinder_Binder__BinaryOperation,
         Microsoft_CSharp_RuntimeBinder_Binder__Convert,
         Microsoft_CSharp_RuntimeBinder_Binder__GetIndex,
@@ -361,8 +358,6 @@ namespace Microsoft.CodeAnalysis
         System_Xml_Linq_XNamespace__Get,
 
         System_Windows_Forms_Application__RunForm,
-
-        System_Environment__CurrentManagedThreadId,
 
         System_ComponentModel_EditorBrowsableAttribute__ctor,
 

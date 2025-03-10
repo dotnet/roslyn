@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override bool PreserveInitialParameterValuesAndThreadId
+        protected override bool PreserveInitialParameterValues
             => _isEnumerable;
 
         protected override void GenerateControlFields()
@@ -190,16 +190,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             try
             {
-                BoundExpression managedThreadId = null; // Thread.CurrentThread.ManagedThreadId
-
                 GenerateEnumeratorImplementation();
 
                 if (_isEnumerable)
                 {
-                    GenerateEnumerableImplementation(ref managedThreadId);
+                    GenerateEnumerableImplementation();
                 }
 
-                GenerateConstructor(managedThreadId);
+                GenerateConstructor();
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
@@ -251,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Add IEnumerator&lt;elementType> IEnumerable&lt;elementType>.GetEnumerator()
         /// </summary>
-        private void GenerateEnumerableImplementation(ref BoundExpression managedThreadId)
+        private void GenerateEnumerableImplementation()
         {
             var IEnumerable_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_IEnumerable__GetEnumerator);
 
@@ -259,20 +257,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var IEnumerableOfElementType_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator).AsMember(IEnumerableOfElementType);
 
             // generate GetEnumerator()
-            var getEnumeratorGeneric = GenerateIteratorGetEnumerator(IEnumerableOfElementType_GetEnumerator, ref managedThreadId, StateMachineState.InitialIteratorState);
+            var getEnumeratorGeneric = GenerateIteratorGetEnumerator(IEnumerableOfElementType_GetEnumerator, StateMachineState.InitialIteratorState);
 
             // Generate IEnumerable.GetEnumerator
             var getEnumerator = OpenMethodImplementation(IEnumerable_GetEnumerator);
             F.CloseMethod(F.Return(F.Call(F.This(), getEnumeratorGeneric)));
         }
 
-        private void GenerateConstructor(BoundExpression managedThreadId)
+        private void GenerateConstructor()
         {
             // Produces:
             // .ctor(int state)
             // {
             //     this.state = state;
-            //     this.initialThreadId = <managedThreadId>;
             // }
             Debug.Assert(stateMachineType.Constructor is IteratorConstructor);
 
@@ -280,12 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
             bodyBuilder.Add(F.BaseInitialization());
             bodyBuilder.Add(F.Assignment(F.Field(F.This(), stateField), F.Parameter(F.CurrentFunction.Parameters[0]))); // this.state = state;
-
-            if (managedThreadId != null)
-            {
-                // this.initialThreadId = Thread.CurrentThread.ManagedThreadId;
-                bodyBuilder.Add(F.Assignment(F.Field(F.This(), initialThreadIdField), managedThreadId));
-            }
 
             if (instanceIdField is not null &&
                 F.WellKnownMethod(WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId) is { } getId)
