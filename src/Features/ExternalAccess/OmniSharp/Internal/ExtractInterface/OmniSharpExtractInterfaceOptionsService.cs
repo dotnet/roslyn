@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -25,7 +23,7 @@ internal sealed class OmniSharpExtractInterfaceOptionsService(
         Document document,
         ImmutableArray<ISymbol> extractableMembers,
         string defaultInterfaceName,
-        List<string> conflictingTypeNames,
+        ImmutableArray<string> conflictingTypeNames,
         string defaultNamespace,
         string generatedNameTypeParameterSuffix)
     {

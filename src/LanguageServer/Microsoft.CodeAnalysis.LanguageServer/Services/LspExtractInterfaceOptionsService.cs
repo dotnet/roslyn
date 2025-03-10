@@ -18,14 +18,14 @@ internal sealed class LspExtractInterfaceOptionsService() : IExtractInterfaceOpt
         Document document,
         ImmutableArray<ISymbol> extractableMembers,
         string defaultInterfaceName,
-        List<string> conflictingTypeNames,
+        ImmutableArray<string> conflictingTypeNames,
         string defaultNamespace,
         string generatedNameTypeParameterSuffix)
     {
         var extension = document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb";
         return new(
             isCancelled: false,
-            [.. extractableMembers],
+            extractableMembers,
             defaultInterfaceName,
             defaultInterfaceName + extension,
             ExtractInterfaceOptionsResult.ExtractLocation.SameFile);

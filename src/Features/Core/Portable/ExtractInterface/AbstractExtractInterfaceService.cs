@@ -259,7 +259,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         SyntaxFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
-        var conflictingTypeNames = type.ContainingNamespace.GetAllTypes(cancellationToken).Select(t => t.Name);
+        var conflictingTypeNames = type.ContainingNamespace.GetAllTypes(cancellationToken).SelectAsArray(t => t.Name);
         var candidateInterfaceName = type.TypeKind == TypeKind.Interface ? type.Name : "I" + type.Name;
         var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
         var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, type, extractableMembers, cancellationToken);
@@ -269,7 +269,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             document,
             extractableMembers,
             defaultInterfaceName,
-            [.. conflictingTypeNames],
+            conflictingTypeNames,
             containingNamespace,
             generatedNameTypeParameterSuffix);
     }

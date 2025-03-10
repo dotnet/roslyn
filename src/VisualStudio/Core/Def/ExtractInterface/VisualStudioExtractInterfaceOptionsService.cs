@@ -40,7 +40,7 @@ internal sealed class VisualStudioExtractInterfaceOptionsService(
         Document document,
         ImmutableArray<ISymbol> extractableMembers,
         string defaultInterfaceName,
-        List<string> allTypeNames,
+        ImmutableArray<string> allTypeNames,
         string defaultNamespace,
         string generatedNameTypeParameterSuffix)
     {

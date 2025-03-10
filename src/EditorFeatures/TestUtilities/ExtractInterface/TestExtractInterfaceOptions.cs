@@ -20,7 +20,7 @@ internal sealed class TestExtractInterfaceOptionsService() : IExtractInterfaceOp
 {
     public ImmutableArray<ISymbol> AllExtractableMembers { get; private set; }
     public string DefaultInterfaceName { get; private set; }
-    public List<string> ConflictingTypeNames { get; private set; }
+    public ImmutableArray<string> ConflictingTypeNames { get; private set; }
     public string DefaultNamespace { get; private set; }
     public string GeneratedNameTypeParameterSuffix { get; set; }
 
@@ -34,7 +34,7 @@ internal sealed class TestExtractInterfaceOptionsService() : IExtractInterfaceOp
         Document document,
         ImmutableArray<ISymbol> extractableMembers,
         string defaultInterfaceName,
-        List<string> conflictingTypeNames,
+        ImmutableArray<string> conflictingTypeNames,
         string defaultNamespace,
         string generatedNameTypeParameterSuffix)
     {
