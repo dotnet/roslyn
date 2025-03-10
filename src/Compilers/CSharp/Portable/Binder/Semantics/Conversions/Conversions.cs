@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE: Test collection type that does not include an indexer, and where element type is some KeyValuePair<,>.
                 if (object.ReferenceEquals(elementType.OriginalDefinition, Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)) &&
                     Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
-                    _binder.GetCollectionExpressionApplicableIndexer(syntax, targetType, BindingDiagnosticBag.Discarded) is { })
+                    _binder.GetCollectionExpressionApplicableIndexer(syntax, targetType, elementType, BindingDiagnosticBag.Discarded) is { })
                 {
                     collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
                 }

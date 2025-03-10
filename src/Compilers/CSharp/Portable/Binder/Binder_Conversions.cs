@@ -880,8 +880,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
                 {
-                    var indexer = GetCollectionExpressionApplicableIndexer(syntax, targetType, diagnostics);
-                    setMethod = indexer?.GetOwnOrInheritedSetMethod();
+                    Debug.Assert(elementType is { });
+                    var indexer = GetCollectionExpressionApplicableIndexer(syntax, targetType, elementType, diagnostics);
+                    setMethod = indexer?.GetOwnOrInheritedSetMethod(); // PROTOTYPE: Test virtual property with one or both accessors overridden.
                     Debug.Assert(setMethod is { });
                 }
 
@@ -1569,23 +1570,65 @@ namespace Microsoft.CodeAnalysis.CSharp
         // PROTOTYPE: Compare with BindIndexerAccess() which does similar lookup. Are there
         // additional cases there that we need to consider? For instance, BindIndexerAccess() uses
         // BindIndexerOrIndexedPropertyAccess() which handles optional parameters, etc., and reports diagnostics.
-        internal PropertySymbol? GetCollectionExpressionApplicableIndexer(SyntaxNode syntax, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
+        internal PropertySymbol? GetCollectionExpressionApplicableIndexer(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
         {
+            bool isKeyValuePair = ConversionsBase.IsKeyValuePairType(Compilation, elementType, out var keyType, out var valueType);
+            Debug.Assert(keyType is { });
+            Debug.Assert(valueType is { });
+
             var lookupResult = LookupResult.GetInstance();
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            // PROTOTYPE: We're not checking indexer matches expected key and value types.
-            // PROTOTYPE: Test ref returning indexer.
-            // PROTOTYPE: Test explicit interface implementation.
-            // PROTOTYPE: Test member on base type.
-            // PROTOTYPE: Test abstract or virtual member on base type, possibly overridden on derived types.
-            // PROTOTYPE: Test more derived type returned from overridden indexer compared to base type.
-            // PROTOTYPE: Test with missing indexer, multiple indexers, readonly/writeonly indexer, different member kind, etc.
-            // PROTOTYPE: Test only one of get or set overridden from base type.
             LookupMembersWithFallback(lookupResult, targetType, WellKnownMemberNames.Indexer, arity: 0, ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo); // PROTOTYPE: Test.
-            var indexer = lookupResult.SingleSymbolOrDefault as PropertySymbol;
+
+            PropertySymbol? result = null;
+            foreach (var symbol in lookupResult.Symbols)
+            {
+                if (symbol is PropertySymbol indexer &&
+                    isValidIndexer(Conversions, indexer, keyType, valueType, ref useSiteInfo))
+                {
+                    if (result is { })
+                    {
+                        result = null;
+                        break;
+                    }
+                    result = indexer;
+                }
+            }
             lookupResult.Free();
-            return indexer;
+
+            return result;
+
+            static bool isValidIndexer(
+                ConversionsBase conversions,
+                PropertySymbol indexer,
+                TypeSymbol keyType,
+                TypeSymbol valueType,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                // PROTOTYPE: Test shadowing with new. How do we describe this in the spec?
+                // PROTOTYPE: Test params T[] parameter when the dictionary key is T, and when the dictionary key is T[].
+                // PROTOTYPE: Test explicit interface implementation.
+                // PROTOTYPE: Test more derived type returned from overridden indexer compared to base type.
+                // PROTOTYPE: Test only one of get or set overridden from base type. How do we describe this in the spec? (Use the base virtual or abstract indexer?)
+                if (indexer is
+                    {
+                        IsStatic: false,
+                        DeclaredAccessibility: Accessibility.Public,
+                        RefKind: RefKind.None,
+                        GetMethod: { DeclaredAccessibility: Accessibility.Public },
+                        SetMethod: { DeclaredAccessibility: Accessibility.Public },
+                        Parameters: [{ RefKind: RefKind.None or RefKind.In } parameter]
+                    })
+                {
+                    if (conversions.ClassifyImplicitConversionFromType(parameter.Type, keyType, ref useSiteInfo).IsIdentity &&
+                        conversions.ClassifyImplicitConversionFromType(indexer.Type, valueType, ref useSiteInfo).IsIdentity)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
         }
 
         internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, out ImmutableArray<MethodSymbol> addMethods, BindingDiagnosticBag diagnostics)
