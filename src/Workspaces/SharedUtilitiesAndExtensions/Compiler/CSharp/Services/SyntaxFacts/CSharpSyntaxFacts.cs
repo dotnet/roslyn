@@ -75,7 +75,10 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         => options.LanguageVersion() >= LanguageVersion.CSharp10;
 
     public bool SupportsFieldExpression(ParseOptions options)
-        => options.LanguageVersion() >= LanguageVersionExtensions.CSharpNext;
+        => options.LanguageVersion().IsCSharp14OrAbove();
+
+    public bool SupportsNullConditionalAssignment(ParseOptions options)
+        => options.LanguageVersion().IsCSharp14OrAbove();
 
     public SyntaxToken ParseToken(string text)
         => SyntaxFactory.ParseToken(text);
