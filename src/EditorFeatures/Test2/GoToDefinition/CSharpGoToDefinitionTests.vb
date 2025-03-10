@@ -4072,8 +4072,6 @@ partial partial class Program
             Await TestAsync(workspace)
         End Function
 
-#Disable Warning RSEXPERIMENTAL002 ' Type is for evaluation purposes only and is subject to change or removal in future updates.
-
         Private Const s_interceptsLocationCode = "
 namespace System.Runtime.CompilerServices
 {
@@ -4363,6 +4361,88 @@ public partial class Program
             Await TestAsync(workspace)
         End Function
 
-#Enable Warning RSEXPERIMENTAL002 ' Type is for evaluation purposes only and is subject to change or removal in future updates.
+        <WpfFact>
+        Public Async Function TestCSharpGoToExtensionMethod1() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void [|Goo|]() { }
+                }
+            }
+
+            class X
+            {
+                void M(string s)
+                {
+                    s.$$Goo();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToExtensionMethod2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public static void [|Goo|]() { }
+                }
+            }
+
+            class X
+            {
+                void M(string s)
+                {
+                    string.$$Goo();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToExtensionProperty() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public int [|Goo|] => 0;
+                }
+            }
+
+            class X
+            {
+                void M(string s)
+                {
+                    var v = s.$$Goo;
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
     End Class
 End Namespace
