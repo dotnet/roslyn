@@ -172,12 +172,22 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "dev/monicaro/versioning",
+      "vsBranch": "feature/d18initial",
       "vsMajorVersion": 18,
       "insertionTitlePrefix": "[d18.0 P1]",
       "insertionCreateDraftPR": true
     },
     "main": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.14 P3]"
+    },
+    "main-vs-deps": {
       "nugetKind": [
         "Shipping",
         "NonShipping"

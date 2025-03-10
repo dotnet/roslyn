@@ -7,7 +7,6 @@ using System.IO;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Logging
 {

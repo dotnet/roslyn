@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |            |t|a|b|e|n|vvv|yy|s|r|q|z|kkk|wwwww|
+            // |          |m|t|a|b|e|n|vvv|yy|s|r|q|z|kkk|wwwww|
             // 
             // w = method kind.  5 bits.
             // k = ref kind.  3 bits.
@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // b = HasAnyBody. 1 bit.
             // a = IsVararg. 1 bit.
             // t = HasThisInitializer. 1 bit.
+            // m = HasExplicitAccessModifier. 1 bit.
             private int _flags;
 
             private const int MethodKindOffset = 0;
@@ -81,8 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsVarargSize = 1;
 
             private const int HasThisInitializerOffset = IsVarargOffset + IsVarargSize;
-#pragma warning disable IDE0051 // Remove unused private members
             private const int HasThisInitializerSize = 1;
+
+            private const int HasExplicitAccessModifierOffset = HasThisInitializerOffset + HasThisInitializerSize;
+#pragma warning disable IDE0051 // Remove unused private members
+            private const int HasExplicitAccessModifierSize = 1;
 #pragma warning restore IDE0051 // Remove unused private members
 
             private const int HasAnyBodyBit = 1 << HasAnyBodyOffset;
@@ -93,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsMetadataVirtualLockedBit = 1 << IsMetadataVirtualLockedOffset;
             private const int IsVarargBit = 1 << IsVarargOffset;
             private const int HasThisInitializerBit = 1 << HasThisInitializerOffset;
+            private const int HasExplicitAccessModifierBit = 1 << HasExplicitAccessModifierOffset;
 
             private const int ReturnsVoidBit = 1 << ReturnsVoidOffset;
             private const int ReturnsVoidIsSetBit = 1 << ReturnsVoidOffset + 1;
@@ -161,6 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly bool HasThisInitializer
                 => (_flags & HasThisInitializerBit) != 0;
 
+            public readonly bool HasExplicitAccessModifier
+                => (_flags & HasExplicitAccessModifierBit) != 0;
+
 #if DEBUG
             static Flags()
             {
@@ -188,7 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isNullableAnalysisEnabled,
                 bool isVararg,
                 bool isExplicitInterfaceImplementation,
-                bool hasThisInitializer)
+                bool hasThisInitializer,
+                bool hasExplicitAccessModifier)
             {
                 Debug.Assert(!returnsVoid || returnsVoidIsSet);
 
@@ -204,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
                 int hasThisInitializerInt = hasThisInitializer ? HasThisInitializerBit : 0;
+                int hasExplicitAccessModifierInt = hasExplicitAccessModifier ? HasExplicitAccessModifierBit : 0;
 
                 _flags = methodKindInt
                     | refKindInt
@@ -215,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | isMetadataVirtualIgnoringInterfaceImplementationChangesInt
                     | isMetadataVirtualInt
                     | hasThisInitializerInt
+                    | hasExplicitAccessModifierInt
                     | (returnsVoid ? ReturnsVoidBit : 0)
                     | (returnsVoidIsSet ? ReturnsVoidIsSetBit : 0);
             }
@@ -242,7 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                        isVararg: isVararg,
                        isExplicitInterfaceImplementation: isExplicitInterfaceImplementation,
-                       hasThisInitializer: hasThisInitializer)
+                       hasThisInitializer: hasThisInitializer,
+                       hasExplicitAccessModifier: false)
             {
             }
 
