@@ -758,7 +758,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         var parent = node.GetAncestor<TypeDeclarationSyntax>() ?? node.Parent;
         while (parent is TypeDeclarationSyntax)
         {
-            names.Add(GetName(parent, options));
+            names.Push(GetName(parent, options));
             parent = parent.Parent;
         }
 
