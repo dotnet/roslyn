@@ -497,6 +497,20 @@ internal partial class DocumentState : TextDocumentState
 
         // use the encoding that we get from the new root
         var encoding = newRoot.SyntaxTree.Encoding;
+        if (encoding is null)
+        {
+            // The new tree doesn't specify an encoding. For these cases, continue to use the previous encoding of the
+            // document.
+            if (TryGetSyntaxTree(out var priorTree))
+            {
+                // this is most likely available since UpdateTree is normally called after modifying the existing tree.
+                encoding = priorTree.Encoding;
+            }
+            else if (TryGetText(out var priorText))
+            {
+                encoding = priorText.Encoding;
+            }
+        }
 
         var syntaxTreeFactory = LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 

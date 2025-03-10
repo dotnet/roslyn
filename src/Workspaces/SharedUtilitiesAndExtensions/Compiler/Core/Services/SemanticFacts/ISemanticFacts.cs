@@ -121,6 +121,8 @@ internal partial interface ISemanticFacts
     /// </summary>
     IPreprocessingSymbol? GetPreprocessingSymbol(SemanticModel semanticModel, SyntaxNode node);
 
+    bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor);
+
 #if !CODE_STYLE
 
     /// <summary>

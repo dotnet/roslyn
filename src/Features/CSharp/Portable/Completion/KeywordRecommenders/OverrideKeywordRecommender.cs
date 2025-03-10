@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class OverrideKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class OverrideKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.OverrideKeyword)
 {
     private static readonly ISet<SyntaxKind> s_validMemberModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
@@ -22,11 +22,6 @@ internal class OverrideKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
         SyntaxKind.SealedKeyword,
         SyntaxKind.AbstractKeyword,
     };
-
-    public OverrideKeywordRecommender()
-        : base(SyntaxKind.OverrideKeyword)
-    {
-    }
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {

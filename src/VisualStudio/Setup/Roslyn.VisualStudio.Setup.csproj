@@ -235,6 +235,12 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
+    <ProjectReference Include="..\ExternalAccess\Copilot\Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.csproj">
+      <Name>Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj">
       <Name>RemoteWorkspaces</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
