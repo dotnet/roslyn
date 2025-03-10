@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Immutable;
-using Roslyn.Utilities;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;

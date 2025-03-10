@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Telemetry.Metrics;
 using Microsoft.VisualStudio.Telemetry.Metrics.Events;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Telemetry;
 
