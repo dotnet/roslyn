@@ -65,7 +65,7 @@ extends:
         enabled: ${{ parameters.EnableProductionSDL }}
         exclusionsFile: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
       sbom:
-        enabled: ${{ parameters.EnableProductionSDL }}
+        enabled: false # Skip 1ES SBOM because microbuild has our own sbom system
     stages:
     - stage: Build
       variables:

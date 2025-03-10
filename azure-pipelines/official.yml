@@ -53,7 +53,7 @@ extends:
       suppression:
         suppressionFile: $(System.DefaultWorkingDirectory)\azure-pipelines\falsepositives.gdnsuppress
       sbom:
-        enabled: true
+        enabled: false # Skip 1ES SBOM because microbuild has our own sbom system
     stages:
     - stage: Build
       variables:
