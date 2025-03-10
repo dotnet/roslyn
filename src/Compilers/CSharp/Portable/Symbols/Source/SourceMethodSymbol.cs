@@ -94,27 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            // PROTOTYPE: This 'if' is added to resolve a merge conflict with 'main'. We need to confirm whether this special handling is needed and follow-up/clean-up accordingly.
-            if (this is SourceFieldLikeEventSymbol.SourceEventDefinitionAccessorSymbol eventAccessor)
-            {
-                Debug.Assert(eventAccessor.IsPartialDefinition);
-
-                if (eventAccessor.PartialImplementationPart is { } implementationPart)
-                {
-                    implementationPart.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-                }
-                else
-                {
-                    // This could happen in error scenarios (when the implementation part of a partial event is missing),
-                    // but then we should not get to the emit stage and call this method.
-                    Debug.Assert(false);
-
-                    base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-                }
-
-                return;
-            }
-
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
             AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
         }
@@ -186,9 +165,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Do not generate CompilerGeneratedAttribute for members of compiler-generated types:
-            if ((target.IsImplicitlyDeclared || target is SourcePropertyAccessorSymbol { IsAutoPropertyAccessor: true }) &&
+            if (((target.IsImplicitlyDeclared && target is not SourceFieldLikeEventSymbol.SourceEventDefinitionAccessorSymbol { PartialImplementationPart.IsImplicitlyDeclared: false }) ||
+                 target is SourcePropertyAccessorSymbol { IsAutoPropertyAccessor: true }) &&
                 !target.ContainingType.IsImplicitlyDeclared &&
-                target is SynthesizedMethodBaseSymbol or SourcePropertyAccessorSymbol or SynthesizedSourceOrdinaryMethodSymbol or SynthesizedRecordEqualityOperatorBase or SynthesizedEventAccessorSymbol)
+                target is SynthesizedMethodBaseSymbol or
+                          SourcePropertyAccessorSymbol or
+                          SynthesizedSourceOrdinaryMethodSymbol or
+                          SynthesizedRecordEqualityOperatorBase or
+                          SynthesizedEventAccessorSymbol or
+                          SourceFieldLikeEventSymbol.SourceEventDefinitionAccessorSymbol)
             {
                 Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
                 AddSynthesizedAttribute(ref attributes,
