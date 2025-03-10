@@ -4,6 +4,15 @@
     <ImportNuGetBuildTasksPackTargetsFromSdk>false</ImportNuGetBuildTasksPackTargetsFromSdk>
     <_RoslynPublishReadyToRun>false</_RoslynPublishReadyToRun>
     <_RoslynPublishReadyToRun Condition="'$(Configuration)' == 'Release'">true</_RoslynPublishReadyToRun>
+
+    <!-- List of runtime identifiers that we want to publish an executable for. -->
+    <!-- When building a VMR vertical, we don't need to pack everything. Just pack the passed in TargetRid or BaseOS.
+         TargetRid and BaseOS are provided to roslyn via the build arguments passed in the VMR orchestrator's repo project.
+         https://github.com/dotnet/dotnet/blob/main/repo-projects/roslyn.proj. For definitions of the TargetRid
+         and other common properties, see https://github.com/dotnet/arcade/blob/main/Documentation/UnifiedBuild/Unified-Build-Controls.md -->
+    <_RoslynRuntimeIdentifiers Condition="'$(TargetRid)' != ''">$(TargetRid)</_RoslynRuntimeIdentifiers>
+    <_RoslynRuntimeIdentifiers Condition="'$(BaseOS)' != ''">$(BaseOS)</_RoslynRuntimeIdentifiers>
+    <_RoslynRuntimeIdentifiers Condition="'$(TargetRid)' == '' and '$(BaseOS)' == ''">win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</_RoslynRuntimeIdentifiers>
   </PropertyGroup>
 
   <Target Name="Pack">
@@ -14,7 +23,7 @@
         We also pass the RestoreUseStaticGraphEvaluation=false flag to workaround a long path issue when calling the restore target.
         See https://github.com/NuGet/Home/issues/11968
     -->
-    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="PublishReadyToRun=$(_RoslynPublishReadyToRun);RestoreUseStaticGraphEvaluation=false" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="RuntimeIdentifiers=$(_RoslynRuntimeIdentifiers);PublishReadyToRun=$(_RoslynPublishReadyToRun);RestoreUseStaticGraphEvaluation=false" />
 
     <ItemGroup>
       <!-- Transform RuntimeIdentifiers property to item -->
