@@ -38,6 +38,7 @@ internal class CSharpHeaderFacts : AbstractHeaderFacts
             if (node is TypeDeclarationSyntax { TypeParameterList.GreaterThanToken: var greaterThanToken })
                 return greaterThanToken;
 
+            // .Identifier may be default in the case of an extension type.
             if (node.Identifier != default)
                 return node.Identifier;
 
