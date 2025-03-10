@@ -1242,7 +1242,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AddPlaceholderReplacement(placeholder, dictionaryTemp);
 
-            var setItemMethod = _factory.WellKnownMethod(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item).AsMember(collectionType);
             foreach (var element in elements)
             {
                 switch (element)
@@ -1250,9 +1249,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKeyValuePairElement keyValuePairElement:
                         {
                             // dictionary[key] = value;
-                            var rewrittenKey = VisitExpression(keyValuePairElement.Key);
-                            var rewrittenValue = VisitExpression(keyValuePairElement.Value);
-                            sideEffects.Add(_factory.Call(dictionaryTemp, setItemMethod, rewrittenKey, rewrittenValue));
+                            Debug.Assert(keyValuePairElement.Key is { });
+                            Debug.Assert(keyValuePairElement.Value is { });
+                            Debug.Assert(keyValuePairElement.KeyPlaceholder is { });
+                            Debug.Assert(keyValuePairElement.ValuePlaceholder is { });
+                            Debug.Assert(keyValuePairElement.IndexerAssignment is { });
+                            AddPlaceholderReplacement(keyValuePairElement.KeyPlaceholder, VisitExpression(keyValuePairElement.Key));
+                            AddPlaceholderReplacement(keyValuePairElement.ValuePlaceholder, VisitExpression(keyValuePairElement.Value));
+                            sideEffects.Add(VisitExpression(keyValuePairElement.IndexerAssignment));
+                            RemovePlaceholderReplacement(keyValuePairElement.ValuePlaceholder);
+                            RemovePlaceholderReplacement(keyValuePairElement.KeyPlaceholder);
                         }
                         break;
                     case BoundIndexerAssignmentFromExpression indexerAssignment:

@@ -241,7 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        // PROTOTYPE: Are we testing concrete types that aren't Dictionary<K, V>? Test class and struct cases.
         // PROTOTYPE: Test with indexer with optional parameter, with extra params parameter, with params K[] keys.
         // PROTOTYPE: Test ref safety analysis of indexer set calls for the various cases in [e, k:v, ..s].
         // PROTOTYPE: Test interceptor targeting indexer setter.
@@ -469,11 +468,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         var x = new KeyValuePair<int, string>(2, "two");
                         var y = new KeyValuePair<int, string>[] { new(3, "three") };
-                        F(x, y).Report();
+                        F(1, "one", x, y).Report();
                     }
-                    static {{typeName}}<int, string> F(KeyValuePair<int, string> x, IEnumerable<KeyValuePair<int, string>> y)
+                    static {{typeName}}<K, V> F<K, V>(K k, V v, KeyValuePair<K, V> e, IEnumerable<KeyValuePair<K, V>> s)
                     {
-                        return [1:"one", x, ..y];
+                        return /*<bind>*/[k:v, e, ..s]/*</bind>*/;
                     }
                 }
                 """;
@@ -481,59 +480,73 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [source, s_dictionaryExtensions],
                 expectedOutput: "[1:one, 2:two, 3:three], ");
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program.F", """
+            verifier.VerifyIL("Program.F<K, V>", """
                 {
-                  // Code size       98 (0x62)
+                  // Code size       94 (0x5e)
                   .maxstack  3
-                  .locals init (System.Collections.Generic.Dictionary<int, string> V_0,
-                                System.Collections.Generic.KeyValuePair<int, string> V_1,
-                                System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<int, string>> V_2,
-                                System.Collections.Generic.KeyValuePair<int, string> V_3)
-                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<int, string>..ctor()"
+                  .locals init (System.Collections.Generic.Dictionary<K, V> V_0,
+                                System.Collections.Generic.KeyValuePair<K, V> V_1,
+                                System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>> V_2,
+                                System.Collections.Generic.KeyValuePair<K, V> V_3)
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
                   IL_0005:  stloc.0
                   IL_0006:  ldloc.0
-                  IL_0007:  ldc.i4.1
-                  IL_0008:  ldstr      "one"
-                  IL_000d:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.this[int].set"
-                  IL_0012:  ldarg.0
-                  IL_0013:  stloc.1
-                  IL_0014:  ldloc.0
-                  IL_0015:  ldloca.s   V_1
-                  IL_0017:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
-                  IL_001c:  ldloca.s   V_1
-                  IL_001e:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
-                  IL_0023:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.this[int].set"
-                  IL_0028:  ldarg.1
-                  IL_0029:  callvirt   "System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<int, string>> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>.GetEnumerator()"
-                  IL_002e:  stloc.2
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldarg.1
+                  IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000e:  ldarg.2
+                  IL_000f:  stloc.1
+                  IL_0010:  ldloc.0
+                  IL_0011:  ldloca.s   V_1
+                  IL_0013:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0018:  ldloca.s   V_1
+                  IL_001a:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_001f:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0024:  ldarg.3
+                  IL_0025:  callvirt   "System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>.GetEnumerator()"
+                  IL_002a:  stloc.2
                   .try
                   {
-                    IL_002f:  br.s       IL_004c
-                    IL_0031:  ldloc.2
-                    IL_0032:  callvirt   "System.Collections.Generic.KeyValuePair<int, string> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<int, string>>.Current.get"
-                    IL_0037:  stloc.3
-                    IL_0038:  ldloc.0
-                    IL_0039:  ldloca.s   V_3
-                    IL_003b:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
-                    IL_0040:  ldloca.s   V_3
-                    IL_0042:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
-                    IL_0047:  callvirt   "void System.Collections.Generic.Dictionary<int, string>.this[int].set"
-                    IL_004c:  ldloc.2
-                    IL_004d:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                    IL_0052:  brtrue.s   IL_0031
-                    IL_0054:  leave.s    IL_0060
+                    IL_002b:  br.s       IL_0048
+                    IL_002d:  ldloc.2
+                    IL_002e:  callvirt   "System.Collections.Generic.KeyValuePair<K, V> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<K, V>>.Current.get"
+                    IL_0033:  stloc.3
+                    IL_0034:  ldloc.0
+                    IL_0035:  ldloca.s   V_3
+                    IL_0037:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                    IL_003c:  ldloca.s   V_3
+                    IL_003e:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                    IL_0043:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                    IL_0048:  ldloc.2
+                    IL_0049:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_004e:  brtrue.s   IL_002d
+                    IL_0050:  leave.s    IL_005c
                   }
                   finally
                   {
-                    IL_0056:  ldloc.2
-                    IL_0057:  brfalse.s  IL_005f
-                    IL_0059:  ldloc.2
-                    IL_005a:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_005f:  endfinally
+                    IL_0052:  ldloc.2
+                    IL_0053:  brfalse.s  IL_005b
+                    IL_0055:  ldloc.2
+                    IL_0056:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_005b:  endfinally
                   }
-                  IL_0060:  ldloc.0
-                  IL_0061:  ret
+                  IL_005c:  ldloc.0
+                  IL_005d:  ret
                 }
+                """);
+            var comp = (CSharpCompilation)verifier.Compilation;
+            string constructMethod = typeName == "Dictionary" ? "System.Collections.Generic.Dictionary<K, V>..ctor()" : "null";
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                $$"""
+                ICollectionExpressionOperation (3 elements, ConstructMethod: {{constructMethod}}) (OperationKind.CollectionExpression, Type: System.Collections.Generic.{{typeName}}<K, V>) (Syntax: '[k:v, e, ..s]')
+                  Elements(3):
+                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'k:v')
+                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'e')
+                      ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<K, V>) (OperationKind.Spread, Type: null) (Syntax: '..s')
+                        Operand:
+                          IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>) (Syntax: 's')
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
                 """);
         }
 
@@ -800,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [InlineData("IDictionary<int, string>")]
         [InlineData("IReadOnlyDictionary<int, string>")]
-        public void KeyValuePair_MissingMember(string typeName)
+        public void KeyValuePair_MissingMember_DictionaryInterface(string typeName)
         {
             string source = $$"""
                 using System.Collections.Generic;
@@ -828,7 +841,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(4, 5),
                 // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
                 // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(4, 5),
+                // (5,6): error CS0029: Cannot implicitly convert type 'KeyValuePair<int, string>' to 'KeyValuePair<int, string>'
+                // d = [new KeyValuePair<int, string>(2, "two")];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"new KeyValuePair<int, string>(2, ""two"")").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int, string>").WithLocation(5, 6),
+                // (6,9): error CS0029: Cannot implicitly convert type 'KeyValuePair<int, string>' to 'KeyValuePair<int, string>'
+                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"new KeyValuePair<int, string>[] { new(3, ""three"") }").WithArguments("System.Collections.Generic.KeyValuePair<int, string>", "System.Collections.Generic.KeyValuePair<int, string>").WithLocation(6, 9));
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key);
@@ -847,6 +866,84 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(6, 5));
 
             comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value);
+            comp.VerifyEmitDiagnostics(
+                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                // d = [];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(3, 5),
+                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                // d = [1:"one"];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(4, 5),
+                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                // d = [new KeyValuePair<int, string>(2, "two")];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(5, 5),
+                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 5));
+        }
+
+        // PROTOTYPE: Test with [CollectionBuilder] type as well. In particular, should allow all three of [k:v, e, ..s] where Ke, Ve do not match K, V exactly.
+        [Fact]
+        public void KeyValuePair_MissingMember_CustomDictionary()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public V this[K k] { get => default; set { } }
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                using System.Collections.Generic;
+                MyDictionary<int, string> d;
+                d = [];
+                d = [1:"one"];
+                d = [new KeyValuePair<int, string>(2, "two")];
+                d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                """;
+
+            comp = CreateCompilation(sourceB, references: [refA]);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(sourceB, references: [refA]);
+            comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_KeyValuePair_KV);
+            comp.VerifyEmitDiagnostics(
+                // (4,5): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                // d = [1:"one"];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[1:""one""]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(4, 5),
+                // (4,6): error CS9275: Collection expression type 'MyDictionary<int, string>' does not support key-value pair elements.
+                // d = [1:"one"];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"1:""one""").WithArguments("MyDictionary<int, string>").WithLocation(4, 6),
+                // (5,5): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                // d = [new KeyValuePair<int, string>(2, "two")];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(5, 5),
+                // (6,5): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(6, 5));
+
+            comp = CreateCompilation(sourceB, references: [refA]);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key);
+            comp.VerifyEmitDiagnostics(
+                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                // d = [];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(3, 5),
+                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                // d = [1:"one"];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(4, 5),
+                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                // d = [new KeyValuePair<int, string>(2, "two")];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(5, 5),
+                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(6, 5));
+
+            comp = CreateCompilation(sourceB, references: [refA]);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value);
             comp.VerifyEmitDiagnostics(
                 // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
@@ -1532,6 +1629,192 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (9,9): error CS0411: The type arguments for method 'Program.Identity<K, V>(IDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Identity([1:default, default:"2"]);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments($"Program.Identity<K, V>(System.Collections.Generic.{typeName}<K, V>)").WithLocation(9, 9));
+        }
+
+        // PROTOTYPE: Test with [CollectionBuilder] type as well. In particular, should allow all three of [k:v, e, ..s] where Ke, Ve do not match K, V exactly.
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public void CustomDictionary_01(string typeKind)
+        {
+            string sourceA = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                public {{typeKind}} MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    private Dictionary<K, V> _dictionary;
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => GetDictionary().GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    public V this[K key]
+                    {
+                        get { return GetDictionary()[key]; }
+                        set { GetDictionary()[key] = value; }
+                    }
+                    private Dictionary<K, V> GetDictionary() => _dictionary ??= new();
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Empty<string, int>().Report();
+                        Many(1, "one", new KeyValuePair<int, string>(2, "two"), new KeyValuePair<int, string>[] { new(3, "three") }).Report();
+                    }
+                    static MyDictionary<K, V> Empty<K, V>() => [];
+                    static MyDictionary<K, V> Many<K, V>(K k, V v, KeyValuePair<K, V> e, KeyValuePair<K, V>[] s) => /*<bind>*/[k:v, e, ..s]/*</bind>*/;
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceB, s_dictionaryExtensions],
+                references: [refA],
+                expectedOutput: "[], [1:one, 2:two, 3:three], ");
+            verifier.VerifyDiagnostics();
+            if (typeKind == "class")
+            {
+                verifier.VerifyIL("Program.Empty<K, V>", """
+                    {
+                      // Code size        6 (0x6)
+                      .maxstack  1
+                      IL_0000:  newobj     "MyDictionary<K, V>..ctor()"
+                      IL_0005:  ret
+                    }
+                    """);
+                verifier.VerifyIL("Program.Many<K, V>", """
+                    {
+                      // Code size       83 (0x53)
+                      .maxstack  3
+                      .locals init (MyDictionary<K, V> V_0,
+                                    System.Collections.Generic.KeyValuePair<K, V> V_1,
+                                    System.Collections.Generic.KeyValuePair<K, V>[] V_2,
+                                    int V_3,
+                                    System.Collections.Generic.KeyValuePair<K, V> V_4)
+                      IL_0000:  newobj     "MyDictionary<K, V>..ctor()"
+                      IL_0005:  stloc.0
+                      IL_0006:  ldloc.0
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldarg.1
+                      IL_0009:  callvirt   "void MyDictionary<K, V>.this[K].set"
+                      IL_000e:  ldarg.2
+                      IL_000f:  stloc.1
+                      IL_0010:  ldloc.0
+                      IL_0011:  ldloca.s   V_1
+                      IL_0013:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_0018:  ldloca.s   V_1
+                      IL_001a:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_001f:  callvirt   "void MyDictionary<K, V>.this[K].set"
+                      IL_0024:  ldarg.3
+                      IL_0025:  stloc.2
+                      IL_0026:  ldc.i4.0
+                      IL_0027:  stloc.3
+                      IL_0028:  br.s       IL_004b
+                      IL_002a:  ldloc.2
+                      IL_002b:  ldloc.3
+                      IL_002c:  ldelem     "System.Collections.Generic.KeyValuePair<K, V>"
+                      IL_0031:  stloc.s    V_4
+                      IL_0033:  ldloc.0
+                      IL_0034:  ldloca.s   V_4
+                      IL_0036:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_003b:  ldloca.s   V_4
+                      IL_003d:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_0042:  callvirt   "void MyDictionary<K, V>.this[K].set"
+                      IL_0047:  ldloc.3
+                      IL_0048:  ldc.i4.1
+                      IL_0049:  add
+                      IL_004a:  stloc.3
+                      IL_004b:  ldloc.3
+                      IL_004c:  ldloc.2
+                      IL_004d:  ldlen
+                      IL_004e:  conv.i4
+                      IL_004f:  blt.s      IL_002a
+                      IL_0051:  ldloc.0
+                      IL_0052:  ret
+                    }
+                    """);
+            }
+            else
+            {
+                verifier.VerifyIL("Program.Empty<K, V>", """
+                    {
+                      // Code size       10 (0xa)
+                      .maxstack  1
+                      .locals init (MyDictionary<K, V> V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "MyDictionary<K, V>"
+                      IL_0008:  ldloc.0
+                      IL_0009:  ret
+                    }
+                    """);
+                verifier.VerifyIL("Program.Many<K, V>", """
+                    {
+                      // Code size       88 (0x58)
+                      .maxstack  3
+                      .locals init (MyDictionary<K, V> V_0,
+                                    System.Collections.Generic.KeyValuePair<K, V> V_1,
+                                    System.Collections.Generic.KeyValuePair<K, V>[] V_2,
+                                    int V_3,
+                                    System.Collections.Generic.KeyValuePair<K, V> V_4)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "MyDictionary<K, V>"
+                      IL_0008:  ldloca.s   V_0
+                      IL_000a:  ldarg.0
+                      IL_000b:  ldarg.1
+                      IL_000c:  call       "void MyDictionary<K, V>.this[K].set"
+                      IL_0011:  ldarg.2
+                      IL_0012:  stloc.1
+                      IL_0013:  ldloca.s   V_0
+                      IL_0015:  ldloca.s   V_1
+                      IL_0017:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_001c:  ldloca.s   V_1
+                      IL_001e:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_0023:  call       "void MyDictionary<K, V>.this[K].set"
+                      IL_0028:  ldarg.3
+                      IL_0029:  stloc.2
+                      IL_002a:  ldc.i4.0
+                      IL_002b:  stloc.3
+                      IL_002c:  br.s       IL_0050
+                      IL_002e:  ldloc.2
+                      IL_002f:  ldloc.3
+                      IL_0030:  ldelem     "System.Collections.Generic.KeyValuePair<K, V>"
+                      IL_0035:  stloc.s    V_4
+                      IL_0037:  ldloca.s   V_0
+                      IL_0039:  ldloca.s   V_4
+                      IL_003b:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_0040:  ldloca.s   V_4
+                      IL_0042:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_0047:  call       "void MyDictionary<K, V>.this[K].set"
+                      IL_004c:  ldloc.3
+                      IL_004d:  ldc.i4.1
+                      IL_004e:  add
+                      IL_004f:  stloc.3
+                      IL_0050:  ldloc.3
+                      IL_0051:  ldloc.2
+                      IL_0052:  ldlen
+                      IL_0053:  conv.i4
+                      IL_0054:  blt.s      IL_002e
+                      IL_0056:  ldloc.0
+                      IL_0057:  ret
+                    }
+                    """);
+            }
+
+            comp = (CSharpCompilation)verifier.Compilation;
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (3 elements, ConstructMethod: MyDictionary<K, V>..ctor()) (OperationKind.CollectionExpression, Type: MyDictionary<K, V>) (Syntax: '[k:v, e, ..s]')
+                  Elements(3):
+                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'k:v')
+                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'e')
+                      ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<K, V>) (OperationKind.Spread, Type: null) (Syntax: '..s')
+                        Operand:
+                          IParameterReferenceOperation: s (OperationKind.ParameterReference, Type: System.Collections.Generic.KeyValuePair<K, V>[]) (Syntax: 's')
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
+                """);
         }
 
         [Fact]

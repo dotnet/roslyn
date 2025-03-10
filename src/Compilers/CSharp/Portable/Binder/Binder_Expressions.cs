@@ -6591,7 +6591,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindDictionaryItemAssignment(
             SyntaxNode syntax,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
-            MethodSymbol setMethod,
+            MethodSymbol? getKeyMethod,
+            MethodSymbol? getValueMethod,
+            MethodSymbol? setMethod,
             BoundExpression expr,
             Conversion keyConversion,
             TypeSymbol destinationKeyType,
@@ -6602,28 +6604,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr.Type is { });
             Debug.Assert(ConversionsBase.IsKeyValuePairType(Compilation, expr.Type, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out _, out _));
 
+            if (getKeyMethod is null ||
+                getValueMethod is null)
+            {
+                return new BoundBadExpression(syntax, LookupResultKind.Empty, [], [expr], type: CreateErrorType());
+            }
+
             var exprType = (NamedTypeSymbol)expr.Type;
             return BindDictionaryItemAssignment(
                 syntax,
                 implicitReceiver,
                 setMethod,
                 CreateConversion(
-                    bindKeyOrValue(
-                        syntax,
-                        expr,
-                        ((MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax)).AsMember(exprType)),
+                    bindKeyOrValue(syntax, expr, getKeyMethod.AsMember(exprType)),
                     keyConversion,
                     destinationKeyType,
                     diagnostics),
                 CreateConversion(
-                    bindKeyOrValue(
-                        syntax,
-                        expr,
-                        ((MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax)).AsMember(exprType)),
+                    bindKeyOrValue(syntax, expr, getValueMethod.AsMember(exprType)),
                     valueConversion,
                     destinationValueType,
-                    diagnostics),
-                diagnostics);
+                    diagnostics));
 
             static BoundCall bindKeyOrValue(SyntaxNode syntax, BoundExpression expr, MethodSymbol getMethod)
             {
@@ -6652,11 +6653,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindDictionaryItemAssignment(
             SyntaxNode syntax,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
-            MethodSymbol setMethod,
+            MethodSymbol? setMethod,
             BoundExpression key,
-            BoundExpression value,
-            BindingDiagnosticBag diagnostics)
+            BoundExpression value)
         {
+            if (setMethod is null)
+            {
+                return new BoundBadExpression(syntax, LookupResultKind.Empty, [], [key, value], type: CreateErrorType());
+            }
             // PROTOTYPE: What about argument conversions?
             return new BoundCall(
                 syntax,

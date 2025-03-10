@@ -861,22 +861,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
             BoundValuePlaceholder? collectionBuilderSpanPlaceholder = null;
+            MethodSymbol? getKeyMethod = null;
+            MethodSymbol? getValueMethod = null;
             MethodSymbol? setMethod = null;
 
             // Verify the existence of the well-known members that may be used in lowering, even
             // though not all will be used for any particular collection expression. Checking all
             // gives a consistent behavior, regardless of collection expression elements.
 
+            // PROTOTYPE: Test with [CollectionBuilder] type as well. In particular, should allow all three of [k:v, e, ..s] where Ke, Ve do not match K, V exactly.
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
+            {
+                getKeyMethod = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
+                getValueMethod = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
+            }
+
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
             {
                 if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
                 {
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, diagnostics, syntax: syntax);
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
-
                     var indexer = GetCollectionExpressionApplicableIndexer(syntax, targetType, diagnostics);
                     setMethod = indexer?.GetOwnOrInheritedSetMethod();
+                    Debug.Assert(setMethod is { });
                 }
 
                 if (targetType is NamedTypeSymbol namedType &&
@@ -940,11 +946,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, diagnostics, syntax: syntax);
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, dictionaryType) { WasCompilerGenerated = true };
-                setMethod = ((MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, diagnostics, syntax: syntax)).AsMember(dictionaryType);
+                setMethod = ((MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, diagnostics, syntax: syntax))?.AsMember(dictionaryType);
             }
             else if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
                 node.HasSpreadElements(out _, out _))
@@ -1026,10 +1030,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 implicitReceiver,
                 collectionCreation,
                 collectionBuilderSpanPlaceholder,
-                setMethod,
                 wasTargetTyped: true,
                 node,
-                ConvertCollectionExpressionElements(node, targetType, conversion, collectionTypeKind, elementType, implicitReceiver, setMethod, diagnostics),
+                ConvertCollectionExpressionElements(node, targetType, conversion, collectionTypeKind, elementType, implicitReceiver, getKeyMethod, getValueMethod, setMethod, diagnostics),
                 targetType)
             { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
         }
@@ -1041,6 +1044,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CollectionExpressionTypeKind collectionTypeKind,
             TypeSymbol? elementType,
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver,
+            MethodSymbol? getKeyMethod,
+            MethodSymbol? getValueMethod,
             MethodSymbol? setMethod,
             BindingDiagnosticBag diagnostics)
         {
@@ -1098,7 +1103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(elementConversions.All(c => c.Exists));
 
                 Debug.Assert(implicitReceiver is { });
-                Debug.Assert(setMethod is { });
 
                 Debug.Assert(elementKeyType is { });
                 Debug.Assert(elementValueType is { });
@@ -1138,6 +1142,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     BindDictionaryItemAssignment(
                                         expressionSyntax,
                                         implicitReceiver,
+                                        getKeyMethod,
+                                        getValueMethod,
                                         setMethod,
                                         expr: placeholder,
                                         keyConversion: keyConversion,
@@ -1152,21 +1158,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 (SpreadElementSyntax)spreadElement.Syntax,
                                 spreadElement,
                                 implicitReceiver,
-                                static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
+                                (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
                                 {
                                     Debug.Assert(ConversionsBase.IsKeyValuePairType(binder.Compilation, item.Type, out _, out _));
                                     return binder.BindDictionaryItemAssignment(
                                         syntax,
                                         implicitReceiver,
+                                        arg.getKeyMethod,
+                                        arg.getValueMethod,
                                         arg.setMethod,
                                         item,
-                                        arg.Item2,
-                                        arg.elementKeyType,
                                         arg.Item4,
+                                        arg.elementKeyType,
+                                        arg.Item6,
                                         arg.elementValueType,
                                         diagnostics);
                                 },
-                                (setMethod, elementConversions[conversionIndex], elementKeyType, elementConversions[conversionIndex + 1], elementValueType),
+                                (getKeyMethod, getValueMethod, setMethod, elementConversions[conversionIndex], elementKeyType, elementConversions[conversionIndex + 1], elementValueType),
                                 diagnostics);
                             conversionIndex += 2;
                             break;
@@ -1188,8 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         implicitReceiver,
                                         setMethod,
                                         keyPlaceholder,
-                                        valuePlaceholder,
-                                        diagnostics));
+                                        valuePlaceholder));
                                 conversionIndex += 2;
                             }
                             break;
@@ -2086,7 +2093,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholder: null,
                 collectionCreation: null,
                 collectionBuilderSpanPlaceholder: null,
-                setMethod: null,
                 wasTargetTyped: inConversion,
                 node,
                 elements: builder.ToImmutableAndFree(),

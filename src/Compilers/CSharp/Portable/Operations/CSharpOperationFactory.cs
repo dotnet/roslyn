@@ -306,6 +306,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.TypeOrValueExpression:
                 case BoundKind.KeyValuePairElement: // PROTOTYPE: Implement IOperation support.
                 case BoundKind.CollectionExpressionWithElement: // PROTOTYPE: Implement IOperation support.
+                case BoundKind.IndexerAssignmentFromExpression: // PROTOTYPE: Implement IOperation support.
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -1266,6 +1267,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 BoundCollectionExpressionWithElement withElement => Create(withElement),
                 BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(expr, spreadElement),
                 BoundKeyValuePairElement keyValuePairElement => Create(keyValuePairElement),
+                BoundIndexerAssignmentFromExpression indexerAssignment => Create(indexerAssignment),
                 _ => Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false))
             };
         }
@@ -1279,7 +1281,10 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
             var elementType = element.EnumeratorInfoOpt?.ElementType.GetPublicSymbol();
-            var elementConversion = BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
+            // PROTOTYPE: For key-value pairs, we probably need a pair of conversions rather a single conversion.
+            var elementConversion = (expr.CollectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface) ?
+                Conversion.Identity :
+                BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
             return new SpreadOperation(
                 collection,
                 elementType: elementType,

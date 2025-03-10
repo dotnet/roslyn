@@ -6434,7 +6434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionExpression : BoundCollectionExpressionBase
     {
-        public BoundCollectionExpression(SyntaxNode syntax, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, BoundValuePlaceholder? collectionBuilderSpanPlaceholder, MethodSymbol? setMethod, bool wasTargetTyped, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type, bool hasErrors = false)
+        public BoundCollectionExpression(SyntaxNode syntax, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, BoundValuePlaceholder? collectionBuilderSpanPlaceholder, bool wasTargetTyped, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.CollectionExpression, syntax, elements, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || collectionBuilderSpanPlaceholder.HasErrors() || unconvertedCollectionExpression.HasErrors() || elements.HasErrors())
         {
 
@@ -6446,7 +6446,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Placeholder = placeholder;
             this.CollectionCreation = collectionCreation;
             this.CollectionBuilderSpanPlaceholder = collectionBuilderSpanPlaceholder;
-            this.SetMethod = setMethod;
             this.WasTargetTyped = wasTargetTyped;
             this.UnconvertedCollectionExpression = unconvertedCollectionExpression;
         }
@@ -6456,18 +6455,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundObjectOrCollectionValuePlaceholder? Placeholder { get; }
         public BoundExpression? CollectionCreation { get; }
         public BoundValuePlaceholder? CollectionBuilderSpanPlaceholder { get; }
-        public MethodSymbol? SetMethod { get; }
         public bool WasTargetTyped { get; }
         public BoundUnconvertedCollectionExpression UnconvertedCollectionExpression { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitCollectionExpression(this);
 
-        public BoundCollectionExpression Update(CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, BoundValuePlaceholder? collectionBuilderSpanPlaceholder, MethodSymbol? setMethod, bool wasTargetTyped, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type)
+        public BoundCollectionExpression Update(CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, BoundValuePlaceholder? collectionBuilderSpanPlaceholder, bool wasTargetTyped, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type)
         {
-            if (collectionTypeKind != this.CollectionTypeKind || placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || collectionBuilderSpanPlaceholder != this.CollectionBuilderSpanPlaceholder || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(setMethod, this.SetMethod) || wasTargetTyped != this.WasTargetTyped || unconvertedCollectionExpression != this.UnconvertedCollectionExpression || elements != this.Elements || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (collectionTypeKind != this.CollectionTypeKind || placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || collectionBuilderSpanPlaceholder != this.CollectionBuilderSpanPlaceholder || wasTargetTyped != this.WasTargetTyped || unconvertedCollectionExpression != this.UnconvertedCollectionExpression || elements != this.Elements || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionExpression(this.Syntax, collectionTypeKind, placeholder, collectionCreation, collectionBuilderSpanPlaceholder, setMethod, wasTargetTyped, unconvertedCollectionExpression, elements, type, this.HasErrors);
+                var result = new BoundCollectionExpression(this.Syntax, collectionTypeKind, placeholder, collectionCreation, collectionBuilderSpanPlaceholder, wasTargetTyped, unconvertedCollectionExpression, elements, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11954,7 +11952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundUnconvertedCollectionExpression unconvertedCollectionExpression = node.UnconvertedCollectionExpression;
             ImmutableArray<BoundNode> elements = this.VisitList(node.Elements);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderSpanPlaceholder, node.SetMethod, node.WasTargetTyped, unconvertedCollectionExpression, elements, type);
+            return node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderSpanPlaceholder, node.WasTargetTyped, unconvertedCollectionExpression, elements, type);
         }
         public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node)
         {
@@ -14231,7 +14229,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
-            MethodSymbol? setMethod = GetUpdatedSymbol(node, node.SetMethod);
             BoundObjectOrCollectionValuePlaceholder? placeholder = node.Placeholder;
             BoundExpression? collectionCreation = node.CollectionCreation;
             BoundValuePlaceholder? collectionBuilderSpanPlaceholder = node.CollectionBuilderSpanPlaceholder;
@@ -14241,12 +14238,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderSpanPlaceholder, setMethod, node.WasTargetTyped, unconvertedCollectionExpression, elements, infoAndType.Type!);
+                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderSpanPlaceholder, node.WasTargetTyped, unconvertedCollectionExpression, elements, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderSpanPlaceholder, setMethod, node.WasTargetTyped, unconvertedCollectionExpression, elements, node.Type);
+                updatedNode = node.Update(node.CollectionTypeKind, placeholder, collectionCreation, collectionBuilderSpanPlaceholder, node.WasTargetTyped, unconvertedCollectionExpression, elements, node.Type);
             }
             return updatedNode;
         }
@@ -16662,7 +16659,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("placeholder", null, new TreeDumperNode[] { Visit(node.Placeholder, null) }),
             new TreeDumperNode("collectionCreation", null, new TreeDumperNode[] { Visit(node.CollectionCreation, null) }),
             new TreeDumperNode("collectionBuilderSpanPlaceholder", null, new TreeDumperNode[] { Visit(node.CollectionBuilderSpanPlaceholder, null) }),
-            new TreeDumperNode("setMethod", node.SetMethod, null),
             new TreeDumperNode("wasTargetTyped", node.WasTargetTyped, null),
             new TreeDumperNode("unconvertedCollectionExpression", null, new TreeDumperNode[] { Visit(node.UnconvertedCollectionExpression, null) }),
             new TreeDumperNode("elements", null, from x in node.Elements select Visit(x, null)),
