@@ -172,7 +172,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "dev/monicaro/versioning",
+      "vsBranch": "feature/d18initial",
       "vsMajorVersion": 18,
       "insertionTitlePrefix": "[d18.0 P1]",
       "insertionCreateDraftPR": true
