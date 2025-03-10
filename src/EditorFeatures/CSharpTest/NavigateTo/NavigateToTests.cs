@@ -2016,7 +2016,7 @@ class C
             """);
         await TestAsync(testHost, composition, content, async w =>
         {
-        var item = (await _aggregator.GetItemsAsync("Goo")).Single();
+            var item = (await _aggregator.GetItemsAsync("Goo")).Single();
             VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
         });
     }
