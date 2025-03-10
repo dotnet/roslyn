@@ -10617,11 +10617,12 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // PROTOTYPE: Probably should refer to the instance extension in the error
-
-            // (1,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.M(string)' requires a receiver of type 'string'
+            // (1,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension(string).M()' requires a receiver of type 'string'
             // new object().M();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object()").WithArguments("object", "M", "E.M(string)", "string").WithLocation(1, 1)
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object()").WithArguments("object", "M", "E.extension(string).M()", "string").WithLocation(1, 1),
+            // (2,1): error CS1929: 'object' does not contain a definition for 'M2' and the best extension method overload 'E.M2(string)' requires a receiver of type 'string'
+            // new object().M2();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object()").WithArguments("object", "M2", "E.M2(string)", "string").WithLocation(2, 1)
             );
     }
 
@@ -10753,11 +10754,12 @@ static class E
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // PROTOTYPE: Probably should refer to the instance extension in the error
-
-            // (1,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.Method<T>(T)'
+            // (1,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.extension<T>(T)'
             // new object().Method();
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Method").WithArguments("E.Method<T>(T)", "T", "object").WithLocation(1, 14)
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Method").WithArguments("E.extension<T>(T)", "T", "object").WithLocation(1, 14),
+            // (2,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.Method2<T>(T)'
+            // new object().Method2();
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Method2").WithArguments("E.Method2<T>(T)", "T", "object").WithLocation(2, 14)
             );
     }
 
@@ -12245,12 +12247,18 @@ static class E
 """;
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics(
-            // (3,48): error CS0306: The type 'long*' may not be used as a type argument
-            //     string s = new C<long*[]>.Nested<int*[]>().M();
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("long*").WithLocation(3, 48),
-            // (3,48): error CS0306: The type 'int*' may not be used as a type argument
-            //     string s = new C<long*[]>.Nested<int*[]>().M();
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("int*").WithLocation(3, 48)
+            // (3,37): error CS0306: The type 'long*' may not be used as a type argument
+            //     new C<long*[]>.Nested<int*[]>().M();
+            Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("long*").WithLocation(3, 37),
+            // (3,37): error CS0306: The type 'int*' may not be used as a type argument
+            //     new C<long*[]>.Nested<int*[]>().M();
+            Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("int*").WithLocation(3, 37),
+            // (4,37): error CS0306: The type 'long*' may not be used as a type argument
+            //     new C<long*[]>.Nested<int*[]>().M2();
+            Diagnostic(ErrorCode.ERR_BadTypeArgument, "M2").WithArguments("long*").WithLocation(4, 37),
+            // (4,37): error CS0306: The type 'int*' may not be used as a type argument
+            //     new C<long*[]>.Nested<int*[]>().M2();
+            Diagnostic(ErrorCode.ERR_BadTypeArgument, "M2").WithArguments("int*").WithLocation(4, 37)
             );
 
         var tree = comp.SyntaxTrees.First();
@@ -12623,13 +12631,13 @@ public interface I<out T> { }
 
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
         Assert.Equal("void I<System.Object>.M<System.Object>(out System.Object t)", model.GetSymbolInfo(memberAccess1).Symbol.ToTestDisplayString());
-        // PROTOTYPE: Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
-        // PROTOTYPE: Assert.Equal(["void I<System.String>.M<System.String>(out System.String t)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void I<System.String>.M<System.String>(out System.String t)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M2");
-        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
-        // PROTOTYPE: Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
-        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess2)); // PROTOTYPE semantic model is undone
+        Assert.Equal("void E2.<>E__0<System.Object>.M2(out System.Object t)", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void I<System.String>.M2<System.String>(out System.String t)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -12683,11 +12691,12 @@ static class E
         comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // PROTOTYPE: Should probably refer to instance extension in the error
-
-            // (4,1): error CS1929: 'IEnumerable<object>' does not contain a definition for 'M' and the best extension method overload 'E.M(IEnumerable<string>)' requires a receiver of type 'System.Collections.Generic.IEnumerable<string>'
+            // (4,1): error CS1929: 'IEnumerable<object>' does not contain a definition for 'M' and the best extension method overload 'E.extension(IEnumerable<string>).M()' requires a receiver of type 'System.Collections.Generic.IEnumerable<string>'
             // i.M();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("System.Collections.Generic.IEnumerable<object>", "M", "E.M(System.Collections.Generic.IEnumerable<string>)", "System.Collections.Generic.IEnumerable<string>").WithLocation(4, 1)
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("System.Collections.Generic.IEnumerable<object>", "M", "E.extension(System.Collections.Generic.IEnumerable<string>).M()", "System.Collections.Generic.IEnumerable<string>").WithLocation(4, 1),
+            // (5,5): error CS9505: 'IEnumerable<object>' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'IEnumerable<object>' could be found (are you missing a using directive or an assembly reference?)
+            // _ = i.P;
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.P").WithArguments("System.Collections.Generic.IEnumerable<object>", "P").WithLocation(5, 5)
             );
     }
 
@@ -12934,9 +12943,6 @@ static class E
             // (1,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // new Derived().M();
             Diagnostic(ErrorCode.ERR_NoTypeDef, "new Derived().M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
-            // (1,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-            // new Derived().M();
-            Diagnostic(ErrorCode.ERR_NoTypeDef, "new Derived().M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
             // (1,15): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // new Derived().M();
             Diagnostic(ErrorCode.ERR_NoTypeDef, "M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 15),
@@ -13015,14 +13021,12 @@ static class E
 """;
         var comp = CreateCompilation(src, references: [derivedRef]);
         comp.VerifyEmitDiagnostics(
-            // PROTOTYPE: Probably should refer to the instance extension in the error
-
-            // (1,1): error CS1929: 'Derived' does not contain a definition for 'M' and the best extension method overload 'E.M(I<object>)' requires a receiver of type 'I<object>'
-            // new Derived().M();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new Derived()").WithArguments("Derived", "M", "E.M(I<object>)", "I<object>").WithLocation(1, 1),
-            // (2,1): error CS1929: 'Derived' does not contain a definition for 'M2' and the best extension method overload 'E.M2(I<object>)' requires a receiver of type 'I<object>'
-            // new Derived().M2();
-            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new Derived()").WithArguments("Derived", "M2", "E.M2(I<object>)", "I<object>").WithLocation(2, 1));
+                // (1,1): error CS1929: 'Derived' does not contain a definition for 'M' and the best extension method overload 'E.extension(I<object>).M()' requires a receiver of type 'I<object>'
+                // new Derived().M();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new Derived()").WithArguments("Derived", "M", "E.extension(I<object>).M()", "I<object>").WithLocation(1, 1),
+                // (2,1): error CS1929: 'Derived' does not contain a definition for 'M2' and the best extension method overload 'E.M2(I<object>)' requires a receiver of type 'I<object>'
+                // new Derived().M2();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new Derived()").WithArguments("Derived", "M2", "E.M2(I<object>)", "I<object>").WithLocation(2, 1));
     }
 
     [Fact]
@@ -22827,7 +22831,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.Action E.<>E__0.M { get; }", "System.String E.<>E__1.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["System.Action E.<>E__0.M { get; }", "System.String E.<>E__1.M()", "System.String E.M(this System.Object o)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -22892,7 +22896,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.Action E.<>E__0.M { get; }", "System.String E.<>E__1.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["System.Action E.<>E__0.M { get; }", "System.String E.<>E__1.M()", "System.String E.M(this I<System.Object> i)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -22930,7 +22934,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.Action E1.<>E__0.M { get; }", "System.String E2.<>E__0.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["System.Action E1.<>E__0.M { get; }", "System.String E2.<>E__0.M()", "System.String E2.M(this I<System.String> i)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
@@ -23408,7 +23412,7 @@ static class E
             IL_0001: throw
         }
     }
-    .method public hidebysig specialname static void '<Extension>M' ( int32[] i ) cil managed 
+    .method public hidebysig specialname static void 'M' ( int32[] i ) cil managed 
     {
         .param [1]
         .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
@@ -23476,7 +23480,7 @@ i.M(2);
             .get instance int32 E/'<>E__0'::get_P()
         }
     }
-    .method public hidebysig specialname static int32 '<Extension>get_P' ( int32[] i ) cil managed 
+    .method public hidebysig specialname static int32 'get_P' ( int32[] i ) cil managed 
     {
         .param [1]
         .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
