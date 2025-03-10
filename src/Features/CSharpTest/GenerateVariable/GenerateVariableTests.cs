@@ -11150,4 +11150,56 @@ $@"class Program
             }
             """);
     }
+
+    [Fact]
+    public async Task TestNullConditionalAssignment1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(Class c)
+                {
+                    c?.[|goo|] = 1;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                private int goo;
+
+                void Method(Class c)
+                {
+                    c?.goo = 1;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNullConditionalAssignment2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(Class c)
+                {
+                    c?.[|Goo|] = 1;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public int Goo { get; private set; }
+
+                void Method(Class c)
+                {
+                    c?.Goo = 1;
+                }
+            }
+            """);
+    }
 }

@@ -93,15 +93,21 @@ internal sealed partial class CSharpGenerateVariableService :
         if (identifierToken.ValueText != string.Empty &&
             !IsProbablyGeneric(identifierName, cancellationToken))
         {
-            var memberAccess = identifierName.Parent as MemberAccessExpressionSyntax;
-            var conditionalMemberAccess = identifierName.Parent.Parent as ConditionalAccessExpressionSyntax;
-            if (memberAccess?.Name == identifierName)
+            if (identifierName.Parent is MemberAccessExpressionSyntax memberAccessExpression &&
+                memberAccessExpression.Name == identifierName)
             {
-                simpleNameOrMemberAccessExpression = memberAccess;
+                simpleNameOrMemberAccessExpression = memberAccessExpression;
             }
-            else if ((conditionalMemberAccess?.WhenNotNull as MemberBindingExpressionSyntax)?.Name == identifierName)
+            else if (identifierName.Parent.Parent is ConditionalAccessExpressionSyntax conditionalAccessExpression &&
+                conditionalAccessExpression.WhenNotNull == identifierName.Parent)
             {
-                simpleNameOrMemberAccessExpression = conditionalMemberAccess;
+                simpleNameOrMemberAccessExpression = conditionalAccessExpression;
+            }
+            else if (identifierName.Parent is MemberBindingExpressionSyntax memberBindingExpression &&
+                identifierName.Parent.Parent is AssignmentExpressionSyntax assignmentExpression &&
+                assignmentExpression.Left == memberBindingExpression)
+            {
+                simpleNameOrMemberAccessExpression = memberBindingExpression;
             }
             else
             {
@@ -120,7 +126,7 @@ internal sealed partial class CSharpGenerateVariableService :
 
             var block = identifierName.GetAncestor<BlockSyntax>();
             isInExecutableBlock = block != null && !block.OverlapsHiddenPosition(cancellationToken);
-            isConditionalAccessExpression = conditionalMemberAccess != null;
+            isConditionalAccessExpression = identifierName.Parent.Parent is ConditionalAccessExpressionSyntax;
             return true;
         }
 
