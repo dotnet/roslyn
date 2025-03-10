@@ -861,32 +861,20 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 
         static void AppendTypeParameterList(StringBuilder builder, TypeParameterListSyntax? typeParameterList)
         {
-            if (typeParameterList != null && typeParameterList.Parameters.Count > 0)
+            if (typeParameterList != null)
             {
                 builder.Append('<');
-                builder.Append(typeParameterList.Parameters[0].Identifier.ValueText);
-                for (var i = 1; i < typeParameterList.Parameters.Count; i++)
-                {
-                    builder.Append(", ");
-                    builder.Append(typeParameterList.Parameters[i].Identifier.ValueText);
-                }
-
+                builder.Append(string.Join(", ", typeParameterList.Parameters.Select(static p => p.Identifier.ValueText)));
                 builder.Append('>');
             }
         }
 
         static void AppendParameterList(StringBuilder builder, ParameterListSyntax? parameterList)
         {
-            if (parameterList != null && parameterList.Parameters.Count > 0)
+            if (parameterList != null)
             {
                 builder.Append('(');
-                builder.Append(Instance.ConvertToSingleLine(parameterList.Parameters[0].Type!).ToString());
-                for (var i = 1; i < parameterList.Parameters.Count; i++)
-                {
-                    builder.Append(", ");
-                    builder.Append(Instance.ConvertToSingleLine(parameterList.Parameters[i].Type!).ToString());
-                }
-
+                builder.Append(string.Join(", ", parameterList.Parameters.Select(static p => Instance.ConvertToSingleLine(p.Type))));
                 builder.Append(')');
             }
         }
