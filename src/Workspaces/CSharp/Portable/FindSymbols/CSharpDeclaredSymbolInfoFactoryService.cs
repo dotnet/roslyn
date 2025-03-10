@@ -218,6 +218,9 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
             return null;
         }
 
+        if (typeDeclaration.Kind() == SyntaxKind.ExtensionDeclaration)
+            return null;
+
         return DeclaredSymbolInfo.Create(
             stringTable,
             typeDeclaration.Identifier.ValueText,
@@ -233,7 +236,6 @@ internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolIn
                 SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
                 SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
                 SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
-                SyntaxKind.ExtensionDeclaration => DeclaredSymbolInfoKind.ExtensionMethod,
                 _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind()),
             },
             GetAccessibility(container, typeDeclaration.Modifiers),
