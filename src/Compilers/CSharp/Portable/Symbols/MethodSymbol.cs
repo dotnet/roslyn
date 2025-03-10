@@ -1292,7 +1292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public MethodSymbol? TryGetCorrespondingExtensionImplementationMethod()
         {
             Debug.Assert(this.IsDefinition);
-            Debug.Assert(this.ContainingType.IsExtension);
+            Debug.Assert(this.GetIsNewExtensionMember());
             return this.ContainingType.TryGetCorrespondingExtensionImplementationMethod(this);
         }
     }
