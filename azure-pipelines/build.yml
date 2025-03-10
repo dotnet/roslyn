@@ -198,7 +198,7 @@ jobs:
       IsOptProf: ${{ parameters.IsOptProf }}
 
   - ${{ if and(parameters.EnableDotNetFormatCheck, not(parameters.EnableLinuxBuild)) }}:
-    - script: dotnet format --verify-no-changes
+    - script: dotnet format --verify-no-changes --no-restore
       displayName: 💅 Verify formatted code
       env:
         dotnetformat: true # part of a workaround for https://github.com/dotnet/sdk/issues/44951
@@ -242,7 +242,7 @@ jobs:
           Is1ESPT: ${{ parameters.Is1ESPT }}
           RunTests: ${{ parameters.RunTests }}
       - ${{ if parameters.EnableDotNetFormatCheck }}:
-        - script: dotnet format --verify-no-changes
+        - script: dotnet format --verify-no-changes --no-restore
           displayName: 💅 Verify formatted code
           env:
             dotnetformat: true # part of a workaround for https://github.com/dotnet/sdk/issues/44951
