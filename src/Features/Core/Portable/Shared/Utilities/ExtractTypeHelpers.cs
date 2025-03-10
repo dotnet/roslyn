@@ -112,7 +112,8 @@ internal static class ExtractTypeHelpers
         return (formattedDocument, typeAnnotation);
     }
 
-    public static string GetTypeParameterSuffix(Document document, SyntaxFormattingOptions formattingOptions, INamedTypeSymbol type, IEnumerable<ISymbol> extractableMembers, CancellationToken cancellationToken)
+    public static string GetTypeParameterSuffix(
+        Document document, SyntaxFormattingOptions formattingOptions, INamedTypeSymbol type, ImmutableArray<ISymbol> extractableMembers, CancellationToken cancellationToken)
     {
         var typeParameters = GetRequiredTypeParametersForMembers(type, extractableMembers);
 
@@ -127,7 +128,8 @@ internal static class ExtractTypeHelpers
         return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Services, formattingOptions, cancellationToken).ToString();
     }
 
-    public static ImmutableArray<ITypeParameterSymbol> GetRequiredTypeParametersForMembers(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)
+    public static ImmutableArray<ITypeParameterSymbol> GetRequiredTypeParametersForMembers(
+        INamedTypeSymbol type, ImmutableArray<ISymbol> includedMembers)
     {
         var potentialTypeParameters = GetPotentialTypeParameters(type);
 
@@ -181,7 +183,8 @@ internal static class ExtractTypeHelpers
         return typeParameters.ToImmutableAndClear();
     }
 
-    private static ImmutableArray<ITypeParameterSymbol> GetDirectlyReferencedTypeParameters(IEnumerable<ITypeParameterSymbol> potentialTypeParameters, IEnumerable<ISymbol> includedMembers)
+    private static ImmutableArray<ITypeParameterSymbol> GetDirectlyReferencedTypeParameters(
+        ImmutableArray<ITypeParameterSymbol> potentialTypeParameters, ImmutableArray<ISymbol> includedMembers)
     {
         using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var directlyReferencedTypeParameters);
         foreach (var typeParameter in potentialTypeParameters)

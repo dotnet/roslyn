@@ -406,4 +406,7 @@
   <data name="Implement_through_0" xml:space="preserve">
     <value>Implement through '{0}'</value>
   </data>
+  <data name="Accessibility_modifiers_unnecessary" xml:space="preserve">
+    <value>Accessibility modifiers unnecessary</value>
+  </data>
 </root>

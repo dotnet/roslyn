@@ -15080,6 +15080,22 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         ]);
     }
 
+    [Theory, CombinatorialData]
+    public async Task PartialPropertyOrConstructor(
+        [CombinatorialValues("class", "struct", "record", "record class", "record struct", "interface")] string typeKind,
+        [CombinatorialValues("", "public", "private", "static", "extern")] string modifiers)
+    {
+        var markup = $$"""
+            partial {{typeKind}} C
+            {
+                {{modifiers}} partial $$
+            }
+            """;
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Exists("C"),
+        ]);
+    }
+
     private static string MakeMarkup([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source, string languageVersion = "Preview")
     {
         return $$"""

@@ -12,13 +12,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class PartialKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class PartialKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.PartialKeyword)
 {
-    public PartialKeywordRecommender()
-        : base(SyntaxKind.PartialKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return

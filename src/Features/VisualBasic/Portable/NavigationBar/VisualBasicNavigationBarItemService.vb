@@ -19,7 +19,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.NavigationBar
     <ExportLanguageService(GetType(INavigationBarItemService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicNavigationBarItemService
+    Partial Friend NotInheritable Class VisualBasicNavigationBarItemService
         Inherits AbstractNavigationBarItemService
 
         Private ReadOnly _typeFormat As SymbolDisplayFormat = New SymbolDisplayFormat(

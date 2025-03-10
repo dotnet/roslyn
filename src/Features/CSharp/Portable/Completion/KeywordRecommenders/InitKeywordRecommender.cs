@@ -8,13 +8,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class InitKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class InitKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.InitKeyword)
 {
-    public InitKeywordRecommender()
-        : base(SyntaxKind.InitKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return

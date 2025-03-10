@@ -2164,6 +2164,121 @@ class C {
                 SymbolDisplayPartKind.Keyword);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
+        public void TestPropertyBackingField_Minimal_01()
+        {
+            var text = @"
+#nullable enable
+class C {
+    string P { get; set; } }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("C", 0).Single().
+                GetMembers("<P>k__BackingField").Single();
+
+            var format = new SymbolDisplayFormat(
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "P.field",
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
+        public void TestPropertyBackingField_Minimal_02()
+        {
+            var text = @"
+#nullable enable
+
+interface I {
+    string P { get; set; }
+}
+
+class C : I {
+    string I.P { get; set; } }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("C", 0).Single().
+                GetMembers("<I.P>k__BackingField").Single();
+
+            var format = new SymbolDisplayFormat(
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeExplicitInterface);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "I.P.field",
+                SymbolDisplayPartKind.InterfaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
+        public void TestPropertyBackingField_Minimal_03()
+        {
+            var text = @"
+#nullable enable
+
+interface I {
+    string P { get; set; }
+}
+
+class C : I {
+    string I.P { get; set; } }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("C", 0).Single().
+                GetMembers("<I.P>k__BackingField").Single();
+
+            var format = new SymbolDisplayFormat();
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "P.field",
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
+        public void TestOrdinaryField_Minimal()
+        {
+            var text = @"
+#nullable enable
+
+class C {
+    string F;
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("C", 0).Single().
+                GetMembers("F").Single();
+
+            var format = new SymbolDisplayFormat();
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "F",
+                SymbolDisplayPartKind.FieldName);
+        }
+
         [Fact]
         public void TestPropertyBackingFieldFromCompilationReference()
         {

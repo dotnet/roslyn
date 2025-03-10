@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
@@ -23,10 +25,29 @@ internal sealed class DocumentationCommentSnippet
     /// </summary>
     public int CaretOffset { get; }
 
-    internal DocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset)
+    /// <summary>
+    /// The original position of the caret in the original text.
+    /// </summary>
+    public int? Position { get; }
+
+    /// <summary>
+    /// The node that is being documented.
+    /// </summary>
+    public SyntaxNode? MemberNode { get; }
+
+    /// <summary>
+    /// The text to use for indentation. This is specifically used for the generate documentation with
+    /// Copilot case to ensure the wrapped comments are indented correctly.
+    /// </summary>
+    public string? IndentText { get; }
+
+    internal DocumentationCommentSnippet(TextSpan spanToReplace, string snippetText, int caretOffset, int? position, SyntaxNode? memberNode, string? indentText)
     {
         SpanToReplace = spanToReplace;
         SnippetText = snippetText;
         CaretOffset = caretOffset;
+        Position = position;
+        MemberNode = memberNode;
+        IndentText = indentText;
     }
 }

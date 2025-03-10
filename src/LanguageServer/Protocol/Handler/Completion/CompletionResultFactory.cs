@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 
         public static string[] DefaultCommitCharactersArray { get; } = CreateCommitCharacterArrayFromRules(CompletionItemRules.Default);
 
-        public static async Task<LSP.CompletionList> ConvertToLspCompletionListAsync(
+        public static async Task<LSP.VSInternalCompletionList> ConvertToLspCompletionListAsync(
             Document document,
             CompletionCapabilityHelper capabilityHelper,
             CompletionList list,

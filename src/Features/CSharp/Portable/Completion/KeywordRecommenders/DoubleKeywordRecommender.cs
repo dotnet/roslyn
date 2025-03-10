@@ -11,13 +11,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class DoubleKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class DoubleKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.DoubleKeyword)
 {
-    public DoubleKeywordRecommender()
-        : base(SyntaxKind.DoubleKeyword)
-    {
-    }
-
     protected override bool IsValidContextWorker(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var syntaxTree = context.SyntaxTree;
@@ -47,7 +42,7 @@ internal class DoubleKeywordRecommender : AbstractSpecialTypePreselectingKeyword
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
                 validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                canBePartial: true,
                 cancellationToken: cancellationToken);
     }
 

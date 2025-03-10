@@ -367,5 +367,28 @@ class C
                 Item("C", Glyph.ClassInternal), False,
                 Item("explicit operator checked string(C x)", Glyph.Operator), False)
         End Function
+
+        <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/59458")>
+        Public Async Function TestModernExtensionMethod1(host As TestHost) As Task
+            Await AssertSelectedItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                        <Document>
+static class C
+{
+    extension(string s)
+    {
+        public void Goo()$$
+        {
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>,
+                host,
+                Item("C.extension(string)", Glyph.ClassPublic), False,
+                Item("Goo()", Glyph.MethodPublic), False)
+        End Function
     End Class
 End Namespace

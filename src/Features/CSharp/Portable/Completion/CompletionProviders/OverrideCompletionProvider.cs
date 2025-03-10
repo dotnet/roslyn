@@ -204,8 +204,8 @@ internal sealed partial class OverrideCompletionProvider() : AbstractOverrideCom
         return filteredMembers.Length > 0 ? filteredMembers : members;
     }
 
-    protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
+    protected override TextSpan GetTargetSelectionSpan(SyntaxNode caretTarget)
     {
-        return CompletionUtilities.GetTargetCaretNodeForInsertedMember(caretTarget).GetLocation().SourceSpan.End;
+        return CompletionUtilities.GetTargetSelectionSpanForInsertedMember(caretTarget);
     }
 }

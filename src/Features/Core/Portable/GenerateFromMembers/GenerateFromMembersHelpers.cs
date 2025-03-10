@@ -70,10 +70,10 @@ internal static class GenerateFromMembersHelpers
         };
 
     private static bool IsViableField(IFieldSymbol field)
-        => field.AssociatedSymbol == null;
+        => field is { AssociatedSymbol: null, CanBeReferencedByName: true };
 
     private static bool IsViableProperty(IPropertySymbol property)
-        => property.Parameters.IsEmpty;
+        => property is { Parameters.IsEmpty: true, CanBeReferencedByName: true };
 
     /// <summary>
     /// Returns an array of parameter symbols that correspond to selected member symbols.

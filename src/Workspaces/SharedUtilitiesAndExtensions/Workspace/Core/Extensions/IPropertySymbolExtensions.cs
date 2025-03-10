@@ -59,7 +59,7 @@ internal static partial class IPropertySymbolExtensions
             property.Name,
             property.Parameters.SelectAsArray(static (p, arg) =>
                 CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    p.GetAttributes().WhereAsArray(static (a, arg) => !ShouldRemoveAttribute(a, arg), arg),
+                    p.GetAttributes().WhereAsArray(static (a, arg) => !ShouldRemoveAttribute(a, arg), arg: arg),
                     p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                     p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null), arg),
             property.GetMethod,

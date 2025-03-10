@@ -645,6 +645,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+#nullable enable
+
         /// <summary>
         /// The function groups types defined in the module by their fully-qualified namespace name.
         /// The case-sensitivity of the grouping depends upon the provided StringComparer.
@@ -670,9 +672,11 @@ namespace Microsoft.CodeAnalysis
             // merged, even if they are equal according to the provided comparer.  This improves the error
             // experience because types retain their exact namespaces.
 
-            Dictionary<string, ArrayBuilder<TypeDefinitionHandle>> namespaces = new Dictionary<string, ArrayBuilder<TypeDefinitionHandle>>();
+            Dictionary<string, ArrayBuilder<TypeDefinitionHandle>?> namespaces = new Dictionary<string, ArrayBuilder<TypeDefinitionHandle>?>();
 
-            GetTypeNamespaceNamesOrThrow(namespaces);
+            // Note: the ! assertion here is for the ArrayBuilder<TypeDefinitionHandle> values being non-null in this 
+            // method. The dictionary is empty so this is trivially true.
+            GetTypeNamespaceNamesOrThrow(namespaces!);
             GetForwardedTypeNamespaceNamesOrThrow(namespaces);
 
             var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>(namespaces.Count);
@@ -686,7 +690,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        internal class TypesByNamespaceSortComparer : IComparer<IGrouping<string, TypeDefinitionHandle>>
+        internal sealed class TypesByNamespaceSortComparer : IComparer<IGrouping<string, TypeDefinitionHandle>>
         {
             private readonly StringComparer _nameComparer;
 
@@ -695,11 +699,21 @@ namespace Microsoft.CodeAnalysis
                 _nameComparer = nameComparer;
             }
 
-            public int Compare(IGrouping<string, TypeDefinitionHandle> left, IGrouping<string, TypeDefinitionHandle> right)
+            public int Compare(IGrouping<string, TypeDefinitionHandle>? left, IGrouping<string, TypeDefinitionHandle>? right)
             {
                 if (left == right)
                 {
                     return 0;
+                }
+
+                if (left is null)
+                {
+                    return -1;
+                }
+
+                if (right is null)
+                {
+                    return 1;
                 }
 
                 int result = _nameComparer.Compare(left.Key, right.Key);
@@ -745,7 +759,7 @@ namespace Microsoft.CodeAnalysis
                 NamespaceDefinitionHandle nsHandle = pair.NamespaceHandle;
                 TypeDefinitionHandle typeDef = pair.TypeDef;
 
-                ArrayBuilder<TypeDefinitionHandle> builder;
+                ArrayBuilder<TypeDefinitionHandle>? builder;
 
                 if (namespaceHandles.TryGetValue(nsHandle, out builder))
                 {
@@ -761,7 +775,7 @@ namespace Microsoft.CodeAnalysis
             {
                 string @namespace = MetadataReader.GetString(kvp.Key);
 
-                ArrayBuilder<TypeDefinitionHandle> builder;
+                ArrayBuilder<TypeDefinitionHandle>? builder;
 
                 if (namespaces.TryGetValue(@namespace, out builder))
                 {
@@ -816,7 +830,7 @@ namespace Microsoft.CodeAnalysis
         /// the qualifier).
         /// </summary>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private void GetForwardedTypeNamespaceNamesOrThrow(Dictionary<string, ArrayBuilder<TypeDefinitionHandle>> namespaces)
+        private void GetForwardedTypeNamespaceNamesOrThrow(Dictionary<string, ArrayBuilder<TypeDefinitionHandle>?> namespaces)
         {
             EnsureForwardTypeToAssemblyMap();
 
@@ -830,6 +844,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+#nullable disable
 
         private IdentifierCollection ComputeTypeNameCollection()
         {

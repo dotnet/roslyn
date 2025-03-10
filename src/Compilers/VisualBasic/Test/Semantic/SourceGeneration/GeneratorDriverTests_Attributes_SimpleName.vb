@@ -468,7 +468,7 @@ end class
             Dim source = "
 imports AAttribute : X
 
-<AAtribute>
+<AAttribute>
 class C
 end class
 "

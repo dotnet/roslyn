@@ -7,6 +7,9 @@
     <!-- Test our primary scenarios: VS OOP, VS Code, devenv -->
     <TargetFrameworks>$(NetVSShared);net472</TargetFrameworks>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Features\TestUtilities\Utilities\StringSyntaxAttribute.cs" Link="StringSyntaxAttribute.cs" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\CoreTestUtilities\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj" />
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />

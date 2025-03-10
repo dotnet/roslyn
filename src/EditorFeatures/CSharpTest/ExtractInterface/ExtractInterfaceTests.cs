@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ExtractInterface;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
@@ -2086,5 +2087,25 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """;
 
         await TestExtractInterfaceCodeActionCSharpAsync(markup, expectedMarkup);
+    }
+
+    [WpfFact]
+    public async Task ExtractInterface_Invocation_FromExtension()
+    {
+        var markup = """
+            using System;
+
+            static class C
+            {
+                $$extension(string s)
+                {
+                    public void Goo() { }
+                }
+            }
+            """;
+
+        await TestExtractInterfaceCommandCSharpAsync(
+            markup, expectedSuccess: false,
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
     }
 }

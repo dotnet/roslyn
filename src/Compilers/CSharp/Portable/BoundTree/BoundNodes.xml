@@ -902,10 +902,6 @@
          Conversion is represented by a single BoundConversion.
          -->
     <Field Name="ConversionGroupOpt" Type="ConversionGroup?"/>
-    <!--The set of method symbols from which this conversion's method was chosen.
-        Only kept in the tree if the conversion was an error and overload resolution
-        was unable to choose a best method.-->
-    <Field Name="OriginalUserDefinedConversionsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
   <!--

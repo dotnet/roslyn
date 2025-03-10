@@ -1,3 +1,4 @@
+// Used by .github/workflows/main-merge.yml
 {
     "merge-flow-configurations": {
         // Merge any main changes to release/dev18.0.

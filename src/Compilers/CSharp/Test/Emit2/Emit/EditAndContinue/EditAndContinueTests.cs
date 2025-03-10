@@ -6193,7 +6193,7 @@ class C
                     Assert.Equal(generation, parentGeneration);
                     Assert.Equal(newTypeDefHandle, parentHandle);
 
-                    // attribute contructor should match
+                    // attribute constructor should match
                     var ctorHandle = aggregator.GetGenerationHandle(attribute.Constructor, out var ctorGeneration);
                     Assert.Equal(0, ctorGeneration);
                     Assert.Equal(attributeCtorDefHandle, ctorHandle);

@@ -4334,7 +4334,7 @@ class SampleCollection<T>
     }
 
     [Fact]
-    public async Task TestIntroduceLocalWithTargetTypedNew()
+    public async Task TestIntroduceLocalWithTargetTypedNew1()
     {
         var code =
             """
@@ -4375,12 +4375,103 @@ class SampleCollection<T>
             }
             """;
 
-        OptionsCollection optionsCollection = new(GetLanguage())
+        await TestInRegularAndScriptAsync(code, expected, options: new(GetLanguage())
         {
             { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
-        };
+        });
+    }
 
-        await TestInRegularAndScriptAsync(code, expected, options: optionsCollection);
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77276")]
+    public async Task TestIntroduceLocalWithTargetTypedNew2()
+    {
+        var code =
+            """
+            public static class Demo
+            {
+                public static void Test()
+                {
+                    Console.WriteLine([|new Class1 { Value = 123 }|]);
+                }
+            }
+
+            public sealed class Class1
+            {
+                public int Value { get; set; }
+            }
+            """;
+
+        var expected =
+            """
+            public static class Demo
+            {
+                public static void Test()
+                {
+                    Class1 {|Rename:class1|} = new() { Value = 123 };
+                    Console.WriteLine(class1);
+                }
+            }
+
+            public sealed class Class1
+            {
+                public int Value { get; set; }
+            }
+            """;
+
+        await TestInRegularAndScriptAsync(code, expected, options: new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
+        });
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77428")]
+    public async Task TestIntroduceLocalWithTargetTypedNew1_CSharp8()
+    {
+        var code =
+            """
+            using System;
+            class SampleType
+            {
+                public SampleType() 
+                {
+                    int sum = Sum([|new Numbers()|]);
+                }
+
+                private int Sum(Numbers numbers) 
+                {
+                    return 42;
+                }
+
+                private class Numbers {}
+            }
+            """;
+
+        var expected =
+            """
+            using System;
+            class SampleType
+            {
+                public SampleType() 
+                {
+                    Numbers {|Rename:numbers|} = new Numbers();
+                    int sum = Sum(numbers);
+                }
+
+                private int Sum(Numbers numbers) 
+                {
+                    return 42;
+                }
+
+                private class Numbers {}
+            }
+            """;
+
+        await TestInRegularAndScriptAsync(
+            code, expected,
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8),
+            options: new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
+            });
     }
 
     [Fact]

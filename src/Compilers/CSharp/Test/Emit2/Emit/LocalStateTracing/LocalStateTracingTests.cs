@@ -3207,7 +3207,7 @@ Main: Returned
         }
 
         [Fact]
-        public void Initializers_NoContructorBody()
+        public void Initializers_NoConstructorBody()
         {
             var source = WithHelpers(@"
 var _ = new C();

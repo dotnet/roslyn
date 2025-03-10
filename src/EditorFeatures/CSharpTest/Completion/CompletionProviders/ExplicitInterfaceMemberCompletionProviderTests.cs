@@ -169,7 +169,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
             {
                 void IGoo.Goo()
                 {
-                    throw new System.NotImplementedException();$$
+                    [|throw new System.NotImplementedException();|]
                 }
             }
             """;
@@ -549,7 +549,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
             {
                 int IGoo.Generic(K key, V value)
                 {
-                    throw new System.NotImplementedException();$$
+                    [|throw new System.NotImplementedException();|]
                 }
             }
             """;
@@ -1214,7 +1214,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
             {
                 static bool IFoo.TryDecode(out DecodeError? decodeError, out string? errorMessage)
                 {
-                    throw new System.NotImplementedException();$$
+                    [|throw new System.NotImplementedException();|]
                 }
             }
             

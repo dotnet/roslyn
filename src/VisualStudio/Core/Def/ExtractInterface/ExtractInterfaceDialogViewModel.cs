@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -27,7 +26,7 @@ internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         INotificationService notificationService,
         string defaultInterfaceName,
-        List<string> conflictingTypeNames,
+        ImmutableArray<string> conflictingTypeNames,
         ImmutableArray<LanguageServices.Utilities.MemberSymbolViewModel> memberViewModels,
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
@@ -49,7 +48,7 @@ internal class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyChanged
             languageName,
             defaultNamespace,
             generatedNameTypeParameterSuffix,
-            [.. conflictingTypeNames],
+            conflictingTypeNames,
             syntaxFactsService,
             canAddDocument);
     }

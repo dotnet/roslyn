@@ -7,13 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class SwitchKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class SwitchKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.SwitchKeyword)
 {
-    public SwitchKeywordRecommender()
-        : base(SyntaxKind.SwitchKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return

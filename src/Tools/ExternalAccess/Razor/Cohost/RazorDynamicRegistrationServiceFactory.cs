@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -66,23 +67,25 @@ internal sealed class RazorDynamicRegistrationServiceFactory(
 
             void InitializeRazor()
             {
-                this.InitializeRazor(clientCapabilities, context, _disposalTokenSource.Token);
+                this.InitializeRazorAsync(clientCapabilities, context, _disposalTokenSource.Token).ReportNonFatalErrorAsync();
             }
         }
 
-        private void InitializeRazor(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+        private async Task InitializeRazorAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
             // The LSP server will dispose us when the server exits, but VS could decide to activate us later.
             // If a new instance of the server is created, a new instance of this class will be created and the
             // UIContext will already be active, so this method will be immediately called on the new instance.
             if (cancellationToken.IsCancellationRequested) return;
 
+            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
             // We use a string to pass capabilities to/from Razor to avoid version issues with the Protocol DLL
             var serializedClientCapabilities = JsonSerializer.Serialize(clientCapabilities, ProtocolConversions.LspJsonSerializerOptions);
             var razorCohostClientLanguageServerManager = new RazorCohostClientLanguageServerManager(clientLanguageServerManager!);
 
             var requestContext = new RazorCohostRequestContext(context);
-            dynamicRegistrationService!.Value.RegisterAsync(serializedClientCapabilities, requestContext, cancellationToken).ReportNonFatalErrorAsync();
+            await dynamicRegistrationService!.Value.RegisterAsync(serializedClientCapabilities, requestContext, cancellationToken).ConfigureAwait(false);
         }
     }
 }

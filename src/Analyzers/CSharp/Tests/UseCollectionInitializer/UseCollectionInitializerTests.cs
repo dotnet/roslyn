@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1824,6 +1825,44 @@ public sealed partial class UseCollectionInitializerTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77416")]
+    public async Task TestNoCollectionExpressionForBlockingCollection()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Concurrent;
+
+                class A
+                {
+                    public void Main(ConcurrentQueue<int> queue)
+                    {
+                        BlockingCollection<int> bc = [|new|](queue);
+                        [|bc.Add(|]42);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Concurrent;
+
+                class A
+                {
+                    public void Main(ConcurrentQueue<int> queue)
+                    {
+                        BlockingCollection<int> bc = new(queue)
+                        {
+                            42
+                        };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
     }
 }

@@ -819,34 +819,34 @@ partial interface I3
                 // (4,19): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed static I1() {}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("sealed").WithLocation(4, 19),
-                // (9,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (9,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial sealed static I2();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(9, 5),
-                // (9,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (9,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial sealed static I2();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(9, 5),
                 // (9,27): error CS0106: The modifier 'sealed' is not valid for this item
                 //     partial sealed static I2();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(9, 27),
-                // (14,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (14,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I2() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(14, 5),
-                // (14,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (14,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I2() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(14, 5),
                 // (14,20): error CS0111: Type 'I2' already defines a member called 'I2' with the same parameter types
                 //     partial static I2() {}
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "I2").WithArguments("I2", "I2").WithLocation(14, 20),
-                // (19,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (19,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I3();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(19, 5),
-                // (19,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (19,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I3();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(19, 5),
-                // (24,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (24,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial sealed static I3() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(24, 5),
-                // (24,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (24,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial sealed static I3() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(24, 5),
                 // (24,27): error CS0106: The modifier 'sealed' is not valid for this item
@@ -901,48 +901,30 @@ partial interface I3
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,19): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                // (4,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     sealed static partial I2();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(4, 19),
-                // (4,27): error CS0501: 'I2.I2()' must declare a body because it is not marked abstract, extern, or partial
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 19),
+                // (4,27): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed static partial I2();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I2").WithArguments("I2.I2()").WithLocation(4, 27),
-                // (4,27): error CS0542: 'I2': member names cannot be the same as their enclosing type
-                //     sealed static partial I2();
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I2").WithArguments("I2").WithLocation(4, 27),
-                // (9,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(4, 27),
+                // (9,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial I2() {}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(9, 12),
-                // (9,20): error CS0542: 'I2': member names cannot be the same as their enclosing type
-                //     static partial I2() {}
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I2").WithArguments("I2").WithLocation(9, 20),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(9, 12),
                 // (9,20): error CS0111: Type 'I2' already defines a member called 'I2' with the same parameter types
                 //     static partial I2() {}
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "I2").WithArguments("I2", "I2").WithLocation(9, 20),
-                // (9,20): error CS0161: 'I2.I2()': not all code paths return a value
-                //     static partial I2() {}
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "I2").WithArguments("I2.I2()").WithLocation(9, 20),
-                // (14,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                // (14,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial I3();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(14, 12),
-                // (14,20): error CS0501: 'I3.I3()' must declare a body because it is not marked abstract, extern, or partial
-                //     static partial I3();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I3").WithArguments("I3.I3()").WithLocation(14, 20),
-                // (14,20): error CS0542: 'I3': member names cannot be the same as their enclosing type
-                //     static partial I3();
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I3").WithArguments("I3").WithLocation(14, 20),
-                // (19,19): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(14, 12),
+                // (19,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     sealed static partial I3() {}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(19, 19),
-                // (19,27): error CS0542: 'I3': member names cannot be the same as their enclosing type
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(19, 19),
+                // (19,27): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed static partial I3() {}
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I3").WithArguments("I3").WithLocation(19, 27),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I3").WithArguments("sealed").WithLocation(19, 27),
                 // (19,27): error CS0111: Type 'I3' already defines a member called 'I3' with the same parameter types
                 //     sealed static partial I3() {}
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "I3").WithArguments("I3", "I3").WithLocation(19, 27),
-                // (19,27): error CS0161: 'I3.I3()': not all code paths return a value
-                //     sealed static partial I3() {}
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "I3").WithArguments("I3.I3()").WithLocation(19, 27)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "I3").WithArguments("I3", "I3").WithLocation(19, 27)
                 );
         }
 
@@ -6476,7 +6458,7 @@ class C6 : C5<I1>
             else
             {
                 compilation2.VerifyEmitDiagnostics(
-                    // (43,7): error CS8920: The interface 'I1' cannot be used as type argumen. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (43,7): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     // class C6 : C5<I1>
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "C6").WithArguments("I1", "I1.M01()").WithLocation(43, 7)
                     );
@@ -6494,7 +6476,7 @@ class C6 : C5<I1>
             else
             {
                 compilation2.VerifyEmitDiagnostics(
-                    // (43,7): error CS8920: The interface 'I1' cannot be used as type argumen. Member 'I1.M01()' does not have a most specific implementation in the interface.
+                    // (43,7): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M01()' does not have a most specific implementation in the interface.
                     // class C6 : C5<I1>
                     Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "C6").WithArguments("I1", "I1.M01()").WithLocation(43, 7)
                     );

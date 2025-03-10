@@ -1685,31 +1685,37 @@ class C
     [Fact]
     public void WithModifiers_Partial()
     {
-        UsingTree("""
-class C
+        var src = """
+static class C
 {
     partial extension(Type) { }
 }
-""",
-            TestOptions.RegularPreview,
-            // (3,27): error CS1001: Identifier expected
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,13): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     partial extension(Type) { }
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(3, 27));
+            Diagnostic(ErrorCode.ERR_PartialMisplaced, "extension").WithLocation(3, 13),
+            // (3,23): error CS0246: The type or namespace name 'Type' could not be found (are you missing a using directive or an assembly reference?)
+            //     partial extension(Type) { }
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Type").WithArguments("Type").WithLocation(3, 23)
+            );
+
+        UsingTree(src, TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.ClassDeclaration);
             {
+                N(SyntaxKind.StaticKeyword);
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.ExtensionDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "partial");
-                    }
-                    N(SyntaxKind.IdentifierToken, "extension");
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -1719,15 +1725,11 @@ class C
                             {
                                 N(SyntaxKind.IdentifierToken, "Type");
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }

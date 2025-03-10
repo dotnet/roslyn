@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertPrimaryToRegularConstructor;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -2736,6 +2737,24 @@ public sealed class ConvertPrimaryToRegularConstructorTests
 
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotOnExtension()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class Class1
+                {
+                    [|extension(string s)|]
+                    {
+                        public void Goo() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
 }

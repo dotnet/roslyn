@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         private static Metadata GetMetadata(MetadataReference metadataReference)
             => ((PortableExecutableReference)metadataReference).GetMetadata();
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552981")]
         public async Task TestOpenSolution_DuplicateProjectGuids()
         {
@@ -2713,7 +2713,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public async Task TestOpenSolution_WithDuplicatedGuidsBecomeSelfReferential()
         {
@@ -2739,7 +2739,7 @@ class C1
             Assert.Empty(libraryProject.AllProjectReferences);
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public async Task TestOpenSolution_WithDuplicatedGuidsBecomeCircularReferential()
         {
@@ -2898,13 +2898,14 @@ class C { }";
             Assert.Equal(encoding.EncodingName, text.Encoding.EncodingName);
             Assert.Equal(fileContent, text.ToString());
 
-            // update root blindly again, after observing encoding, see that encoding is overridden to null
+            // update root blindly again, after observing encoding, see that encoding is preserved
+            // 🐉 Tools rely on encoding preservation; see https://github.com/dotnet/sdk/issues/46780
             var doc3 = document.WithSyntaxRoot(gen.CompilationUnit()); // empty CU
             var doc3text = await doc3.GetTextAsync();
-            Assert.Null(doc3text.Encoding);
+            Assert.Same(text.Encoding, doc3text.Encoding);
             var doc3tree = await doc3.GetSyntaxTreeAsync();
-            Assert.Null(doc3tree.Encoding);
-            Assert.Null(doc3tree.GetText().Encoding);
+            Assert.Same(text.Encoding, doc3tree.Encoding);
+            Assert.Same(text.Encoding, doc3tree.GetText().Encoding);
 
             // change doc to have no encoding, still succeeds at writing to disk with old encoding
             var root = await document.GetSyntaxRootAsync();

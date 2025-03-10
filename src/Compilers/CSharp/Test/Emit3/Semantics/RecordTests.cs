@@ -30379,7 +30379,7 @@ class C3<T>
         }
 
         [Fact, WorkItem(62051, "https://github.com/dotnet/roslyn/issues/62051")]
-        public void MisingBaseType()
+        public void MissingBaseType()
         {
             var src = @"
 record R : // 1

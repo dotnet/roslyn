@@ -1442,7 +1442,7 @@ End Class
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Semantic_MaximumLength_StaticLocalIdentifier()
-            'The Use of Static Locals with an identifier at maxmimum length to ensure functionality
+            'The Use of Static Locals with an identifier at maximum length to ensure functionality
             'works and generated backing field is correctly supported.
             Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
