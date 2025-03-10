@@ -10663,4 +10663,144 @@ AnonymousTypes(
             """,
             MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask IAsyncDisposable.DisposeAsync()"));
     }
+
+    [Fact]
+    public async Task TestModernExtension1()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo() { }
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Goo();
+                }
+            }
+            """,
+            // PROTOTYPE: There should be no overloads here.  Need GetMemberGroup fixed for skeleton vs impl extensions.
+            MainDescription($"void Extensions.extension(string).Goo() (+ 1 {FeaturesResources.overload})"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension2()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo() { }
+                    public void Goo(int i) { }
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Goo();
+                }
+            }
+            """,
+            // PROTOTYPE: There should be one overload here.  Need GetMemberGroup fixed for skeleton vs impl extensions.
+            MainDescription($"void Extensions.extension(string).Goo() (+ 2 {FeaturesResources.overloads_})"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension3()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo() { }
+                    public void Goo(int i) { }
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Goo(0);
+                }
+            }
+            """,
+            // PROTOTYPE: There should be one overload here.  Need GetMemberGroup fixed for skeleton vs impl extensions.
+            MainDescription($"void Extensions.extension(string).Goo(int i) (+ 2 {FeaturesResources.overloads_})"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension4()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public int Prop => 0;
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    var v = s.$$Prop;
+                }
+            }
+            """,
+            MainDescription($$"""int Extensions.extension(string).Prop { get; }"""));
+    }
+
+    [Fact]
+    public async Task TestModernExtension5()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo()
+                    {
+                        Console.WriteLine($$s);
+                    }
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.parameter}) string s"));
+    }
 }
