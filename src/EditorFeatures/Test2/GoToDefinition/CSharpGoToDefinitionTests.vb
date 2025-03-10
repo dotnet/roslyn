@@ -4362,7 +4362,7 @@ public partial class Program
         End Function
 
         <WpfFact>
-        Public Async Function TestCSharpGoToExtensionMethod() As Task
+        Public Async Function TestCSharpGoToExtensionMethod1() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
@@ -4380,6 +4380,34 @@ public partial class Program
                 void M(string s)
                 {
                     s.$$Goo();
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGoToExtensionMethod2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document>
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public static void [|Goo|]() { }
+                }
+            }
+
+            class X
+            {
+                void M(string s)
+                {
+                    string.$$Goo();
                 }
             }
         </Document>
