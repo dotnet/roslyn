@@ -11,9 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceExtensionImplementationMethodSymbol : RewrittenMethodSymbol // PROTOTYPE: Do we need to implement ISynthesizedMethodBodyImplementationSymbol?
     {
-        public const string StaticExtensionNamePrefix = "<StaticExtension>";
-        public const string InstanceExtensionNamePrefix = "<Extension>";
-
         public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod)
             : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
         {
@@ -30,19 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsGenericMethod => Arity != 0;
 
-        public override string Name
-        {
-            get
-            {
-                return GetImplementationName(_originalMethod);
-            }
-        }
-
-        public static string GetImplementationName(MethodSymbol originalMethod)
-        {
-            return (originalMethod.IsStatic ? StaticExtensionNamePrefix : InstanceExtensionNamePrefix) + originalMethod.Name;
-        }
-
         public override MethodKind MethodKind => MethodKind.Ordinary;
         public override bool IsImplicitlyDeclared => true;
 
@@ -56,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool IsExtensionMethod => false;
+        public sealed override bool IsExtensionMethod => !_originalMethod.IsStatic;
         public sealed override bool IsVirtual => false;
 
         public sealed override bool IsOverride => false;
@@ -81,7 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            _originalMethod.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            SourceMethodSymbol.AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
         }
 
         public override bool IsStatic => true;

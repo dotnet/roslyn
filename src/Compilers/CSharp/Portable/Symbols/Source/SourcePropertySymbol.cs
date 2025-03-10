@@ -673,6 +673,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 PartialPropertyChecks(implementation, diagnostics);
                 implementation.CheckInitializerIfNeeded(diagnostics);
             }
+
+            if (!IsStatic && this.GetIsNewExtensionMember())
+            {
+                // Verify ExtensionAttribute is available.
+                SourceOrdinaryMethodSymbol.CheckExtensionAttributeAvailability(DeclaringCompilation, Location, diagnostics);
+            }
         }
 
         /// <remarks>

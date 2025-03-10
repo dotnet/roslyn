@@ -296,7 +296,7 @@ start:
 
     internal abstract partial class MethodToClassRewriter
     {
-        private sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
+        internal sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
         {
             internal sealed override bool GenerateDebugInfo
             {

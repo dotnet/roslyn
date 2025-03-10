@@ -244,23 +244,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Verify ExtensionAttribute is available.
-                    var attributeConstructor = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, out var useSiteInfo);
-
-                    var thisKeyword = syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword);
-                    if ((object)attributeConstructor == null)
-                    {
-                        var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-                        // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
-                        diagnostics.Add(
-                            ErrorCode.ERR_ExtensionAttrNotFound,
-                            thisKeyword.GetLocation(),
-                            memberDescriptor.DeclaringTypeMetadataName);
-                    }
-                    else
-                    {
-                        diagnostics.Add(useSiteInfo, thisKeyword);
-                    }
+                    CheckExtensionAttributeAvailability(DeclaringCompilation, syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation(), diagnostics);
                 }
+            }
+            else if (!IsStatic && this.GetIsNewExtensionMember())
+            {
+                // Verify ExtensionAttribute is available.
+                CheckExtensionAttributeAvailability(DeclaringCompilation, _location, diagnostics);
+            }
+        }
+
+        internal static void CheckExtensionAttributeAvailability(CSharpCompilation compilation, Location location, BindingDiagnosticBag diagnostics)
+        {
+            var attributeConstructor = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, out var useSiteInfo);
+
+            if ((object)attributeConstructor == null)
+            {
+                var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+                // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
+                diagnostics.Add(
+                    ErrorCode.ERR_ExtensionAttrNotFound,
+                    location,
+                    memberDescriptor.DeclaringTypeMetadataName);
+            }
+            else
+            {
+                diagnostics.Add(useSiteInfo, location);
             }
         }
 
