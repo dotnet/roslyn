@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer;
@@ -83,6 +84,14 @@ internal sealed class StackTraceExplorerService() : IStackTraceExplorerService
         RoslynDebug.AssertNotNull(lineString);
         lineNumber = int.Parse(lineString);
 
+        var documentId = solution.GetDocumentIdsWithFilePath(fileName).FirstOrDefault();
+
+        if (documentId is not null)
+        {
+            var document = solution.GetRequiredDocument(documentId);
+            return [document];
+        }
+
         var documentName = Path.GetFileName(fileName);
         var potentialMatches = new HashSet<TextDocument>();
 
@@ -95,12 +104,7 @@ internal sealed class StackTraceExplorerService() : IStackTraceExplorerService
 
             foreach (var document in allDocuments)
             {
-                if (document.FilePath == fileName)
-                {
-                    return [document];
-                }
-
-                else if (document.Name == documentName)
+                if (document.Name == documentName)
                 {
                     potentialMatches.Add(document);
                 }
