@@ -5,6 +5,15 @@
     <_RoslynPublishReadyToRun>false</_RoslynPublishReadyToRun>
     <_RoslynPublishReadyToRun Condition="'$(Configuration)' == 'Release'">true</_RoslynPublishReadyToRun>
 
+    <!-- 
+      List of runtime identifiers that we want to publish an executable for.
+      This cannot be set in the base project as it will cause issues when roslyn is built
+      as a test project for SDK insertions.  The RuntimeIdentifiers property will cause the build to
+      attempt to download unpublished packages, which fails (until the packages eventually get published).
+
+      The test doesn't actually run pack, so we can instead skip setting the RuntimeIdentifiers property unless
+      we're actually trying to build packages.
+    -->
     <!-- List of runtime identifiers that we want to publish an executable for. -->
     <!-- When building a VMR vertical, we don't need to pack everything. Just pack the passed in TargetRid or BaseOS.
          TargetRid and BaseOS are provided to roslyn via the build arguments passed in the VMR orchestrator's repo project.
@@ -27,7 +36,7 @@
 
     <ItemGroup>
       <!-- Transform RuntimeIdentifiers property to item -->
-      <RuntimeIdentifierForPack Include="$(RuntimeIdentifiers)" />
+      <RuntimeIdentifierForPack Include="$(_RoslynRuntimeIdentifiers)" />
       <RuntimeIdentifierForPack Include="neutral" />
 
       <!-- Transform RuntimeIdentifierForPublish items to project items to pass to MSBuild task -->
