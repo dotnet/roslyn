@@ -29,13 +29,27 @@ internal class CustomMessageUnloadHandler()
     {
         var solution = context.Solution
             ?? throw new InvalidOperationException();
-        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false)
-            ?? throw new InvalidOperationException();
-        await client.TryInvokeAsync<IRemoteCustomMessageHandlerService>(
-            solution,
-            (service, solutionInfo, cancellationToken) => service.UnloadCustomMessageHandlerAsync(
-                request.AssemblyPath,
-                cancellationToken),
-            cancellationToken).ConfigureAwait(false);
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+
+        if (client is not null)
+        {
+            await client.TryInvokeAsync<IRemoteCustomMessageHandlerService>(
+                solution,
+                (service, solutionInfo, cancellationToken) => service.UnloadCustomMessageHandlersAsync(
+                    request.AssemblyFolderPath,
+                    cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+#if NETSTANDARD2_0
+            throw new InvalidOperationException("Custom handlers are not supported");
+#else
+            var service = CustomMessageHandlerService.Instance.Value;
+            await service.UnloadCustomMessageHandlersAsync(
+                    request.AssemblyFolderPath,
+                    cancellationToken).ConfigureAwait(false);
+#endif
+        }
     }
 }

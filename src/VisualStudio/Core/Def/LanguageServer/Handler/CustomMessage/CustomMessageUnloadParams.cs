@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 /// <summary>
 /// Parameters for the <see cref="CustomMessageUnloadHandler"/> request.
 /// </summary>
-/// <param name="AssemblyPath">Full path to the assembly that contains the message handler to unload.</param>
+/// <param name="AssemblyFolderPath">Full path to the folder that contains the message handler assemblies to unload.</param>
 internal readonly record struct CustomMessageUnloadParams(
-    [property: JsonPropertyName("assemblyPath")] string AssemblyPath);
+    [property: JsonPropertyName("assemblyFolderPath")] string AssemblyFolderPath);

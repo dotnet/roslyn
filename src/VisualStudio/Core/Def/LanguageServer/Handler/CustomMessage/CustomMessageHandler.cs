@@ -31,31 +31,44 @@ internal class CustomMessageHandler()
             ?? throw new InvalidOperationException();
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
 
-        Optional<string> response;
         if (client is not null)
         {
-            response = await client.TryInvokeAsync<IRemoteCustomMessageHandlerService, string>(
+            var response = await client.TryInvokeAsync<IRemoteCustomMessageHandlerService, string>(
                 solution,
                 (service, solutionInfo, cancellationToken) => service.HandleCustomMessageAsync(
                     solutionInfo,
-                    request.AssemblyPath,
+                    request.AssemblyFolderPath,
+                    request.AssemblyFileName,
                     request.TypeFullName,
                     request.Message,
                     documentId: null,
                     cancellationToken),
                 cancellationToken).ConfigureAwait(false);
+
+            if (!response.HasValue)
+            {
+                throw new InvalidOperationException("The remote message handler didn't return any value.");
+            }
+
+            return new CustomResponse(response.Value);
         }
         else
         {
-            // TODO fix this
-            throw new NotSupportedException("Custom message handlers are not supported.");
-        }
+#if NETSTANDARD2_0
+            throw new InvalidOperationException("Custom handlers are not supported");
+#else
+            var service = CustomMessageHandlerService.Instance.Value;
+            var response = await service.HandleCustomMessageAsync(
+                    solution,
+                    request.AssemblyFolderPath,
+                    request.AssemblyFileName,
+                    request.TypeFullName,
+                    request.Message,
+                    documentId: null,
+                    cancellationToken).ConfigureAwait(false);
 
-        if (!response.HasValue)
-        {
-            throw new InvalidOperationException("The remote message handler didn't return any value.");
+            return new CustomResponse(response);
+#endif
         }
-
-        return new CustomResponse(response.Value);
     }
 }
