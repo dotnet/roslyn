@@ -125,7 +125,6 @@ internal class StackFrameViewModel(
                 await navigationService.TryNavigateToLineAndOffsetAsync(
                     _threadingContext, _workspace, textDocument.Id, lineNumber - 1, offset: 0, options, cancellationToken)
                     .ConfigureAwait(false);
-
             }
         }
         catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
