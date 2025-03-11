@@ -11202,4 +11202,37 @@ $@"class Program
             }
             """);
     }
+
+    [Fact]
+    public async Task TestNullConditionalAssignment3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                void Method(D c)
+                {
+                    c?.[|Goo|] = 1;
+                }
+            }
+
+            class D
+            {
+            }
+            """,
+            """
+            class Class
+            {
+                void Method(D c)
+                {
+                    c?.Goo = 1;
+                }
+            }
+            
+            class D
+            {
+                public int Goo { get; internal set; }
+            }
+            """);
+    }
 }

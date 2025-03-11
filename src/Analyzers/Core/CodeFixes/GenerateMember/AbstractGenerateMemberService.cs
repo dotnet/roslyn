@@ -155,7 +155,8 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
             isStatic = false;
             return;
         }
-        else if (syntaxFacts.IsNameOfSubpattern(expression))
+
+        if (syntaxFacts.IsNameOfSubpattern(expression))
         {
             var propertyPatternClause = expression.Ancestors().FirstOrDefault(syntaxFacts.IsPropertyPatternClause);
 
@@ -166,8 +167,22 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
                 typeToGenerateIn = inferenceService.InferType(semanticModel, propertyPatternClause, objectAsDefault: true, cancellationToken) as INamedTypeSymbol;
 
                 isStatic = false;
-                return;
             }
+
+            return;
+        }
+
+        if (syntaxFacts.IsMemberBindingExpression(expression))
+        {
+            var target = syntaxFacts.GetTargetOfMemberBinding(expression);
+
+            if (target != null)
+            {
+                typeToGenerateIn = semanticModel.GetTypeInfo(target, cancellationToken).Type as INamedTypeSymbol;
+                isStatic = false;
+            }
+
+            return;
         }
 
         // Generating into the containing type.
