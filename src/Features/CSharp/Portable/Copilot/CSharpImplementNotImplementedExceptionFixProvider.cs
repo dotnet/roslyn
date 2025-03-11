@@ -72,7 +72,7 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var memberReferencesBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImmutableArray<ReferencedSymbol>>();
+        var memberReferencesBuilder = ImmutableDictionary.CreateBuilder<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var diagnostic in diagnostics)
@@ -95,16 +95,14 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
         var memberImplementationDetails = await copilotService.ImplementNotImplementedExceptionsAsync(document, memberReferencesBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false);
 
-        foreach (var syntaxNode in memberReferencesBuilder.Keys)
+        foreach (var methodOrProperty in memberReferencesBuilder.Keys)
         {
-            Contract.ThrowIfFalse(syntaxNode is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
-            var methodOrProperty = (MemberDeclarationSyntax)syntaxNode;
+            Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
 
             SyntaxNode? replacement;
             if (!memberImplementationDetails.TryGetValue(methodOrProperty, out var implementationDetails))
             {
                 replacement = AddErrorComment(methodOrProperty);
-                Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Failed, "Implementation details not found.", logLevel: LogLevel.Error);
             }
             else
             {
@@ -118,7 +116,6 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
                 else
                 {
                     replacement = AddErrorComment(methodOrProperty, implementationDetails.Message);
-                    Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Failed, implementationDetails.Message, logLevel: LogLevel.Error);
                 }
             }
 
@@ -132,6 +129,8 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
     private static MemberDeclarationSyntax AddErrorComment(MemberDeclarationSyntax member, string? message = null)
     {
         var errorMessage = string.IsNullOrWhiteSpace(message) ? CSharpFeaturesResources.Implement_Using_Copilot_Not_Available : message;
+        Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Failed, errorMessage, logLevel: LogLevel.Error);
+
         var comment = SyntaxFactory.TriviaList(
             SyntaxFactory.Comment($"/* {errorMessage} */"),
             SyntaxFactory.CarriageReturnLineFeed);
