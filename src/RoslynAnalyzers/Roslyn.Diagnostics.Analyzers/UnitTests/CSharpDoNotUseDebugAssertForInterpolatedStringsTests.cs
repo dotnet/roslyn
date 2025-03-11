@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Roslyn.Diagnostics.CSharp.Analyzers.CSharpDoNotUseDebugAssertForInterpolatedStrings,
@@ -69,6 +70,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultNetFramework,
                 TestCode = source,
                 FixedCode = @fixed,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
@@ -94,6 +96,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultNetFramework,
                 TestCode = source,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
