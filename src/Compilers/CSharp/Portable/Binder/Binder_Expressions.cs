@@ -8589,15 +8589,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = default;
 
                 // 1. gather candidates
-                scope.Binder.LookupExtensionMembersInSingleBinder(
-                    lookupResult, left.Type, memberName, arity,
-                    basesBeingResolved: null, lookupOptions, originalBinder: binder, ref useSiteInfo);
-
                 CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
-                binder.LookupExtensionMethods(classicExtensionLookupResult, scope, memberName, arity, ref classicExtensionUseSiteInfo);
-                diagnostics.Add(expression, classicExtensionUseSiteInfo);
+                scope.Binder.LookupAllExtensionMembersInSingleBinder(
+                    lookupResult, left.Type, memberName, arity,
+                    basesBeingResolved: null, lookupOptions, originalBinder: binder,
+                    ref useSiteInfo, ref classicExtensionUseSiteInfo);
 
-                lookupResult.MergeEqual(classicExtensionLookupResult);
+                diagnostics.Add(expression, classicExtensionUseSiteInfo);
 
                 if (!lookupResult.IsMultiViable)
                 {
@@ -11012,7 +11010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var scope in new ExtensionScopes(this))
                 {
                     methodGroup.Clear();
-                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, typeArguments, BindingDiagnosticBag.Discarded);
+                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, typeArguments, BindingDiagnosticBag.Discarded); // PROTOTYPE account for new extension members
                     var methods = ArrayBuilder<MethodSymbol>.GetInstance(capacity: methodGroup.Methods.Count);
                     foreach (var extensionMethod in methodGroup.Methods)
                     {

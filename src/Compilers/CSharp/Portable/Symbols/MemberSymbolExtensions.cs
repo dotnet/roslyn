@@ -109,6 +109,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return member.GetMemberArity();
         }
+
+        // TODO2 rename/comment
+        internal static TMember ConstructWithAllTypeParameters<TMember>(this TMember member, ImmutableArray<TypeWithAnnotations> typeArguments) where TMember : Symbol
+        {
+            if (member is MethodSymbol method)
+            {
+                if (method.GetIsNewExtensionMember())
+                {
+                    NamedTypeSymbol extension = method.ContainingType;
+                    if (extension.Arity > 0)
+                    {
+                        extension = extension.Construct(typeArguments[..extension.Arity]);
+                        method = method.AsMember(extension);
+                    }
+
+                    if (method.Arity > 0)
+                    {
+                        return (TMember)(Symbol)method.Construct(typeArguments[extension.Arity..]);
+                    }
+
+                    return (TMember)(Symbol)method;
+                }
+
+                return (TMember)(Symbol)method.Construct(typeArguments);
+            }
+
+            if (member is PropertySymbol property)
+            {
+                Debug.Assert(property.GetIsNewExtensionMember());
+                NamedTypeSymbol extension = property.ContainingType;
+                Debug.Assert(extension.Arity > 0);
+                Debug.Assert(extension.Arity == typeArguments.Length);
+
+                extension = extension.Construct(typeArguments);
+                property = property.AsMember(extension);
+
+                return (TMember)(Symbol)property;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(member);
+        }
+
 #nullable disable
 
         /// <summary>

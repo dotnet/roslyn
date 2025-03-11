@@ -358,6 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
                             (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct))
                         {
+                            // TODO2 what's this?
                             // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
                             continue;
                         }
