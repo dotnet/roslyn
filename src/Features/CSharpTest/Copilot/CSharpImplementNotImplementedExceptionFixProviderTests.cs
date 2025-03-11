@@ -171,16 +171,16 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             public interface IMathService
             {
-            int Add(int a, int b);
-            int Subtract(int a, int b);
-            int Multiply(int a, int b);
-            double Divide(int a, int b);
-            double CalculateSquareRoot(double number);
-            int Factorial(int number);
-            int ConstantValue { get; }
-            int this[int index] { get; set; }
-            event EventHandler MyEvent;
-            static MathService operator +(MathService a, MathService b);
+                int Add(int a, int b);
+                int Subtract(int a, int b);
+                int Multiply(int a, int b);
+                double Divide(int a, int b);
+                double CalculateSquareRoot(double number);
+                int Factorial(int number);
+                int ConstantValue { get; }
+                int this[int index] { get; set; }
+                event EventHandler MyEvent;
+                static MathService operator +(MathService a, MathService b);
             }
             """,
             LanguageVersion = LanguageVersion.CSharp11,
@@ -240,7 +240,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 return resultsBuilder.ToImmutable();
             };
         })
-    .RunAsync();
+        .RunAsync();
     }
 
     [Theory]
