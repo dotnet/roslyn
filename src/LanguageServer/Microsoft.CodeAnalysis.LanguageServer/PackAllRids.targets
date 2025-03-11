@@ -14,7 +14,6 @@
       The test doesn't actually run pack, so we can instead skip setting the RuntimeIdentifiers property unless
       we're actually trying to build packages.
     -->
-    <!-- List of runtime identifiers that we want to publish an executable for. -->
     <!-- When building a VMR vertical, we don't need to pack everything. Just pack the passed in TargetRid or BaseOS.
          TargetRid and BaseOS are provided to roslyn via the build arguments passed in the VMR orchestrator's repo project.
          https://github.com/dotnet/dotnet/blob/main/repo-projects/roslyn.proj. For definitions of the TargetRid
