@@ -105,8 +105,6 @@ internal sealed class CSharpGenerateMethodService() :
             simpleNameOrMemberAccessExpression = simpleName;
         }
 
-        isInConditionalAccessExpression = conditionalAccessExpression != null;
-
         if (memberAccess == null || memberAccess.Name == simpleName)
         {
             if (simpleNameOrMemberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression, out invocationExpressionOpt))
@@ -120,6 +118,7 @@ internal sealed class CSharpGenerateMethodService() :
             if (conditionalAccessExpression != null)
             {
                 invocationExpressionOpt = invocation;
+                isInConditionalAccessExpression = true;
                 return !invocationExpressionOpt.ArgumentList.CloseParenToken.IsMissing;
             }
 
@@ -131,6 +130,7 @@ internal sealed class CSharpGenerateMethodService() :
                 !simpleNameOrMemberAccessExpression.IsLeftSideOfAnyAssignExpression())
             {
                 invocationExpressionOpt = null;
+                isInConditionalAccessExpression = conditionalAccessExpression != null;
                 return true;
             }
         }
