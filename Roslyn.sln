@@ -577,51 +577,51 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Thre
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzers", "Analyzers", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Text.Analyzers", "src\RoslynAnalyzers\Text.Analyzers\Core\Text.Analyzers.csproj", "{8087BDE4-6707-05A5-5F84-DFE6628E8EC8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Text.Analyzers", "src\RoslynAnalyzers\Text.Analyzers\Core\Text.Analyzers.csproj", "{8087BDE4-6707-05A5-5F84-DFE6628E8EC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Text.CSharp.Analyzers", "src\RoslynAnalyzers\Text.Analyzers\CSharp\Text.CSharp.Analyzers.csproj", "{B095320B-6854-EBEC-98DB-26E06D97183A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Text.CSharp.Analyzers", "src\RoslynAnalyzers\Text.Analyzers\CSharp\Text.CSharp.Analyzers.csproj", "{B095320B-6854-EBEC-98DB-26E06D97183A}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Text.VisualBasic.Analyzers", "src\RoslynAnalyzers\Text.Analyzers\VisualBasic\Text.VisualBasic.Analyzers.vbproj", "{451EC146-D85B-EA72-D064-0A75E9F52C7F}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Text.VisualBasic.Analyzers", "src\RoslynAnalyzers\Text.Analyzers\VisualBasic\Text.VisualBasic.Analyzers.vbproj", "{451EC146-D85B-EA72-D064-0A75E9F52C7F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Text.Analyzers", "Text.Analyzers", "{6FE0875A-E178-4766-BCC6-87D37F273102}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Text.Analyzers.Setup", "src\RoslynAnalyzers\Text.Analyzers\Setup\Text.Analyzers.Setup.csproj", "{2C3B6892-A23A-9A8F-431E-30869231F832}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Text.Analyzers.Setup", "src\RoslynAnalyzers\Text.Analyzers\Setup\Text.Analyzers.Setup.csproj", "{2C3B6892-A23A-9A8F-431E-30869231F832}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Text.Analyzers.UnitTests", "src\RoslynAnalyzers\Text.Analyzers\UnitTests\Text.Analyzers.UnitTests.csproj", "{DE29FFE1-ABB8-3B45-0D58-768727CA8DB1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Text.Analyzers.UnitTests", "src\RoslynAnalyzers\Text.Analyzers\UnitTests\Text.Analyzers.UnitTests.csproj", "{DE29FFE1-ABB8-3B45-0D58-768727CA8DB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.PublicApiAnalyzers", "src\RoslynAnalyzers\PublicApiAnalyzers\Core\Analyzers\Microsoft.CodeAnalysis.PublicApiAnalyzers.csproj", "{CE7C15D3-3B1B-84CF-1B4B-DA45533E9E83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.PublicApiAnalyzers", "src\RoslynAnalyzers\PublicApiAnalyzers\Core\Analyzers\Microsoft.CodeAnalysis.PublicApiAnalyzers.csproj", "{CE7C15D3-3B1B-84CF-1B4B-DA45533E9E83}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PublicApiAnalyzers", "PublicApiAnalyzers", "{0AD92ED3-387B-4975-BA2E-68A76E727959}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes", "src\RoslynAnalyzers\PublicApiAnalyzers\Core\CodeFixes\Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.csproj", "{6167C216-0C39-EBBA-2841-A8F864642DF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes", "src\RoslynAnalyzers\PublicApiAnalyzers\Core\CodeFixes\Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.csproj", "{6167C216-0C39-EBBA-2841-A8F864642DF1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.PublicApiAnalyzers.Setup", "src\RoslynAnalyzers\PublicApiAnalyzers\Setup\Microsoft.CodeAnalysis.PublicApiAnalyzers.Setup.csproj", "{B3AADD0B-E103-A0F9-385F-1D18262B9C41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.PublicApiAnalyzers.Setup", "src\RoslynAnalyzers\PublicApiAnalyzers\Setup\Microsoft.CodeAnalysis.PublicApiAnalyzers.Setup.csproj", "{B3AADD0B-E103-A0F9-385F-1D18262B9C41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests", "src\RoslynAnalyzers\PublicApiAnalyzers\UnitTests\Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests.csproj", "{E8D25897-E52E-47DE-B3B8-CE916C9B9B80}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests", "src\RoslynAnalyzers\PublicApiAnalyzers\UnitTests\Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests.csproj", "{E8D25897-E52E-47DE-B3B8-CE916C9B9B80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers", "src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\Core\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.csproj", "{A6844326-E313-F10A-7E99-89F54C73774C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers", "src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\Core\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.csproj", "{A6844326-E313-F10A-7E99-89F54C73774C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PerformanceSensitiveAnalyzers", "PerformanceSensitiveAnalyzers", "{76B913A2-E33D-4C48-B206-8F14F0F94B06}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers", "src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\CSharp\Analyzers\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.csproj", "{C7CAB909-965B-8674-56F1-98F3BE0BD87A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers", "src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\CSharp\Analyzers\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.csproj", "{C7CAB909-965B-8674-56F1-98F3BE0BD87A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes", "src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\CSharp\CodeFixes\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.csproj", "{24CB433D-438B-04D0-29F7-9F29EC7DC3C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes", "src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\CSharp\CodeFixes\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.csproj", "{24CB433D-438B-04D0-29F7-9F29EC7DC3C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.Setup", "src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\Setup\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.Setup.csproj", "{9A98EE2B-BBBC-0D54-60D8-C36ABE80B340}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.Setup", "src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\Setup\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.Setup.csproj", "{9A98EE2B-BBBC-0D54-60D8-C36ABE80B340}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests", "src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\UnitTests\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests.csproj", "{C5591759-58B0-73D0-6EDC-4FFCBE819303}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests", "src\RoslynAnalyzers\PerformanceSensitiveAnalyzers\UnitTests\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests.csproj", "{C5591759-58B0-73D0-6EDC-4FFCBE819303}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roslyn.Diagnostics.Analyzers", "src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\Core\Roslyn.Diagnostics.Analyzers.csproj", "{AD0837BE-7912-AEDF-BDA9-2D2E4FE0CE0B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Diagnostics.Analyzers", "src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\Core\Roslyn.Diagnostics.Analyzers.csproj", "{AD0837BE-7912-AEDF-BDA9-2D2E4FE0CE0B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Roslyn.Diagnostic.Analyzers", "Roslyn.Diagnostic.Analyzers", "{56053920-5095-430D-9C8B-AFB2C40407B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roslyn.Diagnostics.CSharp.Analyzers", "src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\CSharp\Roslyn.Diagnostics.CSharp.Analyzers.csproj", "{DEE77B19-9559-D47D-8EC4-C207152A9C2C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Diagnostics.CSharp.Analyzers", "src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\CSharp\Roslyn.Diagnostics.CSharp.Analyzers.csproj", "{DEE77B19-9559-D47D-8EC4-C207152A9C2C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roslyn.Diagnostics.Analyzers.Setup", "src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\Setup\Roslyn.Diagnostics.Analyzers.Setup.csproj", "{93256CB0-F5C1-CF7B-1D19-307E6E01191B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Diagnostics.Analyzers.Setup", "src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\Setup\Roslyn.Diagnostics.Analyzers.Setup.csproj", "{93256CB0-F5C1-CF7B-1D19-307E6E01191B}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Roslyn.Diagnostics.VisualBasic.Analyzers", "src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\VisualBasic\Roslyn.Diagnostics.VisualBasic.Analyzers.vbproj", "{A4A3650E-164F-9339-FA7B-606EFFD06268}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Roslyn.Diagnostics.VisualBasic.Analyzers", "src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\VisualBasic\Roslyn.Diagnostics.VisualBasic.Analyzers.vbproj", "{A4A3650E-164F-9339-FA7B-606EFFD06268}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roslyn.Diagnostics.Analyzers.UnitTests", "src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\UnitTests\Roslyn.Diagnostics.Analyzers.UnitTests.csproj", "{B0453D30-45FE-B2BC-5404-4A9C985D7BFF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Diagnostics.Analyzers.UnitTests", "src\RoslynAnalyzers\Roslyn.Diagnostics.Analyzers\UnitTests\Roslyn.Diagnostics.Analyzers.UnitTests.csproj", "{B0453D30-45FE-B2BC-5404-4A9C985D7BFF}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Analyzer.Utilities", "src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.shproj", "{08735294-3E6B-4420-9916-E7B8C4EB874D}"
 EndProject
@@ -639,57 +639,57 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Workspaces.Utilities", "src
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{0DDCFE67-7D4E-4709-9882-EC032A031789}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Analyzer.Utilities.UnitTests", "src\RoslynAnalyzers\Utilities.UnitTests\Analyzer.Utilities.UnitTests.csproj", "{34A07D0C-32E6-E19B-337E-4E6CB722C606}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Analyzer.Utilities.UnitTests", "src\RoslynAnalyzers\Utilities.UnitTests\Analyzer.Utilities.UnitTests.csproj", "{34A07D0C-32E6-E19B-337E-4E6CB722C606}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.ResxSourceGenerator", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.csproj", "{FCE0046B-03F8-78F6-86A1-8DDCEE8F4C9F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ResxSourceGenerator", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.csproj", "{FCE0046B-03F8-78F6-86A1-8DDCEE8F4C9F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ResxSourceGenerator", "ResxSourceGenerator", "{616B9154-1EE8-45AE-9299-EBD0D51446E5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.csproj", "{5DB3749D-E83C-7093-75B9-B617D1FB72C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.csproj", "{5DB3749D-E83C-7093-75B9-B617D1FB72C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.csproj", "{DD05B30B-7C7D-CFF3-9C36-839D54A13B0C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.csproj", "{DD05B30B-7C7D-CFF3-9C36-839D54A13B0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.ResxSourceGenerator.UnitTests", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.UnitTests\Microsoft.CodeAnalysis.ResxSourceGenerator.UnitTests.csproj", "{7BA618DE-0BC8-886C-36DD-989B9C05FA96}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ResxSourceGenerator.UnitTests", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.UnitTests\Microsoft.CodeAnalysis.ResxSourceGenerator.UnitTests.csproj", "{7BA618DE-0BC8-886C-36DD-989B9C05FA96}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.BannedApiAnalyzers", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\Core\Microsoft.CodeAnalysis.BannedApiAnalyzers.csproj", "{8CE66034-25E2-8FF2-93A1-0BD3672AD86D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.BannedApiAnalyzers", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\Core\Microsoft.CodeAnalysis.BannedApiAnalyzers.csproj", "{8CE66034-25E2-8FF2-93A1-0BD3672AD86D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BannedApiAnalyzers", "BannedApiAnalyzers", "{FBF49D7B-F60C-41B5-8CEF-F1D41F84A387}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\CSharp\Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.csproj", "{3C4BCE69-B353-B5AA-E824-209A6D627BA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\CSharp\Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.csproj", "{3C4BCE69-B353-B5AA-E824-209A6D627BA3}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.vbproj", "{E11BAB8D-39ED-AC6C-6D69-1E5B5F3FB286}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.vbproj", "{E11BAB8D-39ED-AC6C-6D69-1E5B5F3FB286}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.BannedApiAnalyzers.Setup", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\Setup\Microsoft.CodeAnalysis.BannedApiAnalyzers.Setup.csproj", "{D21CCB70-1EDB-8D13-F00F-CA280DE4C83E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.BannedApiAnalyzers.Setup", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\Setup\Microsoft.CodeAnalysis.BannedApiAnalyzers.Setup.csproj", "{D21CCB70-1EDB-8D13-F00F-CA280DE4C83E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\UnitTests\Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests.csproj", "{801E5330-F8E0-CC40-CC9A-47FE42284871}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers\UnitTests\Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests.csproj", "{801E5330-F8E0-CC40-CC9A-47FE42284871}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.AnalyzerUtilities", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.AnalyzerUtilities\Microsoft.CodeAnalysis.AnalyzerUtilities.csproj", "{0A1267E9-52FF-B8DE-8522-802BE55F41DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.AnalyzerUtilities", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.AnalyzerUtilities\Microsoft.CodeAnalysis.AnalyzerUtilities.csproj", "{0A1267E9-52FF-B8DE-8522-802BE55F41DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateAnalyzerNuspec", "src\RoslynAnalyzers\Tools\GenerateAnalyzerNuspec\GenerateAnalyzerNuspec.csproj", "{4312B163-9507-6A25-893B-C18ECBF896BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenerateAnalyzerNuspec", "src\RoslynAnalyzers\Tools\GenerateAnalyzerNuspec\GenerateAnalyzerNuspec.csproj", "{4312B163-9507-6A25-893B-C18ECBF896BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Metrics", "src\RoslynAnalyzers\Tools\Metrics\Metrics.csproj", "{7005DD7B-D3B6-1360-313B-975974AA6254}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Metrics", "src\RoslynAnalyzers\Tools\Metrics\Metrics.csproj", "{7005DD7B-D3B6-1360-313B-975974AA6254}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RulesetToEditorconfigConverter", "src\RoslynAnalyzers\Tools\RulesetToEditorconfigConverter\Source\RulesetToEditorconfigConverter.csproj", "{10E2810B-AEDC-AE32-911A-750DF29322F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RulesetToEditorconfigConverter", "src\RoslynAnalyzers\Tools\RulesetToEditorconfigConverter\Source\RulesetToEditorconfigConverter.csproj", "{10E2810B-AEDC-AE32-911A-750DF29322F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RulesetToEditorconfigConverter.UnitTests", "src\RoslynAnalyzers\Tools\RulesetToEditorconfigConverter\Tests\RulesetToEditorconfigConverter.UnitTests.csproj", "{6A85289A-97BE-DC01-FB92-7FD258FCDDB7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RulesetToEditorconfigConverter.UnitTests", "src\RoslynAnalyzers\Tools\RulesetToEditorconfigConverter\Tests\RulesetToEditorconfigConverter.UnitTests.csproj", "{6A85289A-97BE-DC01-FB92-7FD258FCDDB7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{482C1FC7-4FD6-4381-8078-73BEBFAF4349}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Analyzers", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\Core\Microsoft.CodeAnalysis.Analyzers.csproj", "{923E34BA-CA8A-971E-7FF7-51DD346394A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Analyzers", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\Core\Microsoft.CodeAnalysis.Analyzers.csproj", "{923E34BA-CA8A-971E-7FF7-51DD346394A1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.CodeAnalysis.Analyzers", "Microsoft.CodeAnalysis.Analyzers", "{A4E65246-D2F6-492F-8BD5-FE11DD89A19B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.CSharp.Analyzers", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\CSharp\Microsoft.CodeAnalysis.CSharp.Analyzers.csproj", "{CBC75308-5C91-83F0-5472-39C9445C8FFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.Analyzers", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\CSharp\Microsoft.CodeAnalysis.CSharp.Analyzers.csproj", "{CBC75308-5C91-83F0-5472-39C9445C8FFC}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Microsoft.CodeAnalysis.VisualBasic.Analyzers", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Analyzers.vbproj", "{BB08E86A-946F-C3BD-C607-989716B05D46}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.VisualBasic.Analyzers", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Analyzers.vbproj", "{BB08E86A-946F-C3BD-C607-989716B05D46}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Analyzers.UnitTests", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\UnitTests\Microsoft.CodeAnalysis.Analyzers.UnitTests.csproj", "{290ED315-ED26-F504-0583-848669298657}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Analyzers.UnitTests", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\UnitTests\Microsoft.CodeAnalysis.Analyzers.UnitTests.csproj", "{290ED315-ED26-F504-0583-848669298657}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Analyzers.Setup", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\Setup\Microsoft.CodeAnalysis.Analyzers.Setup.csproj", "{E234FD18-B133-4CF4-2AC1-7E219BF54242}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Analyzers.Setup", "src\RoslynAnalyzers\Microsoft.CodeAnalysis.Analyzers\Setup\Microsoft.CodeAnalysis.Analyzers.Setup.csproj", "{E234FD18-B133-4CF4-2AC1-7E219BF54242}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Metrics.Legacy", "src\RoslynAnalyzers\Tools\Metrics\Metrics.Legacy.csproj", "{8252A386-069A-0D7D-EAB4-B2E77833B443}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Metrics.Legacy", "src\RoslynAnalyzers\Tools\Metrics.Legacy\Metrics.Legacy.csproj", "{8252A386-069A-0D7D-EAB4-B2E77833B443}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Utilities", "src\RoslynAnalyzers\Test.Utilities\Test.Utilities.csproj", "{3F65D29D-ED95-2D6F-B927-47C5CF070AA5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Utilities", "src\RoslynAnalyzers\Test.Utilities\Test.Utilities.csproj", "{3F65D29D-ED95-2D6F-B927-47C5CF070AA5}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Contracts", "src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.shproj", "{BD974609-C68B-4BE6-9682-EB132462B50D}"
 EndProject
@@ -699,29 +699,31 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Lang
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{7F040742-3C10-406A-A0FF-7FE621DEF671}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Analyzers.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.Analyzers\Microsoft.CodeAnalysis.Analyzers.Package.csproj", "{BEF66A04-80EF-F6FD-E969-F441F709ECDA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Analyzers.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.Analyzers\Microsoft.CodeAnalysis.Analyzers.Package.csproj", "{BEF66A04-80EF-F6FD-E969-F441F709ECDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.AnalyzerUtilities.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.AnalyzerUtilities\Microsoft.CodeAnalysis.AnalyzerUtilities.Package.csproj", "{612E7B7D-8BE1-C279-2BD9-6191A97F2D03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.AnalyzerUtilities.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.AnalyzerUtilities\Microsoft.CodeAnalysis.AnalyzerUtilities.Package.csproj", "{612E7B7D-8BE1-C279-2BD9-6191A97F2D03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.BannedApiAnalyzers.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.BannedApiAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers.Package.csproj", "{491BC06C-DEEC-0D65-985A-E192EC710BEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.BannedApiAnalyzers.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.BannedApiAnalyzers\Microsoft.CodeAnalysis.BannedApiAnalyzers.Package.csproj", "{491BC06C-DEEC-0D65-985A-E192EC710BEF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Metrics.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.Metrics\Microsoft.CodeAnalysis.Metrics.Package.csproj", "{E297099A-564C-A98A-BED5-547AD4799C81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Metrics.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.Metrics\Microsoft.CodeAnalysis.Metrics.Package.csproj", "{E297099A-564C-A98A-BED5-547AD4799C81}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.ResxSourceGenerator.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.Package.csproj", "{839F00DC-B547-E6C3-AB0B-EFABD62C5C82}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ResxSourceGenerator.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.Package.csproj", "{839F00DC-B547-E6C3-AB0B-EFABD62C5C82}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.RulesetToEditorconfigConverter.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.RulesetToEditorconfigConverter\Microsoft.CodeAnalysis.RulesetToEditorconfigConverter.Package.csproj", "{5F15CE31-9DF5-CD0F-F998-8BF358F11752}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.RulesetToEditorconfigConverter.Package", "src\RoslynAnalyzers\NuGet\Microsoft.CodeAnalysis.RulesetToEditorconfigConverter\Microsoft.CodeAnalysis.RulesetToEditorconfigConverter.Package.csproj", "{5F15CE31-9DF5-CD0F-F998-8BF358F11752}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.Package", "src\RoslynAnalyzers\NuGet\PerformanceSensitiveAnalyzers\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.Package.csproj", "{B2C73083-9F69-D41B-572D-050157413338}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.Package", "src\RoslynAnalyzers\NuGet\PerformanceSensitiveAnalyzers\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.Package.csproj", "{B2C73083-9F69-D41B-572D-050157413338}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.PublicApiAnalyzers.Package", "src\RoslynAnalyzers\NuGet\PublicApiAnalyzers\Microsoft.CodeAnalysis.PublicApiAnalyzers.Package.csproj", "{E27FA26C-6E34-F3F5-3005-67EF18A5CB8B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.PublicApiAnalyzers.Package", "src\RoslynAnalyzers\NuGet\PublicApiAnalyzers\Microsoft.CodeAnalysis.PublicApiAnalyzers.Package.csproj", "{E27FA26C-6E34-F3F5-3005-67EF18A5CB8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roslyn.Diagnostics.Analyzers.Package", "src\RoslynAnalyzers\NuGet\Roslyn.Diagnostics.Analyzers\Roslyn.Diagnostics.Analyzers.Package.csproj", "{295E850B-D94D-3328-75AB-62828B4B85BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Roslyn.Diagnostics.Analyzers.Package", "src\RoslynAnalyzers\NuGet\Roslyn.Diagnostics.Analyzers\Roslyn.Diagnostics.Analyzers.Package.csproj", "{295E850B-D94D-3328-75AB-62828B4B85BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Text.Analyzers.Package", "src\RoslynAnalyzers\NuGet\Text.Analyzers\Text.Analyzers.Package.csproj", "{A8C385EE-1798-2802-5533-9E9A12CC603E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Text.Analyzers.Package", "src\RoslynAnalyzers\NuGet\Text.Analyzers\Text.Analyzers.Package.csproj", "{A8C385EE-1798-2802-5533-9E9A12CC603E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateDocumentationAndConfigFiles", "src\RoslynAnalyzers\Tools\GenerateDocumentationAndConfigFiles\GenerateDocumentationAndConfigFiles.csproj", "{A1EBC0BC-D378-B9B7-7A57-EF7DF11E3ED7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenerateDocumentationAndConfigFiles", "src\RoslynAnalyzers\Tools\GenerateDocumentationAndConfigFiles\GenerateDocumentationAndConfigFiles.csproj", "{A1EBC0BC-D378-B9B7-7A57-EF7DF11E3ED7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateDocumentationAndConfigFilesForBrokenRuntime", "src\RoslynAnalyzers\Tools\GenerateDocumentationAndConfigFilesForBrokenRuntime\GenerateDocumentationAndConfigFilesForBrokenRuntime.csproj", "{29080628-23A6-1DCB-F15E-93F1D1682CC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GenerateDocumentationAndConfigFilesForBrokenRuntime", "src\RoslynAnalyzers\Tools\GenerateDocumentationAndConfigFilesForBrokenRuntime\GenerateDocumentationAndConfigFilesForBrokenRuntime.csproj", "{29080628-23A6-1DCB-F15E-93F1D1682CC1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestReferenceAssembly", "src\RoslynAnalyzers\TestReferenceAssembly\TestReferenceAssembly.csproj", "{31EB654C-B562-73B4-2456-78FA875515D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1781,6 +1783,10 @@ Global
 		{29080628-23A6-1DCB-F15E-93F1D1682CC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{29080628-23A6-1DCB-F15E-93F1D1682CC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{29080628-23A6-1DCB-F15E-93F1D1682CC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31EB654C-B562-73B4-2456-78FA875515D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31EB654C-B562-73B4-2456-78FA875515D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31EB654C-B562-73B4-2456-78FA875515D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31EB654C-B562-73B4-2456-78FA875515D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2119,6 +2125,7 @@ Global
 		{A8C385EE-1798-2802-5533-9E9A12CC603E} = {7F040742-3C10-406A-A0FF-7FE621DEF671}
 		{A1EBC0BC-D378-B9B7-7A57-EF7DF11E3ED7} = {482C1FC7-4FD6-4381-8078-73BEBFAF4349}
 		{29080628-23A6-1DCB-F15E-93F1D1682CC1} = {482C1FC7-4FD6-4381-8078-73BEBFAF4349}
+		{31EB654C-B562-73B4-2456-78FA875515D2} = {0DDCFE67-7D4E-4709-9882-EC032A031789}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
