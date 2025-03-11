@@ -11310,24 +11310,31 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
     {
         await TestInRegularAndScriptAsync(
             """
+            using System;
             using System.Collections.Generic;
 
             class C
             {
                 void M()
                 {
-                    Dictionary<string, int> s = [[|Goo|](), 0];
+                    Dictionary<string, int> s = [[|Goo|](): 0];
                 }
             }
             """,
             """
+            using System;
             using System.Collections.Generic;
             
             class C
             {
                 void M()
                 {
-                    Dictionary<string, int> s = [Goo(), 0];
+                    Dictionary<string, int> s = [Goo(): 0];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
                 }
             }
             """);
@@ -11338,24 +11345,31 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
     {
         await TestInRegularAndScriptAsync(
             """
+            using System;
             using System.Collections.Generic;
 
             class C
             {
                 void M()
                 {
-                    Dictionary<string, int> s = ["", [|Goo|]()];
+                    Dictionary<string, int> s = ["": [|Goo|]()];
                 }
             }
             """,
             """
+            using System;
             using System.Collections.Generic;
             
             class C
             {
                 void M()
                 {
-                    Dictionary<string, int> s = ["", Goo()];
+                    Dictionary<string, int> s = ["": Goo()];
+                }
+            
+                private int Goo()
+                {
+                    throw new NotImplementedException();
                 }
             }
             """);

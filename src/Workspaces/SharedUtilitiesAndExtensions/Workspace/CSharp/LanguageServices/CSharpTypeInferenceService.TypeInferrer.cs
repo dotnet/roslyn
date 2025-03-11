@@ -164,6 +164,7 @@ internal partial class CSharpTypeInferenceService
                 InitializerExpressionSyntax initializerExpression => InferTypeInInitializerExpression(initializerExpression, expression),
                 IsPatternExpressionSyntax isPatternExpression => InferTypeInIsPatternExpression(isPatternExpression, node),
                 LockStatementSyntax lockStatement => InferTypeInLockStatement(lockStatement),
+                KeyValuePairElementSyntax keyValuePairElement => InferTypeInKeyValuePairElement(keyValuePairElement, expression),
                 MemberAccessExpressionSyntax memberAccessExpression => InferTypeInMemberAccessExpression(memberAccessExpression, expression),
                 NameColonSyntax nameColon => InferTypeInNameColon(nameColon),
                 NameEqualsSyntax nameEquals => InferTypeInNameEquals(nameEquals),
@@ -1262,6 +1263,57 @@ internal partial class CSharpTypeInferenceService
             }
 
             return [];
+        }
+
+        private IEnumerable<TypeInferenceInfo> InferTypeInKeyValuePairElement(
+            KeyValuePairElementSyntax keyValuePairElement, ExpressionSyntax expression)
+        {
+            var isKey = expression == keyValuePairElement.KeyExpression;
+            var types = InferTypes();
+            return types.Select(t => new TypeInferenceInfo(t));
+
+            IEnumerable<ITypeSymbol> InferTypes()
+            {
+                if (keyValuePairElement.Parent is CollectionExpressionSyntax collectionExpression)
+                {
+                    var collectionType = SemanticModel.GetTypeInfo(collectionExpression, CancellationToken).ConvertedType;
+
+                    // Try to figure out the type based on the type of hte collection itself.
+                    if (CollectionExpressionExtensions.IsConstructibleCollectionType(
+                            SemanticModel.Compilation, collectionType, out var elementTypes) &&
+                        elementTypes is [var elementType, ..])
+                    {
+                        return PickKeyOrValueType(elementType);
+                    }
+
+                    // If that fails, see if we can figure out from one of our siblings.
+                    foreach (var element in collectionExpression.Elements)
+                    {
+                        if (element != keyValuePairElement && element is KeyValuePairElementSyntax siblingElement)
+                        {
+                            var types = GetTypes(isKey ? siblingElement.KeyExpression : siblingElement.ValueExpression, objectAsDefault: false);
+                            if (types.Any())
+                                return types.SelectMany(i => PickKeyOrValueType(i.InferredType));
+                        }
+                    }
+                }
+
+                return [];
+            }
+
+            IEnumerable<ITypeSymbol> PickKeyOrValueType(ITypeSymbol typeSymbol)
+            {
+                if (typeSymbol is INamedTypeSymbol
+                    {
+                        Name: nameof(KeyValuePair<int, int>),
+                        TypeArguments: [var keyType, var valueType]
+                    })
+                {
+                    return [isKey ? keyType : valueType];
+                }
+
+                return [];
+            }
         }
 
         private IEnumerable<TypeInferenceInfo> InferTypeInExpressionStatement(SyntaxToken? previousToken = null)
