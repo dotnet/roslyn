@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    this.Methods.Add((MethodSymbol)member);
+                    this.Methods.Add(method);
                 }
             }
 
