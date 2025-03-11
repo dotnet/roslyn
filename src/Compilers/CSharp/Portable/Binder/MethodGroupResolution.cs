@@ -103,9 +103,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodGroup?.Methods.Count == 1 && // Local functions cannot be overloaded
             MethodGroup.Methods[0].MethodKind == MethodKind.LocalFunction;
 
-        public void Free()
+        public void Free(bool keepArguments = false)
         {
-            this.AnalyzedArguments?.Free();
+            if (!keepArguments)
+            {
+                this.AnalyzedArguments?.Free();
+            }
+
             this.MethodGroup?.Free();
             this.OverloadResolutionResult?.Free();
         }

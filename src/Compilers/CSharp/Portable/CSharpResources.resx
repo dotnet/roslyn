@@ -8089,4 +8089,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ReceiverParameterOnlyOne" xml:space="preserve">
     <value>An extension container can have only one receiver parameter</value>
   </data>
+  <data name="ERR_ExtensionResolutionFailed" xml:space="preserve">
+    <value>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</value>
+  </data>
 </root>
