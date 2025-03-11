@@ -11256,7 +11256,7 @@ $@"class Program
             """
             class Class
             {
-                void Method(D c)
+                void Method(D? c)
                 {
                     c?.Goo = 1;
                 }
