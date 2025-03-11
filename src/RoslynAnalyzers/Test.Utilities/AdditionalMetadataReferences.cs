@@ -11,7 +11,25 @@ namespace Test.Utilities
 {
     public static class AdditionalMetadataReferences
     {
-        public static ReferenceAssemblies Default { get; } = CreateDefaultReferenceAssemblies();
+        public static ReferenceAssemblies DefaultNetCore { get; } = ReferenceAssemblies.Net.Net80
+                .AddPackages(ImmutableArray.Create(
+                    new PackageIdentity("Microsoft.CodeAnalysis", "3.0.0"),
+                    new PackageIdentity("System.Runtime.Serialization.Formatters", "4.3.0"),
+                    new PackageIdentity("System.Configuration.ConfigurationManager", "4.7.0"),
+                    new PackageIdentity("System.Security.Cryptography.Cng", "4.7.0"),
+                    new PackageIdentity("System.Security.Permissions", "4.7.0"),
+                    new PackageIdentity("Microsoft.VisualBasic", "10.3.0")));
+
+        public static ReferenceAssemblies DefaultNetFramework { get; } = ReferenceAssemblies.Default
+            .AddAssemblies(ImmutableArray.Create("System.Xml.Data"))
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.0.0")));
+
+        public static ReferenceAssemblies Default { get; } =
+#if NETCOREAPP
+            DefaultNetCore;
+#else
+            DefaultNetFramework;
+#endif
 
         public static ReferenceAssemblies DefaultWithoutRoslynSymbols { get; } = ReferenceAssemblies.Default
             .AddAssemblies(ImmutableArray.Create("System.Xml.Data"))
@@ -87,27 +105,5 @@ namespace Test.Utilities
         public static MetadataReference SystemWebExtensions { get; } = MetadataReference.CreateFromFile(typeof(System.Web.Script.Serialization.JavaScriptSerializer).Assembly.Location);
         public static MetadataReference SystemServiceModel { get; } = MetadataReference.CreateFromFile(typeof(System.ServiceModel.OperationContractAttribute).Assembly.Location);
 #endif
-
-        private static ReferenceAssemblies CreateDefaultReferenceAssemblies()
-        {
-            var referenceAssemblies = ReferenceAssemblies.Default;
-
-#if !NETCOREAPP
-            referenceAssemblies = referenceAssemblies.AddAssemblies(ImmutableArray.Create("System.Xml.Data"));
-#endif
-
-            referenceAssemblies = referenceAssemblies.AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.0.0")));
-
-#if NETCOREAPP
-            referenceAssemblies = referenceAssemblies.AddPackages(ImmutableArray.Create(
-                new PackageIdentity("System.Runtime.Serialization.Formatters", "4.3.0"),
-                new PackageIdentity("System.Configuration.ConfigurationManager", "4.7.0"),
-                new PackageIdentity("System.Security.Cryptography.Cng", "4.7.0"),
-                new PackageIdentity("System.Security.Permissions", "4.7.0"),
-                new PackageIdentity("Microsoft.VisualBasic", "10.3.0")));
-#endif
-
-            return referenceAssemblies;
-        }
     }
 }

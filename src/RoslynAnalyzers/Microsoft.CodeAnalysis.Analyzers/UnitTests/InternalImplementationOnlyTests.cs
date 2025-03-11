@@ -200,8 +200,8 @@ class SomeOtherClass : Microsoft.CodeAnalysis.IAssemblySymbol { }
                         DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 49).WithArguments("SomeClass", "Microsoft.CodeAnalysis.ISymbol.ToMinimalDisplayParts(Microsoft.CodeAnalysis.SemanticModel, int, Microsoft.CodeAnalysis.SymbolDisplayFormat)"),
                         // Test0.cs(3,19): error CS0535: 'SomeClass' does not implement interface member 'ISymbol.ToMinimalDisplayString(SemanticModel, int, SymbolDisplayFormat)'
                         DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 49).WithArguments("SomeClass", "Microsoft.CodeAnalysis.ISymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis.SemanticModel, int, Microsoft.CodeAnalysis.SymbolDisplayFormat)"),
-                        // Test0.cs(3,19): error CS0535: 'SomeClass' does not implement interface member 'IEquatable<ISymbol>.Equals(ISymbol)'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 49).WithArguments("SomeClass", "System.IEquatable<Microsoft.CodeAnalysis.ISymbol>.Equals(Microsoft.CodeAnalysis.ISymbol)"),
+                        // Test0.cs(3,19): error CS0535: 'SomeClass' does not implement interface member 'IEquatable<ISymbol>.Equals(ISymbol?)'
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 49).WithArguments("SomeClass", "System.IEquatable<Microsoft.CodeAnalysis.ISymbol>.Equals(Microsoft.CodeAnalysis.ISymbol?)"),
                         // Test0.cs(4,7): error RS1009: Type SomeOtherClass cannot implement interface ISymbol because ISymbol is not available for public implementation.
                         VerifyCS.Diagnostic().WithSpan(4, 7, 4, 21).WithArguments("SomeOtherClass", "ISymbol"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IAssemblySymbol.GetMetadata()'
@@ -290,8 +290,8 @@ class SomeOtherClass : Microsoft.CodeAnalysis.IAssemblySymbol { }
                         DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 62).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.ISymbol.ToMinimalDisplayParts(Microsoft.CodeAnalysis.SemanticModel, int, Microsoft.CodeAnalysis.SymbolDisplayFormat)"),
                         // Test0.cs(4,24): error CS0535: 'SomeOtherClass' does not implement interface member 'ISymbol.ToMinimalDisplayString(SemanticModel, int, SymbolDisplayFormat)'
                         DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 62).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.ISymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis.SemanticModel, int, Microsoft.CodeAnalysis.SymbolDisplayFormat)"),
-                        // Test0.cs(4,24): error CS0535: 'SomeOtherClass' does not implement interface member 'IEquatable<ISymbol>.Equals(ISymbol)'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 62).WithArguments("SomeOtherClass", "System.IEquatable<Microsoft.CodeAnalysis.ISymbol>.Equals(Microsoft.CodeAnalysis.ISymbol)")
+                        // Test0.cs(4,24): error CS0535: 'SomeOtherClass' does not implement interface member 'IEquatable<ISymbol>.Equals(ISymbol?)'
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 62).WithArguments("SomeOtherClass", "System.IEquatable<Microsoft.CodeAnalysis.ISymbol>.Equals(Microsoft.CodeAnalysis.ISymbol?)")
                     },
                 },
             }.RunAsync();
