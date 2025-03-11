@@ -116,7 +116,7 @@ internal static class UseCollectionExpressionHelpers
         if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
-        if (!IsConstructibleCollectionType(compilation, originalTypeInfo.ConvertedType.OriginalDefinition))
+        if (!CollectionExpressionExtensions.IsConstructibleCollectionType(compilation, originalTypeInfo.ConvertedType.OriginalDefinition))
             return false;
 
         if (expression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
@@ -143,7 +143,7 @@ internal static class UseCollectionExpressionHelpers
         // expression will always succeed, and there's no need to actually validate semantics there.
         // Tracked by https://github.com/dotnet/roslyn/issues/68826
         if (parent is CastExpressionSyntax)
-            return IsConstructibleCollectionType(compilation, semanticModel.GetTypeInfo(parent, cancellationToken).Type);
+            return CollectionExpressionExtensions.IsConstructibleCollectionType(compilation, semanticModel.GetTypeInfo(parent, cancellationToken).Type);
 
         // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
         // any issues.
@@ -232,7 +232,7 @@ internal static class UseCollectionExpressionHelpers
 
             // It's always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it will
             // continue emitting a List<X> for those target types.
-            var isWellKnownCollectionReadWriteInterface = IsWellKnownCollectionReadWriteInterface(convertedType);
+            var isWellKnownCollectionReadWriteInterface = CollectionExpressionExtensions.IsWellKnownCollectionReadWriteInterface(convertedType);
             if (isWellKnownCollectionReadWriteInterface &&
                 Equals(type.OriginalDefinition, compilation.ListOfTType()) &&
                 type.AllInterfaces.Contains(convertedType))
@@ -258,7 +258,7 @@ internal static class UseCollectionExpressionHelpers
             //
             // `IEnumerable<object> obj = Array.Empty<object>();` or
             // `IEnumerable<string> obj = new[] { "" };`
-            if (IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
+            if (CollectionExpressionExtensions.IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
             {
                 // The observable collections are known to have significantly different behavior than List<T>.  So
                 // disallow converting those types to ensure semantics are preserved.  We do this even though
@@ -293,91 +293,6 @@ internal static class UseCollectionExpressionHelpers
 
             // Add more cases to support here.
             return false;
-        }
-    }
-
-    public static bool IsWellKnownCollectionInterface(ITypeSymbol type)
-        => IsWellKnownCollectionReadOnlyInterface(type) || IsWellKnownCollectionReadWriteInterface(type);
-
-    public static bool IsWellKnownCollectionReadOnlyInterface(ITypeSymbol type)
-    {
-        return type.OriginalDefinition.SpecialType
-            is SpecialType.System_Collections_Generic_IEnumerable_T
-            or SpecialType.System_Collections_Generic_IReadOnlyCollection_T
-            or SpecialType.System_Collections_Generic_IReadOnlyList_T;
-    }
-
-    public static bool IsWellKnownCollectionReadWriteInterface(ITypeSymbol type)
-    {
-        return type.OriginalDefinition.SpecialType
-            is SpecialType.System_Collections_Generic_ICollection_T
-            or SpecialType.System_Collections_Generic_IList_T;
-    }
-
-    public static bool IsConstructibleCollectionType(Compilation compilation, ITypeSymbol? type)
-    {
-        if (type is null)
-            return false;
-
-        // Arrays are always a valid collection expression type.
-        if (type is IArrayTypeSymbol)
-            return true;
-
-        // Has to be a real named type at this point.
-        if (type is INamedTypeSymbol namedType)
-        {
-            // Span<T> and ReadOnlySpan<T> are always valid collection expression types.
-            if (namedType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
-                namedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
-            {
-                return true;
-            }
-
-            // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
-            if (namedType.GetAttributes().Any(a => a.AttributeClass.IsCollectionBuilderAttribute()))
-                return true;
-
-            if (IsWellKnownCollectionInterface(namedType))
-                return true;
-
-            // At this point, all that is left are collection-initializer types.  These need to derive from
-            // System.Collections.IEnumerable, and have an invokable no-arg constructor.
-
-            // Abstract type don't have invokable constructors at all.
-            if (namedType.IsAbstract)
-                return false;
-
-            if (namedType.AllInterfaces.Contains(compilation.IEnumerableType()!))
-            {
-                // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
-                var constructors = namedType.Constructors;
-                var capacityConstructor = GetAccessibleInstanceConstructor(constructors, c => c.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }]);
-                if (capacityConstructor != null)
-                    return true;
-
-                var noArgConstructor =
-                    GetAccessibleInstanceConstructor(constructors, c => c.Parameters.IsEmpty) ??
-                    GetAccessibleInstanceConstructor(constructors, c => c.Parameters.All(p => p.IsOptional || p.IsParams));
-                if (noArgConstructor != null)
-                {
-                    // If we have a struct, and the constructor we find is implicitly declared, don't consider this
-                    // a constructible type.  It's likely the user would just get the `default` instance of the
-                    // collection (like with ImmutableArray<T>) which would then not actually work.  If the struct
-                    // does have an explicit constructor though, that's a good sign it can actually be constructed
-                    // safely with the no-arg `new S()` call.
-                    if (!(namedType.TypeKind == TypeKind.Struct && noArgConstructor.IsImplicitlyDeclared))
-                        return true;
-                }
-            }
-        }
-
-        // Anything else is not constructible.
-        return false;
-
-        IMethodSymbol? GetAccessibleInstanceConstructor(ImmutableArray<IMethodSymbol> constructors, Func<IMethodSymbol, bool> predicate)
-        {
-            var constructor = constructors.FirstOrDefault(c => !c.IsStatic && predicate(c));
-            return constructor is not null && constructor.IsAccessibleWithin(compilation.Assembly) ? constructor : null;
         }
     }
 
@@ -977,13 +892,13 @@ internal static class UseCollectionExpressionHelpers
                 if (arguments.Count == 1 &&
                     compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
                     originalCreateMethod.Parameters is [
-                    {
-                        Type: INamedTypeSymbol
                         {
-                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                        } spanType
-                    }])
+                            Type: INamedTypeSymbol
+                            {
+                                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                            } spanType
+                        }])
                 {
                     if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                         spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))

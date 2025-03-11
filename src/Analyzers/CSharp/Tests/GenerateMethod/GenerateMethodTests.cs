@@ -11120,6 +11120,118 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
             """);
     }
 
+    [Fact]
+    public async Task GenerateInCollection1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collection.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<string> s = [[|Goo|]()];
+                }
+            }
+            """,
+            """
+            using System.Collection.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    List<string> s = [Goo()];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GenerateInCollection2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collection.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    string[] s = [[|Goo|]()];
+                }
+            }
+            """,
+            """
+            using System.Collection.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    string[] s = [Goo()];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GenerateInDictionaryExpressionKey()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collection.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    Dictionary<string, int> s = [[|Goo|](), 0];
+                }
+            }
+            """,
+            """
+            using System.Collection.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    Dictionary<string, int> s = [Goo(), 0];
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GenerateInDictionaryExpressionValue()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collection.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    Dictionary<string, int> s = ["", [|Goo|]()];
+                }
+            }
+            """,
+            """
+            using System.Collection.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    Dictionary<string, int> s = ["", Goo()];
+                }
+            }
+            """);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60136")]
     public async Task GenerateIntoTopLevelProgramWithPartialType()
     {

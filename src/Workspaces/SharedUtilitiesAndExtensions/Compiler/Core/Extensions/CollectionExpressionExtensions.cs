@@ -1,0 +1,178 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal static class CollectionExpressionExtensions
+{
+    public static bool IsWellKnownCollectionInterface(ITypeSymbol type)
+        => IsWellKnownCollectionReadOnlyInterface(type) || IsWellKnownCollectionReadWriteInterface(type);
+
+    public static bool IsWellKnownCollectionReadOnlyInterface(ITypeSymbol type)
+    {
+        return type.OriginalDefinition.SpecialType
+            is SpecialType.System_Collections_Generic_IEnumerable_T
+            or SpecialType.System_Collections_Generic_IReadOnlyCollection_T
+            or SpecialType.System_Collections_Generic_IReadOnlyList_T;
+    }
+
+    public static bool IsWellKnownCollectionReadWriteInterface(ITypeSymbol type)
+    {
+        return type.OriginalDefinition.SpecialType
+            is SpecialType.System_Collections_Generic_ICollection_T
+            or SpecialType.System_Collections_Generic_IList_T;
+    }
+
+    public static bool IsConstructibleCollectionType(
+        Compilation compilation,
+        [NotNullWhen(true)] ITypeSymbol? type)
+    {
+        return IsConstructibleCollectionType(compilation, type, out _);
+    }
+
+    public static bool IsConstructibleCollectionType(
+        Compilation compilation,
+        [NotNullWhen(true)] ITypeSymbol? type,
+        out ImmutableArray<ITypeSymbol> elementTypes)
+    {
+        if (type is null)
+        {
+            elementTypes = default;
+            return false;
+        }
+
+        // Arrays are always a valid collection expression type.
+        if (type is IArrayTypeSymbol arrayType)
+        {
+            elementTypes = [arrayType.ElementType];
+            return true;
+        }
+
+        // Has to be a real named type at this point.
+        if (type is INamedTypeSymbol namedType)
+        {
+            // Span<T> and ReadOnlySpan<T> are always valid collection expression types.
+            if (namedType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
+                namedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
+            {
+                elementTypes = namedType.TypeArguments;
+                return true;
+            }
+
+            // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
+            var collectionBuilderMethods = CollectionExpressionExtensions.TryGetCollectionBuilderFactoryMethods(
+                compilation, namedType);
+            if (collectionBuilderMethods is [var builderMethod, ..])
+            {
+                elementTypes = builderMethod.ReturnType.GetTypeArguments();
+                return true;
+            }
+
+            if (IsWellKnownCollectionInterface(namedType))
+            {
+                elementTypes = namedType.TypeArguments;
+                return true;
+            }
+
+            // At this point, all that is left are collection-initializer types.  These need to derive from
+            // System.Collections.IEnumerable, and have an invokable no-arg constructor.
+
+            // Abstract type don't have invokable constructors at all.
+            if (namedType.IsAbstract)
+            {
+                elementTypes = default;
+                return false;
+            }
+
+            var ienumerableType = compilation.IEnumerableType();
+            var foundType = namedType.AllInterfaces.FirstOrDefault(i => i.OriginalDefinition.Equals(ienumerableType));
+            if (foundType != null)
+            {
+                elementTypes = foundType.TypeArguments;
+
+                // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
+                var constructors = namedType.Constructors;
+                var capacityConstructor = GetAccessibleInstanceConstructor(constructors, c => c.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }]);
+                if (capacityConstructor != null)
+                    return true;
+
+                var noArgConstructor =
+                    GetAccessibleInstanceConstructor(constructors, c => c.Parameters.IsEmpty) ??
+                    GetAccessibleInstanceConstructor(constructors, c => c.Parameters.All(p => p.IsOptional || p.IsParams));
+                if (noArgConstructor != null)
+                {
+                    // If we have a struct, and the constructor we find is implicitly declared, don't consider this
+                    // a constructible type.  It's likely the user would just get the `default` instance of the
+                    // collection (like with ImmutableArray<T>) which would then not actually work.  If the struct
+                    // does have an explicit constructor though, that's a good sign it can actually be constructed
+                    // safely with the no-arg `new S()` call.
+                    if (!(namedType.TypeKind == TypeKind.Struct && noArgConstructor.IsImplicitlyDeclared))
+                        return true;
+                }
+            }
+        }
+
+        // Anything else is not constructible.
+        elementTypes = default;
+        return false;
+
+        IMethodSymbol? GetAccessibleInstanceConstructor(ImmutableArray<IMethodSymbol> constructors, Func<IMethodSymbol, bool> predicate)
+        {
+            var constructor = constructors.FirstOrDefault(c => !c.IsStatic && predicate(c));
+            return constructor is not null && constructor.IsAccessibleWithin(compilation.Assembly) ? constructor : null;
+        }
+    }
+
+    public static ImmutableArray<IMethodSymbol>? TryGetCollectionBuilderFactoryMethods(
+        Compilation compilation, INamedTypeSymbol collectionExpressionType)
+    {
+        var readonlySpanOfTType = compilation.ReadOnlySpanOfTType();
+        var attribute = collectionExpressionType.GetAttributes().FirstOrDefault(
+            static a => a.AttributeClass.IsCollectionBuilderAttribute());
+
+        // https://github.com/dotnet/csharplang/blob/main/proposals/collection-expression-arguments.md#create-method-candidates
+        // A [CollectionBuilder(...)] attribute specifies the builder type and method name of a method to be invoked
+        // to construct an instance of the collection type.
+        if (attribute is not { ConstructorArguments: [{ Value: INamedTypeSymbol builderType }, { Value: string builderMethodName }] })
+            return null;
+
+        // Find all the methods in the builder type with the given name that have a ReadOnlySpan<T> as either their
+        // first or last parameter.
+        var builderMethods = builderType
+            // The method must have the name specified in the [CollectionBuilder(...)] attribute.
+            .GetMembers(builderMethodName)
+            .OfType<IMethodSymbol>()
+            .Where(m =>
+                // The method must be static.
+                m.IsStatic &&
+                // The arity of the method must match the arity of the collection type.
+                m.Arity == collectionExpressionType.Arity &&
+                m.Parameters.Length >= 1 &&
+                // The method must have a first (or last) parameter of type System.ReadOnlySpan<E>, passed by value.
+                (Equals(m.Parameters[0].Type.OriginalDefinition, readonlySpanOfTType) ||
+                 Equals(m.Parameters.Last().Type.OriginalDefinition, readonlySpanOfTType)))
+            .ToImmutableArray();
+
+        // Instance the construction method if generic. And filter to only those that return the collection type
+        // being created.
+        var constructedBuilderMethods = builderMethods
+            .Select(m => m.Construct([.. collectionExpressionType.TypeArguments]))
+            .Where(m =>
+            {
+                // There is an identity conversion, implicit reference conversion, or boxing conversion from the method return type to the collection type.
+                var conversion = compilation.ClassifyCommonConversion(m.ReturnType, collectionExpressionType);
+                return conversion.IsIdentity || (conversion.IsImplicit && conversion.IsReference);
+            })
+            .ToImmutableArray();
+
+        return constructedBuilderMethods;
+    }
+}
