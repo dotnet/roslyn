@@ -8,7 +8,6 @@ using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.Extensions.Logging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Services;
 
