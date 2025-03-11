@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
@@ -192,59 +193,64 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
                 break;
             }
         }
-        var maxLength = 1000;
 
-        var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference =>
+        var solution = document.Project.Solution;
+        var declarationCode = symbol.DeclaringSyntaxReferences.Select(reference =>
         {
             var span = reference.Span;
-            var sourceText = reference.SyntaxTree.GetText(cancellationToken);
-            return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
+            var syntaxReferenceDocument = solution.GetDocument(reference.SyntaxTree);
+            if (syntaxReferenceDocument is not null)
+            {
+                return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, span);
+            }
+
+            return null;
         }).ToImmutableArray();
 
-        var additionalContext = GetAdditionalOnTheFlyDocsContext(symbol, maxLength, cancellationToken);
+        var additionalContext = GetAdditionalOnTheFlyDocsContext(solution, symbol);
 
-        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), symbolStrings, symbol.Language, hasContentExcluded, additionalContext);
+        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), declarationCode, symbol.Language, hasContentExcluded, additionalContext);
     }
 
-    private static ImmutableArray<string> GetAdditionalOnTheFlyDocsContext(ISymbol symbol, int maxLength, CancellationToken cancellationToken)
+    private static ImmutableArray<OnTheFlyDocsRelevantFileInfo?> GetAdditionalOnTheFlyDocsContext(Solution solution, ISymbol symbol)
     {
         var parameters = symbol.GetParameters();
-        var typeParameters = symbol.GetTypeParameters();
+        var typeArguments = symbol.GetTypeArguments();
         var parameterStrings = parameters.Select(parameter =>
         {
-            // Check if the parameter is a type and get its source code
-            if (parameter.Type is ITypeSymbol typeSymbol)
+            var typeSymbol = parameter.Type;
+            var typeSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
+            if (typeSyntaxReference is not null)
             {
-                var typeSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
-                if (typeSyntaxReference is not null)
+                var typeSpan = typeSyntaxReference.Span;
+                var syntaxReferenceDocument = solution.GetDocument(typeSyntaxReference.SyntaxTree);
+                if (syntaxReferenceDocument is not null)
                 {
-                    var typeSpan = typeSyntaxReference.Span;
-                    var typeSourceText = typeSyntaxReference.SyntaxTree.GetText(cancellationToken);
-                    return typeSourceText.GetSubText(new Text.TextSpan(typeSpan.Start, Math.Min(maxLength, typeSpan.Length))).ToString();
+                    return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, typeSpan);
                 }
             }
 
-            return string.Empty;
+            return null;
 
         }).ToImmutableArray();
 
-        var typeParameterStrings = typeParameters.Select(typeParameter =>
+        var typeArgumentStrings = typeArguments.Select(typeArgument =>
         {
-            if (typeParameter.DeclaringType is ITypeSymbol typeSymbol)
+            var typeSyntaxReference = typeArgument.DeclaringSyntaxReferences.FirstOrDefault();
+            if (typeSyntaxReference is not null)
             {
-                var typeSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
-                if (typeSyntaxReference is not null)
+                var typeSpan = typeSyntaxReference.Span;
+                var syntaxReferenceDocument = solution.GetDocument(typeSyntaxReference.SyntaxTree);
+                if (syntaxReferenceDocument is not null)
                 {
-                    var typeSpan = typeSyntaxReference.Span;
-                    var typeSourceText = typeSyntaxReference.SyntaxTree.GetText(cancellationToken);
-                    return typeSourceText.GetSubText(new Text.TextSpan(typeSpan.Start, Math.Min(maxLength, typeSpan.Length))).ToString();
+                    return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, typeSpan);
                 }
             }
 
-            return string.Empty;
+            return null;
 
         }).ToImmutableArray();
 
-        return parameterStrings.AddRange(typeParameterStrings);
+        return parameterStrings.AddRange(typeArgumentStrings);
     }
 }

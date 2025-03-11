@@ -92,12 +92,12 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return Task.CompletedTask;
     }
 
-    protected override string GetOnTheFlyDocsPromptCore(OnTheFlyDocsInfo onTheFlyDocsInfo)
+    protected override Task<string> GetOnTheFlyDocsPromptCoreAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken)
     {
         if (OnTheFlyDocsService is not null)
-            return OnTheFlyDocsService.GetOnTheFlyDocsPrompt(new CopilotOnTheFlyDocsInfoWrapper(onTheFlyDocsInfo));
+            return OnTheFlyDocsService.GetOnTheFlyDocsPromptAsync(new CopilotOnTheFlyDocsInfoWrapper(onTheFlyDocsInfo), cancellationToken);
 
-        return string.Empty;
+        return Task.FromResult(string.Empty);
     }
 
     protected override Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseCoreAsync(string prompt, CancellationToken cancellationToken)

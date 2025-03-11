@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
 {
     internal interface IExternalCSharpOnTheFlyDocsService
     {
-        string GetOnTheFlyDocsPrompt(CopilotOnTheFlyDocsInfoWrapper onTheFlyDocsInfo);
+        Task<string> GetOnTheFlyDocsPromptAsync(CopilotOnTheFlyDocsInfoWrapper onTheFlyDocsInfo, CancellationToken cancellationToken);
         Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken);
     }
 }

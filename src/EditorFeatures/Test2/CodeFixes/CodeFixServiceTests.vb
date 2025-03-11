@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult((New Dictionary(Of String, String), False))
             End Function
 
-            Public Function GetOnTheFlyDocsPrompt(onTheFlyDocsInfo As OnTheFlyDocsInfo) As String Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsPrompt
+            Public Function GetOnTheFlyDocsPrompt(onTheFlyDocsInfo As OnTheFlyDocsInfo, cancellationToken As CancellationToken) As String Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsPrompt
                 Return String.Empty
             End Function
 

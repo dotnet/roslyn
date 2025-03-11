@@ -40,7 +40,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken);
     protected abstract Task<ImmutableArray<Diagnostic>> GetCachedDiagnosticsCoreAsync(Document document, string promptTitle, CancellationToken cancellationToken);
     protected abstract Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
-    protected abstract string GetOnTheFlyDocsPromptCore(OnTheFlyDocsInfo onTheFlyDocsInfo);
+    protected abstract Task<string> GetOnTheFlyDocsPromptCoreAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken);
     protected abstract Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseCoreAsync(string prompt, CancellationToken cancellationToken);
     protected abstract Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken);
     protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
@@ -176,9 +176,9 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
             await StartRefinementSessionCoreAsync(oldDocument, newDocument, primaryDiagnostic, cancellationToken).ConfigureAwait(false);
     }
 
-    public string GetOnTheFlyDocsPrompt(OnTheFlyDocsInfo onTheFlyDocsInfo)
+    public async Task<string> GetOnTheFlyDocsPromptAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken)
     {
-        return GetOnTheFlyDocsPromptCore(onTheFlyDocsInfo);
+        return await GetOnTheFlyDocsPromptCoreAsync(onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
     }
     public async Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken)
     {
