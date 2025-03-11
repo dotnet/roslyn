@@ -175,13 +175,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return !token.IsKind(SyntaxKind.EndOfFileToken);
         }
 
-        private int LineBreaksAfterLeading(SyntaxToken token)
+        private static int LineBreaksAfterLeading(SyntaxToken token)
         {
             if (token.LeadingTrivia.Count < 2)
             {
                 return 0;
             }
-            
+
             if (token.LeadingTrivia[^2].IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) &&
                 token.LeadingTrivia[^1].IsKind(SyntaxKind.EndOfLineTrivia))
             {
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 return 1;
             }
-            
+
             if (nextToken.Kind() == SyntaxKind.None)
             {
                 return 0;
