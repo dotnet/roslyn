@@ -156,6 +156,7 @@ internal partial class CSharpTypeInferenceService
                 DoStatementSyntax doStatement => InferTypeInDoStatement(doStatement),
                 EqualsValueClauseSyntax equalsValue => InferTypeInEqualsValueClause(equalsValue),
                 ExpressionColonSyntax expressionColon => InferTypeInExpressionColon(expressionColon),
+                ExpressionElementSyntax expressionElement => InferTypeInExpressionElement(expressionElement),
                 ExpressionStatementSyntax _ => InferTypeInExpressionStatement(),
                 ForEachStatementSyntax forEachStatement => InferTypeInForEachStatement(forEachStatement, expression),
                 ForStatementSyntax forStatement => InferTypeInForStatement(forStatement, expression),
@@ -1232,6 +1233,35 @@ internal partial class CSharpTypeInferenceService
 
             var typeInfo = SemanticModel.GetTypeInfo(propertyDeclaration.Type);
             return CreateResult(typeInfo.Type);
+        }
+
+        private IEnumerable<TypeInferenceInfo> InferTypeInExpressionElement(ExpressionElementSyntax expressionElement)
+        {
+            if (expressionElement.Parent is CollectionExpressionSyntax collectionExpression)
+            {
+                var collectionType = SemanticModel.GetTypeInfo(collectionExpression, CancellationToken).ConvertedType;
+
+                // Try to figure out the type based on the type of hte collection itself.
+                if (CollectionExpressionExtensions.IsConstructibleCollectionType(
+                        SemanticModel.Compilation, collectionType, out var elementTypes) &&
+                    elementTypes is [var elementType, ..])
+                {
+                    return [new(elementType)];
+                }
+
+                // If that fails, see if we can figure out from one of our siblings.
+                foreach (var element in collectionExpression.Elements)
+                {
+                    if (element != expressionElement && element is ExpressionElementSyntax siblingElement)
+                    {
+                        var types = GetTypes(siblingElement.Expression, objectAsDefault: false);
+                        if (types.Any())
+                            return types;
+                    }
+                }
+            }
+
+            return [];
         }
 
         private IEnumerable<TypeInferenceInfo> InferTypeInExpressionStatement(SyntaxToken? previousToken = null)

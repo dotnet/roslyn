@@ -92,7 +92,7 @@ internal static class CollectionExpressionExtensions
                 return false;
             }
 
-            var ienumerableType = compilation.IEnumerableType();
+            var ienumerableType = compilation.IEnumerableOfTType();
             var foundType = namedType.AllInterfaces.FirstOrDefault(i => i.OriginalDefinition.Equals(ienumerableType));
             if (foundType != null)
             {

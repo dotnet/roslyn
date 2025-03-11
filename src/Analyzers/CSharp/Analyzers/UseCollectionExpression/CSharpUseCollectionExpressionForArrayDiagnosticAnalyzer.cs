@@ -105,7 +105,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             if (ienumerableType is null)
                 return default;
 
-            if (!IsConstructibleCollectionType(
+            if (!CollectionExpressionExtensions.IsConstructibleCollectionType(
                     semanticModel.Compilation, ienumerableType.TypeArguments.Single()))
             {
                 return default;
