@@ -57,12 +57,13 @@ internal partial class TestRunner
         {
             var request = new DebugAttachParams(processId);
             var result = await clientLanguageServerManager.SendRequestAsync<DebugAttachParams, DebugAttachResult>("workspace/attachDebugger", request, cancellationToken);
-            if (!result.DidAttach)
+            var didAttach = result?.DidAttach ?? false;
+            if (!didAttach)
             {
                 progress.Report(new RunTestsPartialResult(LanguageServerResources.Debugging_tests, LanguageServerResources.Client_failed_to_attach_the_debugger, Progress: null));
             }
 
-            return result.DidAttach;
+            return didAttach;
         }
     }
 }
