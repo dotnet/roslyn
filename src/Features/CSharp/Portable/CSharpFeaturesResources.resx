@@ -581,7 +581,7 @@
   <data name="required_property" xml:space="preserve">
     <value>required property</value>
   </data>
-  <data name="Failed_to_receive_implementation_from_Copilot_service" xml:space="preserve">
-    <value>Failed to receive implementation from Copilot service.</value>
+  <data name="Implement_Using_Copilot_Not_Available" xml:space="preserve">
+    <value>Implement using Copilot is not available.</value>
   </data>
 </root>

@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Copilot;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -126,19 +125,13 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
             editor.ReplaceNode(methodOrProperty, replacement);
         }
 
-        var changedRoot = editor.GetChangedRoot();
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var spansToFormat = FormattingExtensions.GetAnnotatedSpans(changedRoot, new());
-        var formattedRoot = CSharpSyntaxFormatting.Instance.GetFormattingResult(changedRoot, spansToFormat, formattingOptions, new(), cancellationToken).GetFormattedRoot(cancellationToken);
-        changedRoot = formattedRoot;
-
-        editor.ReplaceNode(editor.OriginalRoot, changedRoot);
+        editor.ReplaceNode(editor.OriginalRoot, editor.GetChangedRoot());
         Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Completed, logLevel: LogLevel.Information);
     }
 
     private static MemberDeclarationSyntax AddErrorComment(MemberDeclarationSyntax member, string? message = null)
     {
-        var errorMessage = string.IsNullOrWhiteSpace(message) ? CSharpFeaturesResources.Failed_to_receive_implementation_from_Copilot_service : message;
+        var errorMessage = string.IsNullOrWhiteSpace(message) ? CSharpFeaturesResources.Implement_Using_Copilot_Not_Available : message;
         var comment = SyntaxFactory.TriviaList(
             SyntaxFactory.Comment($"/* {errorMessage} */"),
             SyntaxFactory.CarriageReturnLineFeed);

@@ -192,14 +192,14 @@
         <target state="translated">Włączanie typów referencyjnych dopuszczających wartość null w rozwiązaniu</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_receive_implementation_from_Copilot_service">
-        <source>Failed to receive implementation from Copilot service.</source>
-        <target state="new">Failed to receive implementation from Copilot service.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">Globalne dyrektywy „using”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Using_Copilot_Not_Available">
+        <source>Implement using Copilot is not available.</source>
+        <target state="new">Implement using Copilot is not available.</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
