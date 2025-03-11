@@ -651,6 +651,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         arguments.AttributeSyntaxOpt);
                 }
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RuntimeAsyncMethodGenerationAttribute))
+            {
+                // PROTOTYPE: Validate langversion? Validate previewness of the runtime feature flag?
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasRuntimeAsyncMethodGenerationAttribute =
+                    attribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean)
+                        ? ThreeState.True
+                        : ThreeState.False;
+            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -658,6 +666,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     attribute.DecodeSecurityAttribute<MethodWellKnownAttributeData>(this, compilation, ref arguments);
                 }
+            }
+        }
+
+        internal ThreeState IsRuntimeAsyncEnabledInMethod
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data?.HasRuntimeAsyncMethodGenerationAttribute ?? ThreeState.Unknown;
             }
         }
 
