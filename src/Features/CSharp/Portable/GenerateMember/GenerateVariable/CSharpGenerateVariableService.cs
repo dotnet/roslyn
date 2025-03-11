@@ -114,6 +114,8 @@ internal sealed partial class CSharpGenerateVariableService :
                 simpleNameOrMemberAccessExpression = identifierName;
             }
 
+            isConditionalAccessExpression = identifierName.Parent.Parent is ConditionalAccessExpressionSyntax;
+
             // If we're being invoked, then don't offer this, offer generate method instead.
             // Note: we could offer to generate a field with a delegate type.  However, that's
             // very esoteric and probably not what most users want.
@@ -126,7 +128,6 @@ internal sealed partial class CSharpGenerateVariableService :
 
             var block = identifierName.GetAncestor<BlockSyntax>();
             isInExecutableBlock = block != null && !block.OverlapsHiddenPosition(cancellationToken);
-            isConditionalAccessExpression = identifierName.Parent.Parent is ConditionalAccessExpressionSyntax;
             return true;
         }
 
