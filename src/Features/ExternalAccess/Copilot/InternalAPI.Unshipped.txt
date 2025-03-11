@@ -21,7 +21,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.ImplementationDetailsWrapper() -> void
-Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.Message.get -> string!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.Message.get -> string?
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.Message.init -> void
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.ReplacementNode.get -> Microsoft.CodeAnalysis.SyntaxNode?
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation.ImplementationDetailsWrapper.ReplacementNode.init -> void

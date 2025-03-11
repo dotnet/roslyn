@@ -64,6 +64,33 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 }
 
                 public int ConstantValue => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
+
+                public MathService()
+                {
+                    {|IDE3000:throw new NotImplementedException("Constructor not implemented");|}
+                }
+
+                ~MathService()
+                {
+                    {|IDE3000:throw new NotImplementedException("Destructor not implemented");|}
+                }
+
+                public int this[int index]
+                {
+                    get { {|IDE3000:throw new NotImplementedException("Indexer get not implemented");|} }
+                    set { {|IDE3000:throw new NotImplementedException("Indexer set not implemented");|} }
+                }
+
+                public event EventHandler MyEvent
+                {
+                    add { {|IDE3000:throw new NotImplementedException("Event add not implemented");|} }
+                    remove { {|IDE3000:throw new NotImplementedException("Event remove not implemented");|} }
+                }
+
+                public static MathService operator +(MathService a, MathService b)
+                {
+                    {|IDE3000:throw new NotImplementedException("Operator not implemented");|}
+                }
             }
 
             public interface IMathService
@@ -75,6 +102,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 double CalculateSquareRoot(double number);
                 int Factorial(int number);
                 int ConstantValue { get; }
+                int this[int index] { get; set; }
+                event EventHandler MyEvent;
+                static MathService operator +(MathService a, MathService b);
             }
             """,
             FixedCode = """
@@ -110,17 +140,47 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 }
 
                 public int ConstantValue => 42;
+
+                public MathService()
+                {
+                    // Constructor implementation
+                }
+
+                ~MathService()
+                {
+                    // Destructor implementation
+                }
+
+                public int this[int index]
+                {
+                    get { return 0; }
+                    set { /* Indexer set implementation */ }
+                }
+
+                public event EventHandler MyEvent
+                {
+                    add { /* Event add implementation */ }
+                    remove { /* Event remove implementation */ }
+                }
+
+                public static MathService operator +(MathService a, MathService b)
+                {
+                    return new MathService(); // Operator implementation
+                }
             }
 
             public interface IMathService
             {
-                int Add(int a, int b);
-                int Subtract(int a, int b);
-                int Multiply(int a, int b);
-                double Divide(int a, int b);
-                double CalculateSquareRoot(double number);
-                int Factorial(int number);
-                int ConstantValue { get; }
+            int Add(int a, int b);
+            int Subtract(int a, int b);
+            int Multiply(int a, int b);
+            double Divide(int a, int b);
+            double CalculateSquareRoot(double number);
+            int Factorial(int number);
+            int ConstantValue { get; }
+            int this[int index] { get; set; }
+            event EventHandler MyEvent;
+            static MathService operator +(MathService a, MathService b);
             }
             """,
             LanguageVersion = LanguageVersion.CSharp11,
@@ -139,7 +199,12 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     ["Divide"] = "public double Divide(int a, int b)\n{\n    if (b == 0) throw new DivideByZeroException(\"Division by zero is not allowed\");\n    return (double)a / b;\n}\n",
                     ["CalculateSquareRoot"] = "public double CalculateSquareRoot(double number) => Math.Sqrt(number);\n",
                     ["Factorial"] = "public int Factorial(int number)\n{\n    if (number < 0) throw new ArgumentException(\"Number must be non-negative\", nameof(number));\n    return number == 0 ? 1 : number * Factorial(number - 1);\n}\n",
-                    ["ConstantValue"] = "public int ConstantValue => 42;\n"
+                    ["ConstantValue"] = "public int ConstantValue => 42;\n",
+                    ["MathService"] = "public MathService()\n{\n    // Constructor implementation\n}\n",
+                    ["~MathService"] = "~MathService()\n{\n    // Destructor implementation\n}\n",
+                    ["this"] = "public int this[int index]\n{\n    get { return 0; }\n    set { /* Indexer set implementation */ }\n}\n",
+                    ["MyEvent"] = "public event EventHandler MyEvent\n{\n    add { /* Event add implementation */ }\n    remove { /* Event remove implementation */ }\n}\n",
+                    ["operator +"] = "public static MathService operator +(MathService a, MathService b)\n{\n    return new MathService(); // Operator implementation\n}\n"
                 };
 
                 // Process each member reference and create implementation details
@@ -154,6 +219,11 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {
                         MethodDeclarationSyntax method => method.Identifier.Text,
                         PropertyDeclarationSyntax property => property.Identifier.Text,
+                        ConstructorDeclarationSyntax constructor => constructor.Identifier.Text,
+                        DestructorDeclarationSyntax destructor => destructor.Identifier.Text,
+                        IndexerDeclarationSyntax indexer => "this",
+                        EventDeclarationSyntax @event => @event.Identifier.Text,
+                        OperatorDeclarationSyntax @operator => @operator.OperatorToken.Text,
                         _ => string.Empty
                     };
 
@@ -164,14 +234,13 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                         new ImplementationDetails
                         {
                             ReplacementNode = SyntaxFactory.ParseMemberDeclaration(implementation),
-                            Message = "Successful"
                         });
                 }
 
                 return resultsBuilder.ToImmutable();
             };
         })
-        .RunAsync();
+    .RunAsync();
     }
 
     [Theory]
@@ -366,36 +435,36 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         {
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             TestCode = """
-        using System;
-
-        class C
-        {
-            void M()
-            {
-                {|IDE3000:throw new NotImplementedException();|}
-            }
-        }
-        """,
-            FixedCode = """
-        using System;
-
-        class C
-        {
-            /* The generated implementation isn't a valid method or property:
             using System;
+
             class C
             {
                 void M()
                 {
-                    throw new NotImplementedException();
+                    {|IDE3000:throw new NotImplementedException();|}
                 }
-            } */
-            void M()
-            {
-                {|IDE3000:throw new NotImplementedException();|}
             }
-        }
-        """,
+            """,
+            FixedCode = """
+            using System;
+
+            class C
+            {
+                /* The generated implementation isn't a valid method or property:
+                using System;
+                class C
+                {
+                    void M()
+                    {
+                        throw new NotImplementedException();
+                    }
+                } */
+                void M()
+                {
+                    {|IDE3000:throw new NotImplementedException();|}
+                }
+            }
+            """,
             FixedState =
             {
                 MarkupHandling = MarkupMode.Allow,
@@ -556,7 +625,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     }
 
     [ExportLanguageService(typeof(ICopilotOptionsService), LanguageNames.CSharp), Shared, PartNotDiscoverable]
-    private class TestCopilotOptionsService : ICopilotOptionsService
+    private sealed class TestCopilotOptionsService : ICopilotOptionsService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -579,7 +648,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     }
 
     [ExportLanguageService(typeof(ICopilotCodeAnalysisService), LanguageNames.CSharp), Shared, PartNotDiscoverable]
-    private class TestCopilotCodeAnalysisService : ICopilotCodeAnalysisService
+    private sealed class TestCopilotCodeAnalysisService : ICopilotCodeAnalysisService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

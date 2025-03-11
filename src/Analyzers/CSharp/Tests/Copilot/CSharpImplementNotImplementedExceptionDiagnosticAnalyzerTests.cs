@@ -55,6 +55,131 @@ public class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTests
     }
 
     [Fact]
+    public async Task TestThrowNotImplementedExceptionInField()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                private readonly int field = {|IDE3000:throw new NotImplementedException()|};
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestThrowNotImplementedExceptionInConstructor()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                public C()
+                {
+                    {|IDE3000:throw new NotImplementedException();|} 
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestThrowNotImplementedExceptionInDestructor()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                ~C()
+                {
+                    {|IDE3000:throw new NotImplementedException();|} 
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestThrowNotImplementedExceptionInIndexer()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                public int this[int index]
+                {
+                    get { {|IDE3000:throw new NotImplementedException();|} }
+                    set { {|IDE3000:throw new NotImplementedException();|} }
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestThrowNotImplementedExceptionInEvent()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                public event EventHandler MyEvent
+                {
+                    add { {|IDE3000:throw new NotImplementedException();|} }
+                    remove { {|IDE3000:throw new NotImplementedException();|} }
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestThrowNotImplementedExceptionInOperator()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                public static C operator +(C a, C b)
+                {
+                    {|IDE3000:throw new NotImplementedException();|} 
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestDifferentFlavorsOfThrowNotImplementedException()
     {
         await new VerifyCS.Test

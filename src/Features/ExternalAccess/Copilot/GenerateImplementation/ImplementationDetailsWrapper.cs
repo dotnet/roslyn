@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation
-{
-    internal sealed class ImplementationDetailsWrapper
-    {
-        public required string Message { get; init; }
+namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation;
 
-        public SyntaxNode? ReplacementNode { get; init; }
-    }
+internal sealed class ImplementationDetailsWrapper
+{
+    public string? Message { get; init; }
+
+    public SyntaxNode? ReplacementNode { get; init; }
 }

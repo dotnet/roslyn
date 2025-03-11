@@ -27,9 +27,7 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
     {
         context.RegisterCompilationStartAction(context =>
         {
-            var fullName = typeof(NotImplementedException).FullName;
-            Contract.ThrowIfNull(fullName);
-            var notImplementedExceptionType = context.Compilation.GetTypeByMetadataName(fullName);
+            var notImplementedExceptionType = context.Compilation.GetTypeByMetadataName(typeof(NotImplementedException).FullName!);
             if (notImplementedExceptionType != null)
                 context.RegisterOperationAction(context => AnalyzeThrow(context, notImplementedExceptionType), OperationKind.Throw);
         });

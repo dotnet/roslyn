@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Copilot;
 
 internal sealed class ImplementationDetails
 {
-    public required string Message { get; init; }
+    public string? Message { get; init; }
 
     public SyntaxNode? ReplacementNode { get; init; }
 }

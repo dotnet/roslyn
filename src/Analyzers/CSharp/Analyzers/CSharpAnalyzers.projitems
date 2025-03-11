@@ -27,7 +27,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertProgram\ConvertProgramAnalysis_ProgramMain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertProgram\ConvertToTopLevelStatementsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\CSharpConvertTypeOfToNameOfDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Copilot\CSharpImplementNotImplementedExceptionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\CSharpForEachCastDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeAnonymousFunctionStatic\MakeAnonymousFunctionStaticDiagnosticAnalyzer.cs" />

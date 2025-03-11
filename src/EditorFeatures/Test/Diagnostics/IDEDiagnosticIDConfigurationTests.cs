@@ -39,7 +39,7 @@ public class IDEDiagnosticIDConfigurationTests
 
                     if (diagnosticId.StartsWith("ENC") ||
                         !char.IsDigit(diagnosticId[^1]) ||
-                        diagnosticId == "IDE3000")
+                        diagnosticId == IDEDiagnosticIds.CopilotImplementNotImplementedExceptionDiagnosticId)
                     {
                         // Ignore non-IDE diagnostic IDs (such as ENCxxxx diagnostics) and
                         // diagnostic IDs for suggestions, fading, etc. (such as IDExxxxWithSuggestion)

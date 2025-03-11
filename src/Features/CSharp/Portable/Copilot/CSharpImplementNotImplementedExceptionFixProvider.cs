@@ -38,11 +38,6 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        if (context.Diagnostics.Length == 0)
-        {
-            return;
-        }
-
         var document = context.Document;
         var cancellationToken = context.CancellationToken;
 
@@ -90,7 +85,10 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
             if (!memberReferencesBuilder.ContainsKey(methodOrProperty))
             {
                 var memberSymbol = semanticModel.GetRequiredDeclaredSymbol(methodOrProperty, cancellationToken);
-                var references = await FindReferencesAsync(document, memberSymbol, cancellationToken).ConfigureAwait(false);
+
+                cancellationToken.ThrowIfCancellationRequested();
+                var searchOptions = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(memberSymbol);
+                var references = await SymbolFinder.FindReferencesAsync(memberSymbol, document.Project.Solution, searchOptions, cancellationToken).ConfigureAwait(false);
                 memberReferencesBuilder.Add(methodOrProperty, references);
             }
         }
@@ -107,22 +105,21 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
             if (!memberImplementationDetails.TryGetValue(methodOrProperty, out var implementationDetails))
             {
                 replacement = AddErrorComment(methodOrProperty);
-                Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Failed, logLevel: LogLevel.Error);
+                Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Failed, "Implementation details not found.", logLevel: LogLevel.Error);
             }
             else
             {
                 replacement = implementationDetails.ReplacementNode;
-                if (replacement != null && (replacement is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax))
+                if (replacement is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax)
                 {
                     replacement = replacement
-                        .WithLeadingTrivia(methodOrProperty.GetLeadingTrivia())
-                        .WithTrailingTrivia(methodOrProperty.GetTrailingTrivia())
+                        .WithTriviaFrom(methodOrProperty)
                         .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation);
                 }
                 else
                 {
                     replacement = AddErrorComment(methodOrProperty, implementationDetails.Message);
-                    Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Failed, logLevel: LogLevel.Error);
+                    Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Failed, implementationDetails.Message, logLevel: LogLevel.Error);
                 }
             }
 
@@ -137,13 +134,6 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
 
         editor.ReplaceNode(editor.OriginalRoot, changedRoot);
         Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Completed, logLevel: LogLevel.Information);
-    }
-
-    private static Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var searchOptions = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
-        return SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, searchOptions, cancellationToken);
     }
 
     private static MemberDeclarationSyntax AddErrorComment(MemberDeclarationSyntax member, string? message = null)

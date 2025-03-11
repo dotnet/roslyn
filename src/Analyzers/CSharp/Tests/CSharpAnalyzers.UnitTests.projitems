@@ -203,7 +203,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Copilot\" />
     <Folder Include="$(MSBuildThisFileDirectory)UseImplicitlyTypedLambdaExpression\" />
   </ItemGroup>
 </Project>
