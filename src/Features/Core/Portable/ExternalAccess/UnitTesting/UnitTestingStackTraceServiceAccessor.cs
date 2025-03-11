@@ -19,7 +19,7 @@ internal sealed class UnitTestingStackTraceServiceAccessor(
 {
     private readonly IStackTraceExplorerService _stackTraceExplorerService = stackTraceExplorerService;
 
-    public (Document? document, int lineNumber) GetDocumentAndLine(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame)
+    public (TextDocument? document, int lineNumber) GetDocumentAndLine(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame)
         => _stackTraceExplorerService.GetDocumentAndLine(workspace.CurrentSolution, parsedFrame.UnderlyingObject);
 
     public async Task<UnitTestingDefinitionItemWrapper?> TryFindMethodDefinitionAsync(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame, CancellationToken cancellationToken)

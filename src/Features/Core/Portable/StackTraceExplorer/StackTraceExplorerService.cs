@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
@@ -17,15 +18,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.StackTraceExplorer;
 
 [ExportWorkspaceService(typeof(IStackTraceExplorerService)), Shared]
-internal sealed class StackTraceExplorerService : IStackTraceExplorerService
+[method: ImportingConstructor]
+[method: System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class StackTraceExplorerService() : IStackTraceExplorerService
 {
-    [ImportingConstructor]
-    [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public StackTraceExplorerService()
-    {
-    }
-
-    public (Document? document, int line) GetDocumentAndLine(Solution solution, ParsedFrame frame)
+    public (TextDocument? document, int line) GetDocumentAndLine(Solution solution, ParsedFrame frame)
     {
         if (frame is ParsedStackFrame parsedFrame)
         {
@@ -73,7 +70,7 @@ internal sealed class StackTraceExplorerService : IStackTraceExplorerService
         return await StackTraceExplorerUtilities.GetDefinitionAsync(solution, parsedFrame.Root, symbolPart, cancellationToken).ConfigureAwait(false);
     }
 
-    private static ImmutableArray<Document> GetFileMatches(Solution solution, StackFrameCompilationUnit root, out int lineNumber)
+    private static ImmutableArray<TextDocument> GetFileMatches(Solution solution, StackFrameCompilationUnit root, out int lineNumber)
     {
         lineNumber = 0;
         if (root.FileInformationExpression is null)
@@ -87,11 +84,16 @@ internal sealed class StackTraceExplorerService : IStackTraceExplorerService
         lineNumber = int.Parse(lineString);
 
         var documentName = Path.GetFileName(fileName);
-        var potentialMatches = new HashSet<Document>();
+        var potentialMatches = new HashSet<TextDocument>();
 
         foreach (var project in solution.Projects)
         {
-            foreach (var document in project.Documents)
+            // As of writing there is no way to get all the documents for a specific project
+            // so we need to check both the main and additional documents. If more document types
+            // get added this likely will need to be updated.
+            var allDocuments = project.Documents.Concat(project.AdditionalDocuments);
+
+            foreach (var document in allDocuments)
             {
                 if (document.FilePath == fileName)
                 {

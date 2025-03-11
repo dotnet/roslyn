@@ -189,8 +189,8 @@ internal sealed class VisualStudioDocumentNavigationService(
         documentId = workspace.GetDocumentIdInCurrentContext(documentId);
 
         var solution = workspace.CurrentSolution;
-        var document = solution.GetDocument(documentId);
-        if (document == null)
+        var textDocument = await solution.GetRequiredTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+        if (textDocument is SourceGeneratedDocument)
         {
             var project = solution.GetProject(documentId.ProjectId);
             if (project is null)
@@ -210,14 +210,15 @@ internal sealed class VisualStudioDocumentNavigationService(
         }
 
         // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
-        var spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
-        if (spanMappingService != null)
+        if (textDocument is Document document &&
+            textDocument.DocumentServiceProvider.GetService<ISpanMappingService>() is ISpanMappingService spanMappingService)
         {
             var mappedSpanResult = await GetMappedSpanAsync(
                 spanMappingService,
                 document,
                 await getTextSpanForMappingAsync(document).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
+
             if (mappedSpanResult is { IsDefault: false } mappedSpan)
             {
                 // Check if the mapped file matches one already in the workspace.
