@@ -363,8 +363,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult((New Dictionary(Of String, String), False))
             End Function
 
-            Public Function GetOnTheFlyDocsPrompt(onTheFlyDocsInfo As OnTheFlyDocsInfo, cancellationToken As CancellationToken) As String Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsPrompt
-                Return String.Empty
+            Public Function GetOnTheFlyDocsPromptAsync(onTheFlyDocsInfo As OnTheFlyDocsInfo, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsPromptAsync
+                Return Task.FromResult(String.Empty)
             End Function
 
             Public Function GetOnTheFlyDocsResponseAsync(prompt As String, cancellationToken As CancellationToken) As Task(Of (responseString As String, isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsResponseAsync
