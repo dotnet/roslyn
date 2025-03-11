@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer;
 
 [ExportWorkspaceService(typeof(IStackTraceExplorerService)), Shared]
 [method: ImportingConstructor]
-[method: System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class StackTraceExplorerService() : IStackTraceExplorerService
 {
     public (TextDocument? document, int line) GetDocumentAndLine(Solution solution, ParsedFrame frame)
@@ -104,7 +105,7 @@ internal sealed class StackTraceExplorerService() : IStackTraceExplorerService
 
             foreach (var document in allDocuments)
             {
-                if (document.Name == documentName)
+                if (string.Equals(document.Name, documentName, StringComparison.OrdinalIgnoreCase))
                 {
                     potentialMatches.Add(document);
                 }
