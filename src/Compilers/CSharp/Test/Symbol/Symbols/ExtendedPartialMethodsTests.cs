@@ -2127,6 +2127,44 @@ partial class C : I
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+        public void InInterface_Sealed_Private()
+        {
+            var source = """
+                partial interface I
+                {
+                    private sealed partial int M();
+                    private sealed partial int M() => 0;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60)
+                .VerifyDiagnostics(
+                    // (3,32): error CS0238: 'I.M()' cannot be sealed because it is not an override
+                    //     private sealed partial int M();
+                    Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(3, 32),
+                    // (4,32): error CS0238: 'I.M()' cannot be sealed because it is not an override
+                    //     private sealed partial int M() => 0;
+                    Diagnostic(ErrorCode.ERR_SealedNonOverride, "M").WithArguments("I.M()").WithLocation(4, 32));
+
+            var m = comp.GetMember<SourceMethodSymbol>("I.M");
+            validateMethod(m);
+            validateMethod(m.PartialImplementationPart!);
+
+            static void validateMethod(MethodSymbol m)
+            {
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsMetadataVirtual());
+                Assert.False(m.IsMetadataNewSlot());
+                Assert.True(m.IsSealed);
+                Assert.False(m.IsStatic);
+                Assert.False(m.IsExtern);
+                Assert.False(m.IsOverride);
+                Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+                Assert.True(m.IsPartialMember());
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
         public void InInterface_StaticVirtual()
         {
             var source = """
@@ -2188,6 +2226,49 @@ partial class C : I
                 Assert.False(m.IsAbstract);
                 Assert.True(m.IsVirtual);
                 Assert.True(m.IsMetadataVirtual());
+                Assert.False(m.IsMetadataNewSlot());
+                Assert.False(m.IsSealed);
+                Assert.True(m.IsStatic);
+                Assert.False(m.IsExtern);
+                Assert.False(m.IsOverride);
+                Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+                Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+        public void InInterface_StaticNonVirtual(
+            [CombinatorialValues("", "sealed")] string modifier)
+        {
+            var source = $$"""
+                partial interface I
+                {
+                    public static {{modifier}} partial int M();
+                    public static {{modifier}} partial int M() => 1;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+            CompileAndVerify(comp,
+                sourceSymbolValidator: validate,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("I.M");
+                validateMethod(m);
+
+                if (module is SourceModuleSymbol)
+                {
+                    validateMethod((MethodSymbol)m.GetPartialImplementationPart()!);
+                }
+            }
+
+            static void validateMethod(MethodSymbol m)
+            {
+                Assert.False(m.IsAbstract);
+                Assert.False(m.IsVirtual);
+                Assert.False(m.IsMetadataVirtual());
                 Assert.False(m.IsMetadataNewSlot());
                 Assert.False(m.IsSealed);
                 Assert.True(m.IsStatic);

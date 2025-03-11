@@ -1146,6 +1146,55 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         }
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+    public void InInterface_Sealed_Private()
+    {
+        var source = """
+            partial interface I
+            {
+                private sealed partial event System.Action E;
+                private sealed partial event System.Action E { add { } remove { } }
+            }
+            """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60)
+            .VerifyDiagnostics(
+                // (3,48): error CS0238: 'I.E' cannot be sealed because it is not an override
+                //     private sealed partial event System.Action E;
+                Diagnostic(ErrorCode.ERR_SealedNonOverride, "E").WithArguments("I.E").WithLocation(3, 48));
+
+        var e = comp.GetMember<SourceEventSymbol>("I.E");
+        validateEvent(e);
+        validateEvent(e.PartialImplementationPart!);
+
+        static void validateEvent(EventSymbol e)
+        {
+            Assert.False(e.IsAbstract);
+            Assert.False(e.IsVirtual);
+            Assert.True(e.IsSealed);
+            Assert.False(e.IsStatic);
+            Assert.False(e.IsExtern);
+            Assert.False(e.IsOverride);
+            Assert.Equal(Accessibility.Private, e.DeclaredAccessibility);
+            Assert.True(e.IsPartialMember());
+            validateAccessor(e.AddMethod!);
+            validateAccessor(e.RemoveMethod!);
+        }
+
+        static void validateAccessor(MethodSymbol m)
+        {
+            Assert.False(m.IsAbstract);
+            Assert.False(m.IsVirtual);
+            Assert.False(m.IsMetadataVirtual());
+            Assert.False(m.IsMetadataNewSlot());
+            Assert.True(m.IsSealed);
+            Assert.False(m.IsStatic);
+            Assert.False(m.IsExtern);
+            Assert.False(m.IsOverride);
+            Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+            Assert.True(m.IsPartialMember());
+        }
+    }
+
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
     public void InInterface_StaticVirtual(
         [CombinatorialValues("", "public")] string access)
@@ -1243,6 +1292,65 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Assert.False(m.IsAbstract);
             Assert.True(m.IsVirtual);
             Assert.True(m.IsMetadataVirtual());
+            Assert.False(m.IsMetadataNewSlot());
+            Assert.False(m.IsSealed);
+            Assert.True(m.IsStatic);
+            Assert.False(m.IsExtern);
+            Assert.False(m.IsOverride);
+            Assert.Equal(Accessibility.Public, m.DeclaredAccessibility);
+            Assert.True(m.ContainingModule is not SourceModuleSymbol || m.IsPartialMember());
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/77346")]
+    public void InInterface_StaticNonVirtual(
+        [CombinatorialValues("", "public")] string access,
+        [CombinatorialValues("", "sealed")] string modifier)
+    {
+        var source = $$"""
+            using System;
+            partial interface I
+            {
+                {{access}} {{modifier}} static partial event Action E;
+                {{access}} {{modifier}} static partial event Action E { add { } remove { } }
+            }
+            """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
+        CompileAndVerify(comp,
+            sourceSymbolValidator: validate,
+            symbolValidator: validate,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("I.E");
+            validateEvent(e);
+
+            if (module is SourceModuleSymbol)
+            {
+                validateEvent((EventSymbol)e.GetPartialImplementationPart()!);
+            }
+        }
+
+        static void validateEvent(EventSymbol e)
+        {
+            Assert.False(e.IsAbstract);
+            Assert.False(e.IsVirtual);
+            Assert.False(e.IsSealed);
+            Assert.True(e.IsStatic);
+            Assert.False(e.IsExtern);
+            Assert.False(e.IsOverride);
+            Assert.Equal(Accessibility.Public, e.DeclaredAccessibility);
+            Assert.True(e.ContainingModule is not SourceModuleSymbol || e.IsPartialMember());
+            validateAccessor(e.AddMethod!);
+            validateAccessor(e.RemoveMethod!);
+        }
+
+        static void validateAccessor(MethodSymbol m)
+        {
+            Assert.False(m.IsAbstract);
+            Assert.False(m.IsVirtual);
+            Assert.False(m.IsMetadataVirtual());
             Assert.False(m.IsMetadataNewSlot());
             Assert.False(m.IsSealed);
             Assert.True(m.IsStatic);
