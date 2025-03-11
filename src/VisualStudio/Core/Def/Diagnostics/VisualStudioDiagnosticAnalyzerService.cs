@@ -398,7 +398,7 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
                 new TaskHandlerOptions()
                 {
                     Title = ServicesVSResources.Running_code_analysis_for_Solution,
-                    TaskSuccessMessage = _statusMessageWhileRunning,
+                    TaskSuccessMessage = _statusMessageOnCompleted,
                 },
                 new TaskProgressData()
                 {
@@ -460,7 +460,12 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
                     });
 
                 if (!inProgress)
-                    _taskCompletionSource.SetResult(true);
+                {
+                    if (analyzedProjectCount < _totalProjectCount)
+                        _taskCompletionSource.SetCanceled();
+                    else
+                        _taskCompletionSource.SetResult(true);
+                }
             });
         }
     }
