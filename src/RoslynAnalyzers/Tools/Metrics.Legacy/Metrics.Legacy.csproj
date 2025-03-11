@@ -37,4 +37,8 @@
 
     <PackageReference Include="System.Memory" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Metrics\Program.cs" />
+    <Compile Include="..\Metrics\MetricsOutputWriter.cs" />
+  </ItemGroup>
 </Project>

@@ -124,7 +124,7 @@
 
   <PropertyGroup>
     <!-- Ideally, we would extract this from the MSBuild task, but we need this as the Target Output before that task is executed -->
-    <_GenerateAnalyzerNuspecPath>$(ArtifactsBinDir)GenerateAnalyzerNuspec\$(Configuration)\$(NetCurrent)\GenerateAnalyzerNuspec.dll</_GenerateAnalyzerNuspecPath>
+    <_GenerateAnalyzerNuspecPath>$(ArtifactsBinDir)GenerateAnalyzerNuspec\$(Configuration)\$(NetRoslyn)\GenerateAnalyzerNuspec.dll</_GenerateAnalyzerNuspecPath>
   </PropertyGroup>
 
   <Target Name="BuildGenerateAnalyzerNuspecFile"
