@@ -94,13 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 var depth = GetDeclarationDepth(token);
 
+                var lineBreaksAfterLeading = LineBreaksAfterLeading(token);
                 tk = tk.WithLeadingTrivia(RewriteTrivia(
                     token.LeadingTrivia,
                     depth,
                     isTrailing: false,
                     indentAfterLineBreak: NeedsIndentAfterLineBreak(token),
                     mustHaveSeparator: false,
-                    lineBreaksAfter: 0));
+                    lineBreaksAfter: lineBreaksAfterLeading));
 
                 var nextToken = this.GetNextRelevantToken(token);
 
@@ -174,6 +175,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return !token.IsKind(SyntaxKind.EndOfFileToken);
         }
 
+        private int LineBreaksAfterLeading(SyntaxToken token)
+        {
+            if (token.LeadingTrivia.Count < 2)
+            {
+                return 0;
+            }
+            
+            if (token.LeadingTrivia[^2].IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) &&
+                token.LeadingTrivia[^1].IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                return 1;
+            }
+
+            return 0;
+        }
+
         private int LineBreaksAfter(SyntaxToken currentToken, SyntaxToken nextToken)
         {
             if (_inSingleLineInterpolation)
@@ -185,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 return 1;
             }
-
+            
             if (nextToken.Kind() == SyntaxKind.None)
             {
                 return 0;
@@ -1247,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
                 else
                 {
-                    return IsLineBreak(node.GetLastToken());
+                    return !node.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) && IsLineBreak(node.GetLastToken());
                 }
             }
 
