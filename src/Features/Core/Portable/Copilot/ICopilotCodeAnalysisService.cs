@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -77,4 +78,9 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </summary>
     Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Method to retrieve the documentation comment for a given <paramref name="proposal"/>
+    /// </summary>
+    /// <param name="proposal">The documentation comment that has been broken down into its individual pieces.</param>
+    Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
 }

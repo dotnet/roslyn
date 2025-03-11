@@ -8,7 +8,6 @@ using System;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests

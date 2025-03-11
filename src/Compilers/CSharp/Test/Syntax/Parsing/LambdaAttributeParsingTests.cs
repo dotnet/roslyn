@@ -4519,7 +4519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73789")]
-        public void ParseAttributeWithLambaPathological()
+        public void ParseAttributeWithLambdaPathological()
         {
             // Ensure we can parse this pathological lambda attribute code without getting into exponential time.
             int n = 30;

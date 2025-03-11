@@ -27,23 +27,6 @@ configuration:
 
     eventResponderTasks:
 
-    - description: Auto-approve auto-merge PRs
-      triggerOnOwnActions: false
-      if:
-      - payloadType: Pull_Request
-      - isPullRequest
-      - labelAdded:
-          label: auto-merge
-      - or:
-        - activitySenderHasPermission:
-            permission: Admin
-        - isActivitySender:
-            user: dotnet-bot
-            issueAuthor: False
-      then:
-      - approvePullRequest:
-          comment: Auto-approval
-
     - description: Auto-approve maestro PRs
       triggerOnOwnActions: false
       if:
@@ -80,7 +63,7 @@ configuration:
       - addMilestone:
           milestone: Next
 
-    - description: Auto-approve OneLoc PRs
+    - description: Auto-approve/merge OneLoc PRs
       triggerOnOwnActions: false
       if:
       - payloadType: Pull_Request
@@ -94,8 +77,29 @@ configuration:
       - isAction:
           action: Opened
       then:
-      - addLabel:
-          label: auto-merge
+      - approvePullRequest:
+          comment: Auto-approve
+      - enableAutoMerge:
+          mergeMethod: merge
+
+    - description: Auto-approve/merge automated merge PRs
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - isActivitySender:
+          user: github-actions[bot]
+          issueAuthor: False
+      - titleContains:
+          pattern: "[automated] Merge branch"
+          isRegex: False
+      - isAction:
+          action: Opened
+      then:
+      - approvePullRequest:
+          comment: Auto-approve
+      - enableAutoMerge:
+          mergeMethod: merge
 
     - description: Remove "Need More Info" on comment
       triggerOnOwnActions: false
@@ -147,7 +151,7 @@ configuration:
               issueAuthor: False
         - not:
             isActivitySender:
-              user: github-actions
+              user: github-actions[bot]
               issueAuthor: False
       then:
       - addLabel:
@@ -168,7 +172,7 @@ configuration:
               issueAuthor: False
         - not:
             isActivitySender:
-              user: github-actions
+              user: github-actions[bot]
               issueAuthor: False
       - or:
         - isAction:

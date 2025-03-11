@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -57,6 +56,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
             PreviousPullResult? previousPullResult,
             bool isFullyLoaded,
             TState state,
+            string language,
             CancellationToken cancellationToken)
         {
             // Ensure that we only update the cache item one at a time.
@@ -99,7 +99,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
 
                 // Compute the new result for the request.
                 var data = await cache.ComputeDataAsync(state, cancellationToken).ConfigureAwait(false);
-                var dataChecksum = cache.ComputeChecksum(data);
+                var dataChecksum = cache.ComputeChecksum(data, language);
 
                 string newResultId;
                 if (_lastResult is not null && _lastResult?.resultId == previousPullResult?.PreviousResultId && _lastResult?.dataChecksum == dataChecksum)

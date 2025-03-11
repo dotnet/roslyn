@@ -11,13 +11,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class WhereKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class WhereKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.WhereKeyword)
 {
-    public WhereKeywordRecommender()
-        : base(SyntaxKind.WhereKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return
