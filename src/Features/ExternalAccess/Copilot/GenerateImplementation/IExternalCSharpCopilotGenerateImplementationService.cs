@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation;
 using Microsoft.CodeAnalysis.FindSymbols;
 
@@ -12,8 +13,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
 
 internal interface IExternalCSharpCopilotGenerateImplementationService
 {
-    Task<ImmutableDictionary<SyntaxNode, ImplementationDetailsWrapper>> ImplementNotImplementedExceptionsAsync(
+    Task<ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetailsWrapper>> ImplementNotImplementedExceptionsAsync(
         Document document,
-        ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+        ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> methodOrProperties,
         CancellationToken cancellationToken);
 }

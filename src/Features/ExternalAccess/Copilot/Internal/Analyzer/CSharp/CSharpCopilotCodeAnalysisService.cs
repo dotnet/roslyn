@@ -9,6 +9,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -136,17 +137,17 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
     }
 
-    protected override async Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(
+    protected override async Task<ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(
         Document document,
-        ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+        ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> methodOrProperties,
         CancellationToken cancellationToken)
     {
         if (GenerateImplementationService is null)
-            return ImmutableDictionary<SyntaxNode, ImplementationDetails>.Empty;
+            return ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>.Empty;
 
         var nodeToWrappers = await GenerateImplementationService.ImplementNotImplementedExceptionsAsync(document, methodOrProperties, cancellationToken).ConfigureAwait(false);
 
-        var resultBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImplementationDetails>();
+        var resultBuilder = ImmutableDictionary.CreateBuilder<MemberDeclarationSyntax, ImplementationDetails>();
         foreach (var nodeToWrapper in nodeToWrappers)
         {
             resultBuilder.Add(

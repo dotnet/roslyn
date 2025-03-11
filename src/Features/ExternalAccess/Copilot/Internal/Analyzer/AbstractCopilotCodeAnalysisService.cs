@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -43,7 +44,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
     protected abstract Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken);
     protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
-    protected abstract Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(Document document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties, CancellationToken cancellationToken);
+    protected abstract Task<ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(Document document, ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> methodOrProperties, CancellationToken cancellationToken);
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         => IsAvailableCoreAsync(cancellationToken);
@@ -200,13 +201,13 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
         return await GetDocumentationCommentCoreAsync(proposal, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
+    public async Task<ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
         Document document,
-        ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+        ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> methodOrProperties,
         CancellationToken cancellationToken)
     {
         if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
-            return ImmutableDictionary<SyntaxNode, ImplementationDetails>.Empty;
+            return ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>.Empty;
 
         return await ImplementNotImplementedExceptionsCoreAsync(document, methodOrProperties, cancellationToken).ConfigureAwait(false);
     }
