@@ -64,8 +64,13 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
         TryDetermineTypeToGenerateInWorker(
             document, containingType, simpleNameOrMemberAccessExpression, cancellationToken, out typeToGenerateIn, out isStatic, out isColorColorCase);
 
-        typeToGenerateIn = typeToGenerateIn?.OriginalDefinition;
+        if (typeToGenerateIn.IsNullable(out var underlyingType) &&
+            underlyingType is INamedTypeSymbol underlyingNamedType)
+        {
+            typeToGenerateIn = underlyingNamedType;
+        }
 
+        typeToGenerateIn = typeToGenerateIn?.OriginalDefinition;
         return typeToGenerateIn != null;
     }
 
@@ -105,11 +110,6 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
             {
                 DetermineTypeToGenerateInWorker(
                     semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, out isColorColorCase, cancellationToken);
-                if (typeToGenerateIn.IsNullable(out var underlyingType) &&
-                    underlyingType is INamedTypeSymbol underlyingNamedType)
-                {
-                    typeToGenerateIn = underlyingNamedType;
-                }
             }
         }
         else if (syntaxFacts.IsPointerMemberAccessExpression(expression))
@@ -158,7 +158,6 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
             if (target != null)
             {
                 typeToGenerateIn = semanticModel.GetTypeInfo(target, cancellationToken).Type as INamedTypeSymbol;
-                isStatic = false;
             }
         }
         else

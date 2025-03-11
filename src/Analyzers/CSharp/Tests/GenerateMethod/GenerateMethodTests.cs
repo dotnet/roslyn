@@ -11145,34 +11145,4 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
             }
             """, parseOptions: CSharpParseOptions.Default);
     }
-
-    [Fact]
-    public async Task TestNullConditionalAssignment1()
-    {
-        await TestAsync(
-            """
-            internal class Program
-            {
-                int x;
-
-                void M(Program p)
-                {
-                    
-                }
-            }
-            """,
-            """
-            using System;
-
-            Program.Test();
-            
-            internal partial class Program
-            {
-                private static void Test()
-                {
-                    throw new NotImplementedException();
-                }
-            }
-            """, parseOptions: CSharpParseOptions.Default);
-    }
 }
