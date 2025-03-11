@@ -5,23 +5,23 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.QuickInfo;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot
+namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
+
+internal sealed class CopilotOnTheFlyDocsInfoWrapper
 {
-    internal sealed class CopilotOnTheFlyDocsInfoWrapper
+    private readonly OnTheFlyDocsInfo _onTheFlyDocsInfo;
+
+    public CopilotOnTheFlyDocsInfoWrapper(OnTheFlyDocsInfo onTheFlyDocsInfo)
     {
-        private readonly OnTheFlyDocsInfo _onTheFlyDocsInfo;
+        _onTheFlyDocsInfo = onTheFlyDocsInfo;
 
-        public CopilotOnTheFlyDocsInfoWrapper(OnTheFlyDocsInfo onTheFlyDocsInfo)
-        {
-            _onTheFlyDocsInfo = onTheFlyDocsInfo;
-
-        }
-
-        public string SymbolSignature => _onTheFlyDocsInfo.SymbolSignature;
-        public ImmutableArray<string> DeclarationCode => _onTheFlyDocsInfo.DeclarationCode;
-        public string Language => _onTheFlyDocsInfo.Language;
-        public bool IsContentExcluded => _onTheFlyDocsInfo.IsContentExcluded;
-        public ImmutableArray<string> AdditionalContext => _onTheFlyDocsInfo.AdditionalContext;
-        public bool HasComments => _onTheFlyDocsInfo.HasComments;
     }
+
+    public string SymbolSignature => _onTheFlyDocsInfo.SymbolSignature;
+    public ImmutableArray<string> DeclarationCode => _onTheFlyDocsInfo.DeclarationCode;
+    public string Language => _onTheFlyDocsInfo.Language;
+    public bool IsContentExcluded => _onTheFlyDocsInfo.IsContentExcluded;
+    public ImmutableArray<string> AdditionalContext => _onTheFlyDocsInfo.AdditionalContext;
+    public bool HasComments => _onTheFlyDocsInfo.HasComments;
 }
+
