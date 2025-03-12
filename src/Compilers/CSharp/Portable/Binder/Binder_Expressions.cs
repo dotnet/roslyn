@@ -6632,7 +6632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     receiverOpt: expr,
                     // PROTOTYPE: What is the correct value for receiver cloning? Test with expression element
-                    // and spread element where the item is ref KVP<,> or ref readonly KVP<,>.
+                    // and spread element where the item is ref KeyValuePair<,> or ref readonly KeyValuePair<,>.
                     initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                     method: getMethod,
                     arguments: [],
@@ -6648,8 +6648,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE: Test when there is a more applicable indexer. We should stick with this one.
-        // PROTOTYPE: Test when there is no conversion from value to indexer type, since value is not included in AnalyzedArguments.
         private BoundExpression BindDictionaryItemAssignment(
             SyntaxNode syntax,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
@@ -6661,7 +6659,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundBadExpression(syntax, LookupResultKind.Empty, [], [key, value], type: CreateErrorType());
             }
-            // PROTOTYPE: What about argument conversions?
+
+            // key and value should have been converted by the caller.
+            Debug.Assert(ConversionsBase.HasIdentityConversion(key.Type, setMethod.Parameters[0].Type));
+            Debug.Assert(ConversionsBase.HasIdentityConversion(value.Type, setMethod.Parameters[1].Type));
             return new BoundCall(
                 syntax,
                 receiverOpt: implicitReceiver,
@@ -6701,8 +6702,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
-            // PROTOTYPE: See ConvertCollectionExpression().bindSpread() which uses syntax.Expression rather
-            // than syntax for the item placeholder and also uses .WithSuppression(syntax.Expression.IsSuppressed).
+            // We should use .WithSuppression(syntax.Expression.IsSuppressed) here, as in ConvertCollectionExpressionElements.bindSpreadElement(),
+            // but currently we're not reporting nullable warnings for spread elements generated through this method, so this is not observable.
+            // See https://github.com/dotnet/roslyn/issues/68786 and CollectionExpressionTests.Nullable_Spread_04.
             var itemPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
             var item = bindItem(
                 this,

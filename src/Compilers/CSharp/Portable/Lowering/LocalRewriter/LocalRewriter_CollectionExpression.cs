@@ -1261,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             RemovePlaceholderReplacement(keyValuePairElement.KeyPlaceholder);
                         }
                         break;
-                    case BoundIndexerAssignmentFromExpression indexerAssignment:
+                    case BoundIndexerAssignmentFromExpressionElement indexerAssignment:
                         {
                             // dictionary[element.Key] = element.Value;
                             var rewrittenExpression = VisitExpression(indexerAssignment.Expression);

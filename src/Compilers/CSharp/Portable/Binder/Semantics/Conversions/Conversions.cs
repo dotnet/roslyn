@@ -188,13 +188,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
-                // PROTOTYPE: Test type with indexer but no constructor callable with no arguments. Should be a conversion error rather than subsequent binding error.
                 if (!_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
 
-                // PROTOTYPE: Test collection type that does not include an indexer, and where element type is some KeyValuePair<,>.
                 if (object.ReferenceEquals(elementType.OriginalDefinition, Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)) &&
                     Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
                     _binder.GetCollectionExpressionApplicableIndexer(syntax, targetType, elementType, BindingDiagnosticBag.Discarded) is { })
@@ -225,9 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (enumeratorInfo is { })
                                 {
                                     // PROTOTYPE: Test case where elementType is null.
-                                    // PROTOTYPE: Test when element is not KeyValuePair<,>, or when there is no conversion between key or value types.
-                                    // PROTOTYPE: Test when element is not KeyValuePair<,> but there is an implicit conversion to KeyValuePair<K, V>. Should fail.
-                                    // PROTOTYPE: No dynamic support. Test that case, and update the spec accordingly.
                                     if (IsKeyValuePairType(Compilation, enumeratorInfo.ElementType, out var itemKeyType, out var itemValueType))
                                     {
                                         var keyConversion = ClassifyImplicitConversionFromType(itemKeyType, keyType, ref useSiteInfo);
@@ -240,7 +235,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         }
                                     }
                                 }
-
                             }
                             break;
                         case BoundKeyValuePairElement keyValuePairElement:
@@ -263,10 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // spec, removing "key-value pair conversions" and replacing the existing expression element rule with: "If Ei is an expression
                                 // element, and either: Ei has no type and there is an implicit conversion from Ei to T, or Ei has type KeyValuePair<Ke, Ve>
                                 // and there is an implicit conversion from Ke to K and an implicit conversion from Ve to V."
-
-                                // PROTOTYPE: Test when element is not KeyValuePair<,>, or when there is no conversion between key or value types.
-                                // PROTOTYPE: Test when element is not KeyValuePair<,> but there is an implicit conversion to KeyValuePair<K, V>. Should fail.
-                                // PROTOTYPE: No dynamic support. Test that case, and update the spec accordingly.
                                 if (expressionElement.Type is { })
                                 {
                                     if (IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))

@@ -869,7 +869,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // though not all will be used for any particular collection expression. Checking all
             // gives a consistent behavior, regardless of collection expression elements.
 
-            // PROTOTYPE: Test with [CollectionBuilder] type as well. In particular, should allow all three of [k:v, e, ..s] where Ke, Ve do not match K, V exactly.
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
             {
                 getKeyMethod = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
@@ -882,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(elementType is { });
                     var indexer = GetCollectionExpressionApplicableIndexer(syntax, targetType, elementType, diagnostics);
-                    setMethod = indexer?.GetOwnOrInheritedSetMethod(); // PROTOTYPE: Test virtual property with one or both accessors overridden.
+                    setMethod = indexer?.GetOwnOrInheritedSetMethod();
                     Debug.Assert(setMethod is { });
                 }
 
@@ -896,7 +895,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
 
-                // PROTOTYPE: Test ImplementsIEnumerableWithIndexer target with collection arguments.
                 // Bind collection creation with arguments.
                 foreach (var element in elements)
                 {
@@ -1136,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 var expressionSyntax = expressionElement.Syntax;
                                 var placeholder = new BoundValuePlaceholder(expressionSyntax, convertedExpression.Type);
-                                convertedElement = new BoundIndexerAssignmentFromExpression(
+                                convertedElement = new BoundIndexerAssignmentFromExpressionElement(
                                     expressionSyntax,
                                     expression: convertedExpression,
                                     expressionPlaceholder: placeholder,
@@ -1169,13 +1167,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         arg.getValueMethod,
                                         arg.setMethod,
                                         item,
-                                        arg.Item4,
+                                        arg.keyConversion,
                                         arg.elementKeyType,
-                                        arg.Item6,
+                                        arg.valueConversion,
                                         arg.elementValueType,
                                         diagnostics);
                                 },
-                                (getKeyMethod, getValueMethod, setMethod, elementConversions[conversionIndex], elementKeyType, elementConversions[conversionIndex + 1], elementValueType),
+                                (getKeyMethod, getValueMethod, setMethod, keyConversion: elementConversions[conversionIndex], elementKeyType, valueConversion: elementConversions[conversionIndex + 1], elementValueType),
                                 diagnostics);
                             conversionIndex += 2;
                             break;
@@ -1254,8 +1252,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return builder.ToImmutableAndFree();
 
-            // PROTOTYPE: Should we use BindCollectionExpressionSpreadElement<TArg>() at the call-site
-            // and remove this local function?
             BoundNode bindSpreadElement(BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
             {
                 var enumeratorInfo = element.EnumeratorInfoOpt;
@@ -1567,9 +1563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        // PROTOTYPE: Compare with BindIndexerAccess() which does similar lookup. Are there
-        // additional cases there that we need to consider? For instance, BindIndexerAccess() uses
-        // BindIndexerOrIndexedPropertyAccess() which handles optional parameters, etc., and reports diagnostics.
+        // PROTOTYPE: Compare with BindIndexerOrIndexedPropertyAccess() which does similar lookup.
         internal PropertySymbol? GetCollectionExpressionApplicableIndexer(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
         {
             bool isKeyValuePair = ConversionsBase.IsKeyValuePairType(Compilation, elementType, out var keyType, out var valueType);
@@ -1579,7 +1573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             LookupMembersWithFallback(lookupResult, targetType, WellKnownMemberNames.Indexer, arity: 0, ref useSiteInfo);
-            diagnostics.Add(syntax, useSiteInfo); // PROTOTYPE: Test.
+            diagnostics.Add(syntax, useSiteInfo);
 
             PropertySymbol? result = null;
             foreach (var symbol in lookupResult.Symbols)

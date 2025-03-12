@@ -1219,6 +1219,75 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void KeyValuePairConversions_NotKeyValuePair()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static Dictionary<K, V> FromExpression<K, V>(K k) => [k];
+                    static Dictionary<K, V> FromSpread<K, V>(IEnumerable<V> e) => [..e];
+                }
+                """;
+            // PROTOTYPE: We're not treating the target type as a dictionary type and so we're reporting ERR_CollectionExpressionMissingAdd.
+            // The reason is because error reporting relies on GetCollectionExpressionTypeKind() which does not check for an indexer.
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,58): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //     static Dictionary<K, V> FromExpression<K, V>(K k) => [k];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[k]").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(4, 58),
+                // (4,59): error CS0029: Cannot implicitly convert type 'K' to 'System.Collections.Generic.KeyValuePair<K, V>'
+                //     static Dictionary<K, V> FromExpression<K, V>(K k) => [k];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "k").WithArguments("K", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(4, 59),
+                // (5,67): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //     static Dictionary<K, V> FromSpread<K, V>(IEnumerable<V> e) => [..e];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..e]").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(5, 67),
+                // (5,70): error CS0029: Cannot implicitly convert type 'V' to 'System.Collections.Generic.KeyValuePair<K, V>'
+                //     static Dictionary<K, V> FromSpread<K, V>(IEnumerable<V> e) => [..e];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("V", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(5, 70));
+        }
+
+        // PROTOTYPE: No dynamic support. Update the spec accordingly.
+        [Fact]
+        public void KeyValuePairConversions_Dynamic_01()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static Dictionary<K, V> FromExpression<K, V>(dynamic d) => [d];
+                    static Dictionary<K, V> FromSpread<K, V>(IEnumerable<dynamic> e) => [..e];
+                }
+                """;
+            // PROTOTYPE: We're not treating the target type as a dictionary type and so we're reporting ERR_CollectionExpressionMissingAdd.
+            // The reason is because error reporting relies on GetCollectionExpressionTypeKind() which does not check for an indexer.
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,64): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //     static Dictionary<K, V> FromExpression<K, V>(dynamic d) => [d];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[d]").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(4, 64),
+                // (5,73): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //     static Dictionary<K, V> FromSpread<K, V>(IEnumerable<dynamic> e) => [..e];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..e]").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(5, 73));
+        }
+
+        [Fact]
+        public void KeyValuePairConversions_Dynamic_02()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static Dictionary<K, V> FromPair1<K, V>(K k, dynamic d) => [k:d];
+                    static Dictionary<K, V> FromPair2<K, V>(V v, dynamic d) => [d:v];
+                }
+                """;
+            // PROTOTYPE: Run and verify expected output.
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void EvaluationOrder_01()
         {
             string source = """
@@ -1632,7 +1701,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments($"Program.Identity<K, V>(System.Collections.Generic.{typeName}<K, V>)").WithLocation(9, 9));
         }
 
-        // PROTOTYPE: Test with [CollectionBuilder] type as well. In particular, should allow all three of [k:v, e, ..s] where Ke, Ve do not match K, V exactly.
         [Theory]
         [CombinatorialData]
         public void CustomDictionary_01([CombinatorialValues("class", "struct")] string typeKind, bool useCompilationReference)
@@ -1642,7 +1710,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 using System.Collections.Generic;
                 public {{typeKind}} MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
                 {
-                    private Dictionary<K, V> _dictionary;
+                    private Dictionary<K, V> _d;
+                    public MyDictionary(IEqualityComparer<K> comparer = null) { _d = new(comparer); }
                     public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => GetDictionary().GetEnumerator();
                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                     public V this[K key]
@@ -1650,13 +1719,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         get { return GetDictionary()[key]; }
                         set { GetDictionary()[key] = value; }
                     }
-                    private Dictionary<K, V> GetDictionary() => _dictionary ??= new();
+                    private Dictionary<K, V> GetDictionary() => _d ??= new();
                 }
                 """;
             var comp = CreateCompilation(sourceA);
             var refA = AsReference(comp, useCompilationReference);
 
             string sourceB = """
+                using System;
                 using System.Collections.Generic;
                 class Program
                 {
@@ -1664,75 +1734,96 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         Empty<string, int>().Report();
                         Many(1, "one", new KeyValuePair<int, string>(2, "two"), new KeyValuePair<int, string>[] { new(3, "three") }).Report();
+                        WithComparer(StringComparer.OrdinalIgnoreCase, "ABC", 1, "ab", 2).Report();
                     }
                     static MyDictionary<K, V> Empty<K, V>() => [];
-                    static MyDictionary<K, V> Many<K, V>(K k, V v, KeyValuePair<K, V> e, KeyValuePair<K, V>[] s) => /*<bind>*/[k:v, e, ..s]/*</bind>*/;
+                    static MyDictionary<K, V> Many<K, V>(K k, V v, KeyValuePair<K, V> e, KeyValuePair<K, V>[] s) => /*<bind>*/[with(null), k:v, e, ..s]/*</bind>*/;
+                    static MyDictionary<K, V> WithComparer<K, V>(IEqualityComparer<K> comparer, K k1, V v1, K k2, V v2) => [with(comparer), k1:v1, k2:v2];
                 }
                 """;
             var verifier = CompileAndVerify(
                 [sourceB, s_dictionaryExtensions],
                 references: [refA],
-                expectedOutput: "[], [1:one, 2:two, 3:three], ");
+                expectedOutput: "[], [1:one, 2:two, 3:three], [ab:2, ABC:1], ");
             verifier.VerifyDiagnostics();
             if (typeKind == "class")
             {
                 verifier.VerifyIL("Program.Empty<K, V>", """
                     {
-                      // Code size        6 (0x6)
+                      // Code size        7 (0x7)
                       .maxstack  1
-                      IL_0000:  newobj     "MyDictionary<K, V>..ctor()"
-                      IL_0005:  ret
+                      IL_0000:  ldnull
+                      IL_0001:  newobj     "MyDictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                      IL_0006:  ret
                     }
                     """);
                 verifier.VerifyIL("Program.Many<K, V>", """
                     {
-                      // Code size       83 (0x53)
+                      // Code size       84 (0x54)
                       .maxstack  3
                       .locals init (MyDictionary<K, V> V_0,
                                     System.Collections.Generic.KeyValuePair<K, V> V_1,
                                     System.Collections.Generic.KeyValuePair<K, V>[] V_2,
                                     int V_3,
                                     System.Collections.Generic.KeyValuePair<K, V> V_4)
-                      IL_0000:  newobj     "MyDictionary<K, V>..ctor()"
-                      IL_0005:  stloc.0
-                      IL_0006:  ldloc.0
-                      IL_0007:  ldarg.0
-                      IL_0008:  ldarg.1
+                      IL_0000:  ldnull
+                      IL_0001:  newobj     "MyDictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                      IL_0006:  stloc.0
+                      IL_0007:  ldloc.0
+                      IL_0008:  ldarg.0
+                      IL_0009:  ldarg.1
+                      IL_000a:  callvirt   "void MyDictionary<K, V>.this[K].set"
+                      IL_000f:  ldarg.2
+                      IL_0010:  stloc.1
+                      IL_0011:  ldloc.0
+                      IL_0012:  ldloca.s   V_1
+                      IL_0014:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_0019:  ldloca.s   V_1
+                      IL_001b:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_0020:  callvirt   "void MyDictionary<K, V>.this[K].set"
+                      IL_0025:  ldarg.3
+                      IL_0026:  stloc.2
+                      IL_0027:  ldc.i4.0
+                      IL_0028:  stloc.3
+                      IL_0029:  br.s       IL_004c
+                      IL_002b:  ldloc.2
+                      IL_002c:  ldloc.3
+                      IL_002d:  ldelem     "System.Collections.Generic.KeyValuePair<K, V>"
+                      IL_0032:  stloc.s    V_4
+                      IL_0034:  ldloc.0
+                      IL_0035:  ldloca.s   V_4
+                      IL_0037:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_003c:  ldloca.s   V_4
+                      IL_003e:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_0043:  callvirt   "void MyDictionary<K, V>.this[K].set"
+                      IL_0048:  ldloc.3
+                      IL_0049:  ldc.i4.1
+                      IL_004a:  add
+                      IL_004b:  stloc.3
+                      IL_004c:  ldloc.3
+                      IL_004d:  ldloc.2
+                      IL_004e:  ldlen
+                      IL_004f:  conv.i4
+                      IL_0050:  blt.s      IL_002b
+                      IL_0052:  ldloc.0
+                      IL_0053:  ret
+                    }
+                    """);
+                verifier.VerifyIL("Program.WithComparer<K, V>", """
+                    {
+                      // Code size       24 (0x18)
+                      .maxstack  4
+                      IL_0000:  ldarg.0
+                      IL_0001:  newobj     "MyDictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                      IL_0006:  dup
+                      IL_0007:  ldarg.1
+                      IL_0008:  ldarg.2
                       IL_0009:  callvirt   "void MyDictionary<K, V>.this[K].set"
-                      IL_000e:  ldarg.2
-                      IL_000f:  stloc.1
-                      IL_0010:  ldloc.0
-                      IL_0011:  ldloca.s   V_1
-                      IL_0013:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
-                      IL_0018:  ldloca.s   V_1
-                      IL_001a:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
-                      IL_001f:  callvirt   "void MyDictionary<K, V>.this[K].set"
-                      IL_0024:  ldarg.3
-                      IL_0025:  stloc.2
-                      IL_0026:  ldc.i4.0
-                      IL_0027:  stloc.3
-                      IL_0028:  br.s       IL_004b
-                      IL_002a:  ldloc.2
-                      IL_002b:  ldloc.3
-                      IL_002c:  ldelem     "System.Collections.Generic.KeyValuePair<K, V>"
-                      IL_0031:  stloc.s    V_4
-                      IL_0033:  ldloc.0
-                      IL_0034:  ldloca.s   V_4
-                      IL_0036:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
-                      IL_003b:  ldloca.s   V_4
-                      IL_003d:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
-                      IL_0042:  callvirt   "void MyDictionary<K, V>.this[K].set"
-                      IL_0047:  ldloc.3
-                      IL_0048:  ldc.i4.1
-                      IL_0049:  add
-                      IL_004a:  stloc.3
-                      IL_004b:  ldloc.3
-                      IL_004c:  ldloc.2
-                      IL_004d:  ldlen
-                      IL_004e:  conv.i4
-                      IL_004f:  blt.s      IL_002a
-                      IL_0051:  ldloc.0
-                      IL_0052:  ret
+                      IL_000e:  dup
+                      IL_000f:  ldarg.3
+                      IL_0010:  ldarg.s    V_4
+                      IL_0012:  callvirt   "void MyDictionary<K, V>.this[K].set"
+                      IL_0017:  ret
                     }
                     """);
             }
@@ -1759,7 +1850,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     int V_3,
                                     System.Collections.Generic.KeyValuePair<K, V> V_4)
                       IL_0000:  ldloca.s   V_0
-                      IL_0002:  initobj    "MyDictionary<K, V>"
+                      IL_0002:  ldnull
+                      IL_0003:  call       "MyDictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
                       IL_0008:  ldloca.s   V_0
                       IL_000a:  ldarg.0
                       IL_000b:  ldarg.1
@@ -1800,12 +1892,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                       IL_0057:  ret
                     }
                     """);
+                verifier.VerifyIL("Program.WithComparer<K, V>", """
+                    {
+                      // Code size       29 (0x1d)
+                      .maxstack  3
+                      .locals init (MyDictionary<K, V> V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  ldarg.0
+                      IL_0003:  call       "MyDictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                      IL_0008:  ldloca.s   V_0
+                      IL_000a:  ldarg.1
+                      IL_000b:  ldarg.2
+                      IL_000c:  call       "void MyDictionary<K, V>.this[K].set"
+                      IL_0011:  ldloca.s   V_0
+                      IL_0013:  ldarg.3
+                      IL_0014:  ldarg.s    V_4
+                      IL_0016:  call       "void MyDictionary<K, V>.this[K].set"
+                      IL_001b:  ldloc.0
+                      IL_001c:  ret
+                    }
+                    """);
             }
 
             comp = (CSharpCompilation)verifier.Compilation;
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
-                ICollectionExpressionOperation (3 elements, ConstructMethod: MyDictionary<K, V>..ctor()) (OperationKind.CollectionExpression, Type: MyDictionary<K, V>) (Syntax: '[k:v, e, ..s]')
+                ICollectionExpressionOperation (3 elements, ConstructMethod: MyDictionary<K, V>..ctor([System.Collections.Generic.IEqualityComparer<K> comparer = null])) (OperationKind.CollectionExpression, Type: MyDictionary<K, V>) (Syntax: '[with(null) ... :v, e, ..s]')
                   Elements(3):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'k:v')
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'e')
@@ -1815,6 +1927,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                           (Identity)
                 """);
+        }
+
+        [Fact]
+        public void CustomDictionary_NoParameterlessConstructor()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    private MyDictionary() { }
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public V this[K key] { get { return default; } set { } }
+                }
+                class Program
+                {
+                    static MyDictionary<K, V> OnePair<K, V>() => [default:default];
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // Should we still treat MyDictionary<K, V> as a dictionary type (that is,
+            // allow k:v elements), even though the constructor is inaccessible?
+            comp.VerifyEmitDiagnostics(
+                // (12,50): error CS0122: 'MyDictionary<K, V>.MyDictionary()' is inaccessible due to its protection level
+                //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
+                Diagnostic(ErrorCode.ERR_BadAccess, "[default:default]").WithArguments("MyDictionary<K, V>.MyDictionary()").WithLocation(12, 50),
+                // (12,50): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
+                //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(12, 50),
+                // (12,51): error CS9275: Collection expression type 'MyDictionary<K, V>' does not support key-value pair elements.
+                //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary<K, V>").WithLocation(12, 51),
+                // (12,51): error CS8716: There is no target type for the default literal.
+                //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(12, 51),
+                // (12,59): error CS8716: There is no target type for the default literal.
+                //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(12, 59));
         }
 
         [Theory]
@@ -2122,6 +2273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default]").WithArguments("MyDictionary2<int, string>", "Add").WithLocation(20, 41));
         }
 
+        // PROTOTYPE: Test when there is a more applicable indexer. We should stick with the indexer of the expected pattern.
         [Fact]
         public void IndexerSignature_Overloads_01()
         {

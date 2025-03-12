@@ -14195,6 +14195,25 @@ namespace System
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "m() ? a1 : a2").WithLocation(6, 22));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
+        public void Nullable_Spread_04()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                {
+                    IEnumerable<object?> a = [null];
+                    List<object> b = [..a];
+                }
+                {
+                    IEnumerable<object?> a = [null];
+                    List<object> b = [..a!];
+                }
+                """;
+            // https://github.com/dotnet/roslyn/issues/68786: Should report warning for [..a].
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
         public void NullableValueType_ImplicitConversion()
         {

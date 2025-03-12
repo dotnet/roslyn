@@ -1962,9 +1962,8 @@
     <Field Name="IndexerAssignment" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
   </Node>
 
-  <!-- PROTOTYPE: Use more specific name if this is only used for expression elements (where spread elements use BoundAssignmentOperator directly). -->
   <!-- An assignment of an expression of KeyValuePair&lt;,&gt; type to a dictionary. -->
-  <Node Name="BoundIndexerAssignmentFromExpression" Base="BoundNode">
+  <Node Name="BoundIndexerAssignmentFromExpressionElement" Base="BoundNode">
     <!-- Expression. -->
     <Field Name="Expression" Type="BoundExpression"/>
     <!-- Placeholder for Expression in assignment. -->
