@@ -44,49 +44,49 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 {
                     {|IDE3000:throw new NotImplementedException("Add method not implemented");|}
                 }
-
+            
                 public int Subtract(int a, int b) => {|IDE3000:throw new NotImplementedException("Subtract method not implemented")|};
-
+            
                 public int Multiply(int a, int b) {
                     {|IDE3000:throw new NotImplementedException("Multiply method not implemented");|}
                 }
-
+            
                 public double Divide(int a, int b)
                 {
                     {|IDE3000:throw new NotImplementedException("Divide method not implemented");|}
                 }
-
+            
                 public double CalculateSquareRoot(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented")|};
-
+            
                 public int Factorial(int number)
                 {
                     {|IDE3000:throw new NotImplementedException("Factorial method not implemented");|}
                 }
-
+            
                 public int ConstantValue => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
-
+            
                 public MathService()
                 {
                     {|IDE3000:throw new NotImplementedException("Constructor not implemented");|}
                 }
-
+            
                 ~MathService()
                 {
                     {|IDE3000:throw new NotImplementedException("Destructor not implemented");|}
                 }
-
+            
                 public int this[int index]
                 {
                     get { {|IDE3000:throw new NotImplementedException("Indexer get not implemented");|} }
                     set { {|IDE3000:throw new NotImplementedException("Indexer set not implemented");|} }
                 }
-
+            
                 public event EventHandler MyEvent
                 {
                     add { {|IDE3000:throw new NotImplementedException("Event add not implemented");|} }
                     remove { {|IDE3000:throw new NotImplementedException("Event remove not implemented");|} }
                 }
-
+            
                 public static MathService operator +(MathService a, MathService b)
                 {
                     {|IDE3000:throw new NotImplementedException("Operator not implemented");|}
@@ -104,7 +104,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 int ConstantValue { get; }
                 int this[int index] { get; set; }
                 event EventHandler MyEvent;
-                static MathService operator +(MathService a, MathService b);
             }
             """,
             FixedCode = """
@@ -117,30 +116,30 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 {
                     return a + b;
                 }
-
+            
                 public int Subtract(int a, int b) => a - b;
-
+            
                 public int Multiply(int a, int b)
                 {
                     return a * b;
                 }
-
+            
                 public double Divide(int a, int b)
                 {
                     if (b == 0) throw new DivideByZeroException("Division by zero is not allowed");
                     return (double)a / b;
                 }
-
+            
                 public double CalculateSquareRoot(double number) => Math.Sqrt(number);
-
+            
                 public int Factorial(int number)
                 {
                     if (number < 0) throw new ArgumentException("Number must be non-negative", nameof(number));
                     return number == 0 ? 1 : number * Factorial(number - 1);
                 }
-
+            
                 public int ConstantValue => 42;
-
+            
                 public MathService()
                 {
                     // Constructor implementation
@@ -150,25 +149,25 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 {
                     // Destructor implementation
                 }
-
+            
                 public int this[int index]
                 {
                     get { return 0; }
                     set { /* Indexer set implementation */ }
                 }
-
+            
                 public event EventHandler MyEvent
                 {
                     add { /* Event add implementation */ }
                     remove { /* Event remove implementation */ }
                 }
-
+            
                 public static MathService operator +(MathService a, MathService b)
                 {
                     return new MathService(); // Operator implementation
                 }
             }
-
+            
             public interface IMathService
             {
                 int Add(int a, int b);
@@ -180,7 +179,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 int ConstantValue { get; }
                 int this[int index] { get; set; }
                 event EventHandler MyEvent;
-                static MathService operator +(MathService a, MathService b);
             }
             """,
             LanguageVersion = LanguageVersion.CSharp11,
@@ -219,10 +217,10 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                         MethodDeclarationSyntax method => method.Identifier.Text,
                         PropertyDeclarationSyntax property => property.Identifier.Text,
                         ConstructorDeclarationSyntax constructor => constructor.Identifier.Text,
-                        DestructorDeclarationSyntax destructor => destructor.Identifier.Text,
+                        DestructorDeclarationSyntax destructor => destructor.TildeToken.Text + destructor.Identifier.Text,
                         IndexerDeclarationSyntax indexer => "this",
                         EventDeclarationSyntax @event => @event.Identifier.Text,
-                        OperatorDeclarationSyntax @operator => @operator.OperatorToken.Text,
+                        OperatorDeclarationSyntax @operator => "operator " + @operator.OperatorToken.Text,
                         _ => string.Empty
                     };
 
@@ -539,7 +537,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             .ConfigureAwait(false);
     }
 
-    private const string DefaultErrorMessage = "Failed to receive implementation from Copilot service.";
+    private const string DefaultErrorMessage = "Implement using Copilot is not available.";
 
     private static async Task TestHandlesInvalidReplacementNode(ImplementationDetails implementationDetails)
     {
