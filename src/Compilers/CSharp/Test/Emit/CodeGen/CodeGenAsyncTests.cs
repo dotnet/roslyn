@@ -7297,7 +7297,7 @@ class Test1
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
             comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
 
-            var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify with { ILVerifyMessage = ReturnValueMissing("<Main>$", "0xa") });
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("<Main>$", "0xa") });
 
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
@@ -7321,7 +7321,7 @@ class Test1
 
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Passes);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
@@ -7364,7 +7364,7 @@ class Test1
 
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: parseOptions);
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Passes);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", """
                 {
@@ -7415,7 +7415,7 @@ class Test1
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers, RuntimeAsyncMethodGenerationAttributeDefinition], targetFramework: TargetFramework.Net90, parseOptions: parseOptions);
             comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
 
-            var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify with { ILVerifyMessage = ReturnValueMissing("Main", "0xa") });
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0xa") });
 
             verifier.VerifyIL("Program.Main()", """
                 {
@@ -7456,7 +7456,7 @@ class Test1
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers, RuntimeAsyncMethodGenerationAttributeDefinition], targetFramework: TargetFramework.Net90, parseOptions: parseOptions);
             comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
 
-            var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify with { ILVerifyMessage = ReturnValueMissing("Main", "0xa") });
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0xa") });
 
             verifier.VerifyIL("Program.Main()", """
                 {
@@ -7519,7 +7519,7 @@ class Test1
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers, RuntimeAsyncMethodGenerationAttributeDefinition], targetFramework: TargetFramework.Net90, parseOptions: parseOptions);
             comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
 
-            var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify with { ILVerifyMessage = ReturnValueMissing("Main", "0x26") });
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0x26") });
 
             verifier.VerifyIL("Program.Main()", """
                 {
@@ -7579,7 +7579,7 @@ class Test1
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers, RuntimeAsyncMethodGenerationAttributeDefinition], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
             comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Passes);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
 
             verifier.VerifyIL("Program.Main()", """
                 {
@@ -7625,7 +7625,7 @@ class Test1
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers, RuntimeAsyncMethodGenerationAttributeDefinition], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
             comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
 
-            var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify with { ILVerifyMessage = ReturnValueMissing("<Main>g__LocalFunc|0_0", "0xa") });
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("<Main>g__LocalFunc|0_0", "0xa") });
 
             verifier.VerifyIL("Program.Main()", """
                 {
@@ -7681,7 +7681,7 @@ class Test1
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers, RuntimeAsyncMethodGenerationAttributeDefinition], targetFramework: TargetFramework.Net90, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
             comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
 
-            var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify with { ILVerifyMessage = ReturnValueMissing("<Main>b__0_0", "0xa") });
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("<Main>b__0_0", "0xa") });
 
             verifier.VerifyIL("Program.Main()", """
                 {
