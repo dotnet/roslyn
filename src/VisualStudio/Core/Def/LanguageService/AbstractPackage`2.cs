@@ -36,7 +36,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
 
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
