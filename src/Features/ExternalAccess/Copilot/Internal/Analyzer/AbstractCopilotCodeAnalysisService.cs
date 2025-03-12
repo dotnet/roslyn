@@ -45,6 +45,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken);
     protected abstract Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentCoreAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken);
     protected abstract Task<ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(Document document, ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> methodOrProperties, CancellationToken cancellationToken);
+    protected abstract bool IsImplementNotImplementedExceptionsAvailableCore();
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         => IsAvailableCoreAsync(cancellationToken);
@@ -201,14 +202,17 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
         return await GetDocumentationCommentCoreAsync(proposal, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<bool> IsImplementNotImplementedExceptionsAvailableAsync(CancellationToken cancellationToken)
+    {
+        return await IsAvailableAsync(cancellationToken).ConfigureAwait(false)
+            && IsImplementNotImplementedExceptionsAvailableCore();
+    }
+
     public async Task<ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
         Document document,
         ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> methodOrProperties,
         CancellationToken cancellationToken)
     {
-        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
-            return ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>.Empty;
-
         return await ImplementNotImplementedExceptionsCoreAsync(document, methodOrProperties, cancellationToken).ConfigureAwait(false);
     }
 }

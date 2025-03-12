@@ -197,11 +197,6 @@
         <target state="translated">Globální direktivy using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_Using_Copilot_Not_Available">
-        <source>'Implement using Copilot' is not available.</source>
-        <target state="new">'Implement using Copilot' is not available.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">Nastavit privátní pole jako jenom pro čtení, kde je to možné</target>

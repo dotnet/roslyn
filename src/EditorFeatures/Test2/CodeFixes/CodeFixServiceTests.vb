@@ -370,10 +370,14 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Public Function GetDocumentationCommentAsync(proposal As DocumentationCommentProposal, cancellationToken As CancellationToken) As Task(Of (responseDictionary As Dictionary(Of String, String), isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetDocumentationCommentAsync
                 Return Task.FromResult((New Dictionary(Of String, String), False))
             End Function
+            Public Function IsImplementNotImplementedExceptionsAvailableAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsImplementNotImplementedExceptionsAvailableAsync
+                Return Task.FromResult(False)
+            End Function
 
             Public Function ImplementNotImplementedExceptionsAsync(document As Document, methodOrProperties As ImmutableDictionary(Of CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax, ImmutableArray(Of ReferencedSymbol)), cancellationToken As CancellationToken) As Task(Of ImmutableDictionary(Of CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax, ImplementationDetails)) Implements ICopilotCodeAnalysisService.ImplementNotImplementedExceptionsAsync
                 Return Task.FromResult(ImmutableDictionary(Of CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax, ImplementationDetails).Empty)
             End Function
+
         End Class
     End Class
 End Namespace

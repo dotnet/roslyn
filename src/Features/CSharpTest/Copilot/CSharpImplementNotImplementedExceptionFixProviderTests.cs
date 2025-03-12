@@ -474,16 +474,14 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         .RunAsync();
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task ReplacementNode_Null_NotifiesWithComment(bool withEmptyMessage)
+    [Fact]
+    public async Task ReplacementNode_Null_NotifiesWithComment()
     {
         await TestHandlesInvalidReplacementNode(
             new()
             {
                 ReplacementNode = null,
-                Message = withEmptyMessage ? string.Empty : "Custom Error Message",
+                Message = "Custom Error Message",
             });
     }
 
@@ -521,11 +519,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             .ConfigureAwait(false);
     }
 
-    private const string DefaultErrorMessage = "'Implement using Copilot' is not available.";
-
     private static async Task TestHandlesInvalidReplacementNode(ImplementationDetails implementationDetails)
     {
-        var comment = string.IsNullOrWhiteSpace(implementationDetails.Message) ? DefaultErrorMessage : implementationDetails.Message;
+        Assumes.False(string.IsNullOrWhiteSpace(implementationDetails.Message));
         await new CustomCompositionCSharpTest
         {
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
@@ -545,7 +541,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             class C
             {
-                /* {{comment}} */
+                /* {{implementationDetails.Message}} */
                 void M()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
@@ -694,6 +690,11 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             }
 
             return resultsBuilder.ToImmutable();
+        }
+
+        public Task<bool> IsImplementNotImplementedExceptionsAvailableAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult(true);
         }
     }
 }

@@ -40,14 +40,16 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var document = context.Document;
         var cancellationToken = context.CancellationToken;
 
+        // Checks for feature flag
         if (document.GetLanguageService<ICopilotOptionsService>() is not { } optionsService ||
             await optionsService.IsImplementNotImplementedExceptionEnabledAsync().ConfigureAwait(false) is false)
         {
             return;
         }
 
+        // Checks for service availability
         if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-            await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+            await copilotService.IsImplementNotImplementedExceptionsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
         {
             return;
         }
@@ -97,26 +99,19 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
 
         foreach (var methodOrProperty in memberReferencesBuilder.Keys)
         {
-            Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
+            Contract.ThrowIfFalse(memberImplementationDetails.TryGetValue(methodOrProperty, out var implementationDetails));
 
-            SyntaxNode? replacement;
-            if (!memberImplementationDetails.TryGetValue(methodOrProperty, out var implementationDetails))
+            var replacement = implementationDetails.ReplacementNode;
+            if (replacement is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax)
             {
-                replacement = AddErrorComment(methodOrProperty);
+                replacement = replacement
+                    .WithTriviaFrom(methodOrProperty)
+                    .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation);
             }
             else
             {
-                replacement = implementationDetails.ReplacementNode;
-                if (replacement is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax)
-                {
-                    replacement = replacement
-                        .WithTriviaFrom(methodOrProperty)
-                        .WithAdditionalAnnotations(Formatter.Annotation, WarningAnnotation, Simplifier.Annotation);
-                }
-                else
-                {
-                    replacement = AddErrorComment(methodOrProperty, implementationDetails.Message);
-                }
+                Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(implementationDetails.Message));
+                replacement = AddErrorComment(methodOrProperty, implementationDetails.Message);
             }
 
             editor.ReplaceNode(methodOrProperty, replacement);
@@ -126,9 +121,8 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Completed, logLevel: LogLevel.Information);
     }
 
-    private static MemberDeclarationSyntax AddErrorComment(MemberDeclarationSyntax member, string? message = null)
+    private static MemberDeclarationSyntax AddErrorComment(MemberDeclarationSyntax member, string errorMessage)
     {
-        var errorMessage = string.IsNullOrWhiteSpace(message) ? CSharpFeaturesResources.Implement_Using_Copilot_Not_Available : message;
         Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Failed, errorMessage, logLevel: LogLevel.Error);
 
         var comment = SyntaxFactory.TriviaList(

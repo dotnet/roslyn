@@ -137,14 +137,17 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
     }
 
+    protected override bool IsImplementNotImplementedExceptionsAvailableCore()
+    {
+        return GenerateImplementationService is not null;
+    }
+
     protected override async Task<ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(
         Document document,
         ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> methodOrProperties,
         CancellationToken cancellationToken)
     {
-        if (GenerateImplementationService is null)
-            return ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>.Empty;
-
+        Contract.ThrowIfNull(GenerateImplementationService);
         var nodeToWrappers = await GenerateImplementationService.ImplementNotImplementedExceptionsAsync(document, methodOrProperties, cancellationToken).ConfigureAwait(false);
 
         var resultBuilder = ImmutableDictionary.CreateBuilder<MemberDeclarationSyntax, ImplementationDetails>();
