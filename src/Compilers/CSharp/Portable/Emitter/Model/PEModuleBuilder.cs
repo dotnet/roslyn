@@ -2105,7 +2105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.IMethodDefinition method)
         {
-            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true } || method.GetInternalSymbol() is SynthesizedExtensionMarker);
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true });
             base.AddSynthesizedDefinition(container, method);
         }
 

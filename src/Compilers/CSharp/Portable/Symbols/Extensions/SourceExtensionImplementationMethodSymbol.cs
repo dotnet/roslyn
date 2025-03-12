@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool IsExtensionMethod => !_originalMethod.IsStatic;
+        public sealed override bool IsExtensionMethod => !_originalMethod.IsStatic && _originalMethod.MethodKind is MethodKind.Ordinary;
         public sealed override bool IsVirtual => false;
 
         public sealed override bool IsOverride => false;
