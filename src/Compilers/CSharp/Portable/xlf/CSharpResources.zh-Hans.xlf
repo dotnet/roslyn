@@ -8887,8 +8887,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
-        <source>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="translated">无法定义新的扩展方法，因为找不到编译器需要的类型“{0}”。是否缺少对 System.Core.dll 的引用?</target>
+        <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
+        <target state="needs-review-translation">无法定义新的扩展方法，因为找不到编译器需要的类型“{0}”。是否缺少对 System.Core.dll 的引用?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">

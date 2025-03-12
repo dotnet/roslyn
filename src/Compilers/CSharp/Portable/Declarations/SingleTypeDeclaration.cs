@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal enum TypeDeclarationFlags : ushort
         {
             None = 0,
-            AnyMemberHasExtensionMethodSyntax = 1 << 1,
+            AnyExtensionMethodOrExtensionDeclarationSyntax = 1 << 1,
             HasAnyAttributes = 1 << 2,
             HasBaseDeclarations = 1 << 3,
             AnyMemberHasAttributes = 1 << 4,
@@ -128,11 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public StrongBox<ImmutableSegmentedHashSet<string>> MemberNames => _memberNames;
 
-        public bool AnyMemberHasExtensionMethodSyntax
+        public bool AnyExtensionMethodOrExtensionDeclarationSyntax
         {
             get
             {
-                return (_flags & TypeDeclarationFlags.AnyMemberHasExtensionMethodSyntax) != 0;
+                return (_flags & TypeDeclarationFlags.AnyExtensionMethodOrExtensionDeclarationSyntax) != 0;
             }
         }
 

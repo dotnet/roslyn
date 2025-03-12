@@ -1906,6 +1906,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (IsExtension)
+            {
+                // Verify ExtensionAttribute is available.
+                SourceOrdinaryMethodSymbol.CheckExtensionAttributeAvailability(DeclaringCompilation, location, diagnostics);
+            }
+
             return;
 
             bool hasBaseTypeOrInterface(Func<NamedTypeSymbol, bool> predicate)
@@ -5699,27 +5705,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!_lazyContainsExtensionMethods.HasValue())
                 {
-                    bool containsExtensionMethods = ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) && calculateContainsExtensionMethodsFromMembers();
+                    bool containsExtensionMethods = ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) &&
+                                                    this.declaration.ContainsExtensionMethodsOrExtensionDeclarations;
                     _lazyContainsExtensionMethods = containsExtensionMethods.ToThreeState();
                 }
 
                 return _lazyContainsExtensionMethods.Value();
-
-                bool calculateContainsExtensionMethodsFromMembers()
-                {
-                    if (this.declaration.ContainsExtensionMethods)
-                    {
-                        return true;
-                    }
-
-                    // PROTOTYPE: Optimize this calculation, probably by caching more info in declaration table
-                    if (this.declaration.Children.Any(static d => d.Kind == DeclarationKind.Extension))
-                    {
-                        return this.GetMembersUnordered().OfType<SourceExtensionImplementationMethodSymbol>().Any(static m => m.IsExtensionMethod);
-                    }
-
-                    return false;
-                }
             }
         }
 

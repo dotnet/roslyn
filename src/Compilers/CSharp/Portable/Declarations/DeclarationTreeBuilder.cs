@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool skipGlobalStatements = false,
             bool hasPrimaryCtor = false)
         {
-            bool anyMethodHadExtensionSyntax = false;
+            bool anyExtensionMethodOrExtensionDeclarationSyntax = false;
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
             bool anyRequiredMembers = false;
@@ -938,9 +938,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Check to see if any method contains a 'this' modifier on its first parameter.
                 // This data is used to determine if a type needs to have its members materialized
                 // as part of extension method lookup.
-                if (!anyMethodHadExtensionSyntax && CheckMethodMemberForExtensionSyntax(member))
+                if (!anyExtensionMethodOrExtensionDeclarationSyntax && (member.Kind == SyntaxKind.ExtensionDeclaration || CheckMethodMemberForExtensionSyntax(member)))
                 {
-                    anyMethodHadExtensionSyntax = true;
+                    anyExtensionMethodOrExtensionDeclarationSyntax = true;
                 }
 
                 if (!anyMemberHasAttributes && CheckMemberForAttributes(member))
@@ -954,15 +954,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Break early if we've hit all sorts of members.
-                if (anyNonTypeMembers && anyMethodHadExtensionSyntax && anyMemberHasAttributes && anyRequiredMembers)
+                if (anyNonTypeMembers && anyExtensionMethodOrExtensionDeclarationSyntax && anyMemberHasAttributes && anyRequiredMembers)
                 {
                     break;
                 }
             }
 
-            if (anyMethodHadExtensionSyntax)
+            if (anyExtensionMethodOrExtensionDeclarationSyntax)
             {
-                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasExtensionMethodSyntax;
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyExtensionMethodOrExtensionDeclarationSyntax;
             }
 
             if (anyMemberHasAttributes)

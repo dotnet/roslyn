@@ -8887,8 +8887,8 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
-        <source>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="translated">Não é possível definir um novo método de extensão porque o tipo necessário de compilador "{0}" não pode ser encontrado. Está faltando uma referência a System.Core.dll?</target>
+        <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
+        <target state="needs-review-translation">Não é possível definir um novo método de extensão porque o tipo necessário de compilador "{0}" não pode ser encontrado. Está faltando uma referência a System.Core.dll?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">

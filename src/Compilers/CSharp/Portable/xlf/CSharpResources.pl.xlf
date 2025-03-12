@@ -8887,8 +8887,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
-        <source>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="translated">Nie można zdefiniować nowej metody rozszerzenia, ponieważ nie można odnaleźć wymaganego przez kompilator typu „{0}”. Czy brakuje odwołania do System.Core.dll?</target>
+        <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
+        <target state="needs-review-translation">Nie można zdefiniować nowej metody rozszerzenia, ponieważ nie można odnaleźć wymaganego przez kompilator typu „{0}”. Czy brakuje odwołania do System.Core.dll?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">

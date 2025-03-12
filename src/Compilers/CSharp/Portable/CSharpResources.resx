@@ -2543,7 +2543,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Extension methods must be defined in a top level static class; {0} is a nested class</value>
   </data>
   <data name="ERR_ExtensionAttrNotFound" xml:space="preserve">
-    <value>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</value>
+    <value>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</value>
   </data>
   <data name="ERR_ExplicitExtension" xml:space="preserve">
     <value>Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.</value>

@@ -2204,7 +2204,7 @@ internal static class C
 ";
             var compilation = CreateEmptyCompilation(source, new[] { Net40.References.mscorlib });
             compilation.VerifyDiagnostics(
-                // (4,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                // (4,29): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(4, 29));
         }
 
