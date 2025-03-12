@@ -144,11 +144,9 @@ internal sealed class RoslynPackage : AbstractPackage
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
 
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        cancellationToken.ThrowIfCancellationRequested();
 
         // Ensure the options persisters are loaded since we have to fetch options from the shell
         LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();

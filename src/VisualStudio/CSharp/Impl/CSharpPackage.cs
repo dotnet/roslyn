@@ -62,8 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             try
             {
-                await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
-                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
 
                 this.RegisterService<ICSharpTempPECompilerService>(async ct =>
                 {
