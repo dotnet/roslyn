@@ -1244,8 +1244,7 @@ internal partial class CSharpTypeInferenceService
 
                 // Try to figure out the type based on the type of the collection itself.
                 if (CollectionExpressionUtilities.IsConstructibleCollectionType(
-                        SemanticModel.Compilation, collectionType, out var elementTypes) &&
-                    elementTypes is [var elementType, ..])
+                        SemanticModel.Compilation, collectionType, out var elementType))
                 {
                     return [new(elementType)];
                 }
@@ -1279,11 +1278,14 @@ internal partial class CSharpTypeInferenceService
                     var collectionType = SemanticModel.GetTypeInfo(collectionExpression, CancellationToken).ConvertedType;
 
                     // Try to figure out the type based on the type of hte collection itself.
-                    if (CollectionExpressionUtilities.IsConstructibleCollectionType(
-                            SemanticModel.Compilation, collectionType, out var elementTypes) &&
-                        elementTypes is [var elementType, ..])
+                    if (CollectionExpressionUtilities.IsConstructibleCollectionType(SemanticModel.Compilation, collectionType, out var elementType) &&
+                        elementType is INamedTypeSymbol
+                        {
+                            Name: nameof(KeyValuePair<int, int>),
+                            TypeArguments: [var keyType, var valueType]
+                        })
                     {
-                        return PickKeyOrValueType(elementType);
+                        return [isKey ? keyType : valueType];
                     }
 
                     // If that fails, see if we can figure out from one of our siblings.
@@ -1293,23 +1295,9 @@ internal partial class CSharpTypeInferenceService
                         {
                             var types = GetTypes(isKey ? siblingElement.KeyExpression : siblingElement.ValueExpression, objectAsDefault: false);
                             if (types.Any())
-                                return types.SelectMany(i => PickKeyOrValueType(i.InferredType));
+                                return types.Select(t => t.InferredType);
                         }
                     }
-                }
-
-                return [];
-            }
-
-            IEnumerable<ITypeSymbol> PickKeyOrValueType(ITypeSymbol typeSymbol)
-            {
-                if (typeSymbol is INamedTypeSymbol
-                    {
-                        Name: nameof(KeyValuePair<int, int>),
-                        TypeArguments: [var keyType, var valueType]
-                    })
-                {
-                    return [isKey ? keyType : valueType];
                 }
 
                 return [];

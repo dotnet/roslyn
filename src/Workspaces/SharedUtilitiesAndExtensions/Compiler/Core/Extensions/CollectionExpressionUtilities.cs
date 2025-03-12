@@ -41,18 +41,18 @@ internal static class CollectionExpressionUtilities
     public static bool IsConstructibleCollectionType(
         Compilation compilation,
         [NotNullWhen(true)] ITypeSymbol? type,
-        out ImmutableArray<ITypeSymbol> elementTypes)
+        [NotNullWhen(true)] out ITypeSymbol? elementType)
     {
         if (type is null)
         {
-            elementTypes = default;
+            elementType = null;
             return false;
         }
 
         // Arrays are always a valid collection expression type.
         if (type is IArrayTypeSymbol arrayType)
         {
-            elementTypes = [arrayType.ElementType];
+            elementType = arrayType.ElementType;
             return true;
         }
 
@@ -63,22 +63,7 @@ internal static class CollectionExpressionUtilities
             if (namedType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                 namedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
             {
-                elementTypes = namedType.TypeArguments;
-                return true;
-            }
-
-            // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
-            var collectionBuilderMethods = TryGetCollectionBuilderFactoryMethods(
-                compilation, namedType);
-            if (collectionBuilderMethods is [var builderMethod, ..])
-            {
-                elementTypes = builderMethod.ReturnType.GetTypeArguments();
-                return true;
-            }
-
-            if (IsWellKnownCollectionInterface(namedType))
-            {
-                elementTypes = namedType.TypeArguments;
+                elementType = namedType.TypeArguments.Single();
                 return true;
             }
 
@@ -88,7 +73,7 @@ internal static class CollectionExpressionUtilities
             // Abstract type don't have invokable constructors at all.
             if (namedType.IsAbstract)
             {
-                elementTypes = default;
+                elementType = null;
                 return false;
             }
 
@@ -96,7 +81,16 @@ internal static class CollectionExpressionUtilities
             var foundType = namedType.AllInterfaces.FirstOrDefault(i => i.OriginalDefinition.Equals(ienumerableType));
             if (foundType != null)
             {
-                elementTypes = foundType.TypeArguments;
+                elementType = foundType.TypeArguments.Single();
+
+                // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
+                var collectionBuilderMethods = TryGetCollectionBuilderFactoryMethods(
+                    compilation, namedType);
+                if (collectionBuilderMethods is [var builderMethod, ..])
+                    return true;
+
+                if (IsWellKnownCollectionInterface(namedType))
+                    return true;
 
                 // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
                 var constructors = namedType.Constructors;
@@ -121,7 +115,7 @@ internal static class CollectionExpressionUtilities
         }
 
         // Anything else is not constructible.
-        elementTypes = default;
+        elementType = null;
         return false;
 
         IMethodSymbol? GetAccessibleInstanceConstructor(ImmutableArray<IMethodSymbol> constructors, Func<IMethodSymbol, bool> predicate)
