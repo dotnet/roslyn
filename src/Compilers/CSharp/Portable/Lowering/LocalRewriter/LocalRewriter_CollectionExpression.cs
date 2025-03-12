@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var elements = node.Elements;
             var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
-            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1); // PROTOTYPE: Is this length correct?
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
 
             // Create a temp for the dictionary.
             BoundAssignmentOperator assignmentToTemp;

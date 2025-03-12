@@ -1698,8 +1698,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // should be made here. That requires a Binder instance which we should have at most call sites other than perhaps tests.
                 // It would also mean we could always return the element type, if any, rather than requiring callers to make that
                 // additional check explicitly.
-                // PROTOTYPE: Test collection type that implements IEnumerable only and where the only strongly-typed
-                // GetEnumerator() is an extension method. We should not treat that as ImplementsIEnumerableWithIndexer.
 
                 return CollectionExpressionTypeKind.ImplementsIEnumerable;
             }

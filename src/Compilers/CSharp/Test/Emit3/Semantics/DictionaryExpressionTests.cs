@@ -241,13 +241,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        // PROTOTYPE: Test with indexer with optional parameter, with extra params parameter, with params K[] keys.
         // PROTOTYPE: Test ref safety analysis of indexer set calls for the various cases in [e, k:v, ..s].
         // PROTOTYPE: Test interceptor targeting indexer setter.
         // PROTOTYPE: Document and test breaking change: type with indexer and Add() now uses indexer.
 
-        // PROTOTYPE: Test [x] and [..y] when the KVP does not match the iteration type exactly.
-        // PROTOTYPE: Test [x] and [..y] when the element type is T, where T : KVP<K, V>.
         [Theory]
         [CombinatorialData]
         public void LanguageVersionDiagnostics_06(
@@ -883,7 +880,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 5));
         }
 
-        // PROTOTYPE: Test with [CollectionBuilder] type as well. In particular, should allow all three of [k:v, e, ..s] where Ke, Ve do not match K, V exactly.
         [Fact]
         public void KeyValuePair_MissingMember_CustomDictionary()
         {
@@ -992,7 +988,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
 
-            // PROTOTYPE: Implement IOperation support.
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Int64, System.Object>) (Syntax: '[x:y]')
@@ -1001,7 +996,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        // PROTOTYPE: Do we actually want to support these conversions from KeyValuePair<K1, V1> to KeyValuePair<K2, V2>?
+        // PROTOTYPE: Confirm that we want to support conversion from KeyValuePair<K1, V1> to
+        // KeyValuePair<K2, V2> when there are implicit conversions from K1 to K2 and from V1 to V2.
         [Fact]
         public void KeyValuePairConversions_02()
         {
@@ -1285,6 +1281,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // PROTOTYPE: Run and verify expected output.
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void KeyValuePairConversions_KeyValuePairConstraint()
+        {
+            string source = """
+                using System.Collections.Generic;
+                abstract class A<T>
+                {
+                    public abstract void F<U>(U u, IEnumerable<U> e) where U : T;
+                }
+                class B<K, V> : A<KeyValuePair<K, V>>
+                {
+                    public override void F<U>(U u, IEnumerable<U> e)
+                    {
+                        Dictionary<K, V> d;
+                        d = [u];
+                        d = [..e];
+                    }
+                }
+                """;
+            // PROTOTYPE: We're not treating the target type as a dictionary type and so we're reporting ERR_CollectionExpressionMissingAdd.
+            // The reason is because error reporting relies on GetCollectionExpressionTypeKind() which does not check for an indexer.
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,13): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         d = [u];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[u]").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(11, 13),
+                // (11,14): error CS0029: Cannot implicitly convert type 'U' to 'System.Collections.Generic.KeyValuePair<K, V>'
+                //         d = [u];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "u").WithArguments("U", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(11, 14),
+                // (12,13): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         d = [..e];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..e]").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(12, 13),
+                // (12,16): error CS0029: Cannot implicitly convert type 'U' to 'System.Collections.Generic.KeyValuePair<K, V>'
+                //         d = [..e];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("U", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(12, 16));
         }
 
         [Fact]
@@ -1977,6 +2010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("public V this[K key] { set { } }", false)]
         [InlineData("public V this[K key, object arg = null] { get { return default; } set { } }", false)]
         [InlineData("public V this[K key, params object[] args] { get { return default; } set { } }", false)]
+        [InlineData("public V this[params K[] key] { get { return default; } set { } }", false)]
         public void IndexerSignature_01(string indexer, bool supported)
         {
             string sourceA = $$"""
@@ -2022,8 +2056,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        // PROTOTYPE: Should MyDictionary1<K, V> and MyDictionary2 be supported? (Is this
-        // an open question?) How should we word the spec so the behavior is clearly defined?
+        // PROTOTYPE: Should MyDictionary1<K, V> and MyDictionary2 be supported, and
+        // how should we word the spec so the behavior is clearly defined?
         [Fact]
         public void IndexerSignature_02()
         {
@@ -2415,8 +2449,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
         }
-
-        // PROTOTYPE: What about a combination of overridden and hidden overloads?
 
         [Fact]
         public void IndexerSignature_New()

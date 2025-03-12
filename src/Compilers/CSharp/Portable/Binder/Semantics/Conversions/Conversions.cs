@@ -222,7 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
                                 if (enumeratorInfo is { })
                                 {
-                                    // PROTOTYPE: Test case where elementType is null.
                                     if (IsKeyValuePairType(Compilation, enumeratorInfo.ElementType, out var itemKeyType, out var itemValueType))
                                     {
                                         var keyConversion = ClassifyImplicitConversionFromType(itemKeyType, keyType, ref useSiteInfo);
@@ -251,12 +250,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundExpression expressionElement:
                             {
-                                // PROTOTYPE: dictionary-expressions.md currently states "If Ei is an expression element, there is an implicit conversion
-                                // from Ei to T." But that is incorrect since that allows conversions from types other than KeyValuePair<,>, and it disallows
-                                // conversions from KeyValuePair<Ke, Ve> to KeyValuePair<K, V> (if we remove "key-value pair conversions".) Update the
-                                // spec, removing "key-value pair conversions" and replacing the existing expression element rule with: "If Ei is an expression
-                                // element, and either: Ei has no type and there is an implicit conversion from Ei to T, or Ei has type KeyValuePair<Ke, Ve>
-                                // and there is an implicit conversion from Ke to K and an implicit conversion from Ve to V."
                                 if (expressionElement.Type is { })
                                 {
                                     if (IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
