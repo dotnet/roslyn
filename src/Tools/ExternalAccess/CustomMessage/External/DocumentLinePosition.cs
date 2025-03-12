@@ -20,11 +20,12 @@ public struct DocumentLinePosition
         Character = linePosition.Character;
     }
 
-    public DocumentLinePosition(string filePath, LinePosition linePosition)
+    [JsonConstructor]
+    public DocumentLinePosition(string filePath, int line, int character)
     {
         FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
-        Line = linePosition.Line;
-        Character = linePosition.Character;
+        Line = line;
+        Character = character;
     }
 
     [JsonPropertyName("filePath")]
