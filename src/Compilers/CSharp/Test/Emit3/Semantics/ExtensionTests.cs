@@ -23719,4 +23719,48 @@ static class E
             // C<string, string>.M<string>();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M<string>").WithArguments("C<string, string>", "M").WithLocation(1, 19));
     }
+
+    [Fact]
+    public void ExplicitTypeArguments_07()
+    {
+        var src = """
+string.M<object, long>(42);
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public static void M<U>(U u) { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "string.M<object, long>(42)");
+        Assert.Equal("void E.<>E__0<System.Object>.M<System.Int64>(System.Int64 u)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExplicitTypeArguments_08()
+    {
+        var src = """
+object.M<string, long>(42);
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public static void M<U>(U u) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension<string>(string).M<long>(long)' requires a receiver of type 'string'
+            // object.M<string, long>(42);
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "M", "E.extension<string>(string).M<long>(long)", "string").WithLocation(1, 1));
+    }
 }
