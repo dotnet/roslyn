@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
@@ -193,14 +194,63 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             }
         }
 
-        var maxLength = 1000;
-        var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference =>
+        var solution = document.Project.Solution;
+        var declarationCode = symbol.DeclaringSyntaxReferences.Select(reference =>
         {
             var span = reference.Span;
-            var sourceText = reference.SyntaxTree.GetText(cancellationToken);
-            return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
+            var syntaxReferenceDocument = solution.GetDocument(reference.SyntaxTree);
+            if (syntaxReferenceDocument is not null)
+            {
+                return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, span);
+            }
+
+            return null;
         }).ToImmutableArray();
 
-        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), symbolStrings, symbol.Language, hasContentExcluded);
+        var additionalContext = GetAdditionalOnTheFlyDocsContext(solution, symbol);
+
+        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), declarationCode, symbol.Language, hasContentExcluded, additionalContext);
+    }
+
+    private static ImmutableArray<OnTheFlyDocsRelevantFileInfo?> GetAdditionalOnTheFlyDocsContext(Solution solution, ISymbol symbol)
+    {
+        var parameters = symbol.GetParameters();
+        var typeArguments = symbol.GetTypeArguments();
+        var parameterStrings = parameters.Select(parameter =>
+        {
+            var typeSymbol = parameter.Type;
+            var typeSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
+            if (typeSyntaxReference is not null)
+            {
+                var typeSpan = typeSyntaxReference.Span;
+                var syntaxReferenceDocument = solution.GetDocument(typeSyntaxReference.SyntaxTree);
+                if (syntaxReferenceDocument is not null)
+                {
+                    return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, typeSpan);
+                }
+            }
+
+            return null;
+
+        }).ToImmutableArray();
+
+        var typeArgumentStrings = typeArguments.Select(typeArgument =>
+        {
+            var typeSyntaxReference = typeArgument.DeclaringSyntaxReferences.FirstOrDefault();
+            if (typeSyntaxReference is not null)
+            {
+                var typeSpan = typeSyntaxReference.Span;
+                var syntaxReferenceDocument = solution.GetDocument(typeSyntaxReference.SyntaxTree);
+                if (syntaxReferenceDocument is not null)
+                {
+                    return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, typeSpan);
+                }
+            }
+
+            return null;
+
+        }).ToImmutableArray();
+
+        return parameterStrings.AddRange(typeArgumentStrings);
     }
 }
