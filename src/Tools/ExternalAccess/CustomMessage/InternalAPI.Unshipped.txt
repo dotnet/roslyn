@@ -1,0 +1,9 @@
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageContext.CustomMessageContext(Microsoft.CodeAnalysis.Document? document, Microsoft.CodeAnalysis.Solution! solution) -> void
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory.Create(System.Type! customMessageHandlerType) -> Microsoft.CodeAnalysis.CustomMessageHandler.ICustomMessageHandlerWrapper!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory.CustomMessageHandlerFactory() -> void
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerWrapper
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerWrapper.CustomMessageHandlerWrapper(object! handler) -> void
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerWrapper.ExecuteAsync(object? message, Microsoft.CodeAnalysis.Document? document, Microsoft.CodeAnalysis.Solution! solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<object?>!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerWrapper.MessageType.get -> System.Type!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerWrapper.ResponseType.get -> System.Type!
