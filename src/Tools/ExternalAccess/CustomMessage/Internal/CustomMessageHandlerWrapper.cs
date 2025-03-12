@@ -33,11 +33,11 @@ internal sealed class CustomMessageHandlerWrapper : ICustomMessageHandlerWrapper
         }
 
         MessageType = iCustomMessageHandlerInterface.GenericTypeArguments[0];
+        ResponseType = iCustomMessageHandlerInterface.GenericTypeArguments[1];
         var responseTaskType = iCustomMessageHandlerInterface.GenericTypeArguments[1];
-        ResponseType = responseTaskType.GenericTypeArguments[0];
 
         executeAsyncMethod = iCustomMessageHandlerInterface.GetMethod(nameof(ICustomMessageHandler<,>.ExecuteAsync));
-        responseTaskResultProperty = responseTaskType.GetProperty(nameof(Task<>.Result));
+        responseTaskResultProperty = typeof(Task<>).MakeGenericType(ResponseType).GetProperty(nameof(Task<>.Result));
     }
 
     public Type MessageType { get; }
