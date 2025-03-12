@@ -1266,9 +1266,6 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-        01 00 00 00
-    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
@@ -1320,9 +1317,6 @@ public static class Extensions
             object o
         ) cil managed 
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-            01 00 00 00
-        )
         // Method begins at RVA 0x2067
         // Code size 3 (0x3)
         .maxstack 8
@@ -1335,9 +1329,6 @@ public static class Extensions
             int32 'value'
         ) cil managed 
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-            01 00 00 00
-        )
         // Method begins at RVA 0x206b
         // Code size 1 (0x1)
         .maxstack 8
@@ -1574,9 +1565,6 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-        01 00 00 00
-    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
@@ -1637,9 +1625,6 @@ public static class Extensions
             int32 i
         ) cil managed 
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-            01 00 00 00
-        )
         // Method begins at RVA 0x2067
         // Code size 3 (0x3)
         .maxstack 8
@@ -1653,9 +1638,6 @@ public static class Extensions
             int32 'value'
         ) cil managed 
     {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-            01 00 00 00
-        )
         // Method begins at RVA 0x206b
         // Code size 1 (0x1)
         .maxstack 8
@@ -1681,13 +1663,7 @@ public static class Extensions
 
         var comp5 = CreateCompilation(src);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-        comp5.VerifyDiagnostics(
-            // PROTOTYPE: The wording of the message is somewhat confusing because it calls indexer a "method". Perhaps the wording should be changed to use "member" instead.
-
-            // (5,13): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
-            //         int this[int i] { get => 42; set { } }
-            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(5, 13)
-            );
+        comp5.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -1707,10 +1683,7 @@ public static class Extensions
         comp.VerifyEmitDiagnostics(
             // (5,20): error CS0106: The modifier 'static' is not valid for this item
             //         static int this[int i] { get => 42; set { } }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(5, 20),
-            // (5,20): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
-            //         static int this[int i] { get => 42; set { } }
-            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(5, 20)
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(5, 20)
             );
     }
 
@@ -7980,9 +7953,9 @@ public static class Extensions
         Assert.True(implementation.IsStatic);
         Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
         Assert.Equal(1, implementation.ParameterCount);
-        AssertEx.Equal("System.String Extensions.get_P(this System.Object o)", implementation.ToTestDisplayString());
+        AssertEx.Equal("System.String Extensions.get_P(System.Object o)", implementation.ToTestDisplayString());
         Assert.True(implementation.IsImplicitlyDeclared);
-        Assert.True(implementation.IsExtensionMethod);
+        Assert.False(implementation.IsExtensionMethod);
         Assert.True(implementation.HasSpecialName);
         Assert.False(implementation.HasRuntimeSpecialName);
 
@@ -7992,9 +7965,6 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-        01 00 00 00
-    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -8034,9 +8004,6 @@ public static class Extensions
             object o
         ) cil managed 
     {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-            01 00 00 00
-        )
         // Method begins at RVA 0x2067
         // Code size 7 (0x7)
         .maxstack 8
@@ -8102,14 +8069,14 @@ static class Extensions
   IL_0006:  ret
 }
 ";
-        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
+        verifier3.VerifyIL("Extensions.get_P2(object)", m2IL);
 
         var comp1ImageReference = comp1.EmitToImageReference();
         comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
         verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test", testIL);
-        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
+        verifier3.VerifyIL("Extensions.get_P2(object)", m2IL);
 
         src3 = """
 class Program
@@ -8136,16 +8103,24 @@ static class Extensions
 """;
 
         comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
-
-        verifier3.VerifyIL("Program.Test", testIL);
-        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
+        comp3.VerifyDiagnostics(
+            // (11,18): error CS1061: 'object' does not contain a definition for 'get_P' and no accessible extension method 'get_P' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            //         return o.get_P();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "get_P").WithArguments("object", "get_P").WithLocation(11, 18),
+            // (19,31): error CS1061: 'object' does not contain a definition for 'get_P' and no accessible extension method 'get_P' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            //         public string P2 => o.get_P();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "get_P").WithArguments("object", "get_P").WithLocation(19, 31)
+            );
 
         comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
-        verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
-
-        verifier3.VerifyIL("Program.Test", testIL);
-        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
+        comp3.VerifyDiagnostics(
+            // (11,18): error CS1061: 'object' does not contain a definition for 'get_P' and no accessible extension method 'get_P' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            //         return o.get_P();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "get_P").WithArguments("object", "get_P").WithLocation(11, 18),
+            // (19,31): error CS1061: 'object' does not contain a definition for 'get_P' and no accessible extension method 'get_P' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            //         public string P2 => o.get_P();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "get_P").WithArguments("object", "get_P").WithLocation(19, 31)
+            );
 
         src3 = """
 class Program
@@ -8175,24 +8150,20 @@ static class Extensions_
         verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test", testIL);
-        verifier3.VerifyIL("Extensions_.get_P2(this object)", m2IL);
+        verifier3.VerifyIL("Extensions_.get_P2(object)", m2IL);
 
         comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
         verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test", testIL);
-        verifier3.VerifyIL("Extensions_.get_P2(this object)", m2IL);
+        verifier3.VerifyIL("Extensions_.get_P2(object)", m2IL);
 
         var vbComp = CreateVisualBasicCompilation("""
 Class Program
     Shared Sub Main()
-        System.Console.Write(Test1("1"))
         System.Console.Write(Test2("3"))
     End Sub
 
-    Shared Function Test1(o As String) As String
-        return o.get_P()
-    End Function
     Shared Function Test2(o As String) As String
         return Extensions.get_P(o)
     End Function
@@ -8200,17 +8171,29 @@ End Class
 """,
             referencedAssemblies: comp3.References, compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
 
-        CompileAndVerify(vbComp, expectedOutput: "13").VerifyDiagnostics();
+        CompileAndVerify(vbComp, expectedOutput: "3").VerifyDiagnostics();
+
+        vbComp = CreateVisualBasicCompilation("""
+Class Program
+    Shared Sub Main()
+        System.Console.Write(Test1("1"))
+    End Sub
+
+    Shared Function Test1(o As String) As String
+        return o.get_P()
+    End Function
+End Class
+""",
+            referencedAssemblies: comp3.References, compilationOptions: new VisualBasicCompilationOptions(OutputKind.ConsoleApplication));
+
+        vbComp.VerifyDiagnostics(
+            // error BC30456: 'get_P' is not a member of 'String'.
+            Diagnostic(30456 /*ERRID.ERR_NameNotMember2*/, "o.get_P").WithArguments("get_P", "String").WithLocation(7, 16)
+            );
 
         var comp5 = CreateCompilation(src1);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-        comp5.VerifyDiagnostics(
-            // PROTOTYPE: The wording of the message is somewhat confusing because it calls property a "method". Perhaps the wording should be changed to use "member" instead.
-
-            // (5,23): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
-            //         public string P => o.ToString();
-            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "P").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(5, 23)
-            );
+        comp5.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -8426,9 +8409,6 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-        01 00 00 00
-    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -8468,9 +8448,6 @@ public static class Extensions
             object o
         ) cil managed 
     {
-        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-            01 00 00 00
-        )
         // Method begins at RVA 0x2067
         // Code size 7 (0x7)
         .maxstack 8
@@ -8535,13 +8512,13 @@ static class Extensions
   IL_0006:  ret
 }
 ";
-        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
+        verifier3.VerifyIL("Extensions.get_P2(object)", m2IL);
 
         comp3 = CreateCompilation(src3, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
         verifier3 = CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
 
         verifier3.VerifyIL("Program.Test", testIL);
-        verifier3.VerifyIL("Extensions.get_P2(this object)", m2IL);
+        verifier3.VerifyIL("Extensions.get_P2(object)", m2IL);
     }
 
     [Fact]
