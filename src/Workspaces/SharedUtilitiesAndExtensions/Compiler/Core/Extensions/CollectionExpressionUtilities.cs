@@ -67,6 +67,12 @@ internal static class CollectionExpressionUtilities
                 return true;
             }
 
+            if (IsWellKnownCollectionInterface(namedType))
+            {
+                elementType = namedType.TypeArguments.Single();
+                return true;
+            }
+
             // At this point, all that is left are collection-initializer types.  These need to derive from
             // System.Collections.IEnumerable, and have an invokable no-arg constructor.
 
@@ -87,9 +93,6 @@ internal static class CollectionExpressionUtilities
                 var collectionBuilderMethods = TryGetCollectionBuilderFactoryMethods(
                     compilation, namedType);
                 if (collectionBuilderMethods is [var builderMethod, ..])
-                    return true;
-
-                if (IsWellKnownCollectionInterface(namedType))
                     return true;
 
                 // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
