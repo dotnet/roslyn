@@ -1682,6 +1682,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IDictionary_KV, out elementType) ||
                 isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV, out elementType))
             {
+                // PROTOTYPE: Should DictionaryInterface be conditional on language version? See DictionaryExpressionTests.Dictionary_Params()
+                // where we're not reporting an error for the following declaration when compiling with -langversion:13.
+                //   static void Params<K, V>(params IDictionary<K, V> args) { ... }
                 return CollectionExpressionTypeKind.DictionaryInterface;
             }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
@@ -1698,6 +1701,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // should be made here. That requires a Binder instance which we should have at most call sites other than perhaps tests.
                 // It would also mean we could always return the element type, if any, rather than requiring callers to make that
                 // additional check explicitly.
+
+                // PROTOTYPE: Should ImplementsIEnumerableWithIndexer be conditional on language version?
 
                 return CollectionExpressionTypeKind.ImplementsIEnumerable;
             }

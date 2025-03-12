@@ -1593,6 +1593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
                             {
+                                // PROTOTYPE: What if this is a dictionary type, with an indexer rather than Add()?
                                 return;
                             }
 

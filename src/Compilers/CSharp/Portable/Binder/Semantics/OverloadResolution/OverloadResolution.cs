@@ -1347,6 +1347,7 @@ outerDefault:
 
                             if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, type, addMethods: out _, BindingDiagnosticBag.Discarded))
                             {
+                                // PROTOTYPE: What if this is a dictionary type, with an indexer rather than Add()?
                                 return false;
                             }
                         }
