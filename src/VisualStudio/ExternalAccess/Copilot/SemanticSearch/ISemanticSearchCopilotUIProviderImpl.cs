@@ -18,5 +18,6 @@ internal interface ITextBoxControlImpl
 
 internal interface ISemanticSearchCopilotUIProviderImpl
 {
+    bool IsAvailable { get; }
     ITextBoxControlImpl GetTextBox();
 }

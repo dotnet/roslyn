@@ -28,7 +28,7 @@ internal sealed class SemanticSearchCopilotUIProviderWrapper(
     }
 
     bool ISemanticSearchCopilotUIProvider.IsAvailable
-        => impl != null;
+        => impl?.Value.IsAvailable == true;
 
     ITextBoxControl ISemanticSearchCopilotUIProvider.GetTextBox()
     {

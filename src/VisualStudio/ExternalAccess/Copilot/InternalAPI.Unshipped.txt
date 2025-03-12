@@ -1,6 +1,7 @@
 #nullable enable
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotUIProviderImpl
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotUIProviderImpl.GetTextBox() -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotUIProviderImpl.IsAvailable.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl.CommandTarget.get -> Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ITextBoxControlImpl.Control.get -> System.Windows.Controls.Control!
