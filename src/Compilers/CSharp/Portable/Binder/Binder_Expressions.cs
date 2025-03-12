@@ -8511,7 +8511,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments? actualMethodArguments = null;
             AnalyzedArguments? actualReceiverArguments = null;
 
-            // PROTOTYPE we need to lookup on combined arity of extension declaration and extension method
             int arity = typeArgumentsWithAnnotations.IsDefault ? 0 : typeArgumentsWithAnnotations.Length;
             var lookupOptions = (arity == 0) ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
             if (analyzedArguments is not null)
@@ -8610,7 +8609,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lookupResult, analyzedArguments, ref actualMethodArguments, options, in callingConvention, binder, diagnostics);
 
                 // 3. resolve properties
-                OverloadResolutionResult<PropertySymbol>? propertyResult = resolveProperties(left, lookupResult, binder, ref actualReceiverArguments, ref useSiteInfo);
+                Debug.Assert(arity == 0 || lookupResult.Symbols.All(s => s.Kind != SymbolKind.Property));
+                OverloadResolutionResult<PropertySymbol>? propertyResult = arity != 0 ? null : resolveProperties(left, lookupResult, binder, ref actualReceiverArguments, ref useSiteInfo);
 
                 // 4. determine member kind
                 if (!methodResult.HasAnyApplicableMethod && propertyResult?.HasAnyApplicableMember != true)

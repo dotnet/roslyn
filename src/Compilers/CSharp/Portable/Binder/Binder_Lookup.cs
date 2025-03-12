@@ -1839,7 +1839,7 @@ symIsHidden:;
                     if (arity != 0 || (options & LookupOptions.AllMethodsOnArityZero) == 0)
                     {
                         MethodSymbol method = (MethodSymbol)symbol;
-                        if (method.Arity != arity)
+                        if (method.GetMemberTotalArity() != arity)
                         {
                             if (method.Arity == 0)
                             {
