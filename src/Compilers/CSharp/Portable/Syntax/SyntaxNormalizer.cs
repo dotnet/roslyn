@@ -119,6 +119,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     lineBreaksAfter: lineBreaksAfter));
 
                 return tk;
+
+                int LineBreaksAfterLeading(SyntaxToken syntaxToken)
+                {
+                    if (syntaxToken.LeadingTrivia.Count < 2)
+                    {
+                        return 0;
+                    }
+
+                    if (syntaxToken.LeadingTrivia[^2].IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) &&
+                        syntaxToken.LeadingTrivia[^1].IsKind(SyntaxKind.EndOfLineTrivia))
+                    {
+                        return 1;
+                    }
+
+                    return 0;
+                }
             }
             finally
             {
@@ -173,22 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private static bool NeedsIndentAfterLineBreak(SyntaxToken token)
         {
             return !token.IsKind(SyntaxKind.EndOfFileToken);
-        }
-
-        private static int LineBreaksAfterLeading(SyntaxToken token)
-        {
-            if (token.LeadingTrivia.Count < 2)
-            {
-                return 0;
-            }
-
-            if (token.LeadingTrivia[^2].IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) &&
-                token.LeadingTrivia[^1].IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return 1;
-            }
-
-            return 0;
         }
 
         private int LineBreaksAfter(SyntaxToken currentToken, SyntaxToken nextToken)
