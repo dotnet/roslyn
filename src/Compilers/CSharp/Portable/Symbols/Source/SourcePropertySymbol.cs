@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxTokenList modifiersTokenList = GetModifierTokensSyntax(syntax);
             bool isExplicitInterfaceImplementation = explicitInterfaceSpecifier is object;
             var (modifiers, hasExplicitAccessMod) = MakeModifiers(
+                syntax,
                 containingType,
                 modifiersTokenList,
                 isExplicitInterfaceImplementation,
@@ -369,6 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static (DeclarationModifiers modifiers, bool hasExplicitAccessMod) MakeModifiers(
+            BasePropertyDeclarationSyntax syntax,
             NamedTypeSymbol containingType,
             SyntaxTokenList modifiers,
             bool isExplicitInterfaceImplementation,
@@ -471,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Proper errors must have been reported by now.
             if (isInterface)
             {
-                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, accessorsHaveImplementation, isExplicitInterfaceImplementation, forMethod: false);
+                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, accessorsHaveImplementation, isExplicitInterfaceImplementation, forMethod: false, syntax);
             }
 
             if (isIndexer)
