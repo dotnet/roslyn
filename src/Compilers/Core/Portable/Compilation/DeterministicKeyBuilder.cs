@@ -185,8 +185,11 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteArrayStart();
                 foreach (var generator in generators)
                 {
+                    object obj = generator is IncrementalGeneratorWrapper w
+                        ? w.Generator
+                        : generator;
                     cancellationToken.ThrowIfCancellationRequested();
-                    WriteType(writer, generator.GetType());
+                    WriteType(writer, obj.GetType());
                 }
                 writer.WriteArrayEnd();
             }
