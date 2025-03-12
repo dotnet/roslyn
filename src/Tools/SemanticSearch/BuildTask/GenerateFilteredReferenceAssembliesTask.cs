@@ -54,7 +54,6 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         $
         """, RegexOptions.Singleline | RegexOptions.IgnorePatternWhitespace);
 
-
     [Required]
     public ITaskItem[] ApiSets { get; private set; } = null!;
 
@@ -172,7 +171,8 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
                 }
                 catch (Exception e)
                 {
-                    Log.LogWarning($"Unable to read '{outputFilePath}': {e.Message}");
+                    Log.LogError($"Unable to read '{outputFilePath}': {e.Message}");
+                    return;
                 }
             }
 
