@@ -521,7 +521,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             .ConfigureAwait(false);
     }
 
-    private const string DefaultErrorMessage = "Implement using Copilot is not available.";
+    private const string DefaultErrorMessage = "'Implement using Copilot' is not available.";
 
     private static async Task TestHandlesInvalidReplacementNode(ImplementationDetails implementationDetails)
     {

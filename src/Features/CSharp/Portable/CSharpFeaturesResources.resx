@@ -582,6 +582,6 @@
     <value>required property</value>
   </data>
   <data name="Implement_Using_Copilot_Not_Available" xml:space="preserve">
-    <value>Implement using Copilot is not available.</value>
+    <value>'Implement using Copilot' is not available.</value>
   </data>
 </root>

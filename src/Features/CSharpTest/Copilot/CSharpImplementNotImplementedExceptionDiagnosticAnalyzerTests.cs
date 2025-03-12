@@ -13,7 +13,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpImplementNotImplementedExceptionDiagnosticAnalyzer,
     EmptyCodeFixProvider>;
 
-public class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTests
+public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTests
 {
     [Fact]
     public async Task TestThrowNotImplementedExceptionInStatement()
