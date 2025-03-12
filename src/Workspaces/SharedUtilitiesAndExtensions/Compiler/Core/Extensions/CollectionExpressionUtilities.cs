@@ -67,6 +67,19 @@ internal static class CollectionExpressionUtilities
                 return true;
             }
 
+            var ienumerableOfTType = compilation.IEnumerableOfTType();
+            var ienumerableType = compilation.IEnumerableType();
+            var foundType =
+                namedType.AllInterfaces.FirstOrDefault(i => i.OriginalDefinition.Equals(ienumerableOfTType)) ??
+                namedType.AllInterfaces.FirstOrDefault(i => i.OriginalDefinition.Equals(ienumerableType));
+            elementType = foundType?.TypeArguments.FirstOrDefault() ?? compilation.ObjectType;
+
+            // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
+            var collectionBuilderMethods = TryGetCollectionBuilderFactoryMethods(
+                compilation, namedType);
+            if (collectionBuilderMethods is [var builderMethod, ..])
+                return true;
+
             if (IsWellKnownCollectionInterface(namedType))
             {
                 elementType = namedType.TypeArguments.Single();
@@ -83,18 +96,8 @@ internal static class CollectionExpressionUtilities
                 return false;
             }
 
-            var ienumerableType = compilation.IEnumerableOfTType();
-            var foundType = namedType.AllInterfaces.FirstOrDefault(i => i.OriginalDefinition.Equals(ienumerableType));
             if (foundType != null)
             {
-                elementType = foundType.TypeArguments.Single();
-
-                // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
-                var collectionBuilderMethods = TryGetCollectionBuilderFactoryMethods(
-                    compilation, namedType);
-                if (collectionBuilderMethods is [var builderMethod, ..])
-                    return true;
-
                 // If they have an accessible `public C(int capacity)` constructor, the lang prefers calling that.
                 var constructors = namedType.Constructors;
                 var capacityConstructor = GetAccessibleInstanceConstructor(constructors, c => c.Parameters is [{ Name: "capacity", Type.SpecialType: SpecialType.System_Int32 }]);
