@@ -791,7 +791,7 @@ outerDefault:
 
         private bool FailsConstraintChecks<TMember>(TMember member, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt, CompoundUseSiteInfo<AssemblySymbol> template) where TMember : Symbol
         {
-            int arity = GetMemberTotalArity(member);
+            int arity = member.GetMemberTotalArity();
             if (arity == 0 || member.OriginalDefinition == (object)member)
             {
                 constraintFailureDiagnosticsOpt = null;
@@ -1169,7 +1169,7 @@ outerDefault:
             // This is specifying an impossible condition; the member lookup algorithm has already filtered
             // out methods from the method group that have the wrong generic arity.
 
-            Debug.Assert(typeArguments.Count == 0 || typeArguments.Count == GetMemberTotalArity(member));
+            Debug.Assert(typeArguments.Count == 0 || typeArguments.Count == member.GetMemberTotalArity());
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
             bool disallowExpandedNonArrayParams = (options & Options.DisallowExpandedNonArrayParams) != 0;
@@ -2405,14 +2405,14 @@ outerDefault:
             }
 
             // If MP is a non-generic method and MQ is a generic method, then MP is better than MQ.
-            if (GetMemberTotalArity(m1.Member) == 0)
+            if (m1.Member.GetMemberTotalArity() == 0)
             {
-                if (GetMemberTotalArity(m2.Member) > 0)
+                if (m2.Member.GetMemberTotalArity() > 0)
                 {
                     return BetterResult.Left;
                 }
             }
-            else if (GetMemberTotalArity(m2.Member) == 0)
+            else if (m2.Member.GetMemberTotalArity() == 0)
             {
                 return BetterResult.Right;
             }
@@ -2604,16 +2604,6 @@ outerDefault:
                     return type;
                 }
             }
-        }
-
-        private static int GetMemberTotalArity<TMember>(TMember member) where TMember : Symbol
-        {
-            if (member.GetIsNewExtensionMember())
-            {
-                return member.ContainingType.Arity + member.GetMemberArity();
-            }
-
-            return member.GetMemberArity();
         }
 
         /// <summary>
@@ -4259,7 +4249,7 @@ outerDefault:
             EffectiveParameters constructedEffectiveParameters;
             bool hasTypeArgumentsInferredFromFunctionType = false;
             if ((options & Options.InferringUniqueMethodGroupSignature) == 0 &&
-                GetMemberTotalArity(member) > 0)
+                member.GetMemberTotalArity() > 0)
             {
                 ImmutableArray<TypeWithAnnotations> typeArguments;
                 bool isNewExtensionMember = member.GetIsNewExtensionMember();

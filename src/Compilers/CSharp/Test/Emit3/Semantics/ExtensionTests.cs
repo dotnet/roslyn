@@ -23668,7 +23668,7 @@ static class E
     }
     extension(string s)
     {
-        public void M<T>() { System.Console.Write("ran"); }
+        public void M<T>() { System.Console.Write(s); }
     }
 }
 """;
@@ -23709,7 +23709,7 @@ static class E
 {
     extension<T, U>(C<T, U> t)
     {
-        public void M() { }
+        public static void M() { }
     }
 }
 """;
