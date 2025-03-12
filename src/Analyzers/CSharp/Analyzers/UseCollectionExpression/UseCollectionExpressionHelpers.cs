@@ -116,7 +116,7 @@ internal static class UseCollectionExpressionHelpers
         if (originalTypeInfo.ConvertedType is null or IErrorTypeSymbol)
             return false;
 
-        if (!CollectionExpressionExtensions.IsConstructibleCollectionType(compilation, originalTypeInfo.ConvertedType.OriginalDefinition))
+        if (!CollectionExpressionUtilities.IsConstructibleCollectionType(compilation, originalTypeInfo.ConvertedType.OriginalDefinition))
             return false;
 
         if (expression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
@@ -143,7 +143,7 @@ internal static class UseCollectionExpressionHelpers
         // expression will always succeed, and there's no need to actually validate semantics there.
         // Tracked by https://github.com/dotnet/roslyn/issues/68826
         if (parent is CastExpressionSyntax)
-            return CollectionExpressionExtensions.IsConstructibleCollectionType(compilation, semanticModel.GetTypeInfo(parent, cancellationToken).Type);
+            return CollectionExpressionUtilities.IsConstructibleCollectionType(compilation, semanticModel.GetTypeInfo(parent, cancellationToken).Type);
 
         // Looks good as something to replace.  Now check the semantics of making the replacement to see if there would
         // any issues.
@@ -232,7 +232,7 @@ internal static class UseCollectionExpressionHelpers
 
             // It's always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it will
             // continue emitting a List<X> for those target types.
-            var isWellKnownCollectionReadWriteInterface = CollectionExpressionExtensions.IsWellKnownCollectionReadWriteInterface(convertedType);
+            var isWellKnownCollectionReadWriteInterface = CollectionExpressionUtilities.IsWellKnownCollectionReadWriteInterface(convertedType);
             if (isWellKnownCollectionReadWriteInterface &&
                 Equals(type.OriginalDefinition, compilation.ListOfTType()) &&
                 type.AllInterfaces.Contains(convertedType))
@@ -258,7 +258,7 @@ internal static class UseCollectionExpressionHelpers
             //
             // `IEnumerable<object> obj = Array.Empty<object>();` or
             // `IEnumerable<string> obj = new[] { "" };`
-            if (CollectionExpressionExtensions.IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
+            if (CollectionExpressionUtilities.IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
             {
                 // The observable collections are known to have significantly different behavior than List<T>.  So
                 // disallow converting those types to ensure semantics are preserved.  We do this even though

@@ -62,7 +62,7 @@ internal static class WithElementSyntaxExtensions
         {
             // If the type has a [CollectionBuilder(typeof(...), "...")] attribute on it, find the method it points to, and
             // produce the synthesized signature help items for it (e.g. without the ReadOnlySpan<T> parameter).
-            var constructedBuilderMethods = CollectionExpressionExtensions.TryGetCollectionBuilderFactoryMethods(
+            var constructedBuilderMethods = CollectionExpressionUtilities.TryGetCollectionBuilderFactoryMethods(
                 semanticModel.Compilation, collectionExpressionType);
             if (constructedBuilderMethods is null)
                 return null;

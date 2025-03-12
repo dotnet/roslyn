@@ -1243,7 +1243,7 @@ internal partial class CSharpTypeInferenceService
                 var collectionType = SemanticModel.GetTypeInfo(collectionExpression, CancellationToken).ConvertedType;
 
                 // Try to figure out the type based on the type of the collection itself.
-                if (CollectionExpressionExtensions.IsConstructibleCollectionType(
+                if (CollectionExpressionUtilities.IsConstructibleCollectionType(
                         SemanticModel.Compilation, collectionType, out var elementTypes) &&
                     elementTypes is [var elementType, ..])
                 {
@@ -1279,7 +1279,7 @@ internal partial class CSharpTypeInferenceService
                     var collectionType = SemanticModel.GetTypeInfo(collectionExpression, CancellationToken).ConvertedType;
 
                     // Try to figure out the type based on the type of hte collection itself.
-                    if (CollectionExpressionExtensions.IsConstructibleCollectionType(
+                    if (CollectionExpressionUtilities.IsConstructibleCollectionType(
                             SemanticModel.Compilation, collectionType, out var elementTypes) &&
                         elementTypes is [var elementType, ..])
                     {

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal static class CollectionExpressionExtensions
+internal static class CollectionExpressionUtilities
 {
     public static bool IsWellKnownCollectionInterface(ITypeSymbol type)
         => IsWellKnownCollectionReadOnlyInterface(type) || IsWellKnownCollectionReadWriteInterface(type);
@@ -68,7 +68,7 @@ internal static class CollectionExpressionExtensions
             }
 
             // If it has a [CollectionBuilder] attribute on it, it is a valid collection expression type.
-            var collectionBuilderMethods = CollectionExpressionExtensions.TryGetCollectionBuilderFactoryMethods(
+            var collectionBuilderMethods = TryGetCollectionBuilderFactoryMethods(
                 compilation, namedType);
             if (collectionBuilderMethods is [var builderMethod, ..])
             {
