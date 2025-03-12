@@ -27,7 +27,6 @@
 
   <Target Name="Pack">
     <ItemGroup>
-
       <!-- Transform RuntimeIdentifiers property to item -->
       <RuntimeIdentifierForPack Include="$(RuntimeIdentifiers)" />
       <RuntimeIdentifierForPack Include="neutral" />
