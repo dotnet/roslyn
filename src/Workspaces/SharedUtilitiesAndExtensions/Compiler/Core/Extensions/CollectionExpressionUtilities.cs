@@ -81,20 +81,14 @@ internal static class CollectionExpressionUtilities
                 return true;
 
             if (IsWellKnownCollectionInterface(namedType))
-            {
-                elementType = namedType.TypeArguments.Single();
                 return true;
-            }
 
             // At this point, all that is left are collection-initializer types.  These need to derive from
             // System.Collections.IEnumerable, and have an invokable no-arg constructor.
 
             // Abstract type don't have invokable constructors at all.
             if (namedType.IsAbstract)
-            {
-                elementType = null;
                 return false;
-            }
 
             if (foundType != null)
             {
