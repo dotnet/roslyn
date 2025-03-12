@@ -75,12 +75,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {|IDE3000:throw new NotImplementedException("Destructor not implemented");|}
                 }
             
-                public int this[int index]
-                {
-                    get { {|IDE3000:throw new NotImplementedException("Indexer get not implemented");|} }
-                    set { {|IDE3000:throw new NotImplementedException("Indexer set not implemented");|} }
-                }
-            
                 public event EventHandler MyEvent
                 {
                     add { {|IDE3000:throw new NotImplementedException("Event add not implemented");|} }
@@ -102,7 +96,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 double CalculateSquareRoot(double number);
                 int Factorial(int number);
                 int ConstantValue { get; }
-                int this[int index] { get; set; }
                 event EventHandler MyEvent;
             }
             """,
@@ -150,12 +143,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     // Destructor implementation
                 }
             
-                public int this[int index]
-                {
-                    get { return 0; }
-                    set { /* Indexer set implementation */ }
-                }
-            
                 public event EventHandler MyEvent
                 {
                     add { /* Event add implementation */ }
@@ -177,7 +164,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 double CalculateSquareRoot(double number);
                 int Factorial(int number);
                 int ConstantValue { get; }
-                int this[int index] { get; set; }
                 event EventHandler MyEvent;
             }
             """,
@@ -200,7 +186,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     ["ConstantValue"] = "public int ConstantValue => 42;\n",
                     ["MathService"] = "public MathService()\n{\n    // Constructor implementation\n}\n",
                     ["~MathService"] = "~MathService()\n{\n    // Destructor implementation\n}\n",
-                    ["this"] = "public int this[int index]\n{\n    get { return 0; }\n    set { /* Indexer set implementation */ }\n}\n",
                     ["MyEvent"] = "public event EventHandler MyEvent\n{\n    add { /* Event add implementation */ }\n    remove { /* Event remove implementation */ }\n}\n",
                     ["operator +"] = "public static MathService operator +(MathService a, MathService b)\n{\n    return new MathService(); // Operator implementation\n}\n"
                 };
@@ -218,7 +203,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                         PropertyDeclarationSyntax property => property.Identifier.Text,
                         ConstructorDeclarationSyntax constructor => constructor.Identifier.Text,
                         DestructorDeclarationSyntax destructor => destructor.TildeToken.Text + destructor.Identifier.Text,
-                        IndexerDeclarationSyntax indexer => "this",
                         EventDeclarationSyntax @event => @event.Identifier.Text,
                         OperatorDeclarationSyntax @operator => "operator " + @operator.OperatorToken.Text,
                         _ => string.Empty

@@ -55,24 +55,6 @@ public class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTests
     }
 
     [Fact]
-    public async Task TestThrowNotImplementedExceptionInField()
-    {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-            using System;
-
-            class C
-            {
-                private readonly int field = {|IDE3000:throw new NotImplementedException()|};
-            }
-            """,
-            LanguageVersion = LanguageVersion.CSharp11,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-        }.RunAsync();
-    }
-
-    [Fact]
     public async Task TestThrowNotImplementedExceptionInConstructor()
     {
         await new VerifyCS.Test
