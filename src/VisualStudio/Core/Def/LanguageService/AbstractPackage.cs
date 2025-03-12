@@ -29,7 +29,6 @@ internal abstract class AbstractPackage : AsyncPackage
     {
         _componentModel_doNotAccessDirectly = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(false);
         Assumes.Present(_componentModel_doNotAccessDirectly);
-
     }
 
     protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
