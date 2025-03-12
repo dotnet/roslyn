@@ -32,11 +32,9 @@ public struct DocumentLinePosition
     public string FilePath { get; }
 
     [JsonPropertyName("line")]
-    [DataMember(Order = 1)]
     public int Line { get; }
 
     [JsonPropertyName("character")]
-    [DataMember(Order = 2)]
     public int Character { get; }
 
     public LinePosition ToLinePosition()
