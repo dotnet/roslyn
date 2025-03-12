@@ -45,7 +45,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     private readonly CopilotOption _copilotCodeAnalysisOption = new("EnableCSharpCodeAnalysis", false);
     private readonly CopilotOption _copilotRefineOption = new("EnableCSharpRefineQuickActionSuggestion", false);
     private readonly CopilotOption _copilotOnTheFlyDocsOption = new("EnableOnTheFlyDocs", true);
-    private readonly CopilotOption _copilotGenerateDocumentationCommentOption = new("EnableCSharpGenerateDocumentationComment", true);
+    private readonly CopilotOption _copilotGenerateDocumentationCommentOption = new("EnableGenerateDocumentationComment", true);
 
     private static readonly UIContext s_copilotHasLoadedUIContext = UIContext.FromUIContextGuid(new Guid(CopilotHasLoadedGuid));
     private static readonly UIContext s_gitHubAccountStatusDeterminedContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusDetermined));
