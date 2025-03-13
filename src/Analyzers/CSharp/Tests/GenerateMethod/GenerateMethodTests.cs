@@ -11120,6 +11120,261 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
             """);
     }
 
+    [Fact]
+    public async Task GenerateInCollection1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    List<string> s = [[|Goo|]()];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    List<string> s = [Goo()];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GenerateInCollection2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    string[] s = [[|Goo|]()];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    string[] s = [Goo()];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GenerateInCollection3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+             <Workspace>
+                <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferencesNetCoreApp="true">
+                    <Document>using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    ReadOnlySpan&lt;string&gt; s = [[|Goo|]()];
+                }
+            }</Document>
+                </Project>
+            </Workspace>
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    ReadOnlySpan<string> s = [Goo()];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GenerateInCollection4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    IList<string> s = [[|Goo|]()];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    IList<string> s = [Goo()];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GenerateInCollection5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+             <Workspace>
+                <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferencesNet9="true">
+                    <Document>using System;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            
+            class C
+            {
+                void M()
+                {
+                    ImmutableArray&lt;string&gt; s = [[|Goo|]()];
+                }
+            }</Document>
+                </Project>
+            </Workspace>
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            
+            class C
+            {
+                void M()
+                {
+                    ImmutableArray<string> s = [Goo()];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GenerateInDictionaryExpressionKey()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    Dictionary<string, int> s = [[|Goo|](): 0];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    Dictionary<string, int> s = [Goo(): 0];
+                }
+            
+                private string Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task GenerateInDictionaryExpressionValue()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    Dictionary<string, int> s = ["": [|Goo|]()];
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    Dictionary<string, int> s = ["": Goo()];
+                }
+            
+                private int Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60136")]
     public async Task GenerateIntoTopLevelProgramWithPartialType()
     {
