@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
@@ -60,10 +61,12 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
         if (methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax)
         {
+            var lazy = AsyncLazy.Create(GetDocumentUpdater(context));
+
             var fix = DocumentChangeAction.New(
                 title: CSharpAnalyzersResources.Implement_with_Copilot,
-                createChangedDocument: (_, cancellationToken) => GetDocumentUpdater(context, diagnostic: null)(cancellationToken),
-                createChangedDocumentPreview: (_, _) => Task.FromResult(context.Document),
+                createChangedDocument: (_, cancellationToken) => lazy.GetValueAsync(cancellationToken),
+                createChangedDocumentPreview: (_, cancellationToken) => lazy.GetValueAsync(cancellationToken),
                 equivalenceKey: nameof(CSharpAnalyzersResources.Implement_with_Copilot));
             context.RegisterCodeFix(fix, context.Diagnostics[0]);
             Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Fix_Registered, logLevel: LogLevel.Information);
