@@ -18672,9 +18672,7 @@ static class E
 
         var comp = CreateCompilation(src);
         // PROTOTYPE confirm when spec'ing pattern-based collection initializer
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "add");
+        CompileAndVerify(comp, expectedOutput: "add").VerifyDiagnostics();
 
         string expectedOperationTree = """
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: '_ = new C() { 42 }')
@@ -18700,16 +18698,22 @@ Right:
         VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, expectedDiagnostics);
     }
 
-    [Fact(Skip = "PROTOTYPE lowering of collection initializer with a conversion on receiver")]
+    [Fact]
     public void ExtensionMemberLookup_CollectionInitializer_NoApplicableMethod()
     {
         var src = """
 using System.Collections;
 using System.Collections.Generic;
 
-/*<bind>*/
-_ = new C() { 42 };
-/*</bind>*/
+class Program
+{
+    static void Main()
+    {
+        /*<bind>*/
+        _ = new C() { 42 };
+        /*</bind>*/
+    }
+}
 
 class C : IEnumerable<int>, IEnumerable
 {
@@ -18728,11 +18732,81 @@ static class E
 """;
 
         // PROTOTYPE confirm when spec'ing pattern-based collection initializer
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         CompileAndVerify(comp, expectedOutput: "add").VerifyDiagnostics();
+
+        string expectedOperationTree = """
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: '_ = new C() { 42 }')
+  Left:
+    IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
+  Right:
+    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { 42 }')
+      Arguments(0)
+      Initializer:
+        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ 42 }')
+          Initializers(1):
+              IInvocationOperation ( void E.<>E__0.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
+                Instance Receiver:
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'C')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    Operand:
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '42')
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+""";
+        var expectedDiagnostics = DiagnosticDescription.None;
+
+        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, expectedDiagnostics);
+
+        VerifyFlowGraph(comp, comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First(), """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (3)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C() { 42 }')
+              Value:
+                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { 42 }')
+                  Arguments(0)
+                  Initializer:
+                    null
+            IInvocationOperation ( void E.<>E__0.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
+              Instance Receiver:
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'C')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (ImplicitReference)
+                  Operand:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C() { 42 }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '42')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = new C() { 42 };')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: '_ = new C() { 42 }')
+                  Left:
+                    IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
+                  Right:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C() { 42 }')
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+""");
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE: Lowering for this scenario is not implemented yet
+    [Fact]
     public void ExtensionMemberLookup_CollectionInitializer_NoApplicableMethod_ExpressionTree()
     {
         var src = """
@@ -18768,11 +18842,11 @@ static class E
         // PROTOTYPE confirm when spec'ing pattern-based collection initializer
         // PROTOTYPE expression trees
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyDiagnostics();
-
-        // RPOTOTYPE: Lowering for this scenario is not implemented yet
-        //var expectedOutput = "Method 'Void Add(Int32)' declared on type 'E+<>E__0' cannot be called with instance of type 'C'";
-        //CompileAndVerify(comp, expectedOutput: ExpectedOutput(expectedOutput), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (6,76): error CS8075: An extension Add method is not supported for a collection initializer in an expression lambda.
+            //     System.Linq.Expressions.Expression<System.Func<C>> e = () => new C() { 42 };
+            Diagnostic(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, "42").WithLocation(6, 76)
+            );
     }
 
     [Fact]
