@@ -20,6 +20,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
 {
     private readonly LspWorkspaceRegistrationService _workspaceRegistrationService;
     private readonly LspWorkspaceManager _workspaceManager;
+    private readonly IDiagnosticsRefresher _diagnosticsRefresher;
     protected readonly IDiagnosticSourceManager DiagnosticSourceManager;
 
     /// <summary>
@@ -44,13 +45,16 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         DiagnosticSourceManager = diagnosticSourceManager;
         _workspaceManager = workspaceManager;
         _workspaceRegistrationService = registrationService;
+        _diagnosticsRefresher = diagnosticRefresher;
 
         _workspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
         _workspaceManager.LspTextChanged += OnLspTextChanged;
+        _diagnosticsRefresher.WorkspaceRefreshRequested += OnWorkspaceRefreshRequested;
     }
 
     public void Dispose()
     {
+        _diagnosticsRefresher.WorkspaceRefreshRequested -= OnWorkspaceRefreshRequested;
         _workspaceManager.LspTextChanged -= OnLspTextChanged;
         _workspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
     }
@@ -74,6 +78,11 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
     }
 
     private void OnLspTextChanged(object? sender, EventArgs e)
+    {
+        UpdateLspChanged();
+    }
+
+    private void OnWorkspaceRefreshRequested()
     {
         UpdateLspChanged();
     }
