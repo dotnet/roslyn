@@ -117,12 +117,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    return
-                        (node is ExpressionSyntax && (isSpeculative || allowNamedArgumentName || !SyntaxFacts.IsNamedArgumentName(node))) ||
-                        (node is ConstructorInitializerSyntax) ||
-                        (node is PrimaryConstructorBaseTypeSyntax) ||
-                        (node is AttributeSyntax) ||
-                        (node is CrefSyntax);
+                    if (node is ExpressionSyntax && (isSpeculative || allowNamedArgumentName || !SyntaxFacts.IsNamedArgumentName(node)))
+                    {
+                        return true;
+                    }
+
+                    return node is ConstructorInitializerSyntax
+                                or WithElementSyntax
+                                or PrimaryConstructorBaseTypeSyntax
+                                or AttributeSyntax
+                                or CrefSyntax;
             }
         }
 
@@ -647,6 +651,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return CanGetSemanticInfo(constructorInitializer)
                 ? GetSymbolInfoWorker(constructorInitializer, SymbolInfoOptions.DefaultOptions, cancellationToken)
+                : SymbolInfo.None;
+        }
+
+        public SymbolInfo GetSymbolInfo(WithElementSyntax withElement, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(withElement);
+
+            return CanGetSemanticInfo(withElement)
+                ? GetSymbolInfoWorker(withElement, SymbolInfoOptions.DefaultOptions, cancellationToken)
                 : SymbolInfo.None;
         }
 
