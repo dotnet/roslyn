@@ -9,9 +9,11 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -26,23 +28,29 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
 {
     private IExternalCSharpCopilotCodeAnalysisService? AnalysisService { get; }
     private IExternalCSharpCopilotGenerateDocumentationService? GenerateDocumentationService { get; }
+    private IExternalCSharpCopilotGenerateImplementationService? GenerateImplementationService { get; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpCopilotCodeAnalysisService(
         [Import(AllowDefault = true)] IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
         [Import(AllowDefault = true)] IExternalCSharpCopilotGenerateDocumentationService? externalCSharpCopilotGenerateDocumentationService,
+        [Import(AllowDefault = true)] IExternalCSharpCopilotGenerateImplementationService? externalCSharpCopilotGenerateImplementationService,
         IDiagnosticsRefresher diagnosticsRefresher
         ) : base(diagnosticsRefresher)
     {
         if (externalCopilotService is null)
-            FatalError.ReportAndCatch(new NullReferenceException("ExternalCSharpCopilotCodeAnalysisService is unavailable."), ErrorSeverity.Diagnostic);
+            FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpCopilotGenerateDocumentationService)), ErrorSeverity.Diagnostic);
 
         if (externalCSharpCopilotGenerateDocumentationService is null)
-            FatalError.ReportAndCatch(new NullReferenceException("ExternalCSharpCopilotGenerateDocumentationService is unavailable."), ErrorSeverity.Diagnostic);
+            FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpCopilotGenerateDocumentationService)), ErrorSeverity.Diagnostic);
+
+        if (externalCSharpCopilotGenerateDocumentationService is null)
+            FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpCopilotGenerateImplementationService)), ErrorSeverity.Diagnostic);
 
         AnalysisService = externalCopilotService;
         GenerateDocumentationService = externalCSharpCopilotGenerateDocumentationService;
+        GenerateImplementationService = externalCSharpCopilotGenerateImplementationService;
     }
 
     protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
@@ -127,5 +135,33 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
             return GenerateDocumentationService.GetDocumentationCommentAsync(new CopilotDocumentationCommentProposalWrapper(proposal), cancellationToken);
 
         return Task.FromResult<(Dictionary<string, string>?, bool)>((null, false));
+    }
+
+    protected override bool IsImplementNotImplementedExceptionsAvailableCore()
+    {
+        return GenerateImplementationService is not null;
+    }
+
+    protected override async Task<ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(
+        Document document,
+        ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+        CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(GenerateImplementationService);
+        var nodeToWrappers = await GenerateImplementationService.ImplementNotImplementedExceptionsAsync(document, methodOrProperties, cancellationToken).ConfigureAwait(false);
+
+        var resultBuilder = ImmutableDictionary.CreateBuilder<MemberDeclarationSyntax, ImplementationDetails>();
+        foreach (var nodeToWrapper in nodeToWrappers)
+        {
+            resultBuilder.Add(
+                nodeToWrapper.Key,
+                new ImplementationDetails
+                {
+                    ReplacementNode = nodeToWrapper.Value.ReplacementNode,
+                    Message = nodeToWrapper.Value.Message
+                });
+        }
+
+        return resultBuilder.ToImmutable();
     }
 }
