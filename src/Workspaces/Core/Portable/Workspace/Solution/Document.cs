@@ -388,7 +388,17 @@ public class Document : TextDocument
     /// Creates a new instance of this document updated to have the text specified.
     /// </summary>
     public Document WithText(SourceText text)
-        => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
+    {
+        var solution = this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity);
+
+        if (Id.IsSourceGenerated)
+        {
+            return solution.GetRequiredProject(Id.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(Id)
+                ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document));
+        }
+
+        return solution.GetRequiredDocument(Id);
+    }
 
     /// <summary>
     /// Creates a new instance of this document updated to have a syntax tree rooted by the specified syntax node.

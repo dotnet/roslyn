@@ -975,6 +975,101 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.NotEqual(checksum2, checksum3);
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
+    public async Task WithDocumentTexts_OrdinaryAndSourceGeneratedDocuments(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+        generatorRan = false;
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+        var ordinaryDocument = project.Documents.First();
+
+        var solution = project.Solution.WithDocumentTexts(
+            [(ordinaryDocument.Id, SourceText.From("// Regular modified")),
+            (sourceGeneratedDocument.Id, SourceText.From("// Source gen modified"))]);
+
+        generatedDocuments = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentsAsync();
+        var updatedDocument = Assert.Single(generatedDocuments);
+        var sourceText = await updatedDocument.GetTextAsync();
+        Assert.Equal("// Source gen modified", sourceText.ToString());
+
+        sourceText = await solution.GetRequiredDocument(ordinaryDocument.Id).GetTextAsync();
+        Assert.Equal("// Regular modified", sourceText.ToString());
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
+    public async Task WithTextWorksOnSourceGeneratedDocument(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+        generatorRan = false;
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+
+        sourceGeneratedDocument = (SourceGeneratedDocument)sourceGeneratedDocument.WithText(SourceText.From("// Something else"));
+        var sourceText = await sourceGeneratedDocument.GetTextAsync();
+        Assert.Equal("// Something else", sourceText.ToString());
+
+        generatedDocuments = await sourceGeneratedDocument.Project.GetSourceGeneratedDocumentsAsync();
+        var updatedDocument = Assert.Single(generatedDocuments);
+        sourceText = await updatedDocument.GetTextAsync();
+        Assert.Equal("// Something else", sourceText.ToString());
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
+    public async Task WithTextWorksOnSourceGeneratedDocument_Multiple(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+        generatorRan = false;
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+
+        sourceGeneratedDocument = (SourceGeneratedDocument)sourceGeneratedDocument.WithText(SourceText.From("// Something else"));
+        var sourceText = await sourceGeneratedDocument.GetTextAsync();
+        Assert.Equal("// Something else", sourceText.ToString());
+
+        sourceGeneratedDocument = (SourceGeneratedDocument)sourceGeneratedDocument.WithText(SourceText.From("// Thrice is nice"));
+        sourceText = await sourceGeneratedDocument.GetTextAsync();
+        Assert.Equal("// Thrice is nice", sourceText.ToString());
+
+        generatedDocuments = await sourceGeneratedDocument.Project.GetSourceGeneratedDocumentsAsync();
+        var updatedDocument = Assert.Single(generatedDocuments);
+        sourceText = await updatedDocument.GetTextAsync();
+        Assert.Equal("// Thrice is nice", sourceText.ToString());
+    }
+
 #if NET
 
     private sealed class DoNotLoadAssemblyLoader : IAnalyzerAssemblyLoader

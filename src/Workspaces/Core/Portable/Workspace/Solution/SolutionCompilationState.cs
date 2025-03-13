@@ -780,11 +780,34 @@ internal sealed partial class SolutionCompilationState
     }
 
     internal SolutionCompilationState WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode)
-        => UpdateDocumentsInMultipleProjects<DocumentState, SourceText, PreservationMode>(
-            texts,
+    {
+        using var _1 = ArrayBuilder<(DocumentId, SourceText)>.GetInstance(out var ordinaryDocuments);
+        using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText sourceText)>.GetInstance(out var sourceGeneratedUpdates);
+        foreach (var doc in texts)
+        {
+            if (!doc.documentId.IsSourceGenerated)
+            {
+                ordinaryDocuments.Add(doc);
+            }
+            else if (TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(doc.documentId) is { Identity: var identity })
+            {
+                sourceGeneratedUpdates.Add((identity, DateTime.UtcNow, doc.text));
+            }
+        }
+
+        var state = UpdateDocumentsInMultipleProjects<DocumentState, SourceText, PreservationMode>(
+            ordinaryDocuments.ToImmutableAndClear(),
             arg: mode,
             updateDocument: static (oldDocumentState, text, mode) =>
                 SourceTextIsUnchanged(oldDocumentState, text) ? oldDocumentState : oldDocumentState.UpdateText(text, mode));
+
+        if (!sourceGeneratedUpdates.IsEmpty)
+        {
+            state = state.WithFrozenSourceGeneratedDocuments(sourceGeneratedUpdates.ToImmutableAndClear());
+        }
+
+        return state;
+    }
 
     private static bool SourceTextIsUnchanged(DocumentState oldDocument, SourceText text)
         => oldDocument.TryGetText(out var oldText) && text == oldText;
@@ -1323,13 +1346,6 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithFrozenSourceGeneratedDocuments(
         ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText sourceText)> documents)
     {
-        // We won't support freezing multiple source generated documents more than once in a chain, simply because we have no need
-        // to support that; these solutions are created on demand when we need to operate on an open source generated document,
-        // and so those are always forks off the main solution. There's also a bit of a design question -- does calling this a second time
-        // leave the existing frozen documents in place, or replace them? It depends on the need, but until then we'll cross that bridge
-        // if/when we need it.
-        Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentStates == null, $"We shouldn't be calling {nameof(WithFrozenSourceGeneratedDocuments)} on a solution with frozen source generated documents.");
-
         if (documents.IsEmpty)
             return this;
 
