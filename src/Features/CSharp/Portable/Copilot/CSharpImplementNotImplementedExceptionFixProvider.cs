@@ -68,7 +68,7 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
 
             context.RegisterCodeFix(Create(
                 title: CSharpAnalyzersResources.Implement_with_Copilot,
-                cancellationToken => lazy.GetValueAsync(cancellationToken),
+                lazy.GetValueAsync,
                 equivalenceKey: nameof(CSharpAnalyzersResources.Implement_with_Copilot)),
                 context.Diagnostics);
 
