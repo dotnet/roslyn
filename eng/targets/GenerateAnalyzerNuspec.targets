@@ -113,9 +113,9 @@
 
     <!-- Only run validate only in CI builds. Running them in local builds will prevent refreshing auto-generated files. -->
     <Exec Condition="'$(ContinuousIntegrationBuild)' == 'true'"
-          Command='"$(DotNetExecutable)" exec --roll-forward major "$(_GenerateDocumentationAndConfigFilesPath)" "-validateOnly:true" "$(_GeneratedRulesetsDir)" "$(_GeneratedEditorconfigsDir)" "$(_GeneratedGlobalAnalyzerConfigsDir)" "$(ArtifactsBinDir)$(EscapeDirectorySuffix)" "$(Configuration)" "%(AnalyzerRulesetAssembly.TargetFramework)" "@(AnalyzerRulesetAssembly)" "$(PackagePropsFileDir)" "$(PackagePropsFileName)" "$(PackageTargetsFileDir)" "$(PackageTargetsFileName)" "$(DisableNETAnalyzersPackagePropsFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerDocumentationFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerSarifFileName)" "$(VersionPrefix)" $(NuspecPackageId) $(ContainsPortedFxCopRules) $(GenerateAnalyzerRulesMissingDocumentationFile) $(ReleaseTrackingOptOut) $(_ValidateOffline)' />
+          Command='"$(DotNetExecutable)" --roll-forward major "$(_GenerateDocumentationAndConfigFilesPath)" "-validateOnly:true" "$(_GeneratedRulesetsDir)" "$(_GeneratedEditorconfigsDir)" "$(_GeneratedGlobalAnalyzerConfigsDir)" "$(ArtifactsBinDir)$(EscapeDirectorySuffix)" "$(Configuration)" "%(AnalyzerRulesetAssembly.TargetFramework)" "@(AnalyzerRulesetAssembly)" "$(PackagePropsFileDir)" "$(PackagePropsFileName)" "$(PackageTargetsFileDir)" "$(PackageTargetsFileName)" "$(DisableNETAnalyzersPackagePropsFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerDocumentationFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerSarifFileName)" "$(VersionPrefix)" $(NuspecPackageId) $(ContainsPortedFxCopRules) $(GenerateAnalyzerRulesMissingDocumentationFile) $(ReleaseTrackingOptOut) $(_ValidateOffline)' />
 
-    <Exec Command='"$(DotNetExecutable)" exec --roll-forward major "$(_GenerateDocumentationAndConfigFilesPath)" "-validateOnly:false" "$(_GeneratedRulesetsDir)" "$(_GeneratedEditorconfigsDir)" "$(_GeneratedGlobalAnalyzerConfigsDir)" "$(ArtifactsBinDir)$(EscapeDirectorySuffix)" "$(Configuration)" "%(AnalyzerRulesetAssembly.TargetFramework)" "@(AnalyzerRulesetAssembly)" "$(PackagePropsFileDir)" "$(PackagePropsFileName)" "$(PackageTargetsFileDir)" "$(PackageTargetsFileName)" "$(DisableNETAnalyzersPackagePropsFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerDocumentationFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerSarifFileName)" "$(VersionPrefix)" $(NuspecPackageId) $(ContainsPortedFxCopRules) $(GenerateAnalyzerRulesMissingDocumentationFile) $(ReleaseTrackingOptOut) $(_ValidateOffline)' />
+    <Exec Command='"$(DotNetExecutable)" --roll-forward major "$(_GenerateDocumentationAndConfigFilesPath)" "-validateOnly:false" "$(_GeneratedRulesetsDir)" "$(_GeneratedEditorconfigsDir)" "$(_GeneratedGlobalAnalyzerConfigsDir)" "$(ArtifactsBinDir)$(EscapeDirectorySuffix)" "$(Configuration)" "%(AnalyzerRulesetAssembly.TargetFramework)" "@(AnalyzerRulesetAssembly)" "$(PackagePropsFileDir)" "$(PackagePropsFileName)" "$(PackageTargetsFileDir)" "$(PackageTargetsFileName)" "$(DisableNETAnalyzersPackagePropsFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerDocumentationFileName)" "$(AnalyzerSarifFileDir)" "$(AnalyzerSarifFileName)" "$(VersionPrefix)" $(NuspecPackageId) $(ContainsPortedFxCopRules) $(GenerateAnalyzerRulesMissingDocumentationFile) $(ReleaseTrackingOptOut) $(_ValidateOffline)' />
 
     <ItemGroup Condition="Exists('$(PackageTargetsFileDir)\$(PackageTargetsFileName)')">
       <AnalyzerNupkgFile Include="$(PackageTargetsFileDir)\$(PackageTargetsFileName)"/>
@@ -124,7 +124,7 @@
 
   <PropertyGroup>
     <!-- Ideally, we would extract this from the MSBuild task, but we need this as the Target Output before that task is executed -->
-    <_GenerateAnalyzerNuspecPath>$(ArtifactsBinDir)GenerateAnalyzerNuspec\$(Configuration)\$(NetCurrent)\GenerateAnalyzerNuspec.dll</_GenerateAnalyzerNuspecPath>
+    <_GenerateAnalyzerNuspecPath>$(ArtifactsBinDir)GenerateAnalyzerNuspec\$(Configuration)\$(NetRoslyn)\GenerateAnalyzerNuspec.dll</_GenerateAnalyzerNuspecPath>
   </PropertyGroup>
 
   <Target Name="BuildGenerateAnalyzerNuspecFile"
