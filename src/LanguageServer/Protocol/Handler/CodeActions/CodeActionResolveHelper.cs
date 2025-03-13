@@ -184,6 +184,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     newSolution.GetDocument,
                     solution.GetDocument).ConfigureAwait(false);
 
+                // Changed source generated documents
+                if (newSolution.CompilationState.FrozenSourceGeneratedDocumentStates is not null)
+                {
+                    await AddTextDocumentEditsAsync(
+                        changes.GetChangedFrozenSourceGeneratedDocuments(),
+                        newSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId,
+                        solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId).ConfigureAwait(false);
+                }
+
                 // Changed analyzer config documents
                 await AddTextDocumentEditsAsync(
                     projectChanges.SelectMany(pc => pc.GetChangedAnalyzerConfigDocuments()),
