@@ -894,7 +894,6 @@ class C
 
         AssertEx.NotNull(document);
         Assert.Equal(@"C:/path/to/Component.razor", document.FilePath);
-
     }
 
     [Fact]
