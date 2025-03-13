@@ -1070,6 +1070,61 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.Equal("// Thrice is nice", sourceText.ToString());
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
+    public async Task MultipleWithTextUnfreezesFully(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Generated document 1"));
+        var analyzerReference2 = new TestGeneratorReference(new CallbackGenerator2(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Generated document 2"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddAnalyzerReference(analyzerReference2)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+        generatorRan = false;
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument1 = generatedDocuments.Single(d => d.Identity.Generator.TypeName.EndsWith("CallbackGenerator"));
+        var sourceGeneratedDocument2 = generatedDocuments.Single(d => d.Identity.Generator.TypeName.EndsWith("CallbackGenerator2"));
+
+        // Change doc 1 and make sure it worked
+        var solution = sourceGeneratedDocument1.WithText(SourceText.From("// Change doc 1")).Project.Solution;
+        sourceGeneratedDocument1 = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentAsync(sourceGeneratedDocument1.Id);
+        var sourceText = await sourceGeneratedDocument1!.GetTextAsync();
+        Assert.Equal("// Change doc 1", sourceText.ToString());
+
+        // Change doc 2
+        sourceGeneratedDocument2 = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentAsync(sourceGeneratedDocument2.Id);
+        solution = sourceGeneratedDocument2!.WithText(SourceText.From("// Change doc 2")).Project.Solution;
+
+        // Doc 1 should still be our modified version
+        sourceGeneratedDocument1 = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentAsync(sourceGeneratedDocument1.Id);
+        sourceText = await sourceGeneratedDocument1!.GetTextAsync();
+        Assert.Equal("// Change doc 1", sourceText.ToString());
+
+        // Doc 2 should have changed too
+        sourceGeneratedDocument2 = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentAsync(sourceGeneratedDocument2.Id);
+        sourceText = await sourceGeneratedDocument2!.GetTextAsync();
+        Assert.Equal("// Change doc 2", sourceText.ToString());
+
+        solution = solution.WithoutFrozenSourceGeneratedDocuments();
+
+        // Doc 1 should be back to the original
+        sourceGeneratedDocument1 = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentAsync(sourceGeneratedDocument1.Id);
+        sourceText = await sourceGeneratedDocument1!.GetTextAsync();
+        Assert.Equal("// Generated document 1", sourceText.ToString());
+
+        // Doc 2 should be back to the original
+        sourceGeneratedDocument2 = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentAsync(sourceGeneratedDocument2.Id);
+        sourceText = await sourceGeneratedDocument2!.GetTextAsync();
+        Assert.Equal("// Generated document 2", sourceText.ToString());
+    }
+
 #if NET
 
     private sealed class DoNotLoadAssemblyLoader : IAnalyzerAssemblyLoader
