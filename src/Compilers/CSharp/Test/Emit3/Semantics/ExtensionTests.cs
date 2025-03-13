@@ -3779,11 +3779,15 @@ static class Extensions
         verifier2.VerifyIL("Program.Test", testIL);
         verifier2.VerifyIL("Extensions.M2", m2IL);
 
+        comp2 = CreateCompilationWithIL(src2, expectedTypeIL, options: TestOptions.DebugExe);
+        CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
         var remove = """
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
 """;
+
         comp2 = CreateCompilationWithIL(src2, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length));
         comp2.VerifyDiagnostics(
             // (11,18): error CS1061: 'object' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
@@ -6705,11 +6709,15 @@ static class Extensions
         verifier2.VerifyIL("Program.Test", testIL);
         verifier2.VerifyIL("Extensions.M2", m2IL);
 
+        comp2 = CreateCompilationWithIL(src2, expectedTypeIL, options: TestOptions.DebugExe);
+        CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
         var remove = """
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
 """;
+
         comp2 = CreateCompilationWithIL(src2, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length));
         comp2.VerifyDiagnostics(
             // (11,23): error CS0117: 'object' does not contain a definition for 'M'
@@ -8190,11 +8198,15 @@ static class Extensions
         verifier3.VerifyIL("Program.Test", testIL);
         verifier3.VerifyIL("Extensions.get_P2(object)", m2IL);
 
+        comp3 = CreateCompilationWithIL(src3, expectedTypeIL, options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
+
         var remove = """
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
 """;
+
         comp3 = CreateCompilationWithIL(src3, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length));
         comp3.VerifyDiagnostics(
             // (11,18): error CS1061: 'object' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
@@ -8470,11 +8482,15 @@ static class Extensions
         verifier3.VerifyIL("Program.Test", testIL);
         verifier3.VerifyIL("Extensions.get_P2()", m2IL);
 
+        comp3 = CreateCompilationWithIL(src3, expectedTypeIL, options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "PP").VerifyDiagnostics();
+
         var remove = """
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
 """;
+
         comp3 = CreateCompilationWithIL(src3, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length));
         comp3.VerifyDiagnostics(
             // (11,23): error CS0117: 'object' does not contain a definition for 'P'
