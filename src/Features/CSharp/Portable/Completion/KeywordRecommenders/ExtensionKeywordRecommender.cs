@@ -19,8 +19,7 @@ internal sealed class ExtensionKeywordRecommender() : AbstractSyntacticSingleKey
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return
-            context.ContainingTypeDeclaration != null &&
-            context.ContainingTypeDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) &&
+            context.ContainingTypeDeclaration?.Modifiers.Any(SyntaxKind.StaticKeyword) is true &&
             context.IsTypeDeclarationContext(
                 validModifiers: s_validModifiers,
                 validTypeDeclarations: s_validTypeDeclarations,
