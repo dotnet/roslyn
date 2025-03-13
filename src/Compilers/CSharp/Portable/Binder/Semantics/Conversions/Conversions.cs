@@ -468,9 +468,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol method = result.BestResult.Member;
 
-            if (methodGroup.IsExtensionMethodGroup && !Binder.GetReceiverParameter(method).Type.IsReferenceType)
+            if (methodGroup.IsExtensionMethodGroup)
             {
-                return Conversion.NoConversion;
+                if (!(method.GetIsNewExtensionMember() && method.IsStatic) && !Binder.GetReceiverParameter(method).Type.IsReferenceType)
+                {
+                    return Conversion.NoConversion;
+                }
             }
 
             //cannot capture stack-only types.

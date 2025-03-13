@@ -2838,7 +2838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
-            Debug.Assert(!isExtensionMethod || !method.GetIsNewExtensionMember() ||
+            Debug.Assert(!(isExtensionMethod || (method.GetIsNewExtensionMember() && !method.IsStatic)) ||
                 (Conversions.ConvertExtensionMethodThisArg(GetReceiverParameter(method)!.Type, receiverOpt!.Type, ref useSiteInfo, isMethodGroupConversion: true).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
 
             useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);

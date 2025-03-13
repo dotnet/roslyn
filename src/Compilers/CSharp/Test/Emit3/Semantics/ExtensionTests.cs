@@ -3780,7 +3780,7 @@ End Class
 
         CompileAndVerify(vbComp, expectedOutput: "1234").VerifyDiagnostics();
 
-        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // Tracked by https://github.com/dotnet/roslyn/issues/77542
         {
             var src4 = """
 class Program
@@ -3885,14 +3885,6 @@ class Program
         return d("2");
     }
 }
-
-static class Extensions
-{
-    extension(object o)
-    {
-        public string M2(string s) => new System.Func<string, string>(o.M)(s);
-    }
-}
 """;
 
         var comp1MetadataReference = comp1.ToMetadataReference();
@@ -3920,14 +3912,6 @@ class Program
     static string Test(object o)
     {
         return o.M("2");
-    }
-}
-
-static class Extensions
-{
-    extension(object o)
-    {
-        public string M2(string s) => new System.Func<string, string>(o.M)(s);
     }
 }
 """;
@@ -5161,7 +5145,7 @@ static class Extensions
         verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
         verifier3.VerifyIL("Extensions.M2<T, U>(this C<T>, T, U)", m2IL);
 
-        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // Tracked by https://github.com/dotnet/roslyn/issues/77542
         {
             src3 = """
 class Program
@@ -6690,7 +6674,7 @@ End Class
 
         CompileAndVerify(vbComp, expectedOutput: "34").VerifyDiagnostics();
 
-        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // Tracked by https://github.com/dotnet/roslyn/issues/77542
         {
             src2 = """
 class Program
@@ -16591,7 +16575,7 @@ static class E
     }
 
     [Fact]
-    public void DelegateConversion_TypeReceiver_ReceiverTypeKind()
+    public void DelegateConversion_TypeReceiver_ReceiverTypeKind_01()
     {
         var source = """
 System.Action a = object.M;
@@ -16609,6 +16593,26 @@ static class E
 """;
         var comp = CreateCompilation(source);
         CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_ReceiverTypeKind_02()
+    {
+        var source = """
+System.Action a2 = int.M;
+a2();
+
+static class E
+{
+    extension(int)
+    {
+        public static void M() { System.Console.Write("ran"); }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
     }
 
     [Fact]
@@ -16819,7 +16823,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: "Property").VerifyDiagnostics(); ;
+        CompileAndVerify(comp, expectedOutput: "Property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -19596,7 +19600,7 @@ static class E
     }
 
     [Fact]
-    public void AddressOf_TypeReceiver_UnmanagedCallersOnly()
+    public void AddressOf_TypeReceiver_UnmanagedCallersOnly_01()
     {
         var src = """
 unsafe class C
@@ -19625,6 +19629,32 @@ static class E
             // (6,33): error CS8786: Calling convention of 'E.M()' is not compatible with 'Default'.
             //         delegate*<void> ptr2 = &E.M;
             Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "E.M").WithArguments("E.M()", "Default").WithLocation(6, 33));
+    }
+
+    [Fact]
+    public void AddressOf_TypeReceiver_UnmanagedCallersOnly_02()
+    {
+        var src = """
+unsafe class C
+{
+    static void Main()
+    {
+        delegate* unmanaged<void> ptr = &C.M;
+        delegate* unmanaged<void> ptr2 = &E.M;
+    }
+}
+
+static class E
+{
+    extension(C)
+    {
+        [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
