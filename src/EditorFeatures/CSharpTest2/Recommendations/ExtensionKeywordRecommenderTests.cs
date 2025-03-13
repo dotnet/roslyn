@@ -66,6 +66,17 @@ public sealed class ExtensionKeywordRecommenderTests : KeywordRecommenderTests
     }
 
     [Fact]
+    public async Task NotAfterPartialInStaticClass()
+    {
+        await VerifyAbsenceAsync("""
+            static class C
+            {
+                partial $$
+            }
+            """, s_options);
+    }
+
+    [Fact]
     public async Task NotInStaticStructClass()
     {
         await VerifyAbsenceAsync("""
