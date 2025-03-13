@@ -1275,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (IsTupleType || IsRecord || IsRecordStruct) ? GetMembers().Select(m => m.Name) : this.declaration.MemberNames;
+                return (IsTupleType || IsRecord || IsRecordStruct || this.declaration.ContainsExtensionDeclarations) ? GetMembers().Select(m => m.Name) : this.declaration.MemberNames;
             }
         }
 
@@ -1508,7 +1508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {
-            if (_lazyMembersDictionary != null || declaration.MemberNames.Contains(name) || declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct)
+            if (_lazyMembersDictionary != null || declaration.ContainsExtensionDeclarations || declaration.MemberNames.Contains(name) || declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct)
             {
                 return GetMembers(name);
             }
@@ -5706,7 +5706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!_lazyContainsExtensionMethods.HasValue())
                 {
                     bool containsExtensionMethods = ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) &&
-                                                    this.declaration.ContainsExtensionMethodsOrExtensionDeclarations;
+                                                    (this.declaration.ContainsExtensionMethods || this.declaration.ContainsExtensionDeclarations);
                     _lazyContainsExtensionMethods = containsExtensionMethods.ToThreeState();
                 }
 

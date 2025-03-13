@@ -1123,7 +1123,7 @@ public static class Extensions
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(["M"], symbol.MemberNames);
-        Assert.Empty(symbol.ContainingType.MemberNames);
+        Assert.Equal(["", "M"], symbol.ContainingType.MemberNames);
         Assert.Equal("void Extensions.<>E__0.M()", symbol.GetMember("M").ToTestDisplayString());
     }
 
@@ -3618,7 +3618,8 @@ public static class Extensions
 
         static void verifySymbols(ModuleSymbol m)
         {
-            MethodSymbol implementation = m.ContainingAssembly.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+            NamedTypeSymbol extensions = m.ContainingAssembly.GetTypeByMetadataName("Extensions");
+            MethodSymbol implementation = extensions.GetMembers().OfType<MethodSymbol>().Single();
             Assert.True(implementation.IsStatic);
             Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
             Assert.Equal(2, implementation.ParameterCount);
@@ -3630,11 +3631,22 @@ public static class Extensions
 
             Assert.True(implementation.ContainingType.MightContainExtensionMethods);
 
+            Assert.Contains("M", extensions.MemberNames);
+            Assert.NotEmpty(extensions.GetSimpleNonTypeMembers("M"));
+
             if (m is PEModuleSymbol peModuleSymbol)
             {
                 Assert.True(peModuleSymbol.Module.HasExtensionAttribute(((PEAssemblySymbol)peModuleSymbol.ContainingAssembly).Assembly.Handle, ignoreCase: false));
             }
         }
+
+        comp1 = CreateCompilation(src1);
+        NamedTypeSymbol extensions = comp1.GetTypeByMetadataName("Extensions");
+        Assert.Contains("M", extensions.MemberNames);
+
+        comp1 = CreateCompilation(src1);
+        extensions = comp1.GetTypeByMetadataName("Extensions");
+        Assert.NotEmpty(extensions.GetSimpleNonTypeMembers("M"));
 
         var expectedTypeIL = """
 .class public auto ansi abstract sealed beforefieldinit Extensions

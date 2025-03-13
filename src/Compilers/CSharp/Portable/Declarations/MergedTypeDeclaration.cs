@@ -116,13 +116,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool ContainsExtensionMethodsOrExtensionDeclarations
+        public bool ContainsExtensionMethods
         {
             get
             {
                 foreach (var decl in this.Declarations)
                 {
-                    if (decl.AnyExtensionMethodOrExtensionDeclarationSyntax)
+                    if (decl.AnyMemberHasExtensionMethodSyntax)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        public bool ContainsExtensionDeclarations
+        {
+            get
+            {
+                foreach (var decl in this.Declarations)
+                {
+                    if (decl.AnyExtensionDeclarationSyntax)
                         return true;
                 }
 

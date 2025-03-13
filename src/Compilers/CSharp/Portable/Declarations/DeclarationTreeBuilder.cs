@@ -923,7 +923,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool skipGlobalStatements = false,
             bool hasPrimaryCtor = false)
         {
-            bool anyExtensionMethodOrExtensionDeclarationSyntax = false;
+            bool anyMethodHadExtensionSyntax = false;
+            bool anyExtensionDeclarationSyntax = false;
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
             bool anyRequiredMembers = false;
@@ -938,9 +939,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Check to see if any method contains a 'this' modifier on its first parameter.
                 // This data is used to determine if a type needs to have its members materialized
                 // as part of extension method lookup.
-                if (!anyExtensionMethodOrExtensionDeclarationSyntax && (member.Kind == SyntaxKind.ExtensionDeclaration || CheckMethodMemberForExtensionSyntax(member)))
+                if (!anyMethodHadExtensionSyntax && CheckMethodMemberForExtensionSyntax(member))
                 {
-                    anyExtensionMethodOrExtensionDeclarationSyntax = true;
+                    anyMethodHadExtensionSyntax = true;
+                }
+
+                if (!anyExtensionDeclarationSyntax && member.Kind == SyntaxKind.ExtensionDeclaration)
+                {
+                    anyExtensionDeclarationSyntax = true;
                 }
 
                 if (!anyMemberHasAttributes && CheckMemberForAttributes(member))
@@ -954,15 +960,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Break early if we've hit all sorts of members.
-                if (anyNonTypeMembers && anyExtensionMethodOrExtensionDeclarationSyntax && anyMemberHasAttributes && anyRequiredMembers)
+                if (anyNonTypeMembers && anyMethodHadExtensionSyntax && anyExtensionDeclarationSyntax && anyMemberHasAttributes && anyRequiredMembers)
                 {
                     break;
                 }
             }
 
-            if (anyExtensionMethodOrExtensionDeclarationSyntax)
+            if (anyMethodHadExtensionSyntax)
             {
-                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyExtensionMethodOrExtensionDeclarationSyntax;
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasExtensionMethodSyntax;
+            }
+
+            if (anyExtensionDeclarationSyntax)
+            {
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyExtensionDeclarationSyntax;
             }
 
             if (anyMemberHasAttributes)
