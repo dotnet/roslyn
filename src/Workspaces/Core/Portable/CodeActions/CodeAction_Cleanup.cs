@@ -121,7 +121,6 @@ public abstract partial class CodeAction
             CodeAnalysisProgress.None,
             cancellationToken).ConfigureAwait(false);
 
-
         return document.Id.IsSourceGenerated
             ? cleanedSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(document.Id)
             : cleanedSolution.GetRequiredDocument(document.Id);
