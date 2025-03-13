@@ -8,6 +8,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -61,14 +62,16 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
         if (methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax)
         {
+            // Pull out the computation into a lazy computation here.  That way if we compute (and thus cache) the
+            // result for the preview window, we'll produce the same value when the fix is actually applied.
             var lazy = AsyncLazy.Create(GetDocumentUpdater(context));
 
-            var fix = DocumentChangeAction.New(
+            context.RegisterCodeFix(Create(
                 title: CSharpAnalyzersResources.Implement_with_Copilot,
-                createChangedDocument: (_, cancellationToken) => lazy.GetValueAsync(cancellationToken),
-                createChangedDocumentPreview: (_, cancellationToken) => lazy.GetValueAsync(cancellationToken),
-                equivalenceKey: nameof(CSharpAnalyzersResources.Implement_with_Copilot));
-            context.RegisterCodeFix(fix, context.Diagnostics[0]);
+                cancellationToken => lazy.GetValueAsync(cancellationToken),
+                equivalenceKey: nameof(CSharpAnalyzersResources.Implement_with_Copilot)),
+                context.Diagnostics);
+
             Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Fix_Registered, logLevel: LogLevel.Information);
         }
     }
