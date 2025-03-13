@@ -32,8 +32,7 @@ public class StackTraceExplorerTests
         var reparsedResult = await StackTraceAnalyzer.AnalyzeAsync(stackFrame.ToString(), CancellationToken.None);
         Assert.Single(reparsedResult.ParsedFrames);
 
-        var reparsedFrame = reparsedResult.ParsedFrames[0] as ParsedStackFrame;
-        AssertEx.NotNull(reparsedFrame);
+        var reparsedFrame = Assert.IsType<ParsedStackFrame>(reparsedResult.ParsedFrames[0]);
         StackFrameUtils.AssertEqual(stackFrame.Root, reparsedFrame.Root);
 
         // Get the definition for the parsed frame
@@ -820,9 +819,9 @@ class C
         var result = await StackTraceAnalyzer.AnalyzeAsync(line, CancellationToken.None);
         Assert.Equal(1, result.ParsedFrames.Length);
 
-        var parsedFame = result.ParsedFrames.OfType<ParsedStackFrame>().Single();
+        var parsedFrame = Assert.IsType<ParsedStackFrame>(result.ParsedFrames[0]);
         var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
-        var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, parsedFame, StackFrameSymbolPart.Method, CancellationToken.None);
+        var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, parsedFrame, StackFrameSymbolPart.Method, CancellationToken.None);
         Assert.Null(definition);
     }
 
@@ -850,9 +849,7 @@ class C
         var result = await StackTraceAnalyzer.AnalyzeAsync("at System.String.ToLower()", CancellationToken.None);
         Assert.Single(result.ParsedFrames);
 
-        var frame = result.ParsedFrames[0] as ParsedStackFrame;
-        AssertEx.NotNull(frame);
-
+        var frame = Assert.IsType<ParsedStackFrame>(result.ParsedFrames[0]);
         var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
         var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, frame, StackFrameSymbolPart.Method, CancellationToken.None);
 
@@ -890,9 +887,7 @@ class C
         var result = await StackTraceAnalyzer.AnalyzeAsync("at Path.To.Component.M() in C:/path/to/Component.razor:line 5", CancellationToken.None);
         Assert.Single(result.ParsedFrames);
 
-        var frame = result.ParsedFrames[0] as ParsedStackFrame;
-        AssertEx.NotNull(frame);
-
+        var frame = Assert.IsType<ParsedStackFrame>(result.ParsedFrames[0]);
         var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
         var (document, line) = service.GetDocumentAndLine(workspace.CurrentSolution, frame);
         Assert.Equal(5, line);
@@ -932,9 +927,7 @@ class C
         var result = await StackTraceAnalyzer.AnalyzeAsync("at Path.To.Component.M() in Component.razor:line 5", CancellationToken.None);
         Assert.Single(result.ParsedFrames);
 
-        var frame = result.ParsedFrames[0] as ParsedStackFrame;
-        AssertEx.NotNull(frame);
-
+        var frame = Assert.IsType<ParsedStackFrame>(result.ParsedFrames[0]);
         var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
         var (document, line) = service.GetDocumentAndLine(workspace.CurrentSolution, frame);
         Assert.Equal(5, line);

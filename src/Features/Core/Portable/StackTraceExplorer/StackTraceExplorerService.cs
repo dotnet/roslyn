@@ -105,11 +105,8 @@ internal sealed class StackTraceExplorerService() : IStackTraceExplorerService
 
             foreach (var document in allDocuments)
             {
-                if (document.FilePath?.EndsWith(documentName, StringComparison.OrdinalIgnoreCase) is true)
-                {
-                    potentialMatches.Add(document);
-                }
-                else if (document.Name.Equals(documentName, StringComparison.OrdinalIgnoreCase))
+                var name = Path.GetFileName(document.Name);
+                if (name.Equals(documentName, StringComparison.OrdinalIgnoreCase))
                 {
                     potentialMatches.Add(document);
                 }
