@@ -8887,8 +8887,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
-        <source>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="translated">컴파일러에 필요한 '{0}' 형식을 찾을 수 없으므로 새 확장 메서드를 정의할 수 없습니다. System.Core.dll의 참조가 있는지 확인하세요.</target>
+        <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
+        <target state="needs-review-translation">컴파일러에 필요한 '{0}' 형식을 찾을 수 없으므로 새 확장 메서드를 정의할 수 없습니다. System.Core.dll의 참조가 있는지 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">

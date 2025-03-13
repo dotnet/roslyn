@@ -924,6 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasPrimaryCtor = false)
         {
             bool anyMethodHadExtensionSyntax = false;
+            bool anyExtensionDeclarationSyntax = false;
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
             bool anyRequiredMembers = false;
@@ -943,6 +944,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     anyMethodHadExtensionSyntax = true;
                 }
 
+                if (!anyExtensionDeclarationSyntax && member.Kind == SyntaxKind.ExtensionDeclaration)
+                {
+                    anyExtensionDeclarationSyntax = true;
+                }
+
                 if (!anyMemberHasAttributes && CheckMemberForAttributes(member))
                 {
                     anyMemberHasAttributes = true;
@@ -954,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Break early if we've hit all sorts of members.
-                if (anyNonTypeMembers && anyMethodHadExtensionSyntax && anyMemberHasAttributes && anyRequiredMembers)
+                if (anyNonTypeMembers && anyMethodHadExtensionSyntax && anyExtensionDeclarationSyntax && anyMemberHasAttributes && anyRequiredMembers)
                 {
                     break;
                 }
@@ -963,6 +969,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (anyMethodHadExtensionSyntax)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasExtensionMethodSyntax;
+            }
+
+            if (anyExtensionDeclarationSyntax)
+            {
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyExtensionDeclarationSyntax;
             }
 
             if (anyMemberHasAttributes)

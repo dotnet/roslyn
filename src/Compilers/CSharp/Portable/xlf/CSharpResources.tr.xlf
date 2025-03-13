@@ -8887,8 +8887,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
-        <source>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="translated">Derleyicinin gerektirdiği '{0}' türü bulunamadığından yeni bir genişletme yöntemi tanımlanamıyor. Bir System.Core.dll başvurusu eksik olabilir mi?</target>
+        <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
+        <target state="needs-review-translation">Derleyicinin gerektirdiği '{0}' türü bulunamadığından yeni bir genişletme yöntemi tanımlanamıyor. Bir System.Core.dll başvurusu eksik olabilir mi?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">

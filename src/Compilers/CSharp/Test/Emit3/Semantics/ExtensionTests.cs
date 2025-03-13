@@ -106,6 +106,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
@@ -165,6 +168,14 @@ public static class Extensions
 
         format = new SymbolDisplayFormat(compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames);
         Assert.Equal("<>E__0", symbol.ToDisplayString(format));
+
+        var comp5 = CreateCompilation(src);
+        comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+        comp5.VerifyEmitDiagnostics(
+            // (3,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //     extension(object) { }
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5)
+            );
     }
 
     [Fact]
@@ -185,6 +196,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [netstandard]System.Object
@@ -262,6 +276,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<valuetype .ctor ([netstandard]System.ValueType) T>
         extends [netstandard]System.Object
@@ -503,6 +520,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
         extends [netstandard]System.Object
@@ -747,6 +767,9 @@ public static partial class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
@@ -1100,7 +1123,7 @@ public static class Extensions
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(["M"], symbol.MemberNames);
-        Assert.Empty(symbol.ContainingType.MemberNames);
+        Assert.Equal(["", "M"], symbol.ContainingType.MemberNames);
         Assert.Equal("void Extensions.<>E__0.M()", symbol.GetMember("M").ToTestDisplayString());
     }
 
@@ -1152,6 +1175,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
@@ -1266,6 +1292,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
@@ -1432,6 +1461,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
 extends [netstandard]System.Object
 {
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
@@ -1565,6 +1597,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [netstandard]System.Object
 {
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [netstandard]System.Object
@@ -1663,7 +1698,11 @@ public static class Extensions
 
         var comp5 = CreateCompilation(src);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-        comp5.VerifyEmitDiagnostics();
+        comp5.VerifyEmitDiagnostics(
+            // (3,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //     extension(object o)
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5)
+            );
     }
 
     [Fact]
@@ -1681,6 +1720,9 @@ public static class Extensions
         var comp = CreateCompilation(src);
         comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
         comp.VerifyEmitDiagnostics(
+            // (3,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //     extension(object o)
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5),
             // (5,20): error CS0106: The modifier 'static' is not valid for this item
             //         static int this[int i] { get => 42; set { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(5, 20)
@@ -3576,7 +3618,8 @@ public static class Extensions
 
         static void verifySymbols(ModuleSymbol m)
         {
-            MethodSymbol implementation = m.ContainingAssembly.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>().Single();
+            NamedTypeSymbol extensions = m.ContainingAssembly.GetTypeByMetadataName("Extensions");
+            MethodSymbol implementation = extensions.GetMembers().OfType<MethodSymbol>().Single();
             Assert.True(implementation.IsStatic);
             Assert.Equal(MethodKind.Ordinary, implementation.MethodKind);
             Assert.Equal(2, implementation.ParameterCount);
@@ -3588,13 +3631,24 @@ public static class Extensions
 
             Assert.True(implementation.ContainingType.MightContainExtensionMethods);
 
+            Assert.Contains("M", extensions.MemberNames);
+            Assert.NotEmpty(extensions.GetSimpleNonTypeMembers("M"));
+
             if (m is PEModuleSymbol peModuleSymbol)
             {
                 Assert.True(peModuleSymbol.Module.HasExtensionAttribute(((PEAssemblySymbol)peModuleSymbol.ContainingAssembly).Assembly.Handle, ignoreCase: false));
             }
         }
 
-        verifier1.VerifyTypeIL("Extensions", """
+        comp1 = CreateCompilation(src1);
+        NamedTypeSymbol extensions = comp1.GetTypeByMetadataName("Extensions");
+        Assert.Contains("M", extensions.MemberNames);
+
+        comp1 = CreateCompilation(src1);
+        extensions = comp1.GetTypeByMetadataName("Extensions");
+        Assert.NotEmpty(extensions.GetSimpleNonTypeMembers("M"));
+
+        var expectedTypeIL = """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
@@ -3655,7 +3709,9 @@ public static class Extensions
         IL_0012: ret
     } // end of method Extensions::M
 } // end of class Extensions
-""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+""";
+
+        verifier1.VerifyTypeIL("Extensions", expectedTypeIL.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var src2 = """
 class Program
@@ -3722,6 +3778,25 @@ static class Extensions
 
         verifier2.VerifyIL("Program.Test", testIL);
         verifier2.VerifyIL("Extensions.M2", m2IL);
+
+        comp2 = CreateCompilationWithIL(src2, expectedTypeIL, options: TestOptions.DebugExe);
+        CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+        var remove = """
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+""";
+
+        comp2 = CreateCompilationWithIL(src2, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length));
+        comp2.VerifyDiagnostics(
+            // (11,18): error CS1061: 'object' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            //         return o.M("2");
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M").WithLocation(11, 18),
+            // (19,41): error CS1061: 'object' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            //         public string M2(string s) => o.M(s);
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M").WithLocation(19, 41)
+            );
 
         src2 = """
 class Program
@@ -3858,9 +3933,9 @@ static class Extensions
         var comp5 = CreateCompilation(src1);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
         comp5.VerifyDiagnostics(
-            // (5,23): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
-            //         public string M(string s) => o + s;
-            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "M").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(5, 23)
+            // (3,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //     extension(object o)
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5)
             );
     }
 
@@ -6493,18 +6568,21 @@ public static class Extensions
             Assert.True(implementation.HasSpecialName);
             Assert.False(implementation.HasRuntimeSpecialName);
 
-            Assert.False(implementation.ContainingType.MightContainExtensionMethods);
+            Assert.True(implementation.ContainingType.MightContainExtensionMethods);
 
             if (m is PEModuleSymbol peModuleSymbol)
             {
-                Assert.False(peModuleSymbol.Module.HasExtensionAttribute(((PEAssemblySymbol)peModuleSymbol.ContainingAssembly).Assembly.Handle, ignoreCase: false));
+                Assert.True(peModuleSymbol.Module.HasExtensionAttribute(((PEAssemblySymbol)peModuleSymbol.ContainingAssembly).Assembly.Handle, ignoreCase: false));
             }
         }
 
-        verifier1.VerifyTypeIL("Extensions", """
+        var expectedTypeIL = """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -6557,7 +6635,9 @@ public static class Extensions
         IL_0012: ret
     } // end of method Extensions::M
 } // end of class Extensions
-""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+""";
+
+        verifier1.VerifyTypeIL("Extensions", expectedTypeIL.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var src2 = """
 class Program
@@ -6628,6 +6708,25 @@ static class Extensions
 
         verifier2.VerifyIL("Program.Test", testIL);
         verifier2.VerifyIL("Extensions.M2", m2IL);
+
+        comp2 = CreateCompilationWithIL(src2, expectedTypeIL, options: TestOptions.DebugExe);
+        CompileAndVerify(comp2, expectedOutput: "1234").VerifyDiagnostics();
+
+        var remove = """
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+""";
+
+        comp2 = CreateCompilationWithIL(src2, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length));
+        comp2.VerifyDiagnostics(
+            // (11,23): error CS0117: 'object' does not contain a definition for 'M'
+            //         return object.M(o, "2");
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(11, 23),
+            // (21,27): error CS0117: 'object' does not contain a definition for 'M'
+            //             return object.M(o, s);
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(21, 27)
+            );
 
         src2 = """
 class Program
@@ -6932,7 +7031,11 @@ static class Extensions_
 
         var comp5 = CreateCompilation(src1);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-        comp5.VerifyEmitDiagnostics();
+        comp5.VerifyEmitDiagnostics(
+            // (3,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //     extension(object _)
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5)
+            );
     }
 
     [Fact]
@@ -6958,6 +7061,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -7133,6 +7239,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -7316,6 +7425,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -7678,6 +7790,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -7961,10 +8076,13 @@ public static class Extensions
 
         var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier1.VerifyTypeIL("Extensions", """
+        var expectedTypeIL = """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -8012,7 +8130,9 @@ public static class Extensions
         IL_0006: ret
     } // end of method Extensions::get_P
 } // end of class Extensions
-""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+""";
+
+        verifier1.VerifyTypeIL("Extensions", expectedTypeIL.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var src3 = """
 class Program
@@ -8077,6 +8197,25 @@ static class Extensions
 
         verifier3.VerifyIL("Program.Test", testIL);
         verifier3.VerifyIL("Extensions.get_P2(object)", m2IL);
+
+        comp3 = CreateCompilationWithIL(src3, expectedTypeIL, options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "12").VerifyDiagnostics();
+
+        var remove = """
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+""";
+
+        comp3 = CreateCompilationWithIL(src3, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length));
+        comp3.VerifyDiagnostics(
+            // (11,18): error CS1061: 'object' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            //         return o.P;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("object", "P").WithLocation(11, 18),
+            // (19,31): error CS1061: 'object' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            //         public string P2 => o.P;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("object", "P").WithLocation(19, 31)
+            );
 
         src3 = """
 class Program
@@ -8193,7 +8332,11 @@ End Class
 
         var comp5 = CreateCompilation(src1);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-        comp5.VerifyEmitDiagnostics();
+        comp5.VerifyEmitDiagnostics(
+            // (3,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //     extension(object o)
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5)
+            );
     }
 
     [Fact]
@@ -8222,10 +8365,13 @@ public static class Extensions
 
         var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
 
-        verifier1.VerifyTypeIL("Extensions", """
+        var expectedTypeIL = """
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -8270,7 +8416,9 @@ public static class Extensions
         IL_0005: ret
     } // end of method Extensions::get_P
 } // end of class Extensions
-""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+""";
+
+        verifier1.VerifyTypeIL("Extensions", expectedTypeIL.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
         var src3 = """
 class Program
@@ -8334,6 +8482,25 @@ static class Extensions
         verifier3.VerifyIL("Program.Test", testIL);
         verifier3.VerifyIL("Extensions.get_P2()", m2IL);
 
+        comp3 = CreateCompilationWithIL(src3, expectedTypeIL, options: TestOptions.DebugExe);
+        CompileAndVerify(comp3, expectedOutput: "PP").VerifyDiagnostics();
+
+        var remove = """
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+""";
+
+        comp3 = CreateCompilationWithIL(src3, expectedTypeIL.Remove(expectedTypeIL.IndexOf(remove), remove.Length));
+        comp3.VerifyDiagnostics(
+            // (11,23): error CS0117: 'object' does not contain a definition for 'P'
+            //         return object.P;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("object", "P").WithLocation(11, 23),
+            // (19,43): error CS0117: 'object' does not contain a definition for 'P'
+            //         public static string P2 => object.P;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("object", "P").WithLocation(19, 43)
+            );
+
         src3 = """
 class Program
 {
@@ -8387,7 +8554,11 @@ End Class
 
         var comp5 = CreateCompilation(src1);
         comp5.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-        comp5.VerifyEmitDiagnostics();
+        comp5.VerifyEmitDiagnostics(
+            // (3,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+            //     extension(object)
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5)
+            );
     }
 
     [Fact]
@@ -8409,6 +8580,9 @@ public static class Extensions
 .class public auto ansi abstract sealed beforefieldinit Extensions
     extends [mscorlib]System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     // Nested Types
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
@@ -23511,6 +23685,9 @@ static class E
 .class public auto ansi abstract sealed beforefieldinit E
     extends System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends System.Object
     {
@@ -23530,6 +23707,9 @@ static class E
     }
     .method public hidebysig specialname static void 'M' ( int32[] i ) cil managed 
     {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
         .param [1]
         .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
 
@@ -23576,6 +23756,9 @@ i.M(2);
 .class public auto ansi abstract sealed beforefieldinit E
     extends System.Object
 {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends System.Object
     {

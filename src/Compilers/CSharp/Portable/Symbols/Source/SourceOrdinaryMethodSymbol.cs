@@ -247,11 +247,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CheckExtensionAttributeAvailability(DeclaringCompilation, syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation(), diagnostics);
                 }
             }
-            else if (!IsStatic && this.GetIsNewExtensionMember())
-            {
-                // Verify ExtensionAttribute is available.
-                CheckExtensionAttributeAvailability(DeclaringCompilation, _location, diagnostics);
-            }
         }
 
         internal static void CheckExtensionAttributeAvailability(CSharpCompilation compilation, Location location, BindingDiagnosticBag diagnostics)
