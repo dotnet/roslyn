@@ -973,13 +973,36 @@ internal sealed partial class SolutionCompilationState
     /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots(ImmutableArray{ValueTuple{DocumentId, SyntaxNode}}, PreservationMode)"/>
     public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode)
     {
-        return UpdateDocumentsInMultipleProjects<DocumentState, SyntaxNode, PreservationMode>(
-            syntaxRoots,
+        using var _1 = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(out var ordinaryDocuments);
+        using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)>.GetInstance(out var sourceGeneratedUpdates);
+        foreach (var doc in syntaxRoots)
+        {
+            if (!doc.documentId.IsSourceGenerated)
+            {
+                ordinaryDocuments.Add(doc);
+            }
+            else if (TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(doc.documentId) is { Identity: var identity })
+            {
+                // Source generated documents always do a full parse, and source generator authors are only allowed to provide
+                // strings, so we follow suit here and just take the text from the root.
+                sourceGeneratedUpdates.Add((identity, DateTime.UtcNow, doc.root.GetText()));
+            }
+        }
+
+        var state = UpdateDocumentsInMultipleProjects<DocumentState, SyntaxNode, PreservationMode>(
+            ordinaryDocuments.ToImmutableAndClear(),
             arg: mode,
             static (oldDocumentState, root, mode) =>
                 oldDocumentState.TryGetSyntaxTree(out var oldTree) && oldTree.TryGetRoot(out var oldRoot) && oldRoot == root
                 ? oldDocumentState
                 : oldDocumentState.UpdateTree(root, mode));
+
+        if (!sourceGeneratedUpdates.IsEmpty)
+        {
+            state = state.WithFrozenSourceGeneratedDocuments(sourceGeneratedUpdates.ToImmutableAndClear());
+        }
+
+        return state;
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(

@@ -1009,6 +1009,37 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
+    public async Task WithSyntaxRootWorksOnSourceGeneratedDocument(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+        generatorRan = false;
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+        var root = await sourceGeneratedDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        var modifiedRoot = root.WithTrailingTrivia(root.GetLeadingTrivia());
+
+        sourceGeneratedDocument = (SourceGeneratedDocument)sourceGeneratedDocument.WithSyntaxRoot(modifiedRoot);
+        var sourceText = await sourceGeneratedDocument.GetTextAsync();
+        Assert.Equal("// Hello World!// Hello World!", sourceText.ToString());
+
+        generatedDocuments = await sourceGeneratedDocument.Project.GetSourceGeneratedDocumentsAsync();
+        var updatedDocument = Assert.Single(generatedDocuments);
+        sourceText = await updatedDocument.GetTextAsync();
+        Assert.Equal("// Hello World!// Hello World!", sourceText.ToString());
+    }
+
+    [Theory, CombinatorialData]
     public async Task WithTextWorksOnSourceGeneratedDocument(TestHost testHost)
     {
         using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
