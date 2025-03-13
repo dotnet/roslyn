@@ -10776,8 +10776,8 @@ static class E
         Assert.Equal("void E.<>E__0<System.Int32>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
     }
 
-    [Fact(Skip = "PROTOTYPE explicit type arguments")]
-    public void InstanceMethodInvocation_MatchingExtendedType_GenericType_GenericMember()
+    [Fact]
+    public void InstanceMethodInvocation_MatchingExtendedType_GenericType_GenericMember_01()
     {
         var src = """
 new C<int>().M<string>();
@@ -10793,18 +10793,45 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS1061: 'C<int>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C<int>' could be found (are you missing a using directive or an assembly reference?)
+            // new C<int>().M<string>();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<string>").WithArguments("C<int>", "M").WithLocation(1, 14));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<string>()");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+    }
+
+    [Fact]
+    public void InstanceMethodInvocation_MatchingExtendedType_GenericType_GenericMember_02()
+    {
+        var src = """
+new C<int>().M<int, string>();
+
+class C<T> { }
+
+static class E
+{
+    extension<T>(C<T> c)
+    {
+        public void M<U>() { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<int, string>()");
         Assert.Equal("void E.<>E__0<System.Int32>.M<System.String>()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
     }
 
-    [Fact(Skip = "PROTOTYPE explicit type arguments")]
-    public void InstanceMethodInvocation_MatchingExtendedType_GenericType_GenericMember_OmittedTypeArgument()
+    [Fact]
+    public void InstanceMethodInvocation_MatchingExtendedType_GenericType_GenericMember_OmittedTypeArgument_01()
     {
         var src = """
 new C<int>().M<,>();
@@ -10823,19 +10850,53 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (1,1): error CS8389: Omitting the type argument is not allowed in the current context
             // new C<int>().M<,>();
-            Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "new C<int>().M<,>").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "new C<int>().M<,>").WithLocation(1, 1),
+            // (1,14): error CS1061: 'C<int>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C<int>' could be found (are you missing a using directive or an assembly reference?)
+            // new C<int>().M<,>();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<,>").WithArguments("C<int>", "M").WithLocation(1, 14));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<,>()");
-        Assert.Equal("void E.<>E__0<System.Int32>.M<?, ?>()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
     }
 
-    [Fact(Skip = "PROTOTYPE explicit type arguments")]
+    [Fact]
+    public void InstanceMethodInvocation_MatchingExtendedType_GenericType_GenericMember_OmittedTypeArgument_02()
+    {
+        var src = """
+new C<int>().M<,,>();
+
+class C<T> { }
+
+static class E
+{
+    extension<T>(C<T> c)
+    {
+        public void M<U, V>() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS8389: Omitting the type argument is not allowed in the current context
+            // new C<int>().M<,,>();
+            Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "new C<int>().M<,,>").WithLocation(1, 1),
+            // (1,1): error CS1929: 'C<int>' does not contain a definition for 'M' and the best extension method overload 'E.extension<?>(C<?>).M<?, ?>()' requires a receiver of type 'C<?>'
+            // new C<int>().M<,,>();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new C<int>()").WithArguments("C<int>", "M", "E.extension<?>(C<?>).M<?, ?>()", "C<?>").WithLocation(1, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<,,>()");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+    }
+
+    [Fact]
     public void InstanceMethodInvocation_MatchingExtendedType_GenericType_GenericMember_BrokenConstraint()
     {
         var src = """
-new C<int>().M<string>();
+new C<int>().M<int, string>();
 
 class C<T> { }
 
@@ -10850,12 +10911,12 @@ static class E
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'E.extension<int>(C<int>).M<U>()'
-            // new C<int>().M<string>();
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M<string>").WithArguments("E.extension<int>(C<int>).M<U>()", "U", "string").WithLocation(1, 14));
+            // new C<int>().M<int, string>();
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M<int, string>").WithArguments("E.extension<int>(C<int>).M<U>()", "U", "string").WithLocation(1, 14));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<string>()");
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<int, string>()");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
     }
 
@@ -12567,11 +12628,11 @@ namespace Inner
         //Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
     }
 
-    [Fact(Skip = "PROTOTYPE explicit type arguments")]
+    [Fact]
     public void InstanceMethodInvocation_MultipleSubstitutions()
     {
         var src = """
-new C().M<int>();
+new C().M();
 
 interface I<T> { }
 class C : I<int>, I<string> { }
@@ -12580,19 +12641,19 @@ static class E
 {
     extension<T>(I<T> i)
     {
-        public void M<U>() { }
+        public void M() { }
     }
 }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS1061: 'C' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-            // new C().M<int>();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<int>").WithArguments("C", "M").WithLocation(1, 9));
+            // new C().M();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("C", "M").WithLocation(1, 9));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<int>");
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess));
@@ -23651,5 +23712,187 @@ _ = i.P(1);
             // (2,7): error CS1061: 'int' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // _ = i.P(1);
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("int", "P").WithLocation(2, 7));
+    }
+    [Fact]
+    public void ExplicitTypeArguments_01()
+    {
+        var src = """
+string s = "ran";
+s.M<object>();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { System.Console.Write(t); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "s.M<object>()");
+        Assert.Equal("void E.<>E__0<System.Object>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExplicitTypeArguments_02()
+    {
+        var src = """
+42.M<object>();
+
+static class E
+{
+    extension<T>(T t) where T : struct
+    {
+        public void M() { System.Console.Write(t); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,4): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.extension<T>(T)'
+            // 42.M<object>();
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M<object>").WithArguments("E.extension<T>(T)", "T", "object").WithLocation(1, 4));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "42.M<object>()");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+    }
+
+    [Fact]
+    public void ExplicitTypeArguments_03()
+    {
+        var src = """
+string s = "ran";
+_ = s.P<object>;
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,7): error CS1061: 'string' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // _ = s.P<object>;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P<object>").WithArguments("string", "P").WithLocation(2, 7));
+    }
+
+    [Fact]
+    public void ExplicitTypeArguments_04()
+    {
+        var src = """
+string s = "ran";
+s.M<string>();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M() => throw null;
+    }
+    extension(string s)
+    {
+        public void M<T>() { System.Console.Write(s); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExplicitTypeArguments_05()
+    {
+        var src = """
+string s = null;
+s.M<string>();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M<U>() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,3): error CS1061: 'string' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // s.M<string>();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<string>").WithArguments("string", "M").WithLocation(2, 3));
+    }
+
+    [Fact]
+    public void ExplicitTypeArguments_06()
+    {
+        var src = """
+C<string, string>.M<string>();
+
+class C<T1, T2> { }
+static class E
+{
+    extension<T, U>(C<T, U> t)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS0117: 'C<string, string>' does not contain a definition for 'M'
+            // C<string, string>.M<string>();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M<string>").WithArguments("C<string, string>", "M").WithLocation(1, 19));
+    }
+
+    [Fact]
+    public void ExplicitTypeArguments_07()
+    {
+        var src = """
+string.M<object, long>(42);
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public static void M<U>(U u) { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "string.M<object, long>(42)");
+        Assert.Equal("void E.<>E__0<System.Object>.M<System.Int64>(System.Int64 u)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExplicitTypeArguments_08()
+    {
+        var src = """
+object.M<string, long>(42);
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public static void M<U>(U u) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension<string>(string).M<long>(long)' requires a receiver of type 'string'
+            // object.M<string, long>(42);
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "M", "E.extension<string>(string).M<long>(long)", "string").WithLocation(1, 1));
     }
 }
