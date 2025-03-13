@@ -975,7 +975,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.NotEqual(checksum2, checksum3);
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
+    [Theory, CombinatorialData]
     public async Task WithDocumentTexts_OrdinaryAndSourceGeneratedDocuments(TestHost testHost)
     {
         using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
@@ -1008,7 +1008,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.Equal("// Regular modified", sourceText.ToString());
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
+    [Theory, CombinatorialData]
     public async Task WithSyntaxRootWorksOnSourceGeneratedDocument(TestHost testHost)
     {
         using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
@@ -1068,7 +1068,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.Equal("// Something else", sourceText.ToString());
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
+    [Theory, CombinatorialData]
     public async Task WithTextWorksOnSourceGeneratedDocument_Multiple(TestHost testHost)
     {
         using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
@@ -1101,7 +1101,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.Equal("// Thrice is nice", sourceText.ToString());
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
+    [Theory, CombinatorialData]
     public async Task MultipleWithTextUnfreezesFully(TestHost testHost)
     {
         using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
