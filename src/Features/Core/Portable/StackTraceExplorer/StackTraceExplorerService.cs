@@ -89,7 +89,7 @@ internal sealed class StackTraceExplorerService() : IStackTraceExplorerService
 
         if (documentId is not null)
         {
-            var document = solution.GetRequiredDocument(documentId);
+            var document = solution.GetRequiredTextDocument(documentId);
             return [document];
         }
 
