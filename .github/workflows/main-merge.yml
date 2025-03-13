@@ -20,11 +20,13 @@ jobs:
   # The config does not support multiple flows from the same source branch,
   # so we need to run separately for each duplicate source branch (https://github.com/dotnet/arcade/issues/15586).
   merge:
+    if: github.repository == 'dotnet/roslyn'
     uses: dotnet/arcade/.github/workflows/inter-branch-merge-base.yml@main
     with:
       configuration_file_path: 'eng/config/branch-merge.jsonc'
       configuration_file_branch: ${{ inputs.configuration_file_branch || 'main' }}
   merge-2:
+    if: github.repository == 'dotnet/roslyn'
     uses: dotnet/arcade/.github/workflows/inter-branch-merge-base.yml@main
     with:
       configuration_file_path: 'eng/config/branch-merge-2.jsonc'
