@@ -1852,6 +1852,49 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         CheckReturn(session.Session, 0, expectedAfterReturn);
     }
 
+    [WpfFact]
+    public void ModernExtension()
+    {
+        var code = """
+            namespace N
+            {
+                static class C
+                {
+                    extension(string s) $$
+                }
+            }
+            """;
+
+        var expectedBeforeReturn = """
+            namespace N
+            {
+                static class C
+                {
+                    extension(string s) { }
+                }
+            }
+            """;
+
+        var expectedAfterReturn = """
+            namespace N
+            {
+                static class C
+                {
+                    extension(string s)
+                    {
+
+                    }
+                }
+            }
+            """;
+        using var session = CreateSession(code);
+        Assert.NotNull(session);
+
+        CheckStart(session.Session);
+        CheckText(session.Session, expectedBeforeReturn);
+        CheckReturn(session.Session, 12, expectedAfterReturn);
+    }
+
     internal static Holder CreateSession(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
         OptionsCollection? globalOptions = null)
