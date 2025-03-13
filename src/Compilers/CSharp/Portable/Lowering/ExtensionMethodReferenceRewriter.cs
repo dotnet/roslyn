@@ -164,7 +164,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(method?.GetIsNewExtensionMember() != true ||
                          method.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is null);
+            // All possibly interesting methods should go through VisitMethodSymbolWithExtensionRewrite first
+            Debug.Assert(method is null ||
+                         method.ContainingSymbol is not NamedTypeSymbol ||
+                         method.MethodKind is (MethodKind.Constructor or MethodKind.StaticConstructor) ||
+                         method.OriginalDefinition is ErrorMethodSymbol ||
+                         new StackTrace(fNeedFileInfo: false).GetFrame(1)?.GetMethod() switch
+                         {
+                             { Name: nameof(VisitTypeOfOperator) } => method is { Name: "GetTypeFromHandle", IsExtensionMethod: false }, // GetTypeFromHandle cannot be an extension method
+                             { Name: nameof(VisitRefTypeOperator) } => method is { Name: "GetTypeFromHandle", IsExtensionMethod: false }, // GetTypeFromHandle cannot be an extension method
+                             { Name: nameof(VisitReadOnlySpanFromArray) } => method is { Name: "op_Implicit", IsExtensionMethod: false }, // Conversion operator from array to span cannot be an extension method
+                             { Name: nameof(VisitLoweredConditionalAccess) } => // Nullable.HasValue cannot be an extension method
+                                            method.ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_HasValue) == (object)method.OriginalDefinition,
+                             { Name: nameof(VisitUnaryOperator) } => !method.IsExtensionMethod, // Expression tree context. At the moment an operator cannot be an extension method
+                             { Name: nameof(VisitUserDefinedConditionalLogicalOperator) } => !method.IsExtensionMethod, // Expression tree context. At the moment an operator cannot be an extension method
+                             { Name: nameof(VisitCollectionElementInitializer) } => !method.IsExtensionMethod, // Expression tree context. At the moment an extension method cannot be used in expression tree here.
+                             { Name: nameof(VisitAwaitableInfo) } => method is { Name: "GetResult", IsExtensionMethod: false }, // Cannot be an extension method
+                             { Name: nameof(VisitMethodSymbolWithExtensionRewrite), DeclaringType: { } declaringType } => declaringType == typeof(ExtensionMethodReferenceRewriter),
+                             _ => false
+                         });
+
             return base.VisitMethodSymbol(method);
+        }
+
+        public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
+        {
+            MethodSymbol method = node.Method;
+            Debug.Assert(method.IsDefinition); // PROTOTYPE: From the code coverage and other instrumentations perspective, should we remap the index to the implementation symbol? 
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(method, type);
         }
 
         public override BoundNode? VisitDelegateCreationExpression(BoundDelegateCreationExpression node)

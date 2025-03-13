@@ -18283,7 +18283,7 @@ static class E
         // PROTOTYPE metadata is undone
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // PROTOTYPE: Call site rewrite is not implemented yet
+    [Fact]
     public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetResult()
     {
         var text = @"
@@ -18315,9 +18315,13 @@ static class E
 
         // PROTOTYPE confirm when spec'ing pattern-based await
         var comp = CreateCompilation(text);
-        comp.VerifyDiagnostics();
-        // PROTOTYPE metadata is undone
-        // PROTOTYPE: Call site rewrite is undone
+
+        // The error is consistent with classic extension methods
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS0117: 'D' does not contain a definition for 'GetResult'
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "GetResult").WithLocation(5, 9)
+            );
     }
 
     [Fact]

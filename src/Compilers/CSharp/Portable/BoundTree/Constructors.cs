@@ -485,17 +485,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(operatorKind.IsUserDefined() && operatorKind.IsLogical());
         }
-
-        public BoundUserDefinedConditionalLogicalOperator Update(BinaryOperatorKind operatorKind,
-                                                                 MethodSymbol logicalOperator,
-                                                                 MethodSymbol trueOperator,
-                                                                 MethodSymbol falseOperator,
-                                                                 TypeSymbol? constrainedToTypeOpt,
-                                                                 LookupResultKind resultKind,
-                                                                 BoundExpression left,
-                                                                 BoundExpression right,
-                                                                 TypeSymbol type)
-            => Update(operatorKind, logicalOperator, trueOperator, falseOperator, constrainedToTypeOpt, resultKind, this.OriginalUserDefinedOperatorsOpt, left, right, type);
     }
 
     internal sealed partial class BoundParameter
