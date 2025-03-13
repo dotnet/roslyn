@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;

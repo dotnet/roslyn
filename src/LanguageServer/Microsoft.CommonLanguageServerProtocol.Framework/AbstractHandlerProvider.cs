@@ -5,7 +5,6 @@
 // This is consumed as 'generated' code in a source package and therefore requires an explicit nullable enable
 #nullable enable
 
-using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;

@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis;
 
 public class WorkspaceDiagnostic(WorkspaceDiagnosticKind kind, string message)
