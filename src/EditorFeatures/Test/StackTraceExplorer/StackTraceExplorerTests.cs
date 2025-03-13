@@ -861,7 +861,7 @@ class C
     }
 
     [Fact]
-    public async Task TestAdditionalFilesAsync()
+    public async Task TestAdditionalFileExactMatchAsync()
     {
         using var workspace = TestWorkspace.Create(
             """
@@ -900,5 +900,46 @@ class C
         AssertEx.NotNull(document);
         Assert.Equal(@"C:/path/to/Component.razor", document.FilePath);
 
+    }
+
+    [Fact]
+    public async Task TestAdditionalFileNameMatchAsync()
+    {
+        using var workspace = TestWorkspace.Create(
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+                        class C
+                        {
+                            void M() {}
+                        }
+                    </Document>
+                    <AdditionalDocument FilePath="C:/path/to/Component.razor" Name="Component.razor">
+                        @page "/"
+
+                        @code 
+                        {
+                            void M()
+                            {
+                            }
+                        }
+                    </AdditionalDocument>
+                </Project>
+            </Workspace>
+            """);
+
+        var result = await StackTraceAnalyzer.AnalyzeAsync("at Path.To.Component.M() in Component.razor:line 5", CancellationToken.None);
+        Assert.Single(result.ParsedFrames);
+
+        var frame = result.ParsedFrames[0] as ParsedStackFrame;
+        AssertEx.NotNull(frame);
+
+        var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
+        var (document, line) = service.GetDocumentAndLine(workspace.CurrentSolution, frame);
+        Assert.Equal(5, line);
+
+        AssertEx.NotNull(document);
+        Assert.Equal(@"C:/path/to/Component.razor", document.FilePath);
     }
 }
