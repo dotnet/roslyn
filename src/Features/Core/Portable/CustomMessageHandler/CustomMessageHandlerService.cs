@@ -2,61 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if !NETSTANDARD2_0
+
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 
-internal sealed class CustomMessageHandlerService : IDisposable
+[Export(typeof(ICustomMessageHandlerService)), Shared]
+internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService, IDisposable
 {
-#if !NETSTANDARD2_0
     /// <summary>
     /// Extensions assembly load contexts and loaded handlers, indexed by handler file path. The handlers are indexed by type name.
     /// </summary>
     private readonly Dictionary<string, CustomMessageHandlerExtension> _extensions = new();
 
-    private readonly ICustomMessageHandlerFactory customMessageHandlerFactory;
+    private readonly ICustomMessageHandlerFactory _customMessageHandlerFactory;
 
     private readonly System.Runtime.Loader.AssemblyLoadContext _defaultLoadContext
         = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(typeof(CustomMessageHandlerService).Assembly)
         ?? throw new InvalidOperationException($"Cannot get assembly load context for {nameof(CustomMessageHandlerService)}.");
 
     private readonly object _lockObject = new();
-#endif
 
-    private CustomMessageHandlerService()
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CustomMessageHandlerService(ICustomMessageHandlerFactory customMessageHandlerFactory)
     {
-#if !NETSTANDARD2_0
-        // TODO use dependency injection instead
-        var externalAccessAssembly = Assembly.Load("Microsoft.CodeAnalysis.ExternalAccess.CustomMessage")
-            ?? throw new InvalidOperationException($"Cannot load Microsoft.CodeAnalysis.ExternalAccess.CustomMessage.dll");
-        var customMessageHandlerFactoryType = externalAccessAssembly.GetType("Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory")
-            ?? throw new InvalidOperationException($"Cannot find Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory type");
-        customMessageHandlerFactory = Activator.CreateInstance(customMessageHandlerFactoryType) as ICustomMessageHandlerFactory
-            ?? throw new InvalidOperationException($"Cannot instantiate Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageHandlerFactory");
-#endif
+        _customMessageHandlerFactory = customMessageHandlerFactory;
     }
 
-    public static Lazy<CustomMessageHandlerService> Instance { get; } = new(
-        () =>
-        {
-#if NETSTANDARD2_0
-            throw new InvalidOperationException("Custom message handlers are not supported in .NET Standard 2.0.");
-#else
-            return new CustomMessageHandlerService();
-#endif
-        },
-        isThreadSafe: true);
-
-#pragma warning disable CA1822, CS1998 // Mark members as static, Async method lacks 'await' operators and will run synchronously
     public async ValueTask<string> HandleCustomMessageAsync(
-#pragma warning restore CA1822, CS1998 // Mark members as static, Async method lacks 'await' operators and will run synchronously
         Solution solution,
         string assemblyFolderPath,
         string assemblyFileName,
@@ -65,9 +49,6 @@ internal sealed class CustomMessageHandlerService : IDisposable
         DocumentId? documentId,
         CancellationToken cancellationToken)
     {
-#if NETSTANDARD2_0
-        throw new InvalidOperationException("Custom message handlers are not supported in .NET Standard 2.0.");
-#else
 #if DEBUG
         System.Diagnostics.Debugger.Launch();
 #endif
@@ -107,7 +88,7 @@ internal sealed class CustomMessageHandlerService : IDisposable
                     var type = assembly.GetType(typeFullName)
                         ?? throw new InvalidOperationException($"Cannot find type {typeFullName} in {assemblyPath}.");
 
-                    handler = customMessageHandlerFactory.Create(type);
+                    handler = _customMessageHandlerFactory.Create(type);
                 }
             }
 
@@ -144,18 +125,12 @@ internal sealed class CustomMessageHandlerService : IDisposable
             // This will throw FileNotFoundException if the assembly is not found.
             return context.LoadFromAssemblyPath(extensionAssemblyPath);
         }
-#endif
     }
 
-#pragma warning disable CA1822 // Mark members as static
     public ValueTask UnloadCustomMessageHandlersAsync(
-#pragma warning restore CA1822 // Mark members as static
         string assemblyFolderPath,
         CancellationToken cancellationToken)
     {
-#if NETSTANDARD2_0
-        throw new InvalidOperationException("Custom message handlers are not supported in .NET Standard 2.0.");
-#else
 #if DEBUG
         System.Diagnostics.Debugger.Launch();
 #endif
@@ -183,12 +158,10 @@ internal sealed class CustomMessageHandlerService : IDisposable
         }
 
         return ValueTask.CompletedTask;
-#endif
     }
 
     public void Dispose()
     {
-#if !NETSTANDARD2_0
         lock (_lockObject)
         {
             foreach (var extension in _extensions.Values)
@@ -199,13 +172,11 @@ internal sealed class CustomMessageHandlerService : IDisposable
 
             _extensions.Clear();
         }
-#endif
     }
 
-#if !NETSTANDARD2_0
     private record struct CustomMessageHandlerExtension(System.Runtime.Loader.AssemblyLoadContext AssemblyLoadContext)
     {
         public Dictionary<string, ICustomMessageHandlerWrapper> Handlers { get; } = new();
     }
-#endif
 }
+#endif

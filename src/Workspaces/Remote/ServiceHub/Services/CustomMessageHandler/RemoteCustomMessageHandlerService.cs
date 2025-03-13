@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CustomMessageHandler;
@@ -11,6 +10,8 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServiceBase, IRemoteCustomMessageHandlerService
 {
+    private readonly ICustomMessageHandlerService _customMessageHandlerService;
+
     internal sealed class Factory : FactoryBase<IRemoteCustomMessageHandlerService>
     {
         protected override IRemoteCustomMessageHandlerService CreateService(in ServiceConstructionArguments arguments)
@@ -20,6 +21,8 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
     public RemoteCustomMessageHandlerService(in ServiceConstructionArguments arguments)
         : base(arguments)
     {
+        // TODO get the MEF-exported ICustomMessageHandlerService
+        _customMessageHandlerService = null!;
     }
 
     public ValueTask<string> HandleCustomMessageAsync(
@@ -31,13 +34,9 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
         DocumentId? documentId,
         CancellationToken cancellationToken)
     {
-#if NETSTANDARD2_0
-        throw new InvalidOperationException("Custom handlers are not supported");
-#else
-        var service = CustomMessageHandlerService.Instance.Value;
         return RunServiceAsync(
             solutionChecksum,
-            solution => service.HandleCustomMessageAsync(
+            solution => _customMessageHandlerService.HandleCustomMessageAsync(
                 solution,
                 assemblyFolderPath,
                 assemblyFileName,
@@ -46,22 +45,16 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                 documentId,
                 cancellationToken),
             cancellationToken);
-#endif
     }
 
     public ValueTask UnloadCustomMessageHandlersAsync(
         string assemblyFolderPath,
         CancellationToken cancellationToken)
     {
-#if NETSTANDARD2_0
-        throw new InvalidOperationException("Custom handlers are not supported");
-#else
-        var service = CustomMessageHandlerService.Instance.Value;
         return RunServiceAsync(
-            (_) => service.UnloadCustomMessageHandlersAsync(
+            (_) => _customMessageHandlerService.UnloadCustomMessageHandlersAsync(
                 assemblyFolderPath,
                 cancellationToken),
             cancellationToken);
-#endif
     }
 }

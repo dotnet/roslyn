@@ -14,12 +14,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(CustomMessageHandler)), Shared]
 [Method(MethodName)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CustomMessageHandler()
+internal class CustomMessageHandler
     : ILspServiceRequestHandler<CustomMessageParams, CustomResponse>
 {
     private const string MethodName = "roslyn/customMessage";
+
+    private readonly ICustomMessageHandlerService _customMessageHandlerService;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CustomMessageHandler(ICustomMessageHandlerService customMessageHandlerService)
+    {
+        _customMessageHandlerService = customMessageHandlerService;
+    }
 
     public bool MutatesSolutionState => false;
 
@@ -54,11 +61,7 @@ internal class CustomMessageHandler()
         }
         else
         {
-#if NETSTANDARD2_0
-            throw new InvalidOperationException("Custom handlers are not supported");
-#else
-            var service = CustomMessageHandlerService.Instance.Value;
-            var response = await service.HandleCustomMessageAsync(
+            var response = await _customMessageHandlerService.HandleCustomMessageAsync(
                     solution,
                     request.AssemblyFolderPath,
                     request.AssemblyFileName,
@@ -68,7 +71,6 @@ internal class CustomMessageHandler()
                     cancellationToken).ConfigureAwait(false);
 
             return new CustomResponse(response);
-#endif
         }
     }
 }

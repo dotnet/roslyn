@@ -5,7 +5,7 @@ Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition
 Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.Character.get -> int
 Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.DocumentLinePosition() -> void
 Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.DocumentLinePosition(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.LinePosition linePosition) -> void
-Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.DocumentLinePosition(string filePath, Microsoft.CodeAnalysis.Text.LinePosition linePosition) -> void
+Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.DocumentLinePosition(string filePath, int line, int character) -> void
 Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.FilePath.get -> string
 Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.Line.get -> int
 Microsoft.CodeAnalysis.CustomMessageHandler.DocumentLinePosition.ToLinePosition() -> Microsoft.CodeAnalysis.Text.LinePosition

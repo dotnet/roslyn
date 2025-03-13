@@ -3,10 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 
-internal sealed class CustomMessageHandlerFactory : ICustomMessageHandlerFactory
+[Export(typeof(ICustomMessageHandlerFactory)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CustomMessageHandlerFactory() : ICustomMessageHandlerFactory
 {
     public ICustomMessageHandlerWrapper Create(Type customMessageHandlerType)
     {
