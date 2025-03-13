@@ -121,7 +121,10 @@ public abstract partial class CodeAction
             CodeAnalysisProgress.None,
             cancellationToken).ConfigureAwait(false);
 
-        return cleanedSolution.GetRequiredDocument(document.Id);
+
+        return document.Id.IsSourceGenerated
+            ? cleanedSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(document.Id)
+            : cleanedSolution.GetRequiredDocument(document.Id);
     }
 
     private static async Task<Solution> RunAllCleanupPassesInOrderAsync(
