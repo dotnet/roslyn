@@ -1026,6 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCollectionExpression(
                 syntax,
                 collectionTypeKind,
+                elementType,
                 implicitReceiver,
                 collectionCreation,
                 collectionBuilderSpanPlaceholder,
@@ -2127,6 +2128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCollectionExpression(
                 syntax,
                 collectionTypeKind: CollectionExpressionTypeKind.None,
+                elementType: null,
                 placeholder: null,
                 collectionCreation: null,
                 collectionBuilderSpanPlaceholder: null,
@@ -2158,47 +2160,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol targetType,
             BindingDiagnosticBag diagnostics)
         {
-            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
-            switch (collectionTypeKind)
-            {
-                case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                case CollectionExpressionTypeKind.CollectionBuilder:
-                    Debug.Assert(elementTypeWithAnnotations.Type is null); // GetCollectionExpressionTypeKind() does not set elementType for these cases.
-                    if (!TryGetCollectionIterationType(node.Syntax, targetType, out elementTypeWithAnnotations))
-                    {
-                        Error(
-                            diagnostics,
-                            collectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder ?
-                                ErrorCode.ERR_CollectionBuilderNoElementType :
-                                ErrorCode.ERR_CollectionExpressionTargetNoElementType,
-                            node.Syntax,
-                            targetType);
-                        return;
-                    }
-                    Debug.Assert(elementTypeWithAnnotations.HasType);
-                    break;
-            }
-
+            ConversionsBase.TryGetCollectionExpressionTypeKind(this, node.Syntax, targetType, out var collectionTypeKind, out var elementTypeWithAnnotations);
             bool reportedErrors = false;
 
             if (collectionTypeKind != CollectionExpressionTypeKind.None)
             {
+                if (!elementTypeWithAnnotations.HasType)
+                {
+                    Error(
+                        diagnostics,
+                        collectionTypeKind == CollectionExpressionTypeKind.CollectionBuilder ?
+                            ErrorCode.ERR_CollectionBuilderNoElementType :
+                            ErrorCode.ERR_CollectionExpressionTargetNoElementType,
+                        node.Syntax,
+                        targetType);
+                    return;
+                }
                 var elements = node.Elements;
                 var elementType = elementTypeWithAnnotations.Type;
                 Debug.Assert(elementType is { });
 
-                if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+                if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer &&
+                    !HasCollectionExpressionApplicableConstructor(node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
                 {
-                    if (!HasCollectionExpressionApplicableConstructor(node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
-                    {
-                        reportedErrors = true;
-                    }
+                    reportedErrors = true;
+                }
 
-                    if (elements.Length > 0 &&
-                        !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, addMethods: out _, diagnostics))
-                    {
-                        reportedErrors = true;
-                    }
+                if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable &&
+                    elements.Length > 0 &&
+                    !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, addMethods: out _, diagnostics))
+                {
+                    reportedErrors = true;
                 }
 
                 bool usesKeyValuePairs = ConversionsBase.CollectionUsesKeyValuePairs(Compilation, collectionTypeKind, elementType, out var keyType, out var valueType);

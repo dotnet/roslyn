@@ -4988,7 +4988,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[5]").WithArguments("System.Collections.Generic.ID<object, object>").WithLocation(10, 32));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
         }
 
         [Fact]
@@ -5043,7 +5043,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("System.IEquatable<int>").WithLocation(8, 29));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
         }
 
         [Fact]
@@ -5097,7 +5097,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[2]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 30));
 
             var listType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, listType, out var elementType));
+            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, listType, out var elementType));
             Assert.False(elementType.HasType);
         }
 
@@ -30447,7 +30447,7 @@ partial class Program
                 """);
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out var elementType));
+            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out var elementType));
             Assert.False(elementType.HasType);
         }
 
@@ -30507,7 +30507,7 @@ partial class Program
 
             var comp = (CSharpCompilation)verifier.Compilation;
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
         }
 
         [Fact]
@@ -30718,7 +30718,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
 
             // ImmutableCollectionsMarshal.AsImmutableArray is not sufficient to optimize collection expressions
             // targeting ImmutableArray<T>. ImmutableArray<T> must also have a [CollectionBuilder] attribute.
@@ -30742,7 +30742,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
         }
 
         [Fact]
@@ -30777,7 +30777,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
 
             // With ImmutableCollectionsMarshal.AsImmutableArray.
             string sourceB = """
@@ -30799,7 +30799,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
         }
 
         [Fact]
@@ -30831,7 +30831,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(7, 35));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
 
             // With ImmutableCollectionsMarshal.AsImmutableArray.
             string sourceB = """
@@ -30853,7 +30853,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(7, 35));
 
             collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
         }
 
         [Fact]

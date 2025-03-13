@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                       // Code size       11 (0xb)
                       .maxstack  1
-                      IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                      IL_0000:  newobj     "MyDictionary<K, V>..ctor()"
                       IL_0005:  call       "void Program.Params<K, V>(params MyDictionary<K, V>)"
                       IL_000a:  ret
                     }
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                       .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0,
                                     System.Collections.Generic.KeyValuePair<K, V> V_1,
                                     System.Collections.Generic.KeyValuePair<K, V> V_2)
-                      IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                      IL_0000:  newobj     "MyDictionary<K, V>..ctor()"
                       IL_0005:  ldarg.0
                       IL_0006:  stloc.0
                       IL_0007:  dup
@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                       IL_000a:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
                       IL_000f:  ldloca.s   V_0
                       IL_0011:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
-                      IL_0016:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_0016:  callvirt   "void MyDictionary<K, V>.this[K].set"
                       IL_001b:  ldarg.1
                       IL_001c:  stloc.1
                       IL_001d:  dup
@@ -942,7 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                       IL_0020:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
                       IL_0025:  ldloca.s   V_1
                       IL_0027:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
-                      IL_002c:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_002c:  callvirt   "void MyDictionary<K, V>.this[K].set"
                       IL_0031:  ldarg.2
                       IL_0032:  stloc.2
                       IL_0033:  dup
@@ -950,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                       IL_0036:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
                       IL_003b:  ldloca.s   V_2
                       IL_003d:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
-                      IL_0042:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_0042:  callvirt   "void MyDictionary<K, V>.this[K].set"
                       IL_0047:  call       "void Program.Params<K, V>(params MyDictionary<K, V>)"
                       IL_004c:  ret
                     }
@@ -1398,6 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
 
+            // PROTOTYPE: Implement IOperation support.
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Int64, System.Object>) (Syntax: '[x:y]')
@@ -1635,19 +1636,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static Dictionary<K, V> FromSpread<K, V>(IEnumerable<V> e) => [..e];
                 }
                 """;
-            // PROTOTYPE: We're not treating the target type as a dictionary type and so we're reporting ERR_CollectionExpressionMissingAdd.
-            // The reason is because error reporting relies on GetCollectionExpressionTypeKind() which does not check for an indexer.
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (4,58): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //     static Dictionary<K, V> FromExpression<K, V>(K k) => [k];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[k]").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(4, 58),
                 // (4,59): error CS0029: Cannot implicitly convert type 'K' to 'System.Collections.Generic.KeyValuePair<K, V>'
                 //     static Dictionary<K, V> FromExpression<K, V>(K k) => [k];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "k").WithArguments("K", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(4, 59),
-                // (5,67): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //     static Dictionary<K, V> FromSpread<K, V>(IEnumerable<V> e) => [..e];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..e]").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(5, 67),
                 // (5,70): error CS0029: Cannot implicitly convert type 'V' to 'System.Collections.Generic.KeyValuePair<K, V>'
                 //     static Dictionary<K, V> FromSpread<K, V>(IEnumerable<V> e) => [..e];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("V", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(5, 70));
@@ -1665,16 +1658,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static Dictionary<K, V> FromSpread<K, V>(IEnumerable<dynamic> e) => [..e];
                 }
                 """;
-            // PROTOTYPE: We're not treating the target type as a dictionary type and so we're reporting ERR_CollectionExpressionMissingAdd.
-            // The reason is because error reporting relies on GetCollectionExpressionTypeKind() which does not check for an indexer.
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (4,64): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
+                // (4,65): error CS0029: Cannot implicitly convert type 'dynamic' to 'KeyValuePair<K, V>'
                 //     static Dictionary<K, V> FromExpression<K, V>(dynamic d) => [d];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[d]").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(4, 64),
-                // (5,73): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "d").WithArguments("dynamic", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(4, 65),
+                // (5,76): error CS0029: Cannot implicitly convert type 'dynamic' to 'KeyValuePair<K, V>'
                 //     static Dictionary<K, V> FromSpread<K, V>(IEnumerable<dynamic> e) => [..e];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..e]").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(5, 73));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("dynamic", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(5, 76));
         }
 
         [Fact]
@@ -1712,19 +1703,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: We're not treating the target type as a dictionary type and so we're reporting ERR_CollectionExpressionMissingAdd.
-            // The reason is because error reporting relies on GetCollectionExpressionTypeKind() which does not check for an indexer.
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (11,13): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [u];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[u]").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(11, 13),
                 // (11,14): error CS0029: Cannot implicitly convert type 'U' to 'System.Collections.Generic.KeyValuePair<K, V>'
                 //         d = [u];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "u").WithArguments("U", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(11, 14),
-                // (12,13): error CS9215: Collection expression type 'Dictionary<K, V>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [..e];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[..e]").WithArguments("System.Collections.Generic.Dictionary<K, V>").WithLocation(12, 13),
                 // (12,16): error CS0029: Cannot implicitly convert type 'U' to 'System.Collections.Generic.KeyValuePair<K, V>'
                 //         d = [..e];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("U", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(12, 16));
@@ -2391,18 +2374,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // Should we still treat MyDictionary<K, V> as a dictionary type (that is,
-            // allow k:v elements), even though the constructor is inaccessible?
             comp.VerifyEmitDiagnostics(
                 // (12,50): error CS0122: 'MyDictionary<K, V>.MyDictionary()' is inaccessible due to its protection level
                 //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
                 Diagnostic(ErrorCode.ERR_BadAccess, "[default:default]").WithArguments("MyDictionary<K, V>.MyDictionary()").WithLocation(12, 50),
-                // (12,50): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
-                //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(12, 50),
-                // (12,51): error CS9275: Collection expression type 'MyDictionary<K, V>' does not support key-value pair elements.
-                //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary<K, V>").WithLocation(12, 51),
                 // (12,51): error CS8716: There is no target type for the default literal.
                 //     static MyDictionary<K, V> OnePair<K, V>() => [default:default];
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(12, 51),

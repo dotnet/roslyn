@@ -1320,7 +1320,9 @@ outerDefault:
                 return false;
             }
 
-            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(binder.Compilation, type, out elementType);
+            SyntaxNode syntax = CSharpSyntaxTree.Dummy.GetRoot();
+            CollectionExpressionTypeKind collectionTypeKind;
+            ConversionsBase.TryGetCollectionExpressionTypeKind(binder, syntax, type, out collectionTypeKind, out elementType);
 
             switch (collectionTypeKind)
             {
@@ -1330,15 +1332,14 @@ outerDefault:
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
                 case CollectionExpressionTypeKind.CollectionBuilder:
                     {
-                        SyntaxNode syntax = CSharpSyntaxTree.Dummy.GetRoot();
-                        binder.TryGetCollectionIterationType(syntax, type, out elementType);
-
                         if (elementType.Type is null)
                         {
                             return false;
                         }
 
-                        if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+                        // PROTOTYPE: Need to test this code path with ImplementsIEnumerableWithIndexer,
+                        // where we need to check for indexer rather than Add().
+                        if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
                         {
                             if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
                             {
@@ -1347,7 +1348,6 @@ outerDefault:
 
                             if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, type, addMethods: out _, BindingDiagnosticBag.Discarded))
                             {
-                                // PROTOTYPE: What if this is a dictionary type, with an indexer rather than Add()?
                                 return false;
                             }
                         }
@@ -3173,18 +3173,9 @@ outerDefault:
 
         private BetterResult BetterParamsCollectionType(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            CollectionExpressionTypeKind kind1 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t1, out TypeWithAnnotations elementType1);
-            CollectionExpressionTypeKind kind2 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t2, out TypeWithAnnotations elementType2);
-
-            if (kind1 is CollectionExpressionTypeKind.CollectionBuilder or CollectionExpressionTypeKind.ImplementsIEnumerable)
-            {
-                _binder.TryGetCollectionIterationType(CSharpSyntaxTree.Dummy.GetRoot(), t1, out elementType1);
-            }
-
-            if (kind2 is CollectionExpressionTypeKind.CollectionBuilder or CollectionExpressionTypeKind.ImplementsIEnumerable)
-            {
-                _binder.TryGetCollectionIterationType(CSharpSyntaxTree.Dummy.GetRoot(), t2, out elementType2);
-            }
+            var syntax = CSharpSyntaxTree.Dummy.GetRoot();
+            ConversionsBase.TryGetCollectionExpressionTypeKind(_binder, syntax, t1, out CollectionExpressionTypeKind kind1, out TypeWithAnnotations elementType1);
+            ConversionsBase.TryGetCollectionExpressionTypeKind(_binder, syntax, t2, out CollectionExpressionTypeKind kind2, out TypeWithAnnotations elementType2);
 
             return BetterCollectionExpressionConversion(
                 collectionExpressionElements: [],

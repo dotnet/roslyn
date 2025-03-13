@@ -1650,7 +1650,55 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination, compilation) == LambdaConversionResult.Success;
         }
 
-        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeWithAnnotations elementType)
+        internal static bool TryGetCollectionExpressionTypeKind(
+            Binder binder,
+            SyntaxNode syntax,
+            TypeSymbol targetType,
+            out CollectionExpressionTypeKind collectionTypeKind,
+            out TypeWithAnnotations elementTypeWithAnnotations)
+        {
+            collectionTypeKind = GetCollectionExpressionTypeKindCore(binder.Compilation, targetType, out elementTypeWithAnnotations);
+            if (collectionTypeKind == CollectionExpressionTypeKind.None)
+            {
+                return false;
+            }
+
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.CollectionBuilder)
+            {
+                binder.TryGetCollectionIterationType(syntax, targetType, out elementTypeWithAnnotations);
+                if (!elementTypeWithAnnotations.HasType)
+                {
+                    return false;
+                }
+
+                if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+                {
+                    var elementType = elementTypeWithAnnotations.Type;
+                    if (object.ReferenceEquals(elementType.OriginalDefinition, binder.Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)) &&
+                        binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
+                        binder.GetCollectionExpressionApplicableIndexer(syntax, targetType, elementType, BindingDiagnosticBag.Discarded) is { })
+                    {
+                        collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
+                    }
+                }
+            }
+
+            Debug.Assert(elementTypeWithAnnotations.HasType);
+            return true;
+        }
+
+        /// <summary>
+        /// Returns <see cref="CollectionExpressionTypeKind"/> for the target type based on the type signature only,
+        /// without inspecting members, and independent of any binding context. As a result, this method does not
+        /// differentiate between <see cref="CollectionExpressionTypeKind.ImplementsIEnumerable"/> and
+        /// <see cref="CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer"/>, and <paramref name="elementType"/>
+        /// is not set in all cases. This is intended for internal use only; other callers should use
+        /// <see cref="TryGetCollectionExpressionTypeKind(Binder, SyntaxNode, TypeSymbol, out CollectionExpressionTypeKind, out TypeWithAnnotations)"/>
+        /// </summary>
+        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKindCore(
+            CSharpCompilation compilation,
+            TypeSymbol destination,
+            out TypeWithAnnotations elementType)
         {
             Debug.Assert(compilation is { });
 
@@ -1696,14 +1744,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // to check for nullable to disallow: Nullable<StructCollection> s = [];
                 // Instead, we just walk the implemented interfaces.
                 elementType = default;
-
-                // PROTOTYPE: Determining whether the target type is ImplementsIEnumerable or ImplementsIEnumerableWithIndexer
-                // should be made here. That requires a Binder instance which we should have at most call sites other than perhaps tests.
-                // It would also mean we could always return the element type, if any, rather than requiring callers to make that
-                // additional check explicitly.
-
-                // PROTOTYPE: Should ImplementsIEnumerableWithIndexer be conditional on language version?
-
                 return CollectionExpressionTypeKind.ImplementsIEnumerable;
             }
 

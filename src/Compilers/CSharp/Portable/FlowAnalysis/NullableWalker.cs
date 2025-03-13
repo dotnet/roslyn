@@ -3752,7 +3752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // When the target-typing conversion is processed, the completion continuation will be given a target-type and
             // we'll be able to process the element conversions and compute the final visit result.
 
-            var (collectionKind, targetElementType) = getCollectionDetails(node, node.Type);
+            ConversionsBase.TryGetCollectionExpressionTypeKind(_binder, node.Syntax, node.Type, out var collectionKind, out var targetElementType);
 
             var resultBuilder = ArrayBuilder<VisitResult>.GetInstance(node.Elements.Length);
             var elementConversionCompletions = ArrayBuilder<Func<TypeWithAnnotations, TypeWithState>>.GetInstance();
@@ -3766,13 +3766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitArgumentsEvaluate(withElement.Arguments, withElement.ArgumentRefKindsOpt, parameterAnnotationsOpt: default, defaultArguments: default);
                         break;
                     case BoundCollectionElementInitializer initializer:
-                        // We don't visit the Add methods
-                        // But we should check conversion to the iteration type
-                        // Tracked by https://github.com/dotnet/roslyn/issues/68786
-                        SetUnknownResultNullability(initializer);
-                        Debug.Assert(node.Placeholder is { });
-                        SetUnknownResultNullability(node.Placeholder);
-                        VisitRvalue(initializer.Arguments[0]);
+                        visitCollectionElementInitializer(initializer);
                         break;
                     case BoundCollectionExpressionSpreadElement spread:
                         Visit(spread);
@@ -3783,10 +3777,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var itemResult = spread.EnumeratorInfoOpt == null ? default : _visitResult;
                             var iteratorBody = ((BoundExpressionStatement)spread.IteratorBody).Expression;
                             AddPlaceholderReplacement(elementPlaceholder, expression: elementPlaceholder, itemResult);
-                            var completion = VisitOptionalImplicitConversion(iteratorBody, targetElementType,
-                                useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
-                            Debug.Assert(completion is not null);
-                            elementConversionCompletions.Add(completion);
+                            if (iteratorBody is BoundCollectionElementInitializer initializer)
+                            {
+                                visitCollectionElementInitializer(initializer);
+                            }
+                            else
+                            {
+                                var completion = VisitOptionalImplicitConversion(iteratorBody, targetElementType,
+                                    useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
+                                Debug.Assert(completion is not null);
+                                elementConversionCompletions.Add(completion);
+                            }
                             RemovePlaceholderReplacement(elementPlaceholder);
                         }
                         break;
@@ -3819,6 +3820,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultBuilder.Add(_visitResult);
             }
 
+            void visitCollectionElementInitializer(BoundCollectionElementInitializer initializer)
+            {
+                // We don't visit the Add methods
+                // But we should check conversion to the iteration type
+                // Tracked by https://github.com/dotnet/roslyn/issues/68786
+                SetUnknownResultNullability(initializer);
+                Debug.Assert(node.Placeholder is { });
+                SetUnknownResultNullability(node.Placeholder);
+                VisitRvalue(initializer.Arguments[0]);
+            }
+
             if (node.WasTargetTyped)
             {
                 // We're in the context of a conversion, so the analysis of element conversions and the final visit result
@@ -3849,7 +3861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // state of the instance: see the call to InheritNullableStateOfTrackableStruct() in particular.
 
                 // Process the element conversions now that we have the target-type
-                var (collectionKind, targetElementType) = getCollectionDetails(node, strippedTargetCollectionType);
+                ConversionsBase.TryGetCollectionExpressionTypeKind(_binder, node.Syntax, strippedTargetCollectionType, out var collectionKind, out var targetElementType);
 
                 // We should analyze the Create method
                 // Tracked by https://github.com/dotnet/roslyn/issues/68786
@@ -3880,17 +3892,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return NullableFlowState.NotNull;
-            }
-
-            (CollectionExpressionTypeKind, TypeWithAnnotations) getCollectionDetails(BoundCollectionExpression node, TypeSymbol collectionType)
-            {
-                var collectionKind = ConversionsBase.GetCollectionExpressionTypeKind(this.compilation, collectionType, out var targetElementType);
-                if (collectionKind is CollectionExpressionTypeKind.CollectionBuilder)
-                {
-                    _binder.TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, collectionType, out targetElementType);
-                }
-
-                return (collectionKind, targetElementType);
             }
         }
 
