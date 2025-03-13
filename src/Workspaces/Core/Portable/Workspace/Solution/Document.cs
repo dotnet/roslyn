@@ -391,13 +391,9 @@ public class Document : TextDocument
     {
         var solution = this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity);
 
-        if (Id.IsSourceGenerated)
-        {
-            return solution.GetRequiredProject(Id.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(Id)
-                ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document));
-        }
-
-        return solution.GetRequiredDocument(Id);
+        return this.Id.IsSourceGenerated
+            ? solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id)
+            : solution.GetRequiredDocument(Id);
     }
 
     /// <summary>
@@ -407,13 +403,9 @@ public class Document : TextDocument
     {
         var solution = this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity);
 
-        if (Id.IsSourceGenerated)
-        {
-            return solution.GetRequiredProject(Id.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(Id)
-                ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document));
-        }
-
-        return solution.GetRequiredDocument(Id);
+        return this.Id.IsSourceGenerated
+            ? solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id)
+            : solution.GetRequiredDocument(Id);
     }
 
     /// <summary>
