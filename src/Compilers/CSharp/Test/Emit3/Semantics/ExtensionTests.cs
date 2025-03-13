@@ -3855,7 +3855,7 @@ End Class
 
         CompileAndVerify(vbComp, expectedOutput: "1234").VerifyDiagnostics();
 
-        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // Tracked by https://github.com/dotnet/roslyn/issues/77542
         {
             var src4 = """
 class Program
@@ -3939,7 +3939,7 @@ static class Extensions
             );
     }
 
-    [Fact(Skip = "Regression")] // PROTOTYPE: REGRESSION - This scenario is broken, works in 'main'
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/77542")]
     public void UseSiteInfoTracking_01()
     {
         var src1 = """
@@ -3954,31 +3954,46 @@ public static class Extensions
         var src4 = """
 class Program
 {
-    static void Main()
-    {
-        // Extensions.M(null, null); // Uncomment this line to make the test pass
-        System.Console.Write(Test("1"));
-        System.Console.Write("3".M2("4"));
-    }
-
     static string Test(object o)
     {
         System.Func<string, string> d = o.M;
         return d("2");
     }
 }
+""";
 
-static class Extensions
-{
-    extension(object o)
+        var comp1MetadataReference = comp1.ToMetadataReference();
+        var comp4 = CreateCompilation(src4, references: [comp1MetadataReference]);
+        comp4.VerifyEmitDiagnostics();
+        var refs = comp4.GetUsedAssemblyReferences();
+        Assert.Contains(comp1MetadataReference, refs);
+    }
+
+    [Fact]
+    public void UseSiteInfoTracking_02()
     {
-        public string M2(string s) => new System.Func<string, string>(o.M)(s);
+        var src1 = """
+public static class Extensions
+{
+    public static string M(this object o, string s) => o + s;
+}
+""";
+        var comp1 = CreateCompilation(src1);
+        var verifier1 = CompileAndVerify(comp1).VerifyDiagnostics();
+
+        var src4 = """
+class Program
+{
+    static string Test(object o)
+    {
+        return o.M("2");
     }
 }
 """;
 
         var comp1MetadataReference = comp1.ToMetadataReference();
-        var comp4 = CreateCompilation(src4, references: [comp1MetadataReference], options: TestOptions.DebugExe);
+        var comp4 = CreateCompilation(src4, references: [comp1MetadataReference]);
+        comp4.VerifyEmitDiagnostics();
         var refs = comp4.GetUsedAssemblyReferences();
         Assert.Contains(comp1MetadataReference, refs);
     }
@@ -5205,7 +5220,7 @@ static class Extensions
         verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
         verifier3.VerifyIL("Extensions.M2<T, U>(this C<T>, T, U)", m2IL);
 
-        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // Tracked by https://github.com/dotnet/roslyn/issues/77542
         {
             src3 = """
 class Program
@@ -5233,17 +5248,6 @@ static class Extensions
 """;
 
             comp3 = CreateCompilation(src3, references: [comp1MetadataReference], options: TestOptions.DebugExe);
-#if true
-            // PROTOTYPE: The errors are unexpected. The scenario got broken after https://github.com/dotnet/roslyn/pull/77343
-            comp3.VerifyDiagnostics(
-                // (11,41): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
-                //         System.Func<T, U, string> d = o.M;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Func<T, U, string>").WithLocation(11, 41),
-                // (20,42): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
-                //         public string M2<U>(T t, U u) => new System.Func<T, U, string>(o.M)(t, u);
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Func<T, U, string>(o.M)").WithArguments("M", "System.Func<T, U, string>").WithLocation(20, 42)
-                );
-#else
             verifier3 = CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
 
             testIL =
@@ -5284,27 +5288,14 @@ static class Extensions
   IL_0013:  ret
 }
 ";
-            verifier3.VerifyIL("Extensions.M2<T, U>(C<T>, T, U)", m2IL);
-#endif
+            verifier3.VerifyIL("Extensions.M2<T, U>(this C<T>, T, U)", m2IL);
 
             comp3 = CreateCompilation(src3, references: [comp1ImageReference], options: TestOptions.DebugExe);
 
-#if true
-            // PROTOTYPE: The errors are unexpected. The scenario got broken after https://github.com/dotnet/roslyn/pull/77343
-            comp3.VerifyDiagnostics(
-                // (11,41): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
-                //         System.Func<T, U, string> d = o.M;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Func<T, U, string>").WithLocation(11, 41),
-                // (20,42): error CS0123: No overload for 'M' matches delegate 'Func<T, U, string>'
-                //         public string M2<U>(T t, U u) => new System.Func<T, U, string>(o.M)(t, u);
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Func<T, U, string>(o.M)").WithArguments("M", "System.Func<T, U, string>").WithLocation(20, 42)
-                );
-#else
             verifier3 = CompileAndVerify(comp3, expectedOutput: "132465").VerifyDiagnostics();
 
             verifier3.VerifyIL("Program.Test<T, U>(C<T>, T, U)", testIL);
-            verifier3.VerifyIL("Extensions.M2<T, U>(C<T>, T, U)", m2IL);
-#endif
+            verifier3.VerifyIL("Extensions.M2<T, U>(this C<T>, T, U)", m2IL);
         }
     }
 
@@ -6782,7 +6773,7 @@ End Class
 
         CompileAndVerify(vbComp, expectedOutput: "34").VerifyDiagnostics();
 
-        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // PROTOTYPE: See comment for UseSiteInfoTracking_01 unit-test
+        if (!CompilationExtensions.EnableVerifyUsedAssemblies) // Tracked by https://github.com/dotnet/roslyn/issues/77542
         {
             src2 = """
 class Program
@@ -15081,7 +15072,7 @@ static class E
         Assert.Equal("System.String E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void ResolveAll_Invocation_Static_DelegateTypeParameter()
     {
         var src = """
@@ -15101,9 +15092,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -15139,7 +15128,7 @@ static class E
         Assert.Equal("System.String E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void ResolveAll_Invocation_Static_DelegateTypeParameter_InapplicableInstanceMember()
     {
         var src = """
@@ -15159,9 +15148,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -15340,7 +15327,7 @@ static class E
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void ResolveAll_Lambda_Instance_MethodGroupWithMultipleOverloads()
     {
         var src = """
@@ -15357,9 +15344,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -15476,15 +15461,19 @@ static class E
     {
         public ref string f => ref s;
     }
+
+    public static ref string M(this ref string s) => ref s;
 }
 """;
+        // PROTOTYPE unexpected definite assignment error and missing error on extension parameter
         var comp = CreateCompilation(src);
-        // PROTOTYPE unexpected definite assignment error
         comp.VerifyEmitDiagnostics(
             // (12,36): error CS0165: Use of unassigned local variable 's'
             //         public ref string f => ref s;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(12, 36));
-        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(12, 36),
+            // (15,30): error CS8337: The first parameter of a 'ref' extension method 'M' must be a value type or a generic type constrained to struct.
+            //     public static ref string M(this ref string s) => ref s;
+            Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "M").WithArguments("M").WithLocation(15, 30));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -15833,7 +15822,7 @@ static class E2
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void ResolveAll_Instance_LocalDeclaration_InnerIrrelevantExtensionMethodVsOuterExtensionProperty()
     {
         var src = """
@@ -15863,9 +15852,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -15874,7 +15861,7 @@ static class E
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void ResolveAll_Instance_LocalDeclaration_DelegateType_InnerInapplicableExtensionMethodVsOuterExtensionProperty()
     {
         var src = """
@@ -15885,6 +15872,7 @@ namespace N
         public static void Main()
         {
             System.Action x = new object().M;
+            x();
         }
     }
 
@@ -15903,18 +15891,16 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void System.Object.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void System.Object.M(System.Int32 i)", "void System.Object.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void ResolveAll_Instance_LocalDeclaration_DelegateType_InnerIrrelevantExtensionMethodVsOuterExtensionProperty()
     {
         var src = """
@@ -15925,6 +15911,7 @@ namespace N
         public static void Main()
         {
             System.Action x = new object().M;
+            x();
         }
     }
 
@@ -15943,15 +15930,13 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void System.Object.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
     [Fact]
@@ -15992,7 +15977,7 @@ static class E2
         Assert.Null(model.GetSymbolInfo(memberAccess[1]).Symbol);
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void DelegateConversion_TypeReceiver()
     {
         var source = """
@@ -16007,33 +15992,85 @@ static class E
 {
     extension(C)
     {
-        public static void M(int i) { System.Console.Write("E.M"); }
+        public static void M(int i) { System.Console.Write($"E.M({i})"); }
     }
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "E.M");
+        var verifier = CompileAndVerify(comp, expectedOutput: "E.M(42)").VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  IL_0000:  ldsfld     "D Program.<>O.<0>__M"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_001b
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  ldftn      "void E.M(int)"
+  IL_0010:  newobj     "D..ctor(object, System.IntPtr)"
+  IL_0015:  dup
+  IL_0016:  stsfld     "D Program.<>O.<0>__M"
+  IL_001b:  ldc.i4.s   42
+  IL_001d:  callvirt   "void D.Invoke(int)"
+  IL_0022:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetTypeInfo(memberAccess).Type);
+        Assert.Equal("D", model.GetTypeInfo(memberAccess).ConvertedType.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(ConversionKind.MethodGroup, model.GetConversion(memberAccess).Kind);
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
-    public void DelegateConversion_InstanceReceiver()
+    [Fact]
+    public void DelegateConversion_TypeReceiver_Creation()
     {
         var source = """
-D d = new C().M;
+D d = new D(C.M);
 d(42);
 
 delegate void D(int i);
 
-class C
+class C { }
+
+static class E
 {
+    extension(C)
+    {
+        public static void M(int i) { System.Console.Write($"E.M({i})"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "E.M(42)").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetTypeInfo(memberAccess).Type);
+        Assert.Equal("D", model.GetTypeInfo(memberAccess).ConvertedType.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(ConversionKind.MethodGroup, model.GetConversion(memberAccess).Kind);
+    }
+
+    [Fact]
+    public void DelegateConversion_InstanceReceiver()
+    {
+        var source = """
+D d = new C(42).M;
+d(43);
+
+delegate void D(int i);
+
+class C(int x)
+{
+    public int x = x;
     public void M() => throw null;
 }
 
@@ -16041,24 +16078,36 @@ static class E
 {
     extension(C c)
     {
-        public void M(int i) { System.Console.Write("E.M"); }
+        public void M(int i) { System.Console.Write($"{c.x}.M({i})"); }
     }
 }
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //var verifier = CompileAndVerify(comp, expectedOutput: "E.M");
-        //verifier.VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "42.M(43)").VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  newobj     "C..ctor(int)"
+  IL_0007:  ldftn      "void E.M(C, int)"
+  IL_000d:  newobj     "D..ctor(object, System.IntPtr)"
+  IL_0012:  ldc.i4.s   43
+  IL_0014:  callvirt   "void D.Invoke(int)"
+  IL_0019:  ret
+}
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C(42).M");
         Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M()", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(ConversionKind.MethodGroup, model.GetConversion(memberAccess).Kind);
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void DelegateConversion_TypeReceiver_Overloads()
     {
         var source = """
@@ -16082,9 +16131,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran ran");
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -16093,7 +16140,7 @@ static class E
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void DelegateConversion_ValueReceiver_Overloads()
     {
         var source = """
@@ -16116,18 +16163,16 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran ran");
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
         Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M(System.Int32 i)", "void C.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void DelegateConversion_TypeReceiver_Overloads_DifferentExtensions()
     {
         var source = """
@@ -16156,9 +16201,7 @@ static class E2
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran ran");
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -16167,7 +16210,7 @@ static class E2
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void DelegateConversion_WrongSignature()
     {
         var source = """
@@ -16193,19 +16236,19 @@ static class E
             // (1,15): error CS0123: No overload for 'M' matches delegate 'D'
             // D d = new C().M;
             Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "D").WithLocation(1, 15),
-            // (4,11): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+            // (4,11): error CS1503: Argument 2: cannot convert from 'int' to 'string'
             // new C().M(42);
-            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(4, 11));
+            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("2", "int", "string").WithLocation(4, 11));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M(System.String s)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void C.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void DelegateConversion_TypeReceiver_ZeroArityMatchesAny()
     {
         var source = """
@@ -16228,9 +16271,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "Method Method");
+        CompileAndVerify(comp, expectedOutput: "Method Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -16239,7 +16280,7 @@ static class E
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void DelegateConversion_ValueReceiver_Overloads_OuterScope_WithInapplicableInstanceMember()
     {
         var source = """
@@ -16265,7 +16306,7 @@ namespace N
         {
             public void M(int i)
             {
-                System.Console.Write("ran ran");
+                System.Console.Write("ran ");
             }
         }
     }
@@ -16280,18 +16321,16 @@ static class E2
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran ran");
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
         Assert.Equal("void N.E1.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void C.M(System.Char c)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M(System.Char c)", "void C.M(System.String s)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
+    [Fact]
     public void DelegateConversion_TypeReceiver_Overloads_InnerScope()
     {
         var source = """
@@ -16329,8 +16368,7 @@ namespace N
             // using N;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N;").WithLocation(1, 1));
 
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran");
+        CompileAndVerify(comp, expectedOutput: "ran");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -16339,19 +16377,18 @@ namespace N
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
     }
 
-    [Fact(Skip = "PROTOTYPE method group conversion")]
-    public void DelegateConversion_TypeReceiver_TypeArguments()
+    [Fact]
+    public void DelegateConversion_TypeReceiver_TypeArguments_01()
     {
         var source = """
-D d = C.M<object>;
+D d = object.M<object>;
 d(42);
 
 delegate void D(int i);
-class C { }
 
 static class E
 {
-    extension(C)
+    extension(object)
     {
         public static void M(int i) => throw null;
         public static void M<T>(int i) { System.Console.Write("ran"); }
@@ -16359,15 +16396,476 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M<object>");
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<object>");
         Assert.Equal("void E.<>E__0.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_TypeArguments_02()
+    {
+        var source = """
+D d = object.M<object, int>;
+d(42);
+
+delegate void D(int i);
+
+static class E
+{
+    extension(object)
+    {
+        public static void M<T>(T t) { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS0117: 'object' does not contain a definition for 'M'
+            // D d = object.M<object, int>;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M<object, int>").WithArguments("object", "M").WithLocation(1, 14));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<object, int>");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_TypeArguments_03()
+    {
+        var source = """
+D d = object.M<object, int>;
+d(42);
+
+delegate void D(int i);
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public static void M<U>(U u) { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<object, int>");
+        Assert.Equal("void E.<>E__0<System.Object>.M<System.Int32>(System.Int32 u)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_TypeArguments_04()
+    {
+        var source = """
+D d = object.M<object>;
+d(42);
+
+delegate void D(int i);
+
+static class E
+{
+    extension<T>(T)
+    {
+        public static void M(int i) { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<object>");
+        Assert.Equal("void E.<>E__0<System.Object>.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_OptionalParameter()
+    {
+        var source = """
+System.Action a = object.M;
+System.Action a2 = E.M2;
+
+static class E
+{
+    extension(object)
+    {
+        public static void M(int i = 0) => throw null;
+    }
+
+    public static void M2(int i = 0) => throw null;
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,26): error CS0123: No overload for 'M' matches delegate 'Action'
+            // System.Action a = object.M;
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(1, 26),
+            // (2,22): error CS0123: No overload for 'M2' matches delegate 'Action'
+            // System.Action a2 = E.M2;
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M2").WithArguments("M2", "System.Action").WithLocation(2, 22));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+
+        source = """
+static class E
+{
+    static void Main()
+    {
+        System.Action a2 = E.M2;
+    }
+
+    public static void M2(int i = 0) => throw null;
+}
+""";
+        comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+        comp.VerifyEmitDiagnostics(
+            // (5,30): error CS0123: No overload for 'M2' matches delegate 'Action'
+            //         System.Action a2 = E.M2;
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M2").WithArguments("M2", "System.Action").WithLocation(5, 30));
+
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_ReturnRefKindMismatch()
+    {
+        var source = """
+D d = object.M;
+
+delegate int D();
+
+static class E
+{
+    extension(object)
+    {
+        public static ref int M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,7): error CS8189: Ref mismatch between 'E.extension(object).M()' and delegate 'D'
+            // D d = object.M;
+            Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "object.M").WithArguments("E.extension(object).M()", "D").WithLocation(1, 7));
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_ReturnTypeMismatch()
+    {
+        var source = """
+D d = object.M;
+
+delegate int D();
+
+static class E
+{
+    extension(object)
+    {
+        public static string M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,7): error CS0407: 'string E.extension(object).M()' has the wrong return type
+            // D d = object.M;
+            Diagnostic(ErrorCode.ERR_BadRetType, "object.M").WithArguments("E.extension(object).M()", "string").WithLocation(1, 7));
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_BadParameterConversion()
+    {
+        var source = """
+D d = object.M;
+D2 d2 = object.M2;
+
+delegate void D(long l);
+delegate void D2(int i);
+
+static class E
+{
+    extension(object)
+    {
+        public static void M(int i) => throw null;
+        public static void M2(long l) => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS0123: No overload for 'M' matches delegate 'D'
+            // D d = object.M;
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "D").WithLocation(1, 14),
+            // (2,9): error CS0123: No overload for 'E.extension(object).M2(long)' matches delegate 'D2'
+            // D2 d2 = object.M2;
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "object.M2").WithArguments("E.extension(object).M2(long)", "D2").WithLocation(2, 9));
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_Conditional()
+    {
+        var source = """
+System.Action a = object.M;
+
+static class E
+{
+    extension(object)
+    {
+        [System.Diagnostics.Conditional("DEBUG")]
+        public static void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS1618: Cannot create delegate with 'E.extension(object).M()' because it or a method it overrides has a Conditional attribute
+            // System.Action a = object.M;
+            Diagnostic(ErrorCode.ERR_DelegateOnConditional, "object.M").WithArguments("E.extension(object).M()").WithLocation(1, 19));
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_Partial()
+    {
+        var source = """
+System.Action a = object.M;
+
+static partial class E
+{
+    extension(object)
+    {
+        static partial void M();
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        // PROTOTYPE the error on the partial method seems misleading
+        comp.VerifyEmitDiagnostics(
+            // (1,26): error CS0117: 'object' does not contain a definition for 'M'
+            // System.Action a = object.M;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 26),
+            // (7,29): error CS0751: A partial member must be declared within a partial type
+            //         static partial void M();
+            Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(7, 29));
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_Pointer()
+    {
+        var source = """
+D d = object.M;
+
+unsafe delegate int* D();
+
+unsafe static class E
+{
+    extension(object)
+    {
+        public static int* M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (1,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // D d = object.M;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "object.M").WithLocation(1, 7));
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_RefReadonlyMismatch()
+    {
+        var source = """
+D d = object.M;
+D2 d2 = object.M2;
+
+D d3 = E.M3;
+D2 d4 = E.M4;
+
+delegate void D(ref int i);
+delegate void D2(ref readonly int i);
+
+static class E
+{
+    extension(object)
+    {
+        public static void M(ref readonly int i) => throw null;
+        public static void M2(ref int i) => throw null;
+    }
+
+    public static void M3(ref readonly int i) => throw null;
+    public static void M4(ref int i) => throw null;
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,7): warning CS9198: Reference kind modifier of parameter 'ref readonly int i' doesn't match the corresponding parameter 'ref int i' in target.
+            // D d = object.M;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "object.M").WithArguments("ref readonly int i", "ref int i").WithLocation(1, 7),
+            // (2,16): error CS0123: No overload for 'M2' matches delegate 'D2'
+            // D2 d2 = object.M2;
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M2").WithArguments("M2", "D2").WithLocation(2, 16),
+            // (4,8): warning CS9198: Reference kind modifier of parameter 'ref readonly int i' doesn't match the corresponding parameter 'ref int i' in target.
+            // D d3 = E.M3;
+            Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "E.M3").WithArguments("ref readonly int i", "ref int i").WithLocation(4, 8),
+            // (5,11): error CS0123: No overload for 'M4' matches delegate 'D2'
+            // D2 d4 = E.M4;
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M4").WithArguments("M4", "D2").WithLocation(5, 11));
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_Obsolete()
+    {
+        var source = """
+System.Action a = object.M;
+
+static class E
+{
+    extension(object)
+    {
+        [System.Obsolete("obsolete", true)]
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS0619: 'E.extension(object).M()' is obsolete: 'obsolete'
+            // System.Action a = object.M;
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.M").WithArguments("E.extension(object).M()", "obsolete").WithLocation(1, 19));
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_ReceiverTypeKind_01()
+    {
+        var source = """
+System.Action a = object.M;
+System.Action a2 = int.M;
+a();
+a2();
+
+static class E
+{
+    extension(object)
+    {
+        public static void M() { System.Console.Write("ran "); }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_ReceiverTypeKind_02()
+    {
+        var source = """
+System.Action a2 = int.M;
+a2();
+
+static class E
+{
+    extension(int)
+    {
+        public static void M() { System.Console.Write("ran"); }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void DelegateConversion_InstanceReceiver_ReceiverTypeKind()
+    {
+        var source = """
+object o = null;
+int i = 0;
+
+System.Action a = o.M;
+System.Action a2 = i.M;
+
+static class E
+{
+    extension(object o)
+    {
+        public void M() => throw null;
+    }
+
+    extension(int i)
+    {
+        public void M() => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (5,20): error CS1113: Extension method 'E.extension(int).M()' defined on value type 'int' cannot be used to create delegates
+            // System.Action a2 = i.M;
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "i.M").WithArguments("E.extension(int).M()", "int").WithLocation(5, 20));
+    }
+
+    [Fact]
+    public void DelegateConversion_InstanceReceiver_RefStructReceiver()
+    {
+        var source = """
+System.Span<int> s = default;
+
+System.Action a = s.M;
+
+static class E
+{
+    extension(object o)
+    {
+        public void M() => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (3,21): error CS0123: No overload for 'M' matches delegate 'Action'
+            // System.Action a = s.M;
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(3, 21));
+    }
+
+    [Fact]
+    public void DelegateConversion_TypeReceiver_RefStructReceiver()
+    {
+        var source = """
+System.Action a = System.Span<int>.M;
+
+static class E
+{
+    extension(object)
+    {
+        public static void M() => throw null;
+    }
+}
+""";
+
+        // Note: we apply the same conversion requirements even though no conversion on the receiver
+        //   is needed in a static scenario. 
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (1,36): error CS0123: No overload for 'M' matches delegate 'Action'
+            // System.Action a = System.Span<int>.M;
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(1, 36));
     }
 
     [Fact]
@@ -16480,7 +16978,7 @@ static class E
     public void StaticPropertyAccess_ColorColor()
     {
         var src = """
-C.M(new C());
+C.M(null);
 
 class C
 {
@@ -18184,14 +18682,14 @@ static class E
 {
     extension(C c)
     {
-        public System.Func<Task> DisposeAsync => throw null;
+        public System.Func<Task> DisposeAsync => async () => { System.Console.Write("ran2"); await Task.Yield(); };
     }
 }
 """;
         var comp = CreateCompilation(src);
         // PROTOTYPE(instance) confirm when spec'ing pattern-based disposal
         comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
+        // PROTOTYPE metadata is undone (produces unverifiable IL)
     }
 
     [Fact]
@@ -18251,7 +18749,7 @@ static class E
     [Fact]
     public void ExtensionMemberLookup_PatternBased_Fixed_NoMethod()
     {
-        var text = @"
+        var text = """
 unsafe class C
 {
     public static void Main()
@@ -18269,10 +18767,10 @@ static class E
 {
     extension(Fixable f)
     {
-        public ref int GetPinnableReference() { return ref (new int[] { 1, 2, 3 })[0]; }
+        public ref int GetPinnableReference() { System.Console.Write("pin "); return ref (new int[] { 1, 2, 3 })[0]; }
     }
 }
-";
+""";
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
         // PROTOTYPE confirm when spec'ing pattern-based fixed
         comp.VerifyEmitDiagnostics();
@@ -18673,9 +19171,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "property");
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -18710,9 +19206,7 @@ static class E2
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "property property2");
+        CompileAndVerify(comp, expectedOutput: "property property2").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19235,15 +19729,16 @@ static class E1
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
     }
 
-    [Fact(Skip = "PROTOTYPE addressof")]
-    public void AddressOf_Simple()
+    [Fact]
+    public void AddressOf_TypeReceiver()
     {
         var src = """
 unsafe class C
 {
-    static void M1()
+    static void Main()
     {
         delegate*<string, object, void> ptr = &C.M;
+        ptr("ran", null);
     }
 }
 
@@ -19251,13 +19746,32 @@ static class E
 {
     extension(C)
     {
-        public static void M(string s, object o) {}
+        public static void M(string s, object o) { System.Console.Write(s); }
     }
 }
 """;
-        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
+        var verifier = CompileAndVerify(comp, expectedOutput: "ran", verify: Verification.Fails with { ILVerifyMessage = "[Main]: ImportCalli not implemented" });
+        verifier.VerifyIL("C.Main", """
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  .locals init (delegate*<string, object, void> V_0, //ptr
+                delegate*<string, object, void> V_1)
+  IL_0000:  nop
+  IL_0001:  ldftn      "void E.M(string, object)"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.1
+  IL_000a:  ldstr      "ran"
+  IL_000f:  ldnull
+  IL_0010:  ldloc.1
+  IL_0011:  calli      "delegate*<string, object, void>"
+  IL_0016:  nop
+  IL_0017:  ret
+} 
+""");
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19265,7 +19779,47 @@ static class E
         Assert.Equal("void E.<>E__0.M(System.String s, System.Object o)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
-    [Fact(Skip = "PROTOTYPE addressof")]
+    [Fact]
+    public void AddressOf_InstanceReceiver()
+    {
+        var src = """
+unsafe class C
+{
+    static void Main()
+    {
+        C c = new C();
+        delegate*<string, object, void> ptr = &c.M;
+        ptr("ran", null);
+
+        delegate*<string, object, void> ptr2 = &c.M2;
+    }
+}
+
+static class E
+{
+    extension(C)
+    {
+        public void M(string s, object o) { System.Console.Write(s); }
+    }
+    public static void M2(this C c, string s, object o) { System.Console.Write(s); }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (6,48): error CS8759: Cannot create a function pointer for 'E.extension(C).M(string, object)' because it is not a static method
+            //         delegate*<string, object, void> ptr = &c.M;
+            Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "c.M").WithArguments("E.extension(C).M(string, object)").WithLocation(6, 48),
+            // (9,48): error CS8788: Cannot use an extension method with a receiver as the target of a '&' operator.
+            //         delegate*<string, object, void> ptr2 = &c.M2;
+            Diagnostic(ErrorCode.ERR_CannotUseReducedExtensionMethodInAddressOf, "&c.M2").WithLocation(9, 48));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "c.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
     public void AddressOf_AmbiguousBestMethod()
     {
         var src = """
@@ -19297,6 +19851,64 @@ static class E
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+    }
+
+    [Fact]
+    public void AddressOf_TypeReceiver_UnmanagedCallersOnly_01()
+    {
+        var src = """
+unsafe class C
+{
+    static void Main()
+    {
+        delegate*<void> ptr = &C.M;
+        delegate*<void> ptr2 = &E.M;
+    }
+}
+
+static class E
+{
+    extension(C)
+    {
+        [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,32): error CS8786: Calling convention of 'E.extension(C).M()' is not compatible with 'Default'.
+            //         delegate*<void> ptr = &C.M;
+            Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "C.M").WithArguments("E.extension(C).M()", "Default").WithLocation(5, 32),
+            // (6,33): error CS8786: Calling convention of 'E.M()' is not compatible with 'Default'.
+            //         delegate*<void> ptr2 = &E.M;
+            Diagnostic(ErrorCode.ERR_WrongFuncPtrCallingConvention, "E.M").WithArguments("E.M()", "Default").WithLocation(6, 33));
+    }
+
+    [Fact]
+    public void AddressOf_TypeReceiver_UnmanagedCallersOnly_02()
+    {
+        var src = """
+unsafe class C
+{
+    static void Main()
+    {
+        delegate* unmanaged<void> ptr = &C.M;
+        delegate* unmanaged<void> ptr2 = &E.M;
+    }
+}
+
+static class E
+{
+    extension(C)
+    {
+        [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugExe, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -19715,7 +20327,7 @@ public static partial class C
 {
     extension(object)
     {
-        public static void M() { }
+        public static void M() { System.Console.Write("ran "); }
     }
 }
 
@@ -19723,13 +20335,12 @@ public static partial class C
 {
     extension(object)
     {
-        public static void M2() { }
+        public static void M2() { System.Console.Write("ran2"); }
     }
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
+        CompileAndVerify(comp, expectedOutput: "ran ran2").VerifyDiagnostics();
     }
 
     [Fact]

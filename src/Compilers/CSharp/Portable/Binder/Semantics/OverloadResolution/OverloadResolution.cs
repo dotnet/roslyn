@@ -458,7 +458,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((options & Options.IsFunctionPointerResolution) != 0)
             {
-                // PROTOTYPE function pointer conversions are not handled yet
                 RemoveCallingConventionMismatches(results, callingConventionInfo);
                 RemoveMethodsNotDeclaredStatic(results);
             }
