@@ -238,6 +238,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string ConvertAutoPropertyToFullProperty = nameof(ConvertAutoPropertyToFullProperty);
             public const string ConvertCast = nameof(ConvertCast);
             public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
+            public const string CopilotImplementNotImplementedException = nameof(CopilotImplementNotImplementedException);
             public const string DebuggingBreakpoints = "Debugging.Breakpoints";
             public const string DebuggingDataTips = "Debugging.DataTips";
             public const string DebuggingEditAndContinue = "Debugging.EditAndContinue";
