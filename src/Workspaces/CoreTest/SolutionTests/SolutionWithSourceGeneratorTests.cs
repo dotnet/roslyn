@@ -1040,6 +1040,34 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [Theory, CombinatorialData]
+    public async Task WithSyntaxRootOnSourceGeneratedDocument_AnnotationsPreserved(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+        generatorRan = false;
+
+        var annotation = new SyntaxAnnotation("yellow");
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+        var root = await sourceGeneratedDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        var modifiedRoot = root.WithAdditionalAnnotations(annotation);
+
+        sourceGeneratedDocument = (SourceGeneratedDocument)sourceGeneratedDocument.WithSyntaxRoot(modifiedRoot);
+        var newRoot = await sourceGeneratedDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        Assert.True(newRoot.HasAnnotations("yellow"));
+    }
+
+    [Theory, CombinatorialData]
     public async Task WithTextWorksOnSourceGeneratedDocument(TestHost testHost)
     {
         using var workspace = CreateWorkspaceWithPartialSemantics(testHost);

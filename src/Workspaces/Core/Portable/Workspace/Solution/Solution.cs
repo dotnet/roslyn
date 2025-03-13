@@ -1616,7 +1616,7 @@ public partial class Solution
     internal Document WithFrozenSourceGeneratedDocument(
         SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)
     {
-        var newCompilationState = CompilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text)]);
+        var newCompilationState = CompilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text, syntaxNode: null)]);
         var newSolution = WithCompilationState(newCompilationState);
 
         var newDocumentState = newCompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
@@ -1627,7 +1627,7 @@ public partial class Solution
     }
 
     internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
-        => WithCompilationState(CompilationState.WithFrozenSourceGeneratedDocuments(documents));
+        => WithCompilationState(CompilationState.WithFrozenSourceGeneratedDocuments(documents.SelectAsArray(d => (d.documentIdentity, d.generationDateTime, d.text, (SyntaxNode?)null))));
 
     /// <inheritdoc cref="SolutionCompilationState.UpdateSpecificSourceGeneratorExecutionVersions"/>
     internal Solution UpdateSpecificSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap)
