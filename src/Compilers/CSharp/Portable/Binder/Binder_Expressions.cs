@@ -7994,7 +7994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we're resolving without arguments, which means we're not treating the member access as invoked
             var resolution = this.ResolveExtension(
                 syntax, name, analyzedArguments: null, receiver, typeArgumentsOpt, options: OverloadResolution.Options.None,
-                returnRefKind: default, returnType: null, ref useSiteInfo);
+                returnRefKind: default, returnType: null, ref useSiteInfo, acceptOnlyMethods: false);
 
             diagnostics.Add(syntax, useSiteInfo);
 
@@ -8492,6 +8492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind returnRefKind,
             TypeSymbol? returnType,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            bool acceptOnlyMethods,
             in CallingConventionInfo callingConvention = default)
         {
             Debug.Assert(left.Type is not null);
@@ -8534,6 +8535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeArgumentsWithAnnotations, returnType, returnRefKind, lookupResult,
                     analyzedArguments, ref actualMethodArguments, ref actualReceiverArguments, ref useSiteInfo, ref firstResult,
                     options, callingConvention, classicExtensionLookupResult, lookupOptions, binder: this, scope: scope, diagnostics: diagnostics,
+                    acceptOnlyMethods: acceptOnlyMethods,
                     result: out MethodGroupResolution result))
                 {
                     lookupResult.Free();
@@ -8582,6 +8584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupOptions lookupOptions,
                 Binder binder,
                 ExtensionScope scope,
+                bool acceptOnlyMethods,
                 BindingDiagnosticBag diagnostics,
                 out MethodGroupResolution result)
             {
@@ -8610,7 +8613,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // 3. resolve properties
                 Debug.Assert(arity == 0 || lookupResult.Symbols.All(s => s.Kind != SymbolKind.Property));
-                OverloadResolutionResult<PropertySymbol>? propertyResult = arity != 0 ? null : resolveProperties(left, lookupResult, binder, ref actualReceiverArguments, ref useSiteInfo);
+
+                // PROTOTYPE: Regarding 'acceptOnlyMethods', consider if it would be better to add a special 'LookupOptions' value to filter out properties during lookup
+                OverloadResolutionResult<PropertySymbol>? propertyResult = arity != 0 || acceptOnlyMethods ? null : resolveProperties(left, lookupResult, binder, ref actualReceiverArguments, ref useSiteInfo);
 
                 // 4. determine member kind
                 if (!methodResult.HasAnyApplicableMethod && propertyResult?.HasAnyApplicableMember != true)
@@ -10465,7 +10470,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 { WasCompilerGenerated = true };
 
                 indexerOrSliceAccess = BindMethodGroupInvocation(syntax, syntax, method.Name, boundMethodGroup, analyzedArguments,
-                    diagnostics, queryClause: null, ignoreNormalFormIfHasValidParamsParameter: true, anyApplicableCandidates: out bool _).MakeCompilerGenerated();
+                    diagnostics, queryClause: null, ignoreNormalFormIfHasValidParamsParameter: true, anyApplicableCandidates: out bool _,
+                    disallowExpandedNonArrayParams: false,
+                    acceptOnlyMethods: true).MakeCompilerGenerated(); // PROTOTYPE: Test effect of acceptOnlyMethods value
 
                 analyzedArguments.Free();
             }
@@ -10593,7 +10600,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return ResolveMethodGroup(
                 node, node.Syntax, node.Name, analyzedArguments, ref useSiteInfo,
-                options, returnRefKind: returnRefKind, returnType: returnType,
+                options,
+                acceptOnlyMethods: true, // PROTOTYPE: Confirm this value is appropriate for all consumers of the enclosing method and test effect of this value for all of them
+                returnRefKind: returnRefKind, returnType: returnType,
                 callingConventionInfo: callingConventionInfo);
         }
 
@@ -10604,6 +10613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             OverloadResolution.Options options,
+            bool acceptOnlyMethods,
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             in CallingConventionInfo callingConventionInfo = default)
@@ -10611,6 +10621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodResolution = ResolveMethodGroupInternal(
                 node, expression, memberName, analyzedArguments, ref useSiteInfo,
                 options,
+                acceptOnlyMethods: acceptOnlyMethods,
                 returnRefKind: returnRefKind, returnType: returnType,
                 callingConvention: callingConventionInfo);
             if (methodResolution.IsEmpty && !methodResolution.HasAnyErrors)
@@ -10634,6 +10645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             OverloadResolution.Options options,
+            bool acceptOnlyMethods,
             RefKind returnRefKind = default,
             TypeSymbol returnType = null,
             in CallingConventionInfo callingConvention = default)
@@ -10653,6 +10665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var extensionMethodResolution = ResolveExtension(
                 expression, memberName, analyzedArguments, methodGroup.ReceiverOpt, methodGroup.TypeArgumentsOpt, options,
                 returnRefKind: returnRefKind, returnType: returnType, ref useSiteInfo,
+                acceptOnlyMethods: acceptOnlyMethods,
                 in callingConvention);
             bool preferExtensionMethodResolution = false;
 
