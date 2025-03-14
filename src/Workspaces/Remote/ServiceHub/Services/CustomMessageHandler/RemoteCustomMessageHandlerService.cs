@@ -19,6 +19,9 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
     public RemoteCustomMessageHandlerService(in ServiceConstructionArguments arguments)
         : base(arguments)
     {
+#if DEBUG
+        System.Diagnostics.Debugger.Launch();
+#endif
     }
 
     public ValueTask<string> HandleCustomMessageAsync(
