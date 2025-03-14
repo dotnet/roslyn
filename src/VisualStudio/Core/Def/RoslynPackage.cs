@@ -145,7 +145,7 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         base.RegisterInitializationWork(bgThreadWorkTasks, mainThreadWorkTasks);
 
-        bgThreadWorkTasks.Add(async (progress, cancellationToken) =>
+        bgThreadWorkTasks.Add((progress, cancellationToken) =>
         {
             _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
             _colorSchemeApplier.RegisterInitializationWork(bgThreadWorkTasks, mainThreadWorkTasks);
@@ -185,6 +185,8 @@ internal sealed class RoslynPackage : AbstractPackage
                     await miscellaneousFilesWorkspace.InitializeAsync().ConfigureAwait(false);
                 });
             });
+
+            return Task.CompletedTask;
         });
     }
 
