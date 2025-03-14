@@ -1,0 +1,24 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!--
+      PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.PublicApiAnalyzer,
+      Restore would conclude that there is a cyclic dependency between us and the Microsoft.CodeAnalysis.PublicApiAnalyzer package.
+    -->
+    <PackageId>*$(MSBuildProjectFile)*</PackageId>
+    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForPublicApiAnalyzers)</MicrosoftCodeAnalysisVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\Roslyn.Diagnostics.Analyzers\Core\RoslynDiagnosticIds.cs" Link="RoslynDiagnosticIds.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+  <Import Project="..\..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
+</Project>
