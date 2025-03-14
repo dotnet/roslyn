@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
@@ -34,6 +35,13 @@ public class ExtensionTests : CompilingTestBase
         {
             compilation.VerifyTypeIL(typeName, expected);
         }
+    }
+
+    private static void AssertSetStrictlyEqual(string[] expected, string[] actual)
+    {
+        Assert.True(expected.All(new HashSet<string>().Add), $"Duplicates were found in '{nameof(expected)}'");
+        Assert.True(actual.All(new HashSet<string>().Add), $"Duplicates were found in '{nameof(actual)}'");
+        AssertEx.SetEqual(expected, actual);
     }
 
     private static void AssertExtensionDeclaration(INamedTypeSymbol symbol)
@@ -2073,19 +2081,20 @@ class C { }
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        var parameter = internalSymbol.ExtensionParameter;
+        var extensionParameter = internalSymbol.ExtensionParameter;
 
-        var parameter1 = parameter;
-        Assert.Equal("System.Int32 i", parameter1.ToTestDisplayString());
-        Assert.True(parameter1.Equals(parameter1));
+        Assert.Equal("System.Int32 i", extensionParameter.ToTestDisplayString());
+        Assert.True(extensionParameter.Equals(extensionParameter));
 
         var parameterSyntaxes = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
-        // PROTOTYPE semantic model is undone
-        Assert.Null(model.GetDeclaredSymbol(parameterSyntaxes[0]));
-        //Assert.Same(parameter1, model.GetDeclaredSymbol(parameterSyntaxes[0]));
+        Assert.Equal("System.Int32 i", model.GetDeclaredSymbol(parameterSyntaxes[0]).ToTestDisplayString());
+        Assert.Same(extensionParameter.GetPublicSymbol(), model.GetDeclaredSymbol(parameterSyntaxes[0]));
 
         Assert.Equal("System.Int32", model.GetTypeInfo(parameterSyntaxes[1].Type).Type.ToTestDisplayString());
+        Assert.Null(model.GetDeclaredSymbol(parameterSyntaxes[1]));
+
         Assert.Equal("C", model.GetTypeInfo(parameterSyntaxes[2].Type).Type.ToTestDisplayString());
+        Assert.Null(model.GetDeclaredSymbol(parameterSyntaxes[2]));
     }
 
     [Fact]
@@ -2532,9 +2541,8 @@ public class MyAttribute : System.Attribute { }
         var model = comp.GetSemanticModel(tree);
         var parameter = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
         var parameterSymbol = model.GetDeclaredSymbol(parameter);
-        // PROTOTYPE semantic model is undone
-        Assert.Null(parameterSymbol);
-        //AssertEx.SetEqual(["MyAttribute"], parameterSymbol.GetAttributes().Select(a => a.ToString()));
+        Assert.Equal("System.Int32 x", parameterSymbol.ToTestDisplayString());
+        AssertEx.SetEqual(["MyAttribute"], parameterSymbol.GetAttributes().Select(a => a.ToString()));
 
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var extensionSymbol = model.GetDeclaredSymbol(type);
@@ -3360,7 +3368,7 @@ public static class Extensions
             Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "int").WithLocation(7, 20)
             );
 
-        Assert.Null(model.GetDeclaredSymbol(ext.ParameterList.Parameters[0])); // PROTOTYPE: should find 'extension(object).o'
+        Assert.Equal("[System.Object o = null]", model.GetDeclaredSymbol(ext.ParameterList.Parameters[0]).ToTestDisplayString());
     }
 
     [Fact]
@@ -9948,8 +9956,98 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new object().M()");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
-        // PROTOTYPE semantic model is undone
         Assert.Equal([], model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["void Extensions.<>E__0.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void Extensions.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        src = """
+new object().M();
+
+public static class Extensions
+{
+    private static void M(this object o) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS1061: 'object' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // new object().M();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M").WithLocation(1, 14));
+
+        tree = comp.SyntaxTrees[0];
+        model = comp.GetSemanticModel(tree);
+        invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new object().M()");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
+
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["void System.Object.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void System.Object.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void InstanceMethodInvocation_Inaccessible_02()
+    {
+        var src = """
+new object().M();
+
+public static class E1
+{
+    extension(object o)
+    {
+        void M() { }
+    }
+}
+public static class E2
+{
+    extension(object o)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new object().M()");
+        Assert.Equal("void E2.<>E__0.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
+        Assert.Equal("void E2.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E2.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        src = """
+new object().M();
+
+public static class E1
+{
+    private static void M(this object o) { }
+}
+public static class E2
+{
+    public static void M(this object o) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        tree = comp.SyntaxTrees[0];
+        model = comp.GetSemanticModel(tree);
+        invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new object().M()");
+        Assert.Equal("void System.Object.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
+        Assert.Equal("void System.Object.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void System.Object.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -9973,6 +10071,9 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new object().M()");
         Assert.Equal("void Extensions.<>E__0<System.Object>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
+        Assert.Equal(["void Extensions.<>E__0<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10008,6 +10109,12 @@ public static class Extensions
 
         invocation = GetSyntax<InvocationExpressionSyntax>(tree, "int.M()");
         Assert.Equal("void Extensions.<>E__0<System.Int32>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
+        Assert.Equal(["void Extensions.<>E__0<System.Int32>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10035,9 +10142,11 @@ public static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
         Assert.Equal("System.Int32 E.<>E__0<T>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.P");
         Assert.Equal("System.Int32 E.<>E__0<System.Int32>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
     }
 
     [Fact]
@@ -10258,8 +10367,7 @@ namespace N3
 
             var invocation = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().Method");
             Assert.Equal($$"""void {{extensionName}}.Method()""", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
-            // PROTOTYPE semantic model is undone
-            // PROTOTYPE: Assert.Empty(model.GetMemberGroup(invocation));
+            //Assert.Equal(["void N2.E.<>E__0.Method()"], model.GetMemberGroup(invocation).ToTestDisplayStrings()); // TODO2
         }
     }
 
@@ -10302,8 +10410,7 @@ namespace N
 
         var invocation = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().Method");
         Assert.Equal("void N.E.<>E__0.Method()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
-        // PROTOTYPE semantic model is undone
-        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(invocation));
+        Assert.Equal(["void N.E.<>E__0.Method()"], model.GetMemberGroup(invocation).ToTestDisplayStrings());
 
         src = """
 using N;
@@ -10411,13 +10518,17 @@ static class E2
 
         var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "new object().Method(42)");
         Assert.Equal("void E1.<>E__0.Method(System.Int32 i)", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString());
-        // PROTOTYPE semantic model is undone
         Assert.Empty(model.GetMemberGroup(invocation1));
 
         var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """new object().Method("hello")""");
         Assert.Equal("void E2.<>E__0.Method(System.String s)", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString());
-        // PROTOTYPE semantic model is undone
         Assert.Empty(model.GetMemberGroup(invocation2));
+
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new object().Method").First();
+        Assert.Equal(["void E1.<>E__0.Method(System.Int32 i)", "void E2.<>E__0.Method(System.String s)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new object().Method").Last();
+        Assert.Equal(["void E1.<>E__0.Method(System.Int32 i)", "void E2.<>E__0.Method(System.String s)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10465,13 +10576,17 @@ namespace N1
 
         var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "new object().Method(42)");
         Assert.Equal("void N1.E1.<>E__0.Method(System.Int32 i)", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString());
-        // PROTOTYPE semantic model is undone
         Assert.Empty(model.GetMemberGroup(invocation1));
 
         var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """new object().Method("hello")""");
         Assert.Equal("void N1.N2.E2.<>E__0.Method(System.String s)", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString());
-        // PROTOTYPE semantic model is undone
         Assert.Empty(model.GetMemberGroup(invocation2));
+
+        var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new object().Method").First();
+        Assert.Equal(["void N1.N2.E2.<>E__0.Method(System.String s)", "void N1.E1.<>E__0.Method(System.Int32 i)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new object().Method").Last();
+        Assert.Equal(["void N1.N2.E2.<>E__0.Method(System.String s)", "void N1.E1.<>E__0.Method(System.Int32 i)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10513,15 +10628,18 @@ namespace N2
 
         var invocation1 = GetSyntax<InvocationExpressionSyntax>(tree, "new object().Method(42)");
         Assert.Equal("void E1.<>E__0.Method(System.Int32 i)", model.GetSymbolInfo(invocation1).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(invocation1)); // PROTOTYPE semantic model is undone
+        Assert.Empty(model.GetMemberGroup(invocation1));
+        Assert.Equal(["void E1.<>E__0.Method(System.Int32 i)", "void N2.E2.<>E__0.Method(System.String s)"], model.GetMemberGroup(invocation1.Expression).ToTestDisplayStrings());
 
         var invocation2 = GetSyntax<InvocationExpressionSyntax>(tree, """new object().Method("hello")""");
         Assert.Equal("void N2.E2.<>E__0.Method(System.String s)", model.GetSymbolInfo(invocation2).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(invocation2)); // PROTOTYPE semantic model is undone
+        Assert.Empty(model.GetMemberGroup(invocation2));
+        Assert.Equal(["void E1.<>E__0.Method(System.Int32 i)", "void N2.E2.<>E__0.Method(System.String s)"], model.GetMemberGroup(invocation2.Expression).ToTestDisplayStrings());
 
         var invocation3 = GetSyntax<InvocationExpressionSyntax>(tree, "new object().Method(default)");
         Assert.Equal("void E1.<>E__0.Method(System.Int32 i)", model.GetSymbolInfo(invocation3).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(invocation3)); // PROTOTYPE semantic model is undone
+        Assert.Empty(model.GetMemberGroup(invocation3));
+        Assert.Equal(["void E1.<>E__0.Method(System.Int32 i)", "void N2.E2.<>E__0.Method(System.String s)"], model.GetMemberGroup(invocation3.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10537,19 +10655,22 @@ static class E
 {
     extension(object o)
     {
-        public void M() => throw null;
+        public void M() { System.Console.Write("ran"); }
     }
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new Derived().M()");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(invocation)); // PROTOTYPE semantic model is undone
+        Assert.Empty(model.GetMemberGroup(invocation));
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new Derived().M");
+        Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10565,19 +10686,22 @@ static class E
 {
     extension(I i)
     {
-        public void M() => throw null;
+        public void M() { System.Console.Write("ran"); }
     }
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C().M()");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(invocation)); // PROTOTYPE semantic model is undone
+        Assert.Empty(model.GetMemberGroup(invocation));
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10594,19 +10718,22 @@ static class E
 {
     extension(I i)
     {
-        public void M() => throw null;
+        public void M() { System.Console.Write("ran"); }
     }
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        var staticType = GetSyntax<InvocationExpressionSyntax>(tree, "new C().M()");
-        Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(staticType).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(staticType)); // PROTOTYPE semantic model is undone
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C().M()");
+        Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        Assert.Empty(model.GetMemberGroup(invocation));
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
+        Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10627,18 +10754,21 @@ static class E
 {
     extension(I i)
     {
-        public void M() => throw null;
+        public void M() { System.Console.Write("ran"); }
     }
 }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "t.M()");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.M");
+        Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10668,6 +10798,11 @@ static class E
             // (5,9): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
             //         T.M();
             Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(5, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "T.M");
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10700,6 +10835,9 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "t.M2()");
         Assert.Equal("void E.<>E__0<T>.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.M2");
+        Assert.Equal(["void E.<>E__0<T>.M2()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10739,6 +10877,9 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "t.M2()");
         Assert.Equal("void E2.<>E__0<T>.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "t.M2");
+        Assert.Equal(["void E2.<>E__0<T>.M2()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10766,6 +10907,11 @@ static class E
             // new object().M2();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object()").WithArguments("object", "M2", "E.M2(string)", "string").WithLocation(2, 1)
             );
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
+        Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -10786,13 +10932,14 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M()");
         Assert.Equal("void E.<>E__0<System.Int32>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        Assert.Equal(["void E.<>E__0<System.Int32>.M()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10821,6 +10968,10 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<string>()");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<int>().M<string>");
+        Assert.Equal(["void E.<>E__0<System.Int32>.M<U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10847,6 +10998,9 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<int, string>()");
         Assert.Equal("void E.<>E__0<System.Int32>.M<System.String>()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+
+        Assert.Equal(["void E.<>E__0<System.Int32>.M<System.String>()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10878,6 +11032,9 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<,>()");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+
+        Assert.Equal(["void E.<>E__0<System.Int32>.M<U, V>()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10909,6 +11066,9 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<,,>()");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+
+        Assert.Equal([], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -10937,6 +11097,9 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<int, string>()");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+
+        Assert.Equal(["void E.<>E__0<System.Int32>.M<System.String>()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11050,6 +11213,11 @@ static class E
             // (3,1): error CS1973: 'object' has no applicable method named 'M2' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
             // new object().M2(d);
             Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "new object().M2(d)").WithArguments("object", "M2").WithLocation(3, 1));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
+        Assert.Equal(["void E.<>E__0.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11078,6 +11246,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<dynamic>().M");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11107,6 +11276,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new D().M");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11131,6 +11301,11 @@ static class E
             // (4,11): error CS1966: 'D': cannot implement a dynamic interface 'I<dynamic>'
             // class D : I<dynamic> { }
             Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<dynamic>").WithArguments("D", "I<dynamic>").WithLocation(4, 11));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new D().M");
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11153,6 +11328,17 @@ static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "MMM").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<(int a, int b)>().M");
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<(int, int)>().M");
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C<(int other, int)>().M");
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         src = """
 new C<(int a, int b)>().M();
@@ -11240,6 +11426,11 @@ static class E
             // (2,32): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
             // System.Console.Write($"{nameof(o.M)} ");
             Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "o.M").WithLocation(2, 32));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.M");
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11258,6 +11449,11 @@ static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "M").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "E.M");
+        Assert.Equal(["void E.M(this System.Object)", "void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11281,6 +11477,11 @@ static class E
             // (2,32): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
             // System.Console.Write($"{nameof(o.M)} ");
             Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "o.M").WithLocation(2, 32));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "o.M");
+        Assert.Equal(["void E.<>E__0.M()", "void E.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11308,6 +11509,11 @@ static class E
             // (5,20): error CS0103: The name 'Method' does not exist in the current context
             //         _ = nameof(Method);
             Diagnostic(ErrorCode.ERR_NameNotInContext, "Method").WithArguments("Method").WithLocation(5, 20));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var identifier = GetSyntax<IdentifierNameSyntax>(tree, "Method");
+        Assert.Equal([], model.GetMemberGroup(identifier).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11323,7 +11529,7 @@ static class E
 {
     extension(object o)
     {
-        public void Method() { System.Console.Write("Method "); }
+        public void Method() { System.Console.Write("Method"); }
     }
 }
 """;
@@ -11334,17 +11540,18 @@ static class E
             // o.Method();
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(4, 1));
 
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "Method");
+        CompileAndVerify(comp, expectedOutput: "Method");
     }
 
     [Fact]
     public void InstanceMethodInvocation_ColorColor_Method()
     {
         var src = """
+C.M(new C());
+
 class C
 {
-    static void M(C C)
+    public static void M(C C)
     {
         C.Method();
     }
@@ -11359,15 +11566,13 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "Method");
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
-        Assert.Equal("void E.<>E__0.Method()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
-        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(method)); // PROTOTYPE semantic model is undone
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
+        Assert.Equal("void E.<>E__0.Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0.Method()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11394,14 +11599,13 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        var method = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
-        Assert.Equal("void E.<>E__0.Method()", model.GetSymbolInfo(method).Symbol.ToTestDisplayString());
-        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(method)); // PROTOTYPE semantic model is undone
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
+        Assert.Equal("void E.<>E__0.Method()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0.Method()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact(Skip = "PROTOTYPE: crash when binding foreach")]
@@ -11505,7 +11709,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        // PROTOTYPE: Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M()", "void E.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11549,7 +11753,7 @@ namespace N
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void N.E2.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        // PROTOTYPE: Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M()", "void E1.<>E__0.M(System.String s)", "void N.E2.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11586,7 +11790,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        // PROTOTYPE: Assert.Equal(["void C.M()", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M()", "void E1.<>E__0.M(System.Int32 i)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11623,7 +11827,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        // PROTOTYPE: Assert.Equal(["void C.M()", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M()", "void E.<>E__0.M(System.Int32 i)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11660,7 +11864,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void C.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        // PROTOTYPE: Assert.Equal(["void C.M()", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M()", "void E1.<>E__0.M(System.String s)", "void E1.<>E__0.M(System.Char c)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11698,6 +11902,7 @@ static class E
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M(42)");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
         Assert.Empty(model.GetMemberGroup(invocation));
+        Assert.Equal(["void C.M()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11728,7 +11933,7 @@ static class E1
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void E1.<>E__0.M(System.Int32 b)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        // PROTOTYPE: Assert.Equal(["void C.M(System.Int32 a)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M(System.Int32 a)", "void E1.<>E__0.M(System.Int32 b)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11767,8 +11972,8 @@ public static class E2
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void C.M(System.Int32 c)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
-        // PROTOTYPE: Assert.Equal(["void C.M(System.Int32 a)", "void C.M(System.Int32 c)"],
-        //    model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M(System.Int32 a)", "void E1.<>E__0.M(System.Int32 b)", "void C.M(System.Int32 c)"],
+            model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11879,6 +12084,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("System.Int32 E2.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["System.Int32 E1.<>E__0.M(System.Int32 i)", "System.Int32 E2.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         source = """
 System.Console.Write(new C().M(42));
@@ -11928,7 +12134,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object>");
         Assert.Equal("void E.<>E__0.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M<System.Object>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11959,7 +12165,8 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object, object>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Empty(model.GetMemberGroup(memberAccess));
+        Assert.Equal(["void E.<>E__0.M(System.Int32 i)", "void E.<>E__0.M<T>(System.Int32 i)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void E.<>E__0.M(System.Int32 i)", "void E.<>E__0.M<T>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -11989,7 +12196,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<>");
         Assert.Equal("void E.<>E__0.M<?>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M<?>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12019,7 +12226,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void E.<>E__0.M<System.Int32>(System.Int32 t)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M<T>(T t)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12049,7 +12256,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess));
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         source = """
 C.Method();
@@ -12095,7 +12302,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Empty(model.GetMemberGroup(memberAccess));
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12129,6 +12336,7 @@ static class E
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess).CandidateReason);
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12644,7 +12852,7 @@ namespace Inner
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object>");
         Assert.Equal("void E2.<>E__0.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        //Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["System.String Inner.E1.<>E__0.M<System.Object>()", "void E2.<>E__0.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12726,7 +12934,14 @@ new object().M();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        // PROTOTYPE: Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        if (e1BeforeE2)
+        {
+            Assert.Equal(["System.String E1.<>E__0.M()", "System.String E2.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
+        else
+        {
+            Assert.Equal(["System.String E2.<>E__0.M()", "System.String E1.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        }
     }
 
     public class ThreePermutationGenerator : IEnumerable<object[]>
@@ -12840,7 +13055,7 @@ public interface I<out T> { }
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M2");
         Assert.Equal("void E2.<>E__0<System.Object>.M2(out System.Object t)", model.GetSymbolInfo(memberAccess2).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(["void I<System.String>.M2<System.String>(out System.String t)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E2.<>E__0<System.String>.M2(out System.String t)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12870,7 +13085,7 @@ static class E
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void System.Collections.Generic.IEnumerable<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.P");
         Assert.Equal("System.Int32 E.<>E__0.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
@@ -12927,7 +13142,7 @@ static class E
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.M");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12954,7 +13169,7 @@ static class E
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13692,7 +13907,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M<object>");
         Assert.Equal("void E.<>E__0.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M<System.Object>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Theory, CombinatorialData]
@@ -13795,9 +14010,8 @@ static class E
         Assert.Null(model.GetSymbolInfo(memberAccess[0]).Symbol);
         Assert.Null(model.GetSymbolInfo(memberAccess[1]).Symbol);
 
-        // PROTOTYPE semantic model is undone
-        Assert.Empty(model.GetMemberGroup(memberAccess[0]));
-        Assert.Empty(model.GetMemberGroup(memberAccess[1]));
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess[0]).ToTestDisplayStrings());
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess[1]).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -14444,9 +14658,9 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess).CandidateReason);
-        Assert.Empty(model.GetMemberGroup(memberAccess));
+        Assert.Equal(["void E.<>E__0.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.OverloadResolutionFailure, model.GetSymbolInfo(memberAccess).CandidateReason);
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -15532,7 +15746,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // TODO2
     }
 
     [Fact]
@@ -15570,7 +15784,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("System.Action E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
     }
 
     [Fact]
@@ -15608,7 +15822,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("System.Action E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
     }
 
     [Fact(Skip = "PROTOTYPE function type")]
@@ -15649,7 +15863,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("void System.Object.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void System.Object.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal(["void System.Object.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
     }
 
     [Fact]
@@ -15690,7 +15904,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["void System.Object.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal(["void System.Object.M(System.Int32 i)", "System.Int32 E.<>E__0.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -15731,7 +15945,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["void System.Object.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal(["void System.Object.M(System.Int32 i)", "System.Int32 E.<>E__0.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -15775,7 +15989,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        // PROTOTYPE: Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        // PROTOTYPE: Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone TODO2
     }
 
     [Fact]
@@ -15819,7 +16033,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void N.E1.<>E__0.M(System.Int32 i)", "System.Int32 E2.<>E__0.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -15858,7 +16072,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("System.Int32 E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
     }
 
     [Fact]
@@ -15897,7 +16111,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void System.Object.M(System.Int32 i)", "void System.Object.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void System.Object.M(System.Int32 i)", "void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -15936,7 +16150,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void System.Object.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16023,7 +16237,7 @@ static class E
         Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Null(model.GetTypeInfo(memberAccess).Type);
         Assert.Equal("D", model.GetTypeInfo(memberAccess).ConvertedType.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         Assert.Equal(ConversionKind.MethodGroup, model.GetConversion(memberAccess).Kind);
     }
 
@@ -16055,7 +16269,7 @@ static class E
         Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Null(model.GetTypeInfo(memberAccess).Type);
         Assert.Equal("D", model.GetTypeInfo(memberAccess).ConvertedType.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         Assert.Equal(ConversionKind.MethodGroup, model.GetConversion(memberAccess).Kind);
     }
 
@@ -16103,7 +16317,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C(42).M");
         Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void C.M()", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M()", "void E.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         Assert.Equal(ConversionKind.MethodGroup, model.GetConversion(memberAccess).Kind);
     }
 
@@ -16137,7 +16351,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
         Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M(System.Int32 i)", "void E.<>E__0.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16169,7 +16383,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
         Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void C.M(System.Int32 i)", "void C.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M(System.Int32 i)", "void E.<>E__0.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16207,7 +16421,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C.M").First();
         Assert.Equal("void E1.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E1.<>E__0.M(System.Int32 i)", "void E2.<>E__0.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16244,8 +16458,8 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["void C.M(System.String s)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(["void C.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M(System.String s)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void E.<>E__0.M(System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16277,7 +16491,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
         Assert.Equal("void E.<>E__0.Method<System.String>(System.String t)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.Method(System.Int32 i)", "void E.<>E__0.Method<T>(T t)", "void E.<>E__0.Method<T1, T2>(T1 t1, T2 t2)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16327,7 +16541,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "new C().M").First();
         Assert.Equal("void N.E1.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void C.M(System.Char c)", "void C.M(System.String s)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void C.M(System.Char c)", "void E2.<>E__0.M(System.String s)", "void N.E1.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16374,7 +16588,7 @@ namespace N
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Equal("void E1.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E1.<>E__0.M(System.Int32 i)", "void N.E2.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16402,7 +16616,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<object>");
         Assert.Equal("void E.<>E__0.M<System.Object>(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M<System.Object>(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16418,7 +16632,7 @@ static class E
 {
     extension(object)
     {
-        public static void M<T>(T t) { System.Console.Write("ran"); }
+        public static void M<T>(T t) { }
     }
 }
 """;
@@ -16432,7 +16646,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<object, int>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -16459,7 +16673,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<object, int>");
         Assert.Equal("void E.<>E__0<System.Object>.M<System.Int32>(System.Int32 u)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0<System.Object>.M<System.Int32>(System.Int32 u)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16486,7 +16700,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<object>");
         Assert.Equal("void E.<>E__0<System.Object>.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0<System.Object>.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16519,7 +16733,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E.<>E__0.M([System.Int32 i = 0])"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
 
         source = """
 static class E
@@ -16537,7 +16751,6 @@ static class E
             // (5,30): error CS0123: No overload for 'M2' matches delegate 'Action'
             //         System.Action a2 = E.M2;
             Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M2").WithArguments("M2", "System.Action").WithLocation(5, 30));
-
     }
 
     [Fact]
@@ -16561,6 +16774,11 @@ static class E
             // (1,7): error CS8189: Ref mismatch between 'E.extension(object).M()' and delegate 'D'
             // D d = object.M;
             Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "object.M").WithArguments("E.extension(object).M()", "D").WithLocation(1, 7));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal(["ref System.Int32 E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16584,6 +16802,11 @@ static class E
             // (1,7): error CS0407: 'string E.extension(object).M()' has the wrong return type
             // D d = object.M;
             Diagnostic(ErrorCode.ERR_BadRetType, "object.M").WithArguments("E.extension(object).M()", "string").WithLocation(1, 7));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal(["System.String E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16613,6 +16836,14 @@ static class E
             // (2,9): error CS0123: No overload for 'E.extension(object).M2(long)' matches delegate 'D2'
             // D2 d2 = object.M2;
             Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "object.M2").WithArguments("E.extension(object).M2(long)", "D2").WithLocation(2, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal(["void E.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M2");
+        Assert.Equal(["void E.<>E__0.M2(System.Int64 l)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16635,6 +16866,11 @@ static class E
             // (1,19): error CS1618: Cannot create delegate with 'E.extension(object).M()' because it or a method it overrides has a Conditional attribute
             // System.Action a = object.M;
             Diagnostic(ErrorCode.ERR_DelegateOnConditional, "object.M").WithArguments("E.extension(object).M()").WithLocation(1, 19));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16746,6 +16982,11 @@ static class E
             // (1,19): error CS0619: 'E.extension(object).M()' is obsolete: 'obsolete'
             // System.Action a = object.M;
             Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "object.M").WithArguments("E.extension(object).M()", "obsolete").WithLocation(1, 19));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16971,7 +17212,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
         Assert.Equal("System.Int32 E.<>E__0.Property { set; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(property));
+        Assert.Empty(model.GetMemberGroup(property)); // TODO2
     }
 
     [Fact]
@@ -17003,7 +17244,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
         Assert.Equal("System.Int32 E.<>E__0.Property { set; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(property));
+        Assert.Empty(model.GetMemberGroup(property)); // TODO2
     }
 
     [Fact]
@@ -17395,7 +17636,8 @@ static class E
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         // PROTOTYPE semantic model is undone
-        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings()); // TODO2
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
     }
 
     [Fact]
@@ -17435,8 +17677,9 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess).CandidateReason);
+        Assert.Equal(["void E.<>E__0.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
+        Assert.Equal(["void E.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -17484,6 +17727,14 @@ static class E
             // (2,12): error CS0117: 'object' does not contain a definition for 'Property'
             // _ = object.Property;
             Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("object", "Property").WithLocation(2, 12));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Method");
+        Assert.Equal(["void E.<>E__0.Method()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
+        Assert.Equal([], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings()); // TODO2
     }
 
     [Fact]
@@ -17693,6 +17944,7 @@ static class E
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal(["System.Int32 E.<>E__0.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
     }
 
     [Fact]
@@ -17839,6 +18091,7 @@ static class E
         Assert.Equal("System.Int32 E.<>E__0.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
+    // TODO2 resume scan here
     [Fact]
     public void LiteralReceiver_Property_Integer_Set()
     {
@@ -18109,7 +18362,7 @@ static class E2
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal(["System.String E1.<>E__0.M()", "System.String E2.<>E__0.M { get; }"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Empty(model.GetMemberGroup(memberAccess));
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // TODO2
     }
 
     [Fact]
@@ -18142,7 +18395,7 @@ static class E2
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Equal("System.String E1.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+        //Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
     }
 
     [Fact]
@@ -19698,7 +19951,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P<int>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        //Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings()); // PROTOTYPE semantic model is undone TODO2
     }
 
     [Fact]
@@ -19726,7 +19979,8 @@ static class E1
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<int>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings()); // PROTOTYPE semantic model is undone
+        Assert.Equal(["void E1.<>E__0.M()", "void E1.<>E__0.M<T1, T2>()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void E1.<>E__0.M()", "void E1.<>E__0.M<T1, T2>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19850,7 +20104,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE need to fix the semantic model
+        Assert.Equal(["void E.<>E__0.M(System.String s, System.Object o)", "void E.<>E__0.M(System.Object o, System.String s)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -21695,6 +21949,11 @@ static class E2
             // (1,14): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(object).M()' and 'E2.M(object)'
             // new object().M();
             Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension(object).M()", "E2.M(object)").WithLocation(1, 14));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
+        Assert.Equal(["void E1.<>E__0.M()", "void System.Object.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -23732,7 +23991,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.Action E.<>E__0.M { get; }", "System.String E.<>E__1.M()", "System.String E.M(this System.Object o)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["System.Action E.<>E__0.M { get; }", "System.String E.<>E__1.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -23797,7 +24056,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.Action E.<>E__0.M { get; }", "System.String E.<>E__1.M()", "System.String E.M(this I<System.Object> i)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["System.Action E.<>E__0.M { get; }", "System.String E.<>E__1.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -23835,7 +24094,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["System.Action E1.<>E__0.M { get; }", "System.String E2.<>E__0.M()", "System.String E2.M(this I<System.String> i)"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["System.Action E1.<>E__0.M { get; }", "System.String E2.<>E__0.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
@@ -24430,6 +24689,7 @@ _ = i.P(1);
             // _ = i.P(1);
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("int", "P").WithLocation(2, 7));
     }
+
     [Fact]
     public void ExplicitTypeArguments_01()
     {
@@ -24452,6 +24712,10 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "s.M<object>()");
         Assert.Equal("void E.<>E__0<System.Object>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<object>");
+        Assert.Equal(["void E.<>E__0<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -24478,6 +24742,10 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "42.M<object>()");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M<object>");
+        Assert.Equal(["void E.<>E__0<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2 broken constraint
     }
 
     [Fact]
@@ -24500,6 +24768,12 @@ static class E
             // (2,7): error CS1061: 'string' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
             // _ = s.P<object>;
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P<object>").WithArguments("string", "P").WithLocation(2, 7));
+        // TODO2 test lookup API here
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.P<object>");
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -24523,6 +24797,11 @@ static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<string>");
+        Assert.Equal(["void E.<>E__0<System.String>.M()", "void E.<>E__1.M<System.String>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -24545,6 +24824,11 @@ static class E
             // (2,3): error CS1061: 'string' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
             // s.M<string>();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M<string>").WithArguments("string", "M").WithLocation(2, 3));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M<string>");
+        Assert.Equal(["void E.<>E__0<System.String>.M<U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -24567,6 +24851,11 @@ static class E
             // (1,19): error CS0117: 'C<string, string>' does not contain a definition for 'M'
             // C<string, string>.M<string>();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M<string>").WithArguments("C<string, string>", "M").WithLocation(1, 19));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<string, string>.M<string>");
+        Assert.Equal(["void E.<>E__0<System.String, System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -24590,6 +24879,9 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "string.M<object, long>(42)");
         Assert.Equal("void E.<>E__0<System.Object>.M<System.Int64>(System.Int64 u)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.M<object, long>");
+        Assert.Equal(["void E.<>E__0<System.Object>.M<System.Int64>(System.Int64 u)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -24611,5 +24903,427 @@ static class E
             // (1,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension<string>(string).M<long>(long)' requires a receiver of type 'string'
             // object.M<string, long>(42);
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "M", "E.extension<string>(string).M<long>(long)", "string").WithLocation(1, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<string, long>");
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetDeclaredSymbol_01()
+    {
+        var src = """
+static class E
+{
+    extension(int i)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var extensionParameter = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+
+        var symbol = model.GetDeclaredSymbol(extensionParameter);
+        Assert.Equal(SymbolKind.Parameter, symbol.Kind);
+        Assert.Equal("System.Int32 i", symbol.ToTestDisplayString());
+    }
+
+    readonly string[] objectMembers = [
+        "System.String System.Object.ToString()",
+        "System.Boolean System.Object.Equals(System.Object obj)",
+        "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+        "System.Int32 System.Object.GetHashCode()",
+        "System.Type System.Object.GetType()",
+        "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"];
+
+    [Fact]
+    public void LookupSymbols_Simple()
+    {
+        var src = """
+object.M();
+_ = object.Property;
+
+public static class E
+{
+    extension(object)
+    {
+        public static void M() => throw null;
+        public static int Property => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "object.M()");
+        Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
+        Assert.Equal("System.Int32 E.<>E__0.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
+
+        var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
+        AssertSetStrictlyEqual(["void E.M()"], model.LookupSymbols(position: 0, e, name: "M").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["void E.M()", "void E.<>E__0.M()"], model.LookupSymbols(position: 0, e, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings()); // TODO2
+
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, e, name: "Property").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["System.Int32 E.<>E__0.Property { get; }"], model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.Int32 E.get_Property()"], model.LookupSymbols(position: 0, e, name: "get_Property").ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.Int32 E.get_Property()"],
+            model.LookupSymbols(position: 0, e, name: "get_Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["void E.<>E__0.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["System.Int32 E.<>E__0.Property { get; }"], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["void E.<>E__0.M()", "System.Int32 E.<>E__0.Property { get; }", .. objectMembers],
+            model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void LookupSymbols_Inapplicable()
+    {
+        var src = """
+object.M();
+_ = object.Property;
+
+public static class E
+{
+    extension(string)
+    {
+        public static void M() => throw null;
+        public static int Property => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension(string).M()' requires a receiver of type 'string'
+            // object.M();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "M", "E.extension(string).M()", "string").WithLocation(1, 1),
+            // (2,5): error CS9505: 'object' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // _ = object.Property;
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.Property").WithArguments("object", "Property").WithLocation(2, 5));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(objectMembers, model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void LookupSymbols_Substituted()
+    {
+        var src = """
+string.M();
+_ = string.Property;
+
+public static class E
+{
+    extension<T>(T)
+    {
+        public static void M() => throw null;
+        public static int Property => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["void E.<>E__0<System.Object>.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["System.Int32 E.<>E__0<System.Object>.Property { get; }"], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["void E.<>E__0<System.Object>.M()", "System.Int32 E.<>E__0<System.Object>.Property { get; }", .. objectMembers],
+            model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        var s = ((Compilation)comp).GetSpecialType(SpecialType.System_String);
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, s, name: "M").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["void E.<>E__0<System.String>.M()"], model.LookupSymbols(position: 0, s, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, s, name: "Property").ToTestDisplayStrings());
+        AssertSetStrictlyEqual(["System.Int32 E.<>E__0<System.String>.Property { get; }"], model.LookupSymbols(position: 0, s, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetMemberGroup_01()
+    {
+        var src = """
+object.M<int>();
+new object().M2<int>();
+
+static class E
+{
+    extension(object)
+    {
+        public static void M<U>() where U : class { }
+    }
+
+    public static void M2<U>(this object o) where U : class { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U' in the generic type or method 'E.extension(object).M<U>()'
+            // object.M<int>();
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M<int>").WithArguments("E.extension(object).M<U>()", "U", "int").WithLocation(1, 8),
+            // (2,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U' in the generic type or method 'E.M2<U>(object)'
+            // new object().M2<int>();
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M2<int>").WithArguments("E.M2<U>(object)", "U", "int").WithLocation(2, 14));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        // TODO2 need to filter out by bad constraint like we do in inferred scenario based on receiver
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<int>");
+        Assert.Equal(["void E.<>E__0.M<System.Int32>()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M2<int>");
+        Assert.Equal(["void System.Object.M2<System.Int32>()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetMemberGroup_02()
+    {
+        var src = """
+object.M(42);
+new object().M2(42);
+
+static class E
+{
+    extension(object)
+    {
+        public static void M<U>(U u) where U : class { }
+    }
+
+    public static void M2<U>(this object o, U u) where U : class { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U' in the generic type or method 'E.extension(object).M<U>(U)'
+            // object.M(42);
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M").WithArguments("E.extension(object).M<U>(U)", "U", "int").WithLocation(1, 8),
+            // (2,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U' in the generic type or method 'E.M2<U>(object, U)'
+            // new object().M2(42);
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M2").WithArguments("E.M2<U>(object, U)", "U", "int").WithLocation(2, 14));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal(["void E.<>E__0.M<U>(U u)"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M2");
+        Assert.Equal(["void System.Object.M2<U>(U u)"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetMemberGroup_03()
+    {
+        var src = """
+int.M<int>();
+42.M2<int>();
+
+static class E
+{
+    extension<T>(T) where T : class
+    {
+        public static void M() { }
+    }
+
+    public static void M2<T>(this T t) where T : class { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'E.extension<T>(T)'
+            // int.M<int>();
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M<int>").WithArguments("E.extension<T>(T)", "T", "int").WithLocation(1, 5),
+            // (2,4): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'E.M2<T>(T)'
+            // 42.M2<int>();
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M2<int>").WithArguments("E.M2<T>(T)", "T", "int").WithLocation(2, 4));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M<int>");
+        Assert.Equal(["void E.<>E__0<System.Int32>.M()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M2<int>");
+        Assert.Equal(["void System.Int32.M2<System.Int32>()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetMemberGroup_04()
+    {
+        var src = """
+int.M();
+42.M2();
+
+static class E
+{
+    extension<T>(T) where T : class
+    {
+        public static void M() { }
+    }
+
+    public static void M2<T>(this T t) where T : class { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'E.extension<T>(T)'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M").WithArguments("E.extension<T>(T)", "T", "int").WithLocation(1, 5),
+            // (2,4): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'E.M2<T>(T)'
+            // 42.M2();
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M2").WithArguments("E.M2<T>(T)", "T", "int").WithLocation(2, 4));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M");
+        Assert.Equal([], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+
+        var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M2");
+        Assert.Equal([], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetMemberGroup_05()
+    {
+        var src = """
+object.M();
+
+static class E
+{
+    extension(object)
+    {
+        public static void M() { }
+        public static void M(int i) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal(["void E.<>E__0.M()", "void E.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetMemberGroup_06()
+    {
+        var src = """
+_ = object.P;
+
+static class E
+{
+    extension(object)
+    {
+        public static int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2 handle BoundPropertyAccess
+    }
+
+    [Fact]
+    public void GetMemberGroup_07()
+    {
+        var src = """
+object.M();
+
+static class E1
+{
+    extension(object)
+    {
+        public static int M => 0;
+    }
+}
+static class E2
+{
+    extension(object)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal(["System.Int32 E1.<>E__0.M { get; }", "void E2.<>E__0.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetMemberGroup_08()
+    {
+        var src = """
+string.M();
+
+static class E1
+{
+    extension<T>(T)
+    {
+        public static int M => 0;
+    }
+}
+static class E2
+{
+    extension<T>(T)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.M");
+        Assert.Equal(["System.Int32 E1.<>E__0<System.String>.M { get; }", "void E2.<>E__0<System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 }

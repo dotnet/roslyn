@@ -2028,6 +2028,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
+        private ParameterSymbol GetExtensionParameterSymbol(
+            ParameterSyntax parameter,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(parameter != null);
+
+            if (parameter.Parent is not ParameterListSyntax { Parent: ExtensionDeclarationSyntax extensionDecl })
+            {
+                return null;
+            }
+
+            INamedTypeSymbol extension = GetDeclaredSymbol(extensionDecl, cancellationToken);
+            if (extension is null)
+            {
+                return null;
+            }
+
+            // PROTOTYPE use a public API for ExtensionParameter if we add one
+            var extensionParameter = ((Symbols.PublicModel.NamedTypeSymbol)extension).UnderlyingNamedTypeSymbol.ExtensionParameter;
+            foreach (var location in extensionParameter.Locations)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (location.SourceTree == this.SyntaxTree && parameter.Span.Contains(location.SourceSpan))
+                {
+                    return extensionParameter;
+                }
+            }
+
+            return null;
+        }
+
         private ParameterSymbol GetMethodParameterSymbol(
             ParameterSyntax parameter,
             CancellationToken cancellationToken)
@@ -2150,7 +2182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 GetMethodParameterSymbol(declarationSyntax, cancellationToken) ??
                 GetIndexerParameterSymbol(declarationSyntax, cancellationToken) ??
-                GetDelegateParameterSymbol(declarationSyntax, cancellationToken);
+                GetDelegateParameterSymbol(declarationSyntax, cancellationToken) ??
+                GetExtensionParameterSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>

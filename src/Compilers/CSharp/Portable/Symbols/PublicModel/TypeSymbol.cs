@@ -151,6 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool ITypeSymbol.IsExtension => UnderlyingTypeSymbol.IsExtension;
 
+        IParameterSymbol ITypeSymbol.ExtensionParameter => UnderlyingTypeSymbol.ExtensionParameter?.GetPublicSymbol();
+
         string ITypeSymbol.ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format)
         {
             return SymbolDisplay.ToDisplayString(this, topLevelNullability, format);
