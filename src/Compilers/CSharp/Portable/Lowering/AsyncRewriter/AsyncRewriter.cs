@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binder.GetWellKnownTypeMember(F.Compilation, member, bag, body.Syntax.Location);
         }
 
-        protected override bool PreserveInitialParameterValuesAndThreadId
+        protected override bool PreserveInitialParameterValues
             => false;
 
         protected override void GenerateControlFields()
