@@ -15,7 +15,6 @@ using Xunit;
 using Basic.Reference.Assemblies;
 using System.Runtime.CompilerServices;
 using System.Reflection;
-using ICSharpCode.Decompiler.IL;
 
 // PROTOTYPE: Verify execution of runtime async methods
 // PROTOTYPE: ILVerify for runtime async?
