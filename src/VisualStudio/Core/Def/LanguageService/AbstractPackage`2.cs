@@ -34,49 +34,70 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     {
     }
 
-    protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+    protected override void RegisterInitializationWork(List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>> bgThreadWorkTasks, List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>> mainThreadWorkTasks)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
+        base.RegisterInitializationWork(bgThreadWorkTasks, mainThreadWorkTasks);
+
+        mainThreadWorkTasks.Add(async (progress, cancellationToken) =>
+        {
+            var shell = (IVsShell7?)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            var solution = (IVsSolution?)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
+            Assumes.Present(shell);
+            Assumes.Present(solution);
+
+            _shell = (IVsShell?)shell;
+            Assumes.Present(_shell);
+
+            foreach (var editorFactory in CreateEditorFactories())
+            {
+                RegisterEditorFactory(editorFactory);
+            }
+
+            RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
+            {
+                // Ensure we're on the BG when creating the language service.
+                await TaskScheduler.Default;
+
+                // Create the language service, tell it to set itself up, then store it in a field
+                // so we can notify it that it's time to clean up.
+                _languageService = CreateLanguageService();
+                await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
+
+                return _languageService.ComAggregate!;
+            });
+
+            var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+
+            await shell.LoadPackageAsync(Guids.RoslynPackageId);
+
+            // Be a bit paranoid, as LoadPackageAsync returns an IVsTask, and I'm not certain of it's
+            // behavior if call finishes on a different thread. This should be removed soon anyway as the code
+            // following this looks like it can be reordered/refactored to not require the main thread.
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            // LoadPackageAsync can transition us to a bg thread, so ensure we're back on the main thread
+            if (!JoinableTaskFactory.Context.IsOnMainThread)
+            {
+                System.Diagnostics.Debugger.Launch();
+                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            }
+
+            RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+
+            if (!_shell.IsInCommandLineMode())
+            {
+                // not every derived package support object browser and for those languages
+                // this is a no op
+                RegisterObjectBrowserLibraryManager();
+            }
+        });
+    }
+
+    protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
+    {
+        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
 
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var shell = (IVsShell7?)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-        var solution = (IVsSolution?)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
-        Assumes.Present(shell);
-        Assumes.Present(solution);
-
-        _shell = (IVsShell?)shell;
-        Assumes.Present(_shell);
-
-        foreach (var editorFactory in CreateEditorFactories())
-        {
-            RegisterEditorFactory(editorFactory);
-        }
-
-        RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
-        {
-            // Ensure we're on the BG when creating the language service.
-            await TaskScheduler.Default;
-
-            // Create the language service, tell it to set itself up, then store it in a field
-            // so we can notify it that it's time to clean up.
-            _languageService = CreateLanguageService();
-            await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
-
-            return _languageService.ComAggregate!;
-        });
-
-        await shell.LoadPackageAsync(Guids.RoslynPackageId);
-
-        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
-        RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
-
-        if (!_shell.IsInCommandLineMode())
-        {
-            // not every derived package support object browser and for those languages
-            // this is a no op
-            RegisterObjectBrowserLibraryManager();
-        }
 
         LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
     }

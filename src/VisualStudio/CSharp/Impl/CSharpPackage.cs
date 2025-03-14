@@ -58,22 +58,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private ObjectBrowserLibraryManager? _libraryManager;
         private uint _libraryManagerCookie;
 
-        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        protected override void RegisterInitializationWork(
+            List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>> bgThreadWorkTasks,
+            List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>> mainThreadWorkTasks)
         {
-            try
-            {
-                await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(false);
+            base.RegisterInitializationWork(bgThreadWorkTasks, mainThreadWorkTasks);
 
-                this.RegisterService<ICSharpTempPECompilerService>(async ct =>
-                {
-                    var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
-                    await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
-                    return new TempPECompilerService(workspace.Services.GetService<IMetadataService>());
-                });
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
+            bgThreadWorkTasks.Add((progress, cancellationToken) =>
             {
-            }
+                try
+                {
+                    this.RegisterService<ICSharpTempPECompilerService>(async ct =>
+                    {
+                        var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
+                        await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
+                        return new TempPECompilerService(workspace.Services.GetService<IMetadataService>());
+                    });
+                }
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
+                {
+                }
+
+                return Task.CompletedTask;
+            });
         }
 
         protected override void RegisterObjectBrowserLibraryManager()

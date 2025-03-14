@@ -64,22 +64,30 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             _comAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
         End Sub
 
-        Protected Overrides Async Function InitializeAsync(cancellationToken As CancellationToken, progress As IProgress(Of ServiceProgressData)) As Task
-            Try
-                Await MyBase.InitializeAsync(cancellationToken, progress).ConfigureAwait(False)
+        Protected Overrides Sub RegisterInitializationWork(
+            bgThreadWorkTasks As List(Of Func(Of IProgress(Of ServiceProgressData), CancellationToken, Task)),
+            mainThreadWorkTasks As List(Of Func(Of IProgress(Of ServiceProgressData), CancellationToken, Task)))
 
-                RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
+            MyBase.RegisterInitializationWork(bgThreadWorkTasks, mainThreadWorkTasks)
 
-                RegisterService(Of IVbTempPECompilerFactory)(
-                    Async Function(ct)
-                        Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
-                        Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
-                        Return New TempPECompilerFactory(workspace)
-                    End Function)
-            Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
-                Throw ExceptionUtilities.Unreachable
-            End Try
-        End Function
+            bgThreadWorkTasks.Add(
+                Function(progress, cancellationToken)
+                    Try
+                        RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
+
+                        RegisterService(Of IVbTempPECompilerFactory)(
+                            Async Function(ct)
+                                Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
+                                Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
+                                Return New TempPECompilerFactory(workspace)
+                            End Function)
+                    Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
+                        Throw ExceptionUtilities.Unreachable
+                    End Try
+
+                    Return Task.CompletedTask
+                End Function)
+        End Sub
 
         Protected Overrides Sub RegisterObjectBrowserLibraryManager()
             Dim workspace As VisualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
