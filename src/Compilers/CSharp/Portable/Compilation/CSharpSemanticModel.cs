@@ -1414,9 +1414,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             NamespaceOrTypeSymbol container = null,
             string name = null,
-            bool includeReducedExtensionMethods = false)
+            bool includeReducedExtensionMethods = false) // TODO2
         {
-            var options = includeReducedExtensionMethods ? LookupOptions.IncludeExtensionMethods : LookupOptions.Default;
+            var options = includeReducedExtensionMethods ? LookupOptions.IncludeExtensionMembers : LookupOptions.Default;
             return LookupSymbolsInternal(position, container, name, options, useBaseReferenceAccessibility: false);
         }
 
@@ -1576,7 +1576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)container == null || container.Kind == SymbolKind.Namespace)
             {
-                options &= ~LookupOptions.IncludeExtensionMethods;
+                options &= ~LookupOptions.IncludeExtensionMembers;
             }
 
             var binder = GetEnclosingBinder(position);
@@ -1652,25 +1652,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             info.Free();
 
-            if ((options & LookupOptions.IncludeExtensionMethods) != 0)
+            if ((options & LookupOptions.IncludeExtensionMembers) != 0 && container is TypeSymbol receiverType)
             {
                 var lookupResult = LookupResult.GetInstance();
 
                 options |= LookupOptions.AllMethodsOnArityZero;
                 options &= ~LookupOptions.MustBeInstance;
 
-                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                binder.LookupExtensionMethods(lookupResult, name, 0, options, ref discardedUseSiteInfo);
+                binder.LookupAllExtensions(lookupResult, receiverType, name, options);
 
                 if (lookupResult.IsMultiViable)
                 {
-                    TypeSymbol containingType = (TypeSymbol)container;
-                    foreach (MethodSymbol extensionMethod in lookupResult.Symbols)
+                    foreach (Symbol symbol in lookupResult.Symbols)
                     {
-                        var reduced = extensionMethod.ReduceExtensionMethod(containingType, Compilation);
-                        if ((object)reduced != null)
+                        if (symbol is MethodSymbol { IsExtensionMethod: true } extensionMethod)
                         {
-                            results.Add(reduced.GetPublicSymbol());
+                            if (extensionMethod.ReduceExtensionMethod(receiverType, Compilation) is { } reduced)
+                            {
+                                results.Add(reduced.GetPublicSymbol());
+                            }
+                        }
+                        else
+                        {
+                            Debug.Assert(symbol.GetIsNewExtensionMember());
+                            if (SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(binder.Compilation, symbol, receiverType) is { } compatibleSubstitutedMember)
+                            {
+                                results.Add(compatibleSubstitutedMember.GetPublicSymbol());
+                            }
                         }
                     }
                 }
@@ -1679,7 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (name == null)
-                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: 0);
+                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: 0); // TODO2 test this
 
             return results.ToImmutableAndFree();
         }
@@ -1739,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 name,
                 arity,
                 basesBeingResolved: null,
-                options: options & ~LookupOptions.IncludeExtensionMethods,
+                options: options & ~LookupOptions.IncludeExtensionMembers,
                 diagnose: false,
                 useSiteInfo: ref discardedUseSiteInfo);
 
@@ -3429,6 +3437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Call:
                     {
+                        // TODO2 test this
                         // Either overload resolution succeeded for this call or it did not. If it
                         // did not succeed then we've stashed the original method symbols from the
                         // method group, and we should use those as the symbols displayed for the
@@ -3446,11 +3455,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            symbols = StaticCast<Symbol>.From(CreateReducedExtensionMethodsFromOriginalsIfNecessary(call, Compilation));
+                            symbols = CreateReducedAndFilteredSymbolsFromOriginals(call, Compilation); // TODO2 review and test
                             resultKind = call.ResultKind;
                         }
                     }
                     break;
+                // TODO2 add support for properties
 
                 case BoundKind.FunctionPointerInvocation:
                     {
@@ -3470,7 +3480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // group result in the call below.
                         symbols = GetMethodGroupSemanticSymbols(
                             ((BoundUnconvertedAddressOfOperator)boundNode).Operand,
-                            boundNodeForSyntacticParent, binderOpt, out resultKind, out isDynamic, methodGroup: out _);
+                            boundNodeForSyntacticParent, binderOpt, out resultKind, out isDynamic, memberGroup: out _);
                         break;
                     }
 
@@ -3529,7 +3539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var symbol = conversion.SymbolOpt;
                             Debug.Assert((object)symbol != null);
-                            symbols = OneOrMany.Create<Symbol>(ReducedExtensionMethodSymbol.Create(symbol));
+                            symbols = OneOrMany.Create<Symbol>(ReducedExtensionMethodSymbol.Create(symbol)); // TODO2
                             resultKind = conversion.ResultKind;
                         }
                         else if (conversion.ConversionKind.IsUserDefinedConversion())
@@ -4235,7 +4245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binderOpt,
             out LookupResultKind resultKind,
             out bool isDynamic,
-            out ImmutableArray<Symbol> methodGroup)
+            out ImmutableArray<Symbol> memberGroup)
         {
             Debug.Assert(binderOpt != null || IsInTree(boundNode.Syntax));
 
@@ -4251,8 +4261,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // The method group needs filtering.
             Binder binder = binderOpt ?? GetEnclosingBinder(GetAdjustedNodePosition(boundNode.Syntax));
-            methodGroup = GetReducedAndFilteredMethodGroupSymbols(binder, boundNode).Cast<MethodSymbol, Symbol>();
+            memberGroup = GetReducedAndFilteredMethodGroupSymbols(binder, boundNode);
 
+            // TODO2 test these various cases
             // We want to get the actual node chosen by overload resolution, if possible. 
             if (boundNodeForSyntacticParent != null)
             {
@@ -4274,7 +4285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 resultKind = call.ResultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
-                                symbols = StaticCast<Symbol>.From(CreateReducedExtensionMethodsFromOriginalsIfNecessary(call, Compilation));
+                                symbols = CreateReducedAndFilteredSymbolsFromOriginals(call, Compilation); // TODO2 test
                             }
                         }
                         break;
@@ -4285,7 +4296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var delegateCreation = (BoundDelegateCreationExpression)boundNodeForSyntacticParent;
                         if (delegateCreation.Argument == boundNode && (object)delegateCreation.MethodOpt != null)
                         {
-                            symbols = CreateReducedExtensionMethodIfPossible(delegateCreation, boundNode.ReceiverOpt);
+                            symbols = CreateReducedExtensionMethodIfPossible(delegateCreation, boundNode.ReceiverOpt); // TODO2 test
                         }
                         break;
 
@@ -4308,7 +4319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (conversion.IsExtensionMethod)
                             {
-                                method = ReducedExtensionMethodSymbol.Create(method);
+                                method = ReducedExtensionMethodSymbol.Create(method); // TODO2
                             }
 
                             symbols = OneOrMany.Create((Symbol)method);
@@ -4329,7 +4340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.BadExpression:
                         // If the bad expression has symbol(s) from this method group, it better indicates any problems.
-                        ImmutableArray<Symbol> myMethodGroup = methodGroup;
+                        ImmutableArray<Symbol> myMethodGroup = memberGroup;
 
                         symbols = OneOrMany.Create(((BoundBadExpression)boundNodeForSyntacticParent).Symbols.WhereAsArray((sym, myMethodGroup) => myMethodGroup.Contains(sym), myMethodGroup));
                         if (symbols.Any())
@@ -4339,12 +4350,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case BoundKind.NameOfOperator:
-                        symbols = OneOrMany.Create(methodGroup);
+                        symbols = OneOrMany.Create(memberGroup);
                         resultKind = resultKind.WorseResultKind(LookupResultKind.MemberGroup);
                         break;
 
                     default:
-                        symbols = OneOrMany.Create(methodGroup);
+                        symbols = OneOrMany.Create(memberGroup);
                         if (symbols.Count > 0)
                         {
                             resultKind = resultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
@@ -4352,14 +4363,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
             }
-            else if (methodGroup.Length == 1 && !boundNode.HasAnyErrors)
+            else if (memberGroup.Length == 1 && !boundNode.HasAnyErrors)
             {
                 // During speculative binding, there won't be a parent bound node. The parent bound
                 // node may also be absent if the syntactic parent has errors or if one is simply
                 // not specified (see SemanticModel.GetSymbolInfoForNode). However, if there's exactly
                 // one candidate, then we should probably succeed.
 
-                symbols = OneOrMany.Create(methodGroup);
+                symbols = OneOrMany.Create(memberGroup);
                 if (symbols.Count > 0)
                 {
                     resultKind = resultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
@@ -4371,7 +4382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we didn't find a better set of symbols, then assume this is a method group that didn't
                 // get resolved. Return all members of the method group, with a resultKind of OverloadResolutionFailure
                 // (unless the method group already has a worse result kind).
-                symbols = OneOrMany.Create(methodGroup);
+                symbols = OneOrMany.Create(memberGroup);
                 if (!isDynamic && resultKind > LookupResultKind.OverloadResolutionFailure)
                 {
                     resultKind = LookupResultKind.OverloadResolutionFailure;
@@ -4558,10 +4569,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static ImmutableArray<MethodSymbol> GetReducedAndFilteredMethodGroupSymbols(Binder binder, BoundMethodGroup node)
+        internal static ImmutableArray<Symbol> GetReducedAndFilteredMethodGroupSymbols(Binder binder, BoundMethodGroup node)
         {
-            var methods = ArrayBuilder<MethodSymbol>.GetInstance();
-            var filteredMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+            var members = ArrayBuilder<Symbol>.GetInstance(); // TODO2 not sure what purpose this serves
+            var filteredMembers = ArrayBuilder<Symbol>.GetInstance();
             var resultKind = LookupResultKind.Empty;
             var typeArguments = node.TypeArgumentsOpt;
 
@@ -4576,12 +4587,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var method in nonHiddenMethods)
                 {
-                    MergeReducedAndFilteredMethodGroupSymbol(
-                        methods,
-                        filteredMethods,
+                    MergeReducedAndFilteredSymbol(
+                        members,
+                        filteredMembers,
                         new SingleLookupResult(node.ResultKind, method, node.LookupError),
                         typeArguments,
-                        null,
+                        receiverType: null,
                         ref resultKind,
                         binder.Compilation);
                 }
@@ -4591,12 +4602,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var otherSymbol = node.LookupSymbolOpt;
                 if (((object)otherSymbol != null) && (otherSymbol.Kind == SymbolKind.Method))
                 {
-                    MergeReducedAndFilteredMethodGroupSymbol(
-                        methods,
-                        filteredMethods,
+                    MergeReducedAndFilteredSymbol(
+                        members,
+                        filteredMembers,
                         new SingleLookupResult(node.ResultKind, otherSymbol, node.LookupError),
                         typeArguments,
-                        null,
+                        receiverType: null,
                         ref resultKind,
                         binder.Compilation);
                 }
@@ -4606,6 +4617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var name = node.Name;
 
             // Extension methods, all scopes.
+            var receiverType = receiver.Type;
             if (node.SearchExtensions)
             {
                 Debug.Assert(receiver != null);
@@ -4623,84 +4635,117 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 binder = binder.WithAdditionalFlags(BinderFlags.SemanticModel);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+                var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
                 foreach (var scope in new ExtensionScopes(binder))
                 {
-                    var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-                    var otherBinder = scope.Binder;
-                    otherBinder.GetCandidateExtensionMethods(extensionMethods,
-                                                             name,
-                                                             arity,
-                                                             options,
-                                                             originalBinder: binder);
+                    singleLookupResults.Clear();
+                    scope.Binder.EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, receiverType, name, arity, options, originalBinder: binder, classicExtensionUseSiteInfo: ref discardedUseSiteInfo);
 
-                    foreach (var method in extensionMethods)
+                    foreach (var singleLookupResult in singleLookupResults)
                     {
-                        var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                        MergeReducedAndFilteredMethodGroupSymbol(
-                            methods,
-                            filteredMethods,
-                            binder.CheckViability(method, arity, options, accessThroughType: null, diagnose: false, useSiteInfo: ref discardedUseSiteInfo),
+                        if (singleLookupResult.Symbol is not (MethodSymbol or PropertySymbol))
+                        {
+                            continue;
+                        }
+
+                        MergeReducedAndFilteredSymbol(
+                            members,
+                            filteredMembers,
+                            singleLookupResult,
                             typeArguments,
-                            receiver.Type,
+                            receiverType,
                             ref resultKind,
                             binder.Compilation);
                     }
-
-                    extensionMethods.Free();
                 }
+
+                singleLookupResults.Free();
             }
 
-            methods.Free();
-            return filteredMethods.ToImmutableAndFree();
+            members.Free();
+            return filteredMembers.ToImmutableAndFree();
         }
 
+        // TODO2 update comment
         // Reduce extension methods to their reduced form, and remove:
         //   a) Extension methods are aren't applicable to receiverType
         //   including constraint checking.
         //   b) Duplicate methods
         //   c) Methods that are hidden or overridden by another method in the group.
-        private static bool AddReducedAndFilteredMethodGroupSymbol(
-            ArrayBuilder<MethodSymbol> methods,
-            ArrayBuilder<MethodSymbol> filteredMethods,
-            MethodSymbol method,
+        private static bool AddReducedAndFilteredSymbol(
+            ArrayBuilder<Symbol> members,
+            ArrayBuilder<Symbol> filteredMembers,
+            Symbol member,
             ImmutableArray<TypeWithAnnotations> typeArguments,
             TypeSymbol receiverType,
             CSharpCompilation compilation)
         {
-            MethodSymbol constructedMethod;
-            if (!typeArguments.IsDefaultOrEmpty && method.Arity == typeArguments.Length)
+            if (member is MethodSymbol method)
             {
-                constructedMethod = method.Construct(typeArguments);
-                Debug.Assert((object)constructedMethod != null);
-            }
-            else
-            {
-                constructedMethod = method;
-            }
+                MethodSymbol constructedMethod;
+                if (!typeArguments.IsDefaultOrEmpty && method.GetMemberTotalArity() == typeArguments.Length)
+                {
+                    constructedMethod = method.ConstructWithAllTypeParameters(typeArguments);
+                    Debug.Assert((object)constructedMethod != null);
+                    // PROTOTYPE we should check constraints
+                }
+                else
+                {
+                    constructedMethod = method;
+                }
 
-            if ((object)receiverType != null)
-            {
-                constructedMethod = constructedMethod.ReduceExtensionMethod(receiverType, compilation);
-                if ((object)constructedMethod == null)
+                if ((object)receiverType != null)
+                {
+                    if (method.IsExtensionMethod)
+                    {
+                        constructedMethod = constructedMethod.ReduceExtensionMethod(receiverType, compilation);
+                    }
+                    else
+                    {
+                        Debug.Assert(method.GetIsNewExtensionMember());
+                        constructedMethod = (MethodSymbol)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, constructedMethod, receiverType);
+                    }
+
+                    if ((object)constructedMethod == null)
+                    {
+                        return false;
+                    }
+                }
+
+                // Don't add exact duplicates.
+                if (filteredMembers.Contains(constructedMethod))
                 {
                     return false;
                 }
-            }
 
-            // Don't add exact duplicates.
-            if (filteredMethods.Contains(constructedMethod))
+                members.Add(member);
+                filteredMembers.Add(constructedMethod);
+                return true;
+            }
+            else if (member is PropertySymbol property)
             {
-                return false;
+                Debug.Assert(receiverType is not null);
+                Debug.Assert(property.GetIsNewExtensionMember());
+                var constructedProperty = (PropertySymbol)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, property, receiverType);
+
+                if (constructedProperty is null)
+                {
+                    return false;
+                }
+
+                members.Add(member);
+                filteredMembers.Add(constructedProperty);
+                return true;
             }
 
-            methods.Add(method);
-            filteredMethods.Add(constructedMethod);
-            return true;
+            throw ExceptionUtilities.UnexpectedValue(member.Kind);
         }
 
-        private static void MergeReducedAndFilteredMethodGroupSymbol(
-            ArrayBuilder<MethodSymbol> methods,
-            ArrayBuilder<MethodSymbol> filteredMethods,
+        private static void MergeReducedAndFilteredSymbol(
+            ArrayBuilder<Symbol> members,
+            ArrayBuilder<Symbol> filteredMembers,
             SingleLookupResult singleResult,
             ImmutableArray<TypeWithAnnotations> typeArguments,
             TypeSymbol receiverType,
@@ -4712,39 +4757,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            Debug.Assert(singleResult.Symbol.Kind == SymbolKind.Method);
+            Symbol member = singleResult.Symbol;
 
-            var singleKind = singleResult.Kind;
+            LookupResultKind singleKind = singleResult.Kind;
             if (resultKind > singleKind)
             {
                 return;
             }
             else if (resultKind < singleKind)
             {
-                methods.Clear();
-                filteredMethods.Clear();
+                members.Clear();
+                filteredMembers.Clear();
                 resultKind = LookupResultKind.Empty;
             }
 
-            var method = (MethodSymbol)singleResult.Symbol;
-            if (AddReducedAndFilteredMethodGroupSymbol(methods, filteredMethods, method, typeArguments, receiverType, compilation))
+            if (AddReducedAndFilteredSymbol(members, filteredMembers, member, typeArguments, receiverType, compilation))
             {
-                Debug.Assert(methods.Count > 0);
+                Debug.Assert(members.Count > 0);
                 if (resultKind < singleKind)
                 {
                     resultKind = singleKind;
                 }
             }
 
-            Debug.Assert((methods.Count == 0) == (resultKind == LookupResultKind.Empty));
-            Debug.Assert(methods.Count == filteredMethods.Count);
+            Debug.Assert((members.Count == 0) == (resultKind == LookupResultKind.Empty));
+            Debug.Assert(members.Count == filteredMembers.Count);
         }
 
         /// <summary>
+        /// TODO2 update comment
         /// If the call represents an extension method invocation with an explicit receiver, return the original
         /// methods as ReducedExtensionMethodSymbols. Otherwise, return the original methods unchanged.
         /// </summary>
-        private static OneOrMany<MethodSymbol> CreateReducedExtensionMethodsFromOriginalsIfNecessary(BoundCall call, CSharpCompilation compilation)
+        private static OneOrMany<Symbol> CreateReducedAndFilteredSymbolsFromOriginals(BoundCall call, CSharpCompilation compilation)
         {
             var methods = call.OriginalMethodsOpt;
             TypeSymbol extensionThisType = null;
@@ -4766,11 +4811,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)extensionThisType != null);
             }
 
-            var methodBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
-            var filteredMethodBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
+            var methodBuilder = ArrayBuilder<Symbol>.GetInstance();
+            var filteredMethodBuilder = ArrayBuilder<Symbol>.GetInstance();
             foreach (var method in FilterOverriddenOrHiddenMethods(methods))
             {
-                AddReducedAndFilteredMethodGroupSymbol(methodBuilder, filteredMethodBuilder, method, default(ImmutableArray<TypeWithAnnotations>), extensionThisType, compilation);
+                AddReducedAndFilteredSymbol(methodBuilder, filteredMethodBuilder, method, typeArguments: default, extensionThisType, compilation);
             }
             methodBuilder.Free();
             return filteredMethodBuilder.ToOneOrManyAndFree();

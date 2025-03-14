@@ -165,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.InstanceOpt != null && node.InstanceOpt.HasDynamicType();
         }
 
+        // TODO2 review
         public static void GetExpressionSymbols(this BoundExpression node, ArrayBuilder<Symbol> symbols, BoundNode parent, Binder binder)
         {
             switch (node.Kind)
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        symbols.AddRange(CSharpSemanticModel.GetReducedAndFilteredMethodGroupSymbols(binder, (BoundMethodGroup)node));
+                        symbols.AddRange(CSharpSemanticModel.GetReducedAndFilteredMethodGroupSymbols(binder, (BoundMethodGroup)node)); // TODO2
                     }
                     break;
 
