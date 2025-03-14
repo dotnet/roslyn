@@ -31,7 +31,7 @@ internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
 
     public void AddTask(bool isMainThreadTask, WorkTask task)
     {
-        // This lock is a bit extraneous, as the current code doesn't execute any registration of tasks or task processing concurrently.
+        // This lock is a bit extraneous, as the current code doesn't register or process tasks concurrently.
         lock (_gate)
         {
             var workTasks = GetWorkTasks(isMainThreadTask);
@@ -58,7 +58,15 @@ internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
 
     private async Task PerformWorkAsync(bool isMainThreadTask, IProgress<ServiceProgressData> progress, CancellationToken cancellationToken)
     {
-        var workTasks = GetWorkTasks(isMainThreadTask);
+        List<WorkTask> workTasks;
+
+        // This lock is a bit extraneous, as the current code doesn't register or process tasks concurrently.
+        lock (_gate)
+        {
+            var currentWorkTasks = GetWorkTasks(isMainThreadTask);
+            workTasks = [.. currentWorkTasks];
+            currentWorkTasks.Clear();
+        }
 
         if (workTasks.Count == 0)
             return;
@@ -77,12 +85,6 @@ internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
             // captured context. Thus, even poorly behaving tasks (ie, those that do their own thread switching)
             // don't effect the next loop iteration.
             await work(progress, this, cancellationToken).ConfigureAwait(true);
-        }
-
-        // This lock is a bit extraneous, as the current code doesn't execute any registration of tasks or task processing concurrently.
-        lock (_gate)
-        {
-            workTasks.Clear();
         }
     }
 }

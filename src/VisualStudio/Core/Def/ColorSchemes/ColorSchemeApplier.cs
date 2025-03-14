@@ -77,31 +77,19 @@ internal sealed partial class ColorSchemeApplier
     {
         var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
 
-        packageRegistrationTasks.AddTask(
-            isMainThreadTask: true,
-            task: (progress, packageRegistrationTasks, cancellationToken) =>
-            {
-                // We need to update the theme whenever the Editor Color Scheme setting changes.
-                settingsManager.GetSubset(ColorSchemeOptionsStorage.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
+        // We need to update the theme whenever the Editor Color Scheme setting changes.
+        settingsManager.GetSubset(ColorSchemeOptionsStorage.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
 
-                packageRegistrationTasks.AddTask(
-                    isMainThreadTask: false,
-                    task: async (progress, packageRegistrationTasks, cancellationToken) =>
-                    {
-                        // Try to migrate the `useEnhancedColorsSetting` to the new `ColorSchemeName` setting.
-                        _settings.MigrateToColorSchemeSetting();
+        // Try to migrate the `useEnhancedColorsSetting` to the new `ColorSchemeName` setting.
+        _settings.MigrateToColorSchemeSetting();
 
-                        // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
-                        // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
-                        // with the Roslyn colors before they are seen by the user. This is important because the MEF exported Roslyn classification
-                        // colors are only applicable to the Blue and Light VS themes.
+        // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
+        // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
+        // with the Roslyn colors before they are seen by the user. This is important because the MEF exported Roslyn classification
+        // colors are only applicable to the Blue and Light VS themes.
 
-                        // If the color scheme has updated, apply the scheme.
-                        await UpdateColorSchemeAsync(cancellationToken).ConfigureAwait(false);
-                    });
-
-                return Task.CompletedTask;
-            });
+        // If the color scheme has updated, apply the scheme.
+        await UpdateColorSchemeAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private async Task UpdateColorSchemeAsync(CancellationToken cancellationToken)
