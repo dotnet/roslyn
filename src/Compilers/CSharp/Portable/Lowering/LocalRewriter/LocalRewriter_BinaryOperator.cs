@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                return node.Update(operatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ConstrainedToTypeOpt, node.ResultKind, loweredLeft, loweredRight, type);
+                return node.Update(operatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ConstrainedToTypeOpt, node.ResultKind, originalUserDefinedOperatorsOpt: default, loweredLeft, loweredRight, type);
             }
 
             BoundAssignmentOperator tempAssignment;

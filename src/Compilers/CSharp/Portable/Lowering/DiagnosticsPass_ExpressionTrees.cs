@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
-            if (_inExpressionLambda && node.AddMethod.IsStatic)
+            if (_inExpressionLambda && (node.AddMethod.IsStatic || node.AddMethod.GetIsNewExtensionMember()))
             {
                 Error(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, node);
             }

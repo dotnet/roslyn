@@ -67,6 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasRequiredMembers = 1 << 10,
 
             HasPrimaryConstructor = 1 << 11,
+
+            /// <summary>
+            /// Set when <see cref="Syntax.ExtensionDeclarationSyntax"/> is present.
+            /// </summary>            
+            AnyExtensionDeclarationSyntax = 1 << 12,
         }
 
         internal SingleTypeDeclaration(
@@ -133,6 +138,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return (_flags & TypeDeclarationFlags.AnyMemberHasExtensionMethodSyntax) != 0;
+            }
+        }
+
+        public bool AnyExtensionDeclarationSyntax
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.AnyExtensionDeclarationSyntax) != 0;
             }
         }
 

@@ -66,16 +66,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var member in members)
             {
-                var method = (MethodSymbol)member;
-                Debug.Assert(method.IsExtensionMethod || method.GetIsNewExtensionMember());
-
-                // Prefer instance extension declarations vs. their implementations
-                if (method.IsExtensionMethod && implementationsToShadow?.Remove(method.OriginalDefinition) == true)
+                if (member is MethodSymbol method)
                 {
-                    continue;
-                }
+                    Debug.Assert(method.IsExtensionMethod || method.GetIsNewExtensionMember());
 
-                this.Methods.Add((MethodSymbol)member);
+                    // Prefer instance extension declarations vs. their implementations
+                    if (method.IsExtensionMethod && implementationsToShadow?.Remove(method.OriginalDefinition) == true)
+                    {
+                        continue;
+                    }
+
+                    this.Methods.Add(method);
+                }
             }
 
             implementationsToShadow?.Free();

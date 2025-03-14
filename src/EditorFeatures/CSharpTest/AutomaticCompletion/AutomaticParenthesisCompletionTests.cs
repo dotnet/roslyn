@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -193,10 +193,26 @@ public class AutomaticParenthesisCompletionTests : AbstractAutomaticBraceComplet
         CheckStart(session.Session, expectValidSession: false);
     }
 
-    internal static Holder CreateSession(string code)
+    [WpfFact]
+    public void ExtensionParameterList_OpenParenthesis_Delete()
+    {
+        var code = """
+            static class C
+            {
+                extension$$
+            }
+            """;
+
+        using var session = CreateSession(code, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+        Assert.NotNull(session);
+        CheckStart(session.Session);
+        CheckBackspace(session.Session);
+    }
+
+    internal static Holder CreateSession(string code, ParseOptions? parseOptions = null)
     {
         return CreateSession(
-            EditorTestWorkspace.CreateCSharp(code),
+            EditorTestWorkspace.CreateCSharp(code, parseOptions),
             Parenthesis.OpenCharacter, Parenthesis.CloseCharacter);
     }
 }

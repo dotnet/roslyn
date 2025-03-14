@@ -782,6 +782,11 @@
         <target state="new">The receiver parameter of an extension cannot have a default value</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionResolutionFailed">
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">"{0}": Externes Ereignis darf keinen Initialisierer aufweisen.</target>
@@ -8882,8 +8887,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
-        <source>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="translated">Es kann keine neue Erweiterungsmethode definiert werden, weil der für den Compiler erforderliche Typ "{0}" nicht gefunden werden kann. Fehlt möglicherweise ein Verweis auf "System.Core.dll"?</target>
+        <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
+        <target state="needs-review-translation">Es kann keine neue Erweiterungsmethode definiert werden, weil der für den Compiler erforderliche Typ "{0}" nicht gefunden werden kann. Fehlt möglicherweise ein Verweis auf "System.Core.dll"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">

@@ -99,6 +99,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return member.ContainingSymbol is TypeSymbol { IsExtension: true };
         }
+
+        internal static int GetMemberTotalArity(this Symbol member)
+        {
+            if (member.GetIsNewExtensionMember())
+            {
+                return member.ContainingType.Arity + member.GetMemberArity();
+            }
+
+            return member.GetMemberArity();
+        }
 #nullable disable
 
         /// <summary>

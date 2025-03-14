@@ -130,6 +130,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool ContainsExtensionDeclarations
+        {
+            get
+            {
+                foreach (var decl in this.Declarations)
+                {
+                    if (decl.AnyExtensionDeclarationSyntax)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
         public bool HasPrimaryConstructor
         {
             get
