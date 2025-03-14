@@ -331,3 +331,35 @@ class C
 
 class partial { }
 ```
+
+## Extended partial members are now virtual
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+We have fixed [an inconsistency](https://github.com/dotnet/roslyn/issues/77346)
+where interface members would not be implicitly `virtual` and `public` if they were also marked `partial`.
+Note that Visual Basic and other languages not supporting default interface members will start requiring to implement such `partial` interface members.
+
+This change has an effect only when language version is set to C# 14 or later.
+To keep the previous behavior in C# 14 and later, explicitly mark `partial` interface members as `sealed` and `private`.
+
+```cs
+((I)new C()).M(); // wrote 1 previously, writes 2 now
+
+partial interface I
+{
+    public partial void M();
+    public partial void M() // implicitly virtual now
+    {
+        System.Console.Write(1);
+    }
+}
+
+class C : I
+{
+    public void M() // overrides I.M
+    {
+        System.Console.Write(2);
+    }
+}
+```
