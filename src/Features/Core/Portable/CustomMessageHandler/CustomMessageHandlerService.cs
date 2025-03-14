@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 
-[Export(typeof(ICustomMessageHandlerService)), Shared]
+[ExportWorkspaceService(typeof(ICustomMessageHandlerService)), Shared]
 internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService, IDisposable
 {
     /// <summary>

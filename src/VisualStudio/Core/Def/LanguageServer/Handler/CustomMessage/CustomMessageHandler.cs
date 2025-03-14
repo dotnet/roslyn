@@ -14,19 +14,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(CustomMessageHandler)), Shared]
 [Method(MethodName)]
-internal class CustomMessageHandler
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class CustomMessageHandler()
     : ILspServiceRequestHandler<CustomMessageParams, CustomResponse>
 {
     private const string MethodName = "roslyn/customMessage";
-
-    private readonly ICustomMessageHandlerService _customMessageHandlerService;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CustomMessageHandler(ICustomMessageHandlerService customMessageHandlerService)
-    {
-        _customMessageHandlerService = customMessageHandlerService;
-    }
 
     public bool MutatesSolutionState => false;
 
@@ -61,7 +54,8 @@ internal class CustomMessageHandler
         }
         else
         {
-            var response = await _customMessageHandlerService.HandleCustomMessageAsync(
+            var service = context.Workspace!.Services.GetRequiredService<ICustomMessageHandlerService>();
+            var response = await service.HandleCustomMessageAsync(
                     solution,
                     request.AssemblyFolderPath,
                     request.AssemblyFileName,

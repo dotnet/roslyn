@@ -14,19 +14,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(CustomMessageUnloadHandler)), Shared]
 [Method(MethodName)]
-internal class CustomMessageUnloadHandler
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class CustomMessageUnloadHandler()
     : ILspServiceNotificationHandler<CustomMessageUnloadParams>
 {
     private const string MethodName = "roslyn/customMessageUnload";
-
-    private readonly ICustomMessageHandlerService _customMessageHandlerService;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CustomMessageUnloadHandler(ICustomMessageHandlerService customMessageHandlerService)
-    {
-        _customMessageHandlerService = customMessageHandlerService;
-    }
 
     public bool MutatesSolutionState => false;
 
@@ -49,7 +42,8 @@ internal class CustomMessageUnloadHandler
         }
         else
         {
-            await _customMessageHandlerService.UnloadCustomMessageHandlersAsync(
+            var service = context.Workspace!.Services.GetRequiredService<ICustomMessageHandlerService>();
+            await service.UnloadCustomMessageHandlersAsync(
                     request.AssemblyFolderPath,
                     cancellationToken).ConfigureAwait(false);
         }

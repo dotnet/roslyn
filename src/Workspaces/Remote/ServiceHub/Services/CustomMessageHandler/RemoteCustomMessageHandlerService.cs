@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServiceBase, IRemoteCustomMessageHandlerService
 {
-    private readonly ICustomMessageHandlerService _customMessageHandlerService;
-
     internal sealed class Factory : FactoryBase<IRemoteCustomMessageHandlerService>
     {
         protected override IRemoteCustomMessageHandlerService CreateService(in ServiceConstructionArguments arguments)
@@ -21,8 +19,6 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
     public RemoteCustomMessageHandlerService(in ServiceConstructionArguments arguments)
         : base(arguments)
     {
-        // TODO get the MEF-exported ICustomMessageHandlerService
-        _customMessageHandlerService = null!;
     }
 
     public ValueTask<string> HandleCustomMessageAsync(
@@ -34,9 +30,10 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
         DocumentId? documentId,
         CancellationToken cancellationToken)
     {
+        var service = this.GetWorkspace().Services.GetRequiredService<ICustomMessageHandlerService>();
         return RunServiceAsync(
             solutionChecksum,
-            solution => _customMessageHandlerService.HandleCustomMessageAsync(
+            solution => service.HandleCustomMessageAsync(
                 solution,
                 assemblyFolderPath,
                 assemblyFileName,
@@ -51,8 +48,9 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
         string assemblyFolderPath,
         CancellationToken cancellationToken)
     {
+        var service = this.GetWorkspace().Services.GetRequiredService<ICustomMessageHandlerService>();
         return RunServiceAsync(
-            (_) => _customMessageHandlerService.UnloadCustomMessageHandlersAsync(
+            (_) => service.UnloadCustomMessageHandlersAsync(
                 assemblyFolderPath,
                 cancellationToken),
             cancellationToken);
