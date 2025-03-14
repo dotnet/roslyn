@@ -118,7 +118,7 @@ public static class MyExtension
 {
     extension(string $${|Definition:s|})
     {
-        public static int ExtensionMethod()
+        public int ExtensionMethod()
         {
             return [|s|].Length;
         }
@@ -143,9 +143,9 @@ public static class MyExtension
 {
     extension<$${|Definition:T|}>(string s)
     {
-        public static int ExtensionMethod([|T|] t)
+        public int ExtensionMethod([|T|] t)
         {
-            return [|s|].Length;
+            return s.Length;
         }
     }
 }
