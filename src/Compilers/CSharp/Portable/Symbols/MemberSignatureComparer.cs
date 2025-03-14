@@ -102,6 +102,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
+        /// Same as <see cref="DuplicateSourceComparer"/>, but also considers return type_and_ref-ness differences
+        /// </summary>
+        public static readonly MemberSignatureComparer DuplicateSourceWithReturnComparer = new MemberSignatureComparer(
+            considerName: true,
+            considerExplicitlyImplementedInterfaces: true,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerCallingConvention: false,
+            refKindCompareMode: RefKindCompareMode.DoNotConsiderDifferences,
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
+
+        /// <summary>
         /// This instance is used to determine if some API specific to records is explicitly declared.
         /// It is the same as <see cref="DuplicateSourceComparer"/> except it considers ref kinds as well.
         /// </summary>
