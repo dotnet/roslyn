@@ -1651,7 +1651,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private string GetDeclarationName(CSharpSyntaxNode declaration)
         {
-            // PROTOTYPE likely needs work for semantic model
             switch (declaration.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
@@ -2045,15 +2044,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // PROTOTYPE use a public API for ExtensionParameter if we add one
-            var extensionParameter = ((Symbols.PublicModel.NamedTypeSymbol)extension).UnderlyingNamedTypeSymbol.ExtensionParameter;
+            IParameterSymbol extensionParameter = extension.ExtensionParameter;
             foreach (var location in extensionParameter.Locations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (location.SourceTree == this.SyntaxTree && parameter.Span.Contains(location.SourceSpan))
                 {
-                    return extensionParameter;
+                    return extensionParameter.GetSymbol<ParameterSymbol>();
                 }
             }
 

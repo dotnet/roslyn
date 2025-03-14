@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 scope.Binder.LookupAllExtensionMembersInSingleBinder(
                   result, receiverType, name, arity: 0,
-                  basesBeingResolved: null, options, originalBinder: this,
-                  ref discardedUseSiteInfo, ref discardedUseSiteInfo);
+                  options: options, originalBinder: this, classicExtensionUseSiteInfo: ref discardedUseSiteInfo);
             }
         }
 #nullable disable
@@ -185,8 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         private void LookupAllExtensionMembersInSingleBinder(LookupResult result, TypeSymbol receiverType,
-            string? name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
-            Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
+            string? name, int arity, LookupOptions options, Binder originalBinder,
+            ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
         {
             var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
             EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, receiverType, name, arity, options, originalBinder, ref classicExtensionUseSiteInfo);
@@ -202,14 +201,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol receiverType, string? name, int arity, LookupOptions options, Binder originalBinder,
             ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
         {
+            if (receiverType.IsErrorType() || receiverType.IsDynamic())
+            {
+                return;
+            }
+
             // 1. Collect new extension members
             var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-
-            Debug.Assert(!receiverType.IsDynamic());
-            if (!receiverType.IsErrorType())
-            {
-                this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
-            }
+            this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
 
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
 

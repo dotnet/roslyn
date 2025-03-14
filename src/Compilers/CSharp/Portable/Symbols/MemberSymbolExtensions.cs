@@ -110,7 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member.GetMemberArity();
         }
 
-        // TODO2 rename/comment
+        /// <summary>
+        /// For an extension member, we distribute the type arguments between the extension declaration and the member.
+        /// Otherwise, we just construct the member with the type arguments.
+        /// </summary>
         internal static TMember ConstructWithAllTypeParameters<TMember>(this TMember member, ImmutableArray<TypeWithAnnotations> typeArguments) where TMember : Symbol
         {
             if (member is MethodSymbol method)

@@ -1399,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// scope around position is used.</param>
         /// <param name="name">The name of the symbol to find. If null is specified then symbols
         /// with any names are returned.</param>
-        /// <param name="includeReducedExtensionMethods">Consider (reduced) extension methods.</param>
+        /// <param name="includeReducedExtensionMethods">Consider extension members. Classic extension methods will be returned in reduced form.</param>
         /// <returns>A list of symbols that were found. If no symbols were found, an empty list is returned.</returns>
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible. Even if "container" is
@@ -1414,7 +1414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             NamespaceOrTypeSymbol container = null,
             string name = null,
-            bool includeReducedExtensionMethods = false) // TODO2
+            bool includeReducedExtensionMethods = false)
         {
             var options = includeReducedExtensionMethods ? LookupOptions.IncludeExtensionMembers : LookupOptions.Default;
             return LookupSymbolsInternal(position, container, name, options, useBaseReferenceAccessibility: false);
@@ -1687,7 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (name == null)
-                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: 0); // TODO2 test this
+                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: 0);
 
             return results.ToImmutableAndFree();
         }
@@ -3369,6 +3369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyGroup:
                     symbols = GetPropertyGroupSemanticSymbols((BoundPropertyGroup)boundNode, boundNodeForSyntacticParent, binderOpt, out resultKind, out memberGroup);
                     break;
+                // PROTOTYPE handle BoundPropertyAccess (which now may have a member group)
 
                 case BoundKind.BadExpression:
                     {
@@ -3437,7 +3438,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Call:
                     {
-                        // TODO2 test this
                         // Either overload resolution succeeded for this call or it did not. If it
                         // did not succeed then we've stashed the original method symbols from the
                         // method group, and we should use those as the symbols displayed for the
@@ -3455,12 +3455,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            symbols = CreateReducedAndFilteredSymbolsFromOriginals(call, Compilation); // TODO2 review and test
+                            symbols = CreateReducedAndFilteredSymbolsFromOriginals(call, Compilation);
                             resultKind = call.ResultKind;
                         }
                     }
                     break;
-                // TODO2 add support for properties
 
                 case BoundKind.FunctionPointerInvocation:
                     {
@@ -3539,7 +3538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var symbol = conversion.SymbolOpt;
                             Debug.Assert((object)symbol != null);
-                            symbols = OneOrMany.Create<Symbol>(ReducedExtensionMethodSymbol.Create(symbol)); // TODO2
+                            symbols = OneOrMany.Create<Symbol>(ReducedExtensionMethodSymbol.Create(symbol));
                             resultKind = conversion.ResultKind;
                         }
                         else if (conversion.ConversionKind.IsUserDefinedConversion())
@@ -4263,7 +4262,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder = binderOpt ?? GetEnclosingBinder(GetAdjustedNodePosition(boundNode.Syntax));
             memberGroup = GetReducedAndFilteredMethodGroupSymbols(binder, boundNode);
 
-            // TODO2 test these various cases
             // We want to get the actual node chosen by overload resolution, if possible. 
             if (boundNodeForSyntacticParent != null)
             {
@@ -4285,7 +4283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 resultKind = call.ResultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
-                                symbols = CreateReducedAndFilteredSymbolsFromOriginals(call, Compilation); // TODO2 test
+                                symbols = CreateReducedAndFilteredSymbolsFromOriginals(call, Compilation);
                             }
                         }
                         break;
@@ -4296,7 +4294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var delegateCreation = (BoundDelegateCreationExpression)boundNodeForSyntacticParent;
                         if (delegateCreation.Argument == boundNode && (object)delegateCreation.MethodOpt != null)
                         {
-                            symbols = CreateReducedExtensionMethodIfPossible(delegateCreation, boundNode.ReceiverOpt); // TODO2 test
+                            symbols = CreateReducedExtensionMethodIfPossible(delegateCreation, boundNode.ReceiverOpt);
                         }
                         break;
 
@@ -4319,7 +4317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (conversion.IsExtensionMethod)
                             {
-                                method = ReducedExtensionMethodSymbol.Create(method); // TODO2
+                                method = ReducedExtensionMethodSymbol.Create(method);
                             }
 
                             symbols = OneOrMany.Create((Symbol)method);
@@ -4571,7 +4569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static ImmutableArray<Symbol> GetReducedAndFilteredMethodGroupSymbols(Binder binder, BoundMethodGroup node)
         {
-            var members = ArrayBuilder<Symbol>.GetInstance(); // TODO2 not sure what purpose this serves
+            var members = ArrayBuilder<Symbol>.GetInstance();
             var filteredMembers = ArrayBuilder<Symbol>.GetInstance();
             var resultKind = LookupResultKind.Empty;
             var typeArguments = node.TypeArgumentsOpt;
@@ -4617,8 +4615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var name = node.Name;
 
             // Extension methods, all scopes.
-            var receiverType = receiver.Type;
-            if (node.SearchExtensions)
+            if (node.SearchExtensions && receiver.Type is { } receiverType)
             {
                 Debug.Assert(receiver != null);
                 int arity;
@@ -4668,12 +4665,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return filteredMembers.ToImmutableAndFree();
         }
 
-        // TODO2 update comment
-        // Reduce extension methods to their reduced form, and remove:
+        // Reduce classic extension methods to their reduced form, and remove:
         //   a) Extension methods are aren't applicable to receiverType
         //   including constraint checking.
         //   b) Duplicate methods
         //   c) Methods that are hidden or overridden by another method in the group.
+        // For new extension members, infer type arguments for the extension declaration based on the receiver type,
+        //   perform the substitution, and remove:
+        //   a) Members that would break constraints
+        //   b) Members that are not applicable to the receiver type.
         private static bool AddReducedAndFilteredSymbol(
             ArrayBuilder<Symbol> members,
             ArrayBuilder<Symbol> filteredMembers,
@@ -4785,37 +4785,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// TODO2 update comment
-        /// If the call represents an extension method invocation with an explicit receiver, return the original
+        /// If the call represents a classic extension method invocation with an explicit receiver, return the original
         /// methods as ReducedExtensionMethodSymbols. Otherwise, return the original methods unchanged.
         /// </summary>
         private static OneOrMany<Symbol> CreateReducedAndFilteredSymbolsFromOriginals(BoundCall call, CSharpCompilation compilation)
         {
             var methods = call.OriginalMethodsOpt;
-            TypeSymbol extensionThisType = null;
+            TypeSymbol receiverType = null;
             Debug.Assert(!methods.IsDefault);
 
+            // Note: A call including new extension members may be marked as InvokedAsExtensionMethod in error scenarios
             if (call.InvokedAsExtensionMethod)
             {
-                // If the call was invoked as an extension method, the receiver
-                // should be non-null and all methods should be extension methods.
                 if (call.ReceiverOpt != null)
                 {
-                    extensionThisType = call.ReceiverOpt.Type;
+                    receiverType = call.ReceiverOpt.Type;
                 }
                 else
                 {
-                    extensionThisType = call.Arguments[0].Type;
+                    receiverType = call.Arguments[0].Type;
                 }
 
-                Debug.Assert((object)extensionThisType != null);
+                Debug.Assert((object)receiverType != null);
             }
 
             var methodBuilder = ArrayBuilder<Symbol>.GetInstance();
             var filteredMethodBuilder = ArrayBuilder<Symbol>.GetInstance();
             foreach (var method in FilterOverriddenOrHiddenMethods(methods))
             {
-                AddReducedAndFilteredSymbol(methodBuilder, filteredMethodBuilder, method, typeArguments: default, extensionThisType, compilation);
+                AddReducedAndFilteredSymbol(methodBuilder, filteredMethodBuilder, method, typeArguments: default, receiverType, compilation);
             }
             methodBuilder.Free();
             return filteredMethodBuilder.ToOneOrManyAndFree();

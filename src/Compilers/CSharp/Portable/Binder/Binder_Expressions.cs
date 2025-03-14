@@ -8028,6 +8028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
 
                 case ExtendedErrorTypeSymbol errorTypeSymbol:
+                    // PROTOTYPE we should likely reduce (ie. do type inference and substitute) the candidates (like ToBadExpression)
                     return new BoundBadExpression(syntax, LookupResultKind.Viable, errorTypeSymbol.CandidateSymbols!, [receiver], CreateErrorType());
 
                 default:
@@ -8592,8 +8593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                 scope.Binder.LookupAllExtensionMembersInSingleBinder(
                     lookupResult, left.Type, memberName, arity,
-                    basesBeingResolved: null, lookupOptions, originalBinder: binder,
-                    ref useSiteInfo, ref classicExtensionUseSiteInfo);
+                    lookupOptions, originalBinder: binder, classicExtensionUseSiteInfo: ref classicExtensionUseSiteInfo);
 
                 diagnostics.Add(expression, classicExtensionUseSiteInfo);
 
@@ -8692,12 +8692,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // we can still prune the inapplicable extension methods using the receiver type
                     for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
                     {
-                        if (methodGroup.Methods[i].IsExtensionMethod
-                            && (object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type, binder.Compilation) == null)
+                        MethodSymbol method = methodGroup.Methods[i];
+                        TypeSymbol? receiverType = left.Type;
+                        Debug.Assert(receiverType is not null);
+
+                        bool inapplicable = false;
+                        if (method.IsExtensionMethod
+                            && (object)method.ReduceExtensionMethod(receiverType, binder.Compilation) == null)
+                        {
+                            inapplicable = true;
+                        }
+                        else if (method.GetIsNewExtensionMember()
+                            && SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(binder.Compilation, method, receiverType) == null)
+                        {
+                            inapplicable = true;
+                        }
+
+                        if (inapplicable)
                         {
                             methodGroup.Methods.RemoveAt(i);
                         }
-                        // PROTOTYPE we'll want to do the same for new extension methods
                     }
 
                     if (methodGroup.Methods.Count != 0)

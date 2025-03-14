@@ -115,7 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyExtensionInfo.LazyImplementationMap.GetValueOrDefault(method);
         }
 
-        // TODO2 test this more
         internal static Symbol? GetCompatibleSubstitutedMember(CSharpCompilation compilation, Symbol extensionMember, TypeSymbol receiverType)
         {
             Debug.Assert(extensionMember.GetIsNewExtensionMember());
