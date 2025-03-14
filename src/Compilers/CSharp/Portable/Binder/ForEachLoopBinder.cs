@@ -1511,7 +1511,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options: OverloadResolution.Options.None,
                 returnRefKind: default,
                 returnType: null,
-                ref extensionUseSiteInfo);
+                ref extensionUseSiteInfo,
+                acceptOnlyMethods: true); // PROTOTYPE: Test effect of acceptOnlyMethods value
 
             diagnostics.Add(syntax, extensionUseSiteInfo);
             diagnostics.AddRange(methodGroupResolutionResult.Diagnostics);

@@ -1361,7 +1361,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resolution = addMethodBinder.ResolveMethodGroup(
                     methodGroup, expression, WellKnownMemberNames.CollectionInitializerAddMethodName, analyzedArguments,
                     useSiteInfo: ref useSiteInfo,
-                    options: OverloadResolution.Options.DynamicResolution | OverloadResolution.Options.DynamicConvertsToAnything);
+                    options: OverloadResolution.Options.DynamicResolution | OverloadResolution.Options.DynamicConvertsToAnything,
+                    acceptOnlyMethods: true);
 
                 diagnostics.Add(expression, useSiteInfo);
 
@@ -1369,6 +1370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
                 {
+                    Debug.Assert(false); // Should not get here given the 'acceptOnlyMethods' argument value used in 'ResolveMethodGroup' call above  
                     ReportMakeInvocationExpressionBadMemberKind(syntax, WellKnownMemberNames.CollectionInitializerAddMethodName, methodGroup, diagnostics);
                     addMethods = [];
                     result = false;

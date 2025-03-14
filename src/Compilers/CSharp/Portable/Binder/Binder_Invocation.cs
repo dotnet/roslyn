@@ -355,7 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics, queryClause,
                     ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
                     disallowExpandedNonArrayParams: disallowExpandedNonArrayParams,
-                    anyApplicableCandidates: out _);
+                    anyApplicableCandidates: out _,
+                    acceptOnlyMethods: false);
             }
             else if ((object)(delegateType = GetDelegateType(boundExpression)) != null)
             {
@@ -696,7 +697,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode queryClause,
             bool ignoreNormalFormIfHasValidParamsParameter,
             out bool anyApplicableCandidates,
-            bool disallowExpandedNonArrayParams = false)
+            bool disallowExpandedNonArrayParams,
+            bool acceptOnlyMethods) // For example, do not accept extension property value invocations (delegates returned by a property can be invoked, etc.)
         {
             //
             // !!! ATTENTION !!!
@@ -713,7 +715,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteInfo: ref useSiteInfo,
                 options: (ignoreNormalFormIfHasValidParamsParameter ? OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter : OverloadResolution.Options.None) |
                          (disallowExpandedNonArrayParams ? OverloadResolution.Options.DisallowExpandedNonArrayParams : OverloadResolution.Options.None) |
-                         (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None));
+                         (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None),
+                acceptOnlyMethods: acceptOnlyMethods);
             diagnostics.Add(expression, useSiteInfo);
 
             if (resolution.IsNonMethodExtensionMember(out Symbol extensionMember))

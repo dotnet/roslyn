@@ -14388,9 +14388,10 @@ public class MyCollection : IEnumerable<int>
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (4,18): error CS0118: 'Add' is a property but is used like a method
+            // (4,18): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
             // MyCollection c = [42];
-            Diagnostic(ErrorCode.ERR_BadSKknown, "[42]").WithArguments("Add", "property", "method").WithLocation(4, 18));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[42]").WithArguments("MyCollection", "Add").WithLocation(4, 18)
+            );
     }
 
     [Fact]
@@ -18523,16 +18524,22 @@ public static class E2
     public void ExtensionMemberLookup_PatternBased_Deconstruct_DelegateTypeProperty()
     {
         var src = """
-var (x, y) = new C();
-System.Console.Write((x, y));
+var (x1, y1) = new C1();
 
-class C { }
+var (x2, y2) = new C2();
+
+class C1 { }
+
+class C2
+{
+    public D Deconstruct => (out int i, out int j) => { i = 42; j = 43; };
+}
 
 delegate void D(out int i, out int j);
 
 static class E
 {
-    extension(C c)
+    extension(C1 c)
     {
         public D Deconstruct => (out int i, out int j) => { i = 42; j = 43; };
     }
@@ -18540,14 +18547,39 @@ static class E
 """;
         var comp = CreateCompilation(src);
         // PROTOTYPE revisit pattern-based deconstruction
-        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
+            // var (x1, y1) = new C1();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(1, 6),
+            // (1,10): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y1'.
+            // var (x1, y1) = new C1();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y1").WithArguments("y1").WithLocation(1, 10),
+
+            // PROTOTYPE: It looks like the following error is not reported for instance scenario. Noise?
+
+            // (1,16): error CS1061: 'C1' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C1' could be found (are you missing a using directive or an assembly reference?)
+            // var (x1, y1) = new C1();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C1()").WithArguments("C1", "Deconstruct").WithLocation(1, 16),
+
+            // (1,16): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C1', with 2 out parameters and a void return type.
+            // var (x1, y1) = new C1();
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(1, 16),
+            // (3,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+            // var (x2, y2) = new C2();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(3, 6),
+            // (3,10): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y2'.
+            // var (x2, y2) = new C2();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y2").WithArguments("y2").WithLocation(3, 10),
+            // (3,16): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C2', with 2 out parameters and a void return type.
+            // var (x2, y2) = new C2();
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C2()").WithArguments("C2", "2").WithLocation(3, 16)
+            );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
 
-        Assert.Equal("void D.Invoke(out System.Int32 i, out System.Int32 j)",
-            model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
+        Assert.Null(model.GetDeconstructionInfo(deconstruction).Method);
     }
 
     [Fact(Skip = "PROTOTYPE Asserts in BindDynamicInvocation")]
@@ -18626,14 +18658,17 @@ static class E
 using System.Threading.Tasks;
 
 /*<bind>*/
-await using var x = new C();
+await using var x1 = new C1();
 /*</bind>*/
 
-class C { }
+await using var x2 = new C2();
+
+class C1 { }
+class C2 { }
 
 static class E
 {
-    extension(C c)
+    extension(C1 c)
     {
         public async Task DisposeAsync()
         {
@@ -18641,31 +18676,100 @@ static class E
             await Task.Yield();
         }
     }
+
+    public static async Task DisposeAsync(this C2 c)
+    {
+        System.Console.Write("RAN");
+        await Task.Yield();
+    }
 }
 """;
         var comp = CreateCompilation(src);
         // PROTOTYPE confirm when spec'ing pattern-based disposal
-        CompileAndVerify(comp, expectedOutput: "RAN").VerifyDiagnostics();
+
+        var expectedDiagnostics = new[] {
+            // (4,1): error CS8410: 'C1': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            // await using var x1 = new C1();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x1 = new C1();").WithArguments("C1").WithLocation(4, 1),
+            // (7,1): error CS8410: 'C2': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            // await using var x2 = new C2();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x2 = new C2();").WithArguments("C2").WithLocation(7, 1)
+            };
+
+        comp.VerifyDiagnostics(expectedDiagnostics);
 
         string expectedOperationTree = """
-IUsingDeclarationOperation(IsAsynchronous: True, DisposeMethod: System.Threading.Tasks.Task E.<>E__0.DisposeAsync()) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
-DeclarationGroup:
-  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
-    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var x = new C()')
-      Declarators:
-          IVariableDeclaratorOperation (Symbol: C x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = new C()')
-            Initializer:
-              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                  Arguments(0)
-                  Initializer:
-                    null
-      Initializer:
-        null
+IUsingDeclarationOperation(IsAsynchronous: True) (OperationKind.UsingDeclaration, Type: null, IsInvalid) (Syntax: 'await using ... = new C1();')
+  DeclarationGroup:
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid, IsImplicit) (Syntax: 'await using ... = new C1();')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var x1 = new C1()')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: C1 x1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x1 = new C1()')
+              Initializer:
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C1()')
+                  IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'new C1()')
+                    Arguments(0)
+                    Initializer:
+                      null
+        Initializer:
+          null
 """;
-        var expectedDiagnostics = DiagnosticDescription.None;
 
         VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(src, expectedOperationTree, expectedDiagnostics);
+    }
+
+    [Fact]
+    public void TestPatternBasedDisposal_ExtensionMethod()
+    {
+        string source = @"
+public class C
+{
+    public static async System.Threading.Tasks.Task<int> Main()
+    {
+        await using (var x = new C())
+        {
+        }
+
+        return 1;
+    }
+}
+public static class Extensions
+{
+    extension (C c)
+    {
+        public System.Threading.Tasks.ValueTask DisposeAsync()
+            => throw null;
+    }
+}
+";
+        // extension methods do not contribute to pattern-based disposal
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // 0.cs(6,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22)
+            );
+    }
+
+    [Fact]
+    public void PatternBased_Dispose_Async_DelegateTypeProperty()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+await using var x = new C();
+
+class C
+{
+    public System.Func<Task> DisposeAsync => async () => { System.Console.Write("ran2"); await Task.Yield(); };
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,1): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            // await using var x = new C();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new C();").WithArguments("C").WithLocation(3, 1)
+            );
     }
 
     [Fact]
@@ -18688,8 +18792,11 @@ static class E
 """;
         var comp = CreateCompilation(src);
         // PROTOTYPE(instance) confirm when spec'ing pattern-based disposal
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone (produces unverifiable IL)
+        comp.VerifyEmitDiagnostics(
+            // (3,1): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            // await using var x = new C();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new C();").WithArguments("C").WithLocation(3, 1)
+            );
     }
 
     [Fact]
@@ -18721,7 +18828,11 @@ static class E
 """;
         // PROTOTYPE confirm when spec'ing pattern-based disposal
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: "RAN").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (4,1): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            // await using var x = new C();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new C();").WithArguments("C").WithLocation(4, 1)
+            );
 
         // PROTOTYPE verify IOperation
     }
@@ -18730,20 +18841,34 @@ static class E
     public void ExtensionMemberLookup_PatternBased_Dispose_RefStruct()
     {
         var src = """
-using var x = new S();
+using var x1 = new S1();
+using var x2 = new S2();
 
-ref struct S { }
+ref struct S1 { }
+
+ref struct S2
+{
+}
 
 static class E
 {
-    extension(S s)
+    extension(S1 s)
     {
         public void Dispose() { }
     }
+
+    public static void Dispose(this S2 s) { }
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,1): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
+            // using var x1 = new S1();
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x1 = new S1();").WithArguments("S1").WithLocation(1, 1),
+            // (2,1): error CS1674: 'S2': type used in a using statement must implement 'System.IDisposable'.
+            // using var x2 = new S2();
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x2 = new S2();").WithArguments("S2").WithLocation(2, 1)
+            );
     }
 
     [Fact]
@@ -18785,20 +18910,30 @@ unsafe class C
 {
     public static void Main()
     {
-        fixed (int* p = new Fixable())
+        fixed (int* p = new Fixable1())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+
+        fixed (int* p = new Fixable2())
         {
             System.Console.WriteLine(p[1]);
         }
     }
 }
 
-class Fixable { }
+class Fixable1 { }
+
+class Fixable2
+{
+    public MyDelegate GetPinnableReference => throw null;
+}
 
 delegate ref int MyDelegate();
 
 static class E
 {
-    extension(Fixable f)
+    extension(Fixable1 f)
     {
         public MyDelegate GetPinnableReference => throw null;
     }
@@ -18806,8 +18941,14 @@ static class E
 ";
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
         // PROTOTYPE confirm when spec'ing pattern-based fixed
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
+        comp.VerifyEmitDiagnostics(
+            // (6,25): error CS8385: The given expression cannot be used in a fixed statement
+            //         fixed (int* p = new Fixable1())
+            Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable1()").WithLocation(6, 25),
+            // (11,25): error CS8385: The given expression cannot be used in a fixed statement
+            //         fixed (int* p = new Fixable2())
+            Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable2()").WithLocation(11, 25)
+            );
     }
 
     [Fact]
