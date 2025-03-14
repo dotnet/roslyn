@@ -2033,8 +2033,7 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        Assert.Equal("System.Object", internalSymbol.ExtensionParameter.ToTestDisplayString());
+        Assert.Equal("System.Object", symbol.ExtensionParameter.ToTestDisplayString());
     }
 
     [Fact]
@@ -2043,7 +2042,10 @@ public static class Extensions
         var src = """
 public static class Extensions
 {
-    extension(object o) { }
+    extension(object o) 
+    {
+        public object M() { return o; }
+    }
 }
 """;
         var comp = CreateCompilation(src);
@@ -2053,8 +2055,10 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        Assert.Equal("System.Object o", internalSymbol.ExtensionParameter.ToTestDisplayString());
+        Assert.Equal("System.Object o", symbol.ExtensionParameter.ToTestDisplayString());
+
+        var returnStatement = GetSyntax<ReturnStatementSyntax>(tree, "return o;");
+        Assert.Equal("System.Object o", model.GetSymbolInfo(returnStatement.Expression).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -2080,15 +2084,14 @@ class C { }
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        var extensionParameter = internalSymbol.ExtensionParameter;
+        var extensionParameter = symbol.ExtensionParameter;
 
         Assert.Equal("System.Int32 i", extensionParameter.ToTestDisplayString());
         Assert.True(extensionParameter.Equals(extensionParameter));
 
         var parameterSyntaxes = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
         Assert.Equal("System.Int32 i", model.GetDeclaredSymbol(parameterSyntaxes[0]).ToTestDisplayString());
-        Assert.Same(extensionParameter.GetPublicSymbol(), model.GetDeclaredSymbol(parameterSyntaxes[0]));
+        Assert.Same(extensionParameter, model.GetDeclaredSymbol(parameterSyntaxes[0]));
 
         Assert.Equal("System.Int32", model.GetTypeInfo(parameterSyntaxes[1].Type).Type.ToTestDisplayString());
         Assert.Null(model.GetDeclaredSymbol(parameterSyntaxes[1]));
@@ -2129,10 +2132,9 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        var extensionParameter = internalSymbol.ExtensionParameter;
+        var extensionParameter = symbol.ExtensionParameter;
         Assert.Equal("T", extensionParameter.ToTestDisplayString());
-        Assert.Same(extensionParameter.Type, internalSymbol.TypeParameters[0]);
+        Assert.Same(extensionParameter.Type, symbol.TypeParameters[0]);
     }
 
     [Fact]
@@ -2154,10 +2156,9 @@ public static class Extensions<T>
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        var extensionParameter = internalSymbol.ExtensionParameter;
+        var extensionParameter = symbol.ExtensionParameter;
         Assert.Equal("T", extensionParameter.ToTestDisplayString());
-        Assert.Same(extensionParameter.Type, internalSymbol.ContainingType.TypeParameters[0]);
+        Assert.Same(extensionParameter.Type, symbol.ContainingType.TypeParameters[0]);
     }
 
     [Fact]
@@ -2181,8 +2182,7 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        var parameter = internalSymbol.ExtensionParameter;
+        var parameter = symbol.ExtensionParameter;
         Assert.Equal("T", parameter.ToTestDisplayString());
         Assert.True(parameter.Type.IsErrorType());
     }
@@ -2292,8 +2292,7 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var type1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(type1);
-        var internalSymbol1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        var parameter = internalSymbol1.ExtensionParameter;
+        var parameter = symbol1.ExtensionParameter;
         Assert.Equal("System.Int32[] i", parameter.ToTestDisplayString());
         Assert.False(parameter.IsParams);
     }
@@ -2355,9 +2354,7 @@ public class C<T> where T : struct { }
         var model = comp.GetSemanticModel(tree);
         var type1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(type1);
-        var internalSymbol1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        var parameter = internalSymbol1.ExtensionParameter;
-        Assert.Equal("C<T>", parameter.ToTestDisplayString());
+        Assert.Equal("C<T>", symbol1.ExtensionParameter.ToTestDisplayString());
     }
 
     [Fact]
@@ -2379,9 +2376,7 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        var parameter = internalSymbol.ExtensionParameter;
-        Assert.True(parameter.HasExplicitDefaultValue); // PROTOTYPE consider not recognizing the default value entirely
+        Assert.True(symbol.ExtensionParameter.HasExplicitDefaultValue); // PROTOTYPE consider not recognizing the default value entirely
     }
 
     [Fact]
@@ -2546,8 +2541,7 @@ public class MyAttribute : System.Attribute { }
 
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var extensionSymbol = model.GetDeclaredSymbol(type);
-        var parameterSymbol2 = extensionSymbol.GetSymbol<SourceNamedTypeSymbol>().ExtensionParameter;
-        AssertEx.SetEqual(["MyAttribute"], parameterSymbol2.GetAttributes().Select(a => a.ToString()));
+        AssertEx.SetEqual(["MyAttribute"], extensionSymbol.ExtensionParameter.GetAttributes().Select(a => a.ToString()));
     }
 
     [Fact]
@@ -2663,8 +2657,7 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var type1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(type1);
-        var internalSymbol1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
-        var parameter = internalSymbol1.ExtensionParameter;
+        var parameter = symbol1.ExtensionParameter;
         Assert.Equal("out System.Int32 i", parameter.ToTestDisplayString());
         Assert.Equal(RefKind.Out, parameter.RefKind);
     }
@@ -2804,6 +2797,12 @@ public static class Extensions
             Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(5, 15));
 
         Assert.Empty(comp.GetTypeByMetadataName("Extensions").GetMembers().OfType<MethodSymbol>());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual(_objectMembers, model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -3071,8 +3070,7 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        var internalSymbol = symbol.GetSymbol<SourceNamedTypeSymbol>();
-        Assert.Equal("?", internalSymbol.ExtensionParameter.ToTestDisplayString());
+        Assert.Equal("?", symbol.ExtensionParameter.ToTestDisplayString());
     }
 
     [Fact]
@@ -3150,6 +3148,8 @@ static class Extensions
             AssertEx.Equal("System.String?", m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__0.<Extension>$").Parameters[0].TypeWithAnnotations.ToTestDisplayString());
             AssertEx.Equal("System.String?", m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__1.<Extension>$").Parameters[0].TypeWithAnnotations.ToTestDisplayString());
         }).VerifyDiagnostics();
+
+        // PROTOTYPE verify nullability in GetDeclaredSymbol and GetSymbolInfo
     }
 
     [Fact]
@@ -10142,11 +10142,11 @@ public static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
         Assert.Equal("System.Int32 E.<>E__0<T>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.P");
         Assert.Equal("System.Int32 E.<>E__0<System.Int32>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -10367,7 +10367,7 @@ namespace N3
 
             var invocation = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().Method");
             Assert.Equal($$"""void {{extensionName}}.Method()""", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
-            //Assert.Equal(["void N2.E.<>E__0.Method()"], model.GetMemberGroup(invocation).ToTestDisplayStrings()); // TODO2
+            Assert.Equal([$$"""void {{extensionName}}.Method()"""], model.GetMemberGroup(invocation).ToTestDisplayStrings());
         }
     }
 
@@ -13829,8 +13829,9 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new object().P()");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
-        // PROTOTYPE semantic model is undone
         Assert.Equal([], model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
+
+        Assert.Equal(["System.Int32 Extensions.<>E__0.P { get; }"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -13854,8 +13855,8 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().P");
         Assert.Equal("System.Action Extensions.<>E__0.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        // PROTOTYPE semantic model is undone
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -13879,7 +13880,6 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "object.M()");
         Assert.Equal("System.Int32 Extensions.<>E__0.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
-        // PROTOTYPE semantic model is undone
         Assert.Equal([], model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -15746,7 +15746,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // TODO2
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE consider handling BoundBadExpression better
     }
 
     [Fact]
@@ -15784,7 +15784,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("System.Action E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -15822,7 +15822,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("System.Action E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
     }
 
     [Fact(Skip = "PROTOTYPE function type")]
@@ -15863,7 +15863,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("void System.Object.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void System.Object.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
+        Assert.Equal(["void System.Object.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE should include the extension property
     }
 
     [Fact]
@@ -15989,7 +15989,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        // PROTOTYPE: Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE semantic model is undone TODO2
+        Assert.Equal(["void N.E1.<>E__0.M(System.Int32 i)", "System.Int32 E2.<>E__0.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -16072,7 +16072,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("System.Int32 E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -16266,6 +16266,38 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.M");
+        Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetTypeInfo(memberAccess).Type);
+        Assert.Equal("D", model.GetTypeInfo(memberAccess).ConvertedType.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal(ConversionKind.MethodGroup, model.GetConversion(memberAccess).Kind);
+    }
+
+    [Fact]
+    public void DelegateConversion_InstanceReceiver_Creation()
+    {
+        var source = """
+D d = new D(new C().M);
+d(42);
+
+delegate void D(int i);
+
+class C { }
+
+static class E
+{
+    extension(C)
+    {
+        public void M(int i) { System.Console.Write($"E.M({i})"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "E.M(42)").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void E.<>E__0.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Null(model.GetTypeInfo(memberAccess).Type);
         Assert.Equal("D", model.GetTypeInfo(memberAccess).ConvertedType.ToTestDisplayString());
@@ -17080,9 +17112,14 @@ static class E
 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (3,21): error CS0123: No overload for 'M' matches delegate 'Action'
+            // (3,21): error CS1061: 'Span<int>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'Span<int>' could be found (are you missing a using directive or an assembly reference?)
             // System.Action a = s.M;
-            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(3, 21));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("System.Span<int>", "M").WithLocation(3, 21));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "s.M");
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -17104,9 +17141,9 @@ static class E
         //   is needed in a static scenario. 
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (1,36): error CS0123: No overload for 'M' matches delegate 'Action'
+            // (1,36): error CS0117: 'Span<int>' does not contain a definition for 'M'
             // System.Action a = System.Span<int>.M;
-            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Action").WithLocation(1, 36));
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("System.Span<int>", "M").WithLocation(1, 36));
     }
 
     [Fact]
@@ -17212,7 +17249,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
         Assert.Equal("System.Int32 E.<>E__0.Property { set; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(property)); // TODO2
+        Assert.Empty(model.GetMemberGroup(property)); // PROTOTYPE handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -17244,7 +17281,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
         Assert.Equal("System.Int32 E.<>E__0.Property { set; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(property)); // TODO2
+        Assert.Empty(model.GetMemberGroup(property)); // PROTOTYPE handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -17635,9 +17672,29 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        // PROTOTYPE semantic model is undone
-        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings()); // TODO2
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        src = """
+new object().M.ToString();
+
+static class E
+{
+    public static int M(this object o) => 42;
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS0119: 'E.M(object)' is a method, which is not valid in the given context
+            // new object().M.ToString();
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "M").WithArguments("E.M(object)", "method").WithLocation(1, 14));
+
+        tree = comp.SyntaxTrees.Single();
+        model = comp.GetSemanticModel(tree);
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -17734,7 +17791,7 @@ static class E
         Assert.Equal(["void E.<>E__0.Method()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
-        Assert.Equal([], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings()); // TODO2
+        Assert.Equal([], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -17944,7 +18001,7 @@ static class E
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal(["System.Int32 E.<>E__0.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -18091,7 +18148,6 @@ static class E
         Assert.Equal("System.Int32 E.<>E__0.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
-    // TODO2 resume scan here
     [Fact]
     public void LiteralReceiver_Property_Integer_Set()
     {
@@ -18362,7 +18418,46 @@ static class E2
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal(["System.String E1.<>E__0.M()", "System.String E2.<>E__0.M { get; }"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // TODO2
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE consider handling BoundBadExpression better
+    }
+
+    [Fact]
+    public void PreferMoreSpecific_Static_MethodAndProperty_Generic()
+    {
+        var src = """
+System.Console.Write(object.M);
+
+static class E1
+{
+    extension<T>(T)
+    {
+        public static string M() => throw null;
+    }
+}
+
+static class E2
+{
+    extension<T>(T)
+    {
+        public static string M => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,22): error CS9505: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // System.Console.Write(object.M);
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(1, 22));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+
+        // PROTOTYPE consider handling BoundBadExpression better
+        Assert.Equal(["System.String E1.<>E__0<T>.M()", "System.String E2.<>E__0<T>.M { get; }"],
+            model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Empty(model.GetMemberGroup(memberAccess));
     }
 
     [Fact]
@@ -18395,7 +18490,7 @@ static class E2
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Equal("System.String E1.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        //Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2
+        Assert.Equal(["System.String E1.<>E__0.M()", "System.String E2.<>E__0.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -19951,7 +20046,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P<int>");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        //Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings()); // PROTOTYPE semantic model is undone TODO2
+        Assert.Equal(["void E2.<>E__0.P<System.Int32>()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -20202,7 +20297,7 @@ static class E2
         Assert.Equal(["System.String E1.<>E__0.M()", "System.Func<System.String> E2.<>E__0.M { get; }"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE semantic model is undone
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // PROTOTYPE consider handling BoundBadExpression better
     }
 
     [Fact]
@@ -20230,7 +20325,8 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol); // PROTOTYPE semantic model is undone
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.String E.<>E__0.Method()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -20312,7 +20408,8 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol); // PROTOTYPE semantic model is undone
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.String E.<>E__0.Method<T>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -20398,7 +20495,7 @@ static class E
     }
 
     [Fact]
-    public void Nameof_Overloads()
+    public void Nameof_Overloads_01()
     {
         var src = """
 System.Console.Write($"{nameof(object.M)} ");
@@ -20417,6 +20514,42 @@ static class E
             // (1,32): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
             // System.Console.Write($"{nameof(object.M)} ");
             Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "object.M").WithLocation(1, 32));
+    }
+
+    [Fact]
+    public void Nameof_Overloads_02()
+    {
+        var src = """
+System.Console.Write($"{nameof(object.M)} ");
+
+static class E1
+{
+    extension<T>(T) where T : class
+    {
+        public static void M() { }
+    }
+}
+
+static class E2
+{
+    extension<T>(T) where T : struct
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,32): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            // System.Console.Write($"{nameof(object.M)} ");
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "object.M").WithLocation(1, 32));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["void E1.<>E__0<System.Object>.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void E1.<>E__0<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -24226,6 +24359,14 @@ static class E
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("'int' does not contain a definition for 'P'"), verify: Verification.FailsPEVerify);
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "d.P");
+        var dynamicType = model.GetTypeInfo(memberAccess.Expression).Type;
+        Assert.True(dynamicType.IsDynamic());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, dynamicType, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, dynamicType, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -24745,7 +24886,7 @@ static class E
         Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M<object>");
-        Assert.Equal(["void E.<>E__0<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2 broken constraint
+        Assert.Equal(["void E.<>E__0<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE incompatible extension due to broken constraint should be removed
     }
 
     [Fact]
@@ -24768,7 +24909,6 @@ static class E
             // (2,7): error CS1061: 'string' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
             // _ = s.P<object>;
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P<object>").WithArguments("string", "P").WithLocation(2, 7));
-        // TODO2 test lookup API here
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -24933,7 +25073,7 @@ static class E
         Assert.Equal("System.Int32 i", symbol.ToTestDisplayString());
     }
 
-    readonly string[] objectMembers = [
+    readonly string[] _objectMembers = [
         "System.String System.Object.ToString()",
         "System.Boolean System.Object.Equals(System.Object obj)",
         "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
@@ -24971,7 +25111,7 @@ public static class E
 
         var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
         AssertSetStrictlyEqual(["void E.M()"], model.LookupSymbols(position: 0, e, name: "M").ToTestDisplayStrings());
-        AssertSetStrictlyEqual(["void E.M()", "void E.<>E__0.M()"], model.LookupSymbols(position: 0, e, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings()); // TODO2
+        AssertSetStrictlyEqual(["void E.M()", "void E.<>E__0.M()"], model.LookupSymbols(position: 0, e, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, e, name: "Property").ToTestDisplayStrings());
         AssertSetStrictlyEqual(["System.Int32 E.<>E__0.Property { get; }"], model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
@@ -24988,8 +25128,15 @@ public static class E
         AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
         AssertSetStrictlyEqual(["System.Int32 E.<>E__0.Property { get; }"], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["void E.<>E__0.M()", "System.Int32 E.<>E__0.Property { get; }", .. objectMembers],
+        AssertSetStrictlyEqual(["void E.<>E__0.M()", "System.Int32 E.<>E__0.Property { get; }", .. _objectMembers],
             model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        Assert.Equal([
+            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"],
+            model.LookupStaticMembers(position: 0, o, name: null).ToTestDisplayStrings()); // PROTOTYPE should we include extension static members?
+
+        Assert.Empty(model.LookupNamespacesAndTypes(position: 0, o, name: null));
     }
 
     [Fact]
@@ -25028,11 +25175,11 @@ public static class E
         AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
         AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(objectMembers, model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertSetStrictlyEqual(_objectMembers, model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
     [Fact]
-    public void LookupSymbols_Substituted()
+    public void LookupSymbols_Substituted_01()
     {
         var src = """
 string.M();
@@ -25061,7 +25208,7 @@ public static class E
         AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
         AssertSetStrictlyEqual(["System.Int32 E.<>E__0<System.Object>.Property { get; }"], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["void E.<>E__0<System.Object>.M()", "System.Int32 E.<>E__0<System.Object>.Property { get; }", .. objectMembers],
+        AssertSetStrictlyEqual(["void E.<>E__0<System.Object>.M()", "System.Int32 E.<>E__0<System.Object>.Property { get; }", .. _objectMembers],
             model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         var s = ((Compilation)comp).GetSpecialType(SpecialType.System_String);
@@ -25070,6 +25217,165 @@ public static class E
 
         AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, s, name: "Property").ToTestDisplayStrings());
         AssertSetStrictlyEqual(["System.Int32 E.<>E__0<System.String>.Property { get; }"], model.LookupSymbols(position: 0, s, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void LookupSymbols_Substituted_02()
+    {
+        var src = """
+string.M(42);
+
+public static class E
+{
+    extension<T>(T)
+    {
+        public static void M<U>(U u) => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var s = ((Compilation)comp).GetSpecialType(SpecialType.System_String);
+        AssertSetStrictlyEqual(["void E.<>E__0<System.String>.M<U>(U u)"], model.LookupSymbols(position: 0, s, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void LookupSymbols_StaticAndInstance()
+    {
+        var src = """
+
+public static class E
+{
+    extension(object)
+    {
+        public static void M() => throw null;
+        public static int Property => throw null;
+    }
+    extension(object)
+    {
+        public void M() => throw null;
+        public int Property => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual(["void E.<>E__0.M()", "void E.<>E__1.M()"],
+            model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["System.Int32 E.<>E__0.Property { get; }", "System.Int32 E.<>E__1.Property { get; }"],
+            model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual([
+            "void E.<>E__0.M()",
+            "System.Int32 E.<>E__0.Property { get; }",
+            "void E.<>E__1.M()",
+            "System.Int32 E.<>E__1.Property { get; }",
+            .. _objectMembers], model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void LookupSymbols_MethodAndProperty()
+    {
+        var src = """
+
+public static class E
+{
+    extension(object)
+    {
+        public static void MP() => throw null;
+    }
+    extension(object)
+    {
+        public int MP => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual(["void E.<>E__0.MP()", "System.Int32 E.<>E__1.MP { get; }"],
+            model.LookupSymbols(position: 0, o, name: "MP", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["void E.<>E__0.MP()", "System.Int32 E.<>E__1.MP { get; }", .. _objectMembers],
+            model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void LookupSymbols_ClassicAndNew()
+    {
+        var src = """
+
+public static class E
+{
+    extension(object)
+    {
+        public static void M() => throw null;
+        public void M(string s) => throw null;
+    }
+
+    public static void M(this object o, int i) { }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual(["void E.<>E__0.M()", "void E.<>E__0.M(System.String s)", "void System.Object.M(System.Int32 i)"],
+            model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        AssertSetStrictlyEqual(["void E.<>E__0.M()", "void E.<>E__0.M(System.String s)", "void System.Object.M(System.Int32 i)", .. _objectMembers],
+            model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void LookupSymbols_NestedType()
+    {
+        var src = """
+
+public static class E
+{
+    extension(object)
+    {
+        static class Nested { }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,22): error CS9501: Extension declarations can include only methods or properties
+            //         static class Nested { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(6, 22));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Nested", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertSetStrictlyEqual([.. _objectMembers], model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        Assert.Empty(model.LookupNamespacesAndTypes(position: 0, o, name: null));
     }
 
     [Fact]
@@ -25101,7 +25407,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
 
-        // TODO2 need to filter out by bad constraint like we do in inferred scenario based on receiver
+        // PROTOTYPE incompatible extension due to broken constraint should be removed
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<int>");
         Assert.Equal(["void E.<>E__0.M<System.Int32>()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
@@ -25263,7 +25569,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // TODO2 handle BoundPropertyAccess
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -25324,6 +25630,211 @@ static class E2
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.M");
+        Assert.Equal("void E2.<>E__0<System.String>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal(["System.Int32 E1.<>E__0<System.String>.M { get; }", "void E2.<>E__0<System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "string.M()");
+        Assert.Equal("void E2.<>E__0<System.String>.M()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void GetMemberGroup_09()
+    {
+        var src = """
+string.M();
+
+static class E1
+{
+    extension<T>(T)
+    {
+        public static void M() { }
+    }
+}
+static class E2
+{
+    extension<T>(T)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<T>(T).M()' and 'E2.extension<T>(T).M()'
+            // string.M();
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("E1.extension<T>(T).M()", "E2.extension<T>(T).M()").WithLocation(1, 8));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "string.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["void E1.<>E__0<System.String>.M()", "void E2.<>E__0<System.String>.M()"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void E1.<>E__0<System.String>.M()", "void E2.<>E__0<System.String>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetMemberGroup_10()
+    {
+        var src = """
+System.Action a = new System.Action(object.M);
+
+static class E
+{
+    extension(object)
+    {
+        public static void M() { }
+        public static void M(int i) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal("void E.<>E__0.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0.M()", "void E.<>E__0.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetMemberGroup_11()
+    {
+        var src = """
+System.Action a = new System.Action(object.M);
+
+static class E
+{
+    extension<T>(T)
+    {
+        public static void M() { }
+        public static void M(int i) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal("void E.<>E__0<System.Object>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void E.<>E__0<System.Object>.M()", "void E.<>E__0<System.Object>.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetMemberGroup_12()
+    {
+        var src = """
+System.Action a = (System.Action)object.M;
+
+static class E
+{
+    extension<T>(T)
+    {
+        public static void M() { }
+        public static void M(int i) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
+        Assert.Equal("void E.<>E__0<System.Object>.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void E.<>E__0<System.Object>.M()", "void E.<>E__0<System.Object>.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        var cast = GetSyntax<CastExpressionSyntax>(tree, "(System.Action)object.M");
+        Assert.Equal("void E.<>E__0<System.Object>.M()", model.GetSymbolInfo(cast).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(cast).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(cast).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void ToBadExpression_01()
+    {
+        var source = """
+class A
+{
+    void F() { }
+}
+
+class C
+{
+    static void M(A a)
+    {
+        a.F();
+        M(a.F);
+    }
+    static void M(System.Action a) { }
+}
+
+static class E1
+{
+    static void F<T>(this T t) { }
+}
+
+static class E2
+{
+    extension<T>(T)
+    {
+        static void F() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (10,11): error CS0122: 'A.F()' is inaccessible due to its protection level
+            //         a.F();
+            Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(10, 11),
+            // (11,13): error CS0122: 'A.F()' is inaccessible due to its protection level
+            //         M(a.F);
+            Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(11, 13));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "a.F").ToArray();
+        Assert.Null(model.GetSymbolInfo(memberAccess[0]).Symbol);
+        Assert.Equal(["void A.F()"], model.GetSymbolInfo(memberAccess[0]).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void A.F()", "void E2.<>E__0<A>.F()", "void A.F<A>()"], model.GetMemberGroup(memberAccess[0]).ToTestDisplayStrings());
+
+        Assert.Null(model.GetSymbolInfo(memberAccess[1]).Symbol);
+        Assert.Equal(["void A.F()", "void E2.<>E__0<A>.F()", "void A.F<A>()"], model.GetSymbolInfo(memberAccess[1]).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal(["void A.F()", "void E2.<>E__0<A>.F()", "void A.F<A>()"], model.GetMemberGroup(memberAccess[1]).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void PropertyAccess_NotAmbiguousWithInapplicableMethod()
+    {
+        var src = """
+int i = object.P;
+System.Console.Write(i);
+
+static class E
+{
+    extension<T>(T) where T : struct
+    {
+        public static void P() { }
+    }
+
+    extension<T>(T) where T : class
+    {
+        public static int P => 42;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
+        Assert.Equal("System.Int32 E.<>E__1<System.Object>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
     }
 }

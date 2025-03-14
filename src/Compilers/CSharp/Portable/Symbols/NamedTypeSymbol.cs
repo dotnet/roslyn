@@ -355,10 +355,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var thisParam = method.Parameters.First();
 
+                        // PROTOTYPE we should use similar logic when looking up new extension members
                         if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
                             (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct))
                         {
-                            // TODO2 what's this?
                             // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
                             continue;
                         }
