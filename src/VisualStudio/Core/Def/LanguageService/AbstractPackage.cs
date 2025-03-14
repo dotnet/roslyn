@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -26,14 +25,14 @@ internal abstract class AbstractPackage : AsyncPackage
         }
     }
 
-    protected virtual void RegisterInitializationWork(List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>> bgThreadWorkTasks, List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>> mainThreadWorkTasks)
+    protected virtual void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
     {
         // This treatment of registering work on the bg/main threads is a bit unique as we want the component model initialized at the beginning
         // of whichever context is invoked first.
-        bgThreadWorkTasks.Add(EnsureComponentModelAsync);
-        mainThreadWorkTasks.Add(EnsureComponentModelAsync);
+        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: EnsureComponentModelAsync);
+        packageRegistrationTasks.AddTask(isMainThreadTask: true, task: EnsureComponentModelAsync);
 
-        async Task EnsureComponentModelAsync(IProgress<ServiceProgressData> progress, CancellationToken token)
+        async Task EnsureComponentModelAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken token)
         {
             if (_componentModel_doNotAccessDirectly == null)
             {
@@ -45,50 +44,15 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected sealed override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        var bgThreadWorkTasks = new List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>>();
-        var mainThreadWorkTasks = new List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>>();
+        var packageRegistrationTasks = new PackageRegistrationTasks(JoinableTaskFactory);
 
         // Request all initially known work, classified into whether it should be processed on the main or
         // background thread. These lists can be modified by the work itself to add more work for subsequent processing.
         // Requesting this information is useful as it lets us batch up work on these threads, significantly
         // reducing thread switches during package load.
-        RegisterInitializationWork(bgThreadWorkTasks, mainThreadWorkTasks);
+        RegisterInitializationWork(packageRegistrationTasks);
 
-        // prime the pump by doing the first group of bg thread work if the initiating thread is not the main thread
-        if (!JoinableTaskFactory.Context.IsOnMainThread)
-            await PerformWorkAsync(useMainThread: false).ConfigureAwait(false);
-
-        // Continue processing work until everything is completed, switching between main and bg threads as needed.
-        while (mainThreadWorkTasks.Count > 0 || bgThreadWorkTasks.Count > 0)
-        {
-            await PerformWorkAsync(useMainThread: true).ConfigureAwait(false);
-            await PerformWorkAsync(useMainThread: false).ConfigureAwait(false);
-        }
-
-        return;
-
-        async Task PerformWorkAsync(bool useMainThread)
-        {
-            var workTasks = useMainThread ? mainThreadWorkTasks : bgThreadWorkTasks;
-
-            // Ensure we're invoking the task on the right thread
-            if (useMainThread)
-                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            else if (JoinableTaskFactory.Context.IsOnMainThread)
-                await TaskScheduler.Default;
-
-            for (var i = 0; i < workTasks.Count; i++)
-            {
-                var work = workTasks[i];
-
-                // CA(true) is important here, as we want to ensure that each iteration is done in the same
-                // captured context. Thus, even poorly behaving tasks (ie, those that do their own thread switching)
-                // don't effect the next loop iteration.
-                await work(progress, cancellationToken).ConfigureAwait(true);
-            }
-
-            workTasks.Clear();
-        }
+        await packageRegistrationTasks.ProcessTasksAsync(progress, cancellationToken).ConfigureAwait(false);
     }
 
     protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)

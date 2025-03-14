@@ -58,29 +58,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private ObjectBrowserLibraryManager? _libraryManager;
         private uint _libraryManagerCookie;
 
-        protected override void RegisterInitializationWork(
-            List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>> bgThreadWorkTasks,
-            List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>> mainThreadWorkTasks)
+        protected override void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
         {
-            base.RegisterInitializationWork(bgThreadWorkTasks, mainThreadWorkTasks);
+            base.RegisterInitializationWork(packageRegistrationTasks);
 
-            bgThreadWorkTasks.Add((progress, cancellationToken) =>
+            packageRegistrationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBgThreadAsync);
+        }
+
+        private Task PackageInitializationBgThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
+        {
+            try
             {
-                try
+                this.RegisterService<ICSharpTempPECompilerService>(async ct =>
                 {
-                    this.RegisterService<ICSharpTempPECompilerService>(async ct =>
-                    {
-                        var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
-                        await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
-                        return new TempPECompilerService(workspace.Services.GetService<IMetadataService>());
-                    });
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
-                {
-                }
+                    var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
+                    await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
+                    return new TempPECompilerService(workspace.Services.GetService<IMetadataService>());
+                });
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
+            {
+            }
 
-                return Task.CompletedTask;
-            });
+            return Task.CompletedTask;
         }
 
         protected override void RegisterObjectBrowserLibraryManager()

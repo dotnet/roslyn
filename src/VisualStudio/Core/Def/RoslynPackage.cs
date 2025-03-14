@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Design;
 using System.IO;
@@ -141,22 +140,27 @@ internal sealed class RoslynPackage : AbstractPackage
         base.OnSaveOptions(key, stream);
     }
 
-    protected override void RegisterInitializationWork(List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>> bgThreadWorkTasks, List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>> mainThreadWorkTasks)
+    protected override void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
     {
-        base.RegisterInitializationWork(bgThreadWorkTasks, mainThreadWorkTasks);
+        base.RegisterInitializationWork(packageRegistrationTasks);
 
-        bgThreadWorkTasks.Add((progress, cancellationToken) =>
-        {
-            _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
-            _colorSchemeApplier.RegisterInitializationWork(bgThreadWorkTasks, mainThreadWorkTasks);
+        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBgThreadAsync);
+    }
 
-            // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
-            var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
-            Assumes.Present(globalNotificationService);
+    private Task PackageInitializationBgThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
+    {
+        _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
+        _colorSchemeApplier.RegisterInitializationWork(packageRegistrationTasks);
 
-            var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
+        // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
+        var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
+        Assumes.Present(globalNotificationService);
 
-            mainThreadWorkTasks.Add(async (progress, cancellationToken) =>
+        var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
+
+        packageRegistrationTasks.AddTask(
+            isMainThreadTask: true,
+            task: async (progress, packageRegistrationTasks, cancellationToken) =>
             {
                 _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
                 TrackBulkFileOperations(globalNotificationService);
@@ -180,14 +184,15 @@ internal sealed class RoslynPackage : AbstractPackage
                     ManagedHotReloadLanguageServiceDescriptor.Descriptor,
                     (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
 
-                bgThreadWorkTasks.Add(async (progress, cancellationToken) =>
-                {
-                    await miscellaneousFilesWorkspace.InitializeAsync().ConfigureAwait(false);
-                });
+                packageRegistrationTasks.AddTask(
+                    isMainThreadTask: false,
+                    task: async (progress, packageRegistrationTasks, cancellationToken) =>
+                    {
+                        await miscellaneousFilesWorkspace.InitializeAsync().ConfigureAwait(false);
+                    });
             });
 
-            return Task.CompletedTask;
-        });
+        return Task.CompletedTask;
     }
 
     protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)

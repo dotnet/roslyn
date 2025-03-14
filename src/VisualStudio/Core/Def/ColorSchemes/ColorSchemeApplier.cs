@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
@@ -16,6 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -60,9 +60,7 @@ internal sealed partial class ColorSchemeApplier
             threadingContext.DisposalToken);
     }
 
-    public void RegisterInitializationWork(
-        List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>> bgThreadWorkTasks,
-        List<Func<IProgress<ServiceProgressData>, CancellationToken, Task>> mainThreadWorkTasks)
+    public void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
     {
         lock (_gate)
         {
@@ -72,32 +70,38 @@ internal sealed partial class ColorSchemeApplier
             _isInitialized = true;
         }
 
-        bgThreadWorkTasks.Add(async (progress, cancellationToken) =>
-        {
-            var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBgThreadAsync);
+    }
 
-            mainThreadWorkTasks.Add((progress, cancellationToken) =>
+    private async Task PackageInitializationBgThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
+    {
+        var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+
+        packageRegistrationTasks.AddTask(
+            isMainThreadTask: true,
+            task: (progress, packageRegistrationTasks, cancellationToken) =>
             {
                 // We need to update the theme whenever the Editor Color Scheme setting changes.
                 settingsManager.GetSubset(ColorSchemeOptionsStorage.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
 
-                bgThreadWorkTasks.Add(async (progress, cancellationToken) =>
-                {
-                    // Try to migrate the `useEnhancedColorsSetting` to the new `ColorSchemeName` setting.
-                    _settings.MigrateToColorSchemeSetting();
+                packageRegistrationTasks.AddTask(
+                    isMainThreadTask: false,
+                    task: async (progress, packageRegistrationTasks, cancellationToken) =>
+                    {
+                        // Try to migrate the `useEnhancedColorsSetting` to the new `ColorSchemeName` setting.
+                        _settings.MigrateToColorSchemeSetting();
 
-                    // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
-                    // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
-                    // with the Roslyn colors before they are seen by the user. This is important because the MEF exported Roslyn classification
-                    // colors are only applicable to the Blue and Light VS themes.
+                        // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
+                        // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
+                        // with the Roslyn colors before they are seen by the user. This is important because the MEF exported Roslyn classification
+                        // colors are only applicable to the Blue and Light VS themes.
 
-                    // If the color scheme has updated, apply the scheme.
-                    await UpdateColorSchemeAsync(cancellationToken).ConfigureAwait(false);
-                });
+                        // If the color scheme has updated, apply the scheme.
+                        await UpdateColorSchemeAsync(cancellationToken).ConfigureAwait(false);
+                    });
 
                 return Task.CompletedTask;
             });
-        });
     }
 
     private async Task UpdateColorSchemeAsync(CancellationToken cancellationToken)

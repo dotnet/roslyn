@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Options
@@ -64,29 +63,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             _comAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
         End Sub
 
-        Protected Overrides Sub RegisterInitializationWork(
-            bgThreadWorkTasks As List(Of Func(Of IProgress(Of ServiceProgressData), CancellationToken, Task)),
-            mainThreadWorkTasks As List(Of Func(Of IProgress(Of ServiceProgressData), CancellationToken, Task)))
+        Protected Overrides Sub RegisterInitializationWork(packageRegistrationTasks As PackageRegistrationTasks)
 
-            MyBase.RegisterInitializationWork(bgThreadWorkTasks, mainThreadWorkTasks)
+            MyBase.RegisterInitializationWork(packageRegistrationTasks)
 
-            bgThreadWorkTasks.Add(
-                Function(progress, cancellationToken)
-                    Try
-                        RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
+            packageRegistrationTasks.AddTask(
+                isMainThreadTask:=False,
+                task:=Function(progress, packageRegistrationTasks2, cancellationToken) As Task
+                          Try
+                              RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
 
-                        RegisterService(Of IVbTempPECompilerFactory)(
+                              RegisterService(Of IVbTempPECompilerFactory)(
                             Async Function(ct)
                                 Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
                                 Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
                                 Return New TempPECompilerFactory(workspace)
                             End Function)
-                    Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
-                        Throw ExceptionUtilities.Unreachable
-                    End Try
+                          Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
+                              Throw ExceptionUtilities.Unreachable
+                          End Try
 
-                    Return Task.CompletedTask
-                End Function)
+                          Return Task.CompletedTask
+                      End Function)
         End Sub
 
         Protected Overrides Sub RegisterObjectBrowserLibraryManager()
