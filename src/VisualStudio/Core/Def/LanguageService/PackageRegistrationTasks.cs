@@ -8,12 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
-using WorkTask = System.Func<
-    System.IProgress<Microsoft.VisualStudio.Shell.ServiceProgressData>,
-    Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService.PackageRegistrationTasks,
-    System.Threading.CancellationToken, System.Threading.Tasks.Task>;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
+
+using WorkTask = Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, CancellationToken, Task>;
 
 /// <summary>
 /// Provides a mechanism for registering work to be done during package initialization. Work is registered
