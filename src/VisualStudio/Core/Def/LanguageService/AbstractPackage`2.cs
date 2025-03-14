@@ -48,9 +48,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
 
         var shell = (IVsShell7?)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-        var solution = (IVsSolution?)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
         Assumes.Present(shell);
-        Assumes.Present(solution);
 
         _shell = (IVsShell?)shell;
         Assumes.Present(_shell);
@@ -75,12 +73,8 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
         var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
+        // awaiting an IVsTask guarantees to return on the captured context
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
-
-        // Be a bit paranoid, as LoadPackageAsync returns an IVsTask, and I'm not certain of it's
-        // behavior if the call finishes on a different thread. This should be removed soon anyway as the code
-        // following this looks like it can be reordered/refactored to not require the main thread.
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 

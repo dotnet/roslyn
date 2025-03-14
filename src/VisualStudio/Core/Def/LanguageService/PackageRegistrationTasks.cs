@@ -8,6 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
+using WorkTask = System.Func<
+    System.IProgress<Microsoft.VisualStudio.Shell.ServiceProgressData>,
+    Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService.PackageRegistrationTasks,
+    System.Threading.CancellationToken, System.Threading.Tasks.Task>;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
@@ -22,12 +26,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 /// </summary>
 internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
 {
-    private readonly List<Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, CancellationToken, Task>> _backgroundThreadWorkTasks = new();
-    private readonly List<Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, CancellationToken, Task>> _mainThreadWorkTasks = new();
+    private readonly List<WorkTask> _backgroundThreadWorkTasks = [];
+    private readonly List<WorkTask> _mainThreadWorkTasks = [];
     private readonly JoinableTaskFactory _jtf = jtf;
     private readonly object _gate = new();
 
-    public void AddTask(bool isMainThreadTask, Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, CancellationToken, Task> task)
+    public void AddTask(bool isMainThreadTask, WorkTask task)
     {
         // This lock is a bit extraneous, as the current code doesn't execute any registration of tasks or task processing concurrently.
         lock (_gate)
@@ -51,7 +55,7 @@ internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
         }
     }
 
-    private List<Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, CancellationToken, Task>> GetWorkTasks(bool isMainThreadTask)
+    private List<WorkTask> GetWorkTasks(bool isMainThreadTask)
         => isMainThreadTask ? _mainThreadWorkTasks : _backgroundThreadWorkTasks;
 
     private async Task PerformWorkAsync(bool isMainThreadTask, IProgress<ServiceProgressData> progress, CancellationToken cancellationToken)
@@ -77,6 +81,10 @@ internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
             await work(progress, this, cancellationToken).ConfigureAwait(true);
         }
 
-        workTasks.Clear();
+        // This lock is a bit extraneous, as the current code doesn't execute any registration of tasks or task processing concurrently.
+        lock (_gate)
+        {
+            workTasks.Clear();
+        }
     }
 }
