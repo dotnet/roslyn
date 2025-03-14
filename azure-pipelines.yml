@@ -406,7 +406,7 @@ stages:
       - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog 
         displayName: Restore
 
-      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true
+      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
         displayName: Build
 
       # While this task is not executed in the official build, this serves as a PR check for whether symbol exclusions
