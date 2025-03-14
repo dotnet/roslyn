@@ -10801,11 +10801,11 @@ record C(object P)
                 "B..ctor(System.Object P, System.Object Q)",
                 "System.Type B.EqualityContract.get",
                 "System.Type B.EqualityContract { get; }",
-                "System.Object B.<P>k__BackingField",
+                "System.object? B.<P>k__BackingField",
                 "System.Object B.P.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.P.init",
                 "System.Object B.P { get; init; }",
-                "System.Object B.<Q>k__BackingField",
+                "System.object? B.<Q>k__BackingField",
                 "System.Object B.Q.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Q.init",
                 "System.Object B.Q { get; init; }",
@@ -10828,7 +10828,7 @@ record C(object P)
                 "C..ctor(System.Object P)",
                 "System.Type C.EqualityContract.get",
                 "System.Type C.EqualityContract { get; }",
-                "System.Object C.<P>k__BackingField",
+                "System.object? C.<P>k__BackingField",
                 "System.Object C.P.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) C.P.init",
                 "System.Object C.P { get; init; }",
@@ -11488,10 +11488,10 @@ class Program
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.2
-  IL_0002:  stfld      ""object B.<Y>k__BackingField""
+  IL_0002:  stfld      ""object? B.<Y>k__BackingField""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.1
-  IL_0009:  stfld      ""object B.<X>k__BackingField""
+  IL_0009:  stfld      ""object? B.<X>k__BackingField""
   IL_000e:  ldarg.0
   IL_000f:  ldarg.1
   IL_0010:  ldarg.2
@@ -11507,12 +11507,12 @@ class Program
   IL_0002:  call       ""A..ctor(A)""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.1
-  IL_0009:  ldfld      ""object B.<Y>k__BackingField""
-  IL_000e:  stfld      ""object B.<Y>k__BackingField""
+  IL_0009:  ldfld      ""object? B.<Y>k__BackingField""
+  IL_000e:  stfld      ""object? B.<Y>k__BackingField""
   IL_0013:  ldarg.0
   IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""object B.<X>k__BackingField""
-  IL_001a:  stfld      ""object B.<X>k__BackingField""
+  IL_0015:  ldfld      ""object? B.<X>k__BackingField""
+  IL_001a:  stfld      ""object? B.<X>k__BackingField""
   IL_001f:  ret
 }");
             verifier.VerifyIL("B.Deconstruct",
@@ -11542,16 +11542,16 @@ class Program
   IL_000b:  brfalse.s  IL_003c
   IL_000d:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_0012:  ldarg.0
-  IL_0013:  ldfld      ""object B.<Y>k__BackingField""
+  IL_0013:  ldfld      ""object? B.<Y>k__BackingField""
   IL_0018:  ldarg.1
-  IL_0019:  ldfld      ""object B.<Y>k__BackingField""
+  IL_0019:  ldfld      ""object? B.<Y>k__BackingField""
   IL_001e:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
   IL_0023:  brfalse.s  IL_003c
   IL_0025:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_002a:  ldarg.0
-  IL_002b:  ldfld      ""object B.<X>k__BackingField""
+  IL_002b:  ldfld      ""object? B.<X>k__BackingField""
   IL_0030:  ldarg.1
-  IL_0031:  ldfld      ""object B.<X>k__BackingField""
+  IL_0031:  ldfld      ""object? B.<X>k__BackingField""
   IL_0036:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
   IL_003b:  ret
   IL_003c:  ldc.i4.0
@@ -11569,14 +11569,14 @@ class Program
   IL_000b:  mul
   IL_000c:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_0011:  ldarg.0
-  IL_0012:  ldfld      ""object B.<Y>k__BackingField""
+  IL_0012:  ldfld      ""object? B.<Y>k__BackingField""
   IL_0017:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
   IL_001c:  add
   IL_001d:  ldc.i4     0xa5555529
   IL_0022:  mul
   IL_0023:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_0028:  ldarg.0
-  IL_0029:  ldfld      ""object B.<X>k__BackingField""
+  IL_0029:  ldfld      ""object? B.<X>k__BackingField""
   IL_002e:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
   IL_0033:  add
   IL_0034:  ret
@@ -11720,10 +11720,10 @@ class Program
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  stfld      ""object C.<X>k__BackingField""
+  IL_0002:  stfld      ""object? C.<X>k__BackingField""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.2
-  IL_0009:  stfld      ""object C.<Y>k__BackingField""
+  IL_0009:  stfld      ""object? C.<Y>k__BackingField""
   IL_000e:  ldarg.0
   IL_000f:  call       ""B..ctor()""
   IL_0014:  ret
@@ -11737,12 +11737,12 @@ class Program
   IL_0002:  call       ""B..ctor(B)""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.1
-  IL_0009:  ldfld      ""object C.<X>k__BackingField""
-  IL_000e:  stfld      ""object C.<X>k__BackingField""
+  IL_0009:  ldfld      ""object? C.<X>k__BackingField""
+  IL_000e:  stfld      ""object? C.<X>k__BackingField""
   IL_0013:  ldarg.0
   IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""object C.<Y>k__BackingField""
-  IL_001a:  stfld      ""object C.<Y>k__BackingField""
+  IL_0015:  ldfld      ""object? C.<Y>k__BackingField""
+  IL_001a:  stfld      ""object? C.<Y>k__BackingField""
   IL_001f:  ret
 }");
             verifier.VerifyIL("C.Deconstruct",
@@ -11772,16 +11772,16 @@ class Program
   IL_000b:  brfalse.s  IL_003c
   IL_000d:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_0012:  ldarg.0
-  IL_0013:  ldfld      ""object C.<X>k__BackingField""
+  IL_0013:  ldfld      ""object? C.<X>k__BackingField""
   IL_0018:  ldarg.1
-  IL_0019:  ldfld      ""object C.<X>k__BackingField""
+  IL_0019:  ldfld      ""object? C.<X>k__BackingField""
   IL_001e:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
   IL_0023:  brfalse.s  IL_003c
   IL_0025:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_002a:  ldarg.0
-  IL_002b:  ldfld      ""object C.<Y>k__BackingField""
+  IL_002b:  ldfld      ""object? C.<Y>k__BackingField""
   IL_0030:  ldarg.1
-  IL_0031:  ldfld      ""object C.<Y>k__BackingField""
+  IL_0031:  ldfld      ""object? C.<Y>k__BackingField""
   IL_0036:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
   IL_003b:  ret
   IL_003c:  ldc.i4.0
@@ -11799,14 +11799,14 @@ class Program
   IL_000b:  mul
   IL_000c:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_0011:  ldarg.0
-  IL_0012:  ldfld      ""object C.<X>k__BackingField""
+  IL_0012:  ldfld      ""object? C.<X>k__BackingField""
   IL_0017:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
   IL_001c:  add
   IL_001d:  ldc.i4     0xa5555529
   IL_0022:  mul
   IL_0023:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_0028:  ldarg.0
-  IL_0029:  ldfld      ""object C.<Y>k__BackingField""
+  IL_0029:  ldfld      ""object? C.<Y>k__BackingField""
   IL_002e:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
   IL_0033:  add
   IL_0034:  ret
@@ -11890,8 +11890,8 @@ class Program
   IL_0001:  call       ""object..ctor()""
   IL_0006:  ldarg.0
   IL_0007:  ldarg.1
-  IL_0008:  ldfld      ""object A.<Y>k__BackingField""
-  IL_000d:  stfld      ""object A.<Y>k__BackingField""
+  IL_0008:  ldfld      ""object? A.<Y>k__BackingField""
+  IL_000d:  stfld      ""object? A.<Y>k__BackingField""
   IL_0012:  ret
 }");
             verifier.VerifyIL("A.Deconstruct",
@@ -11925,9 +11925,9 @@ class Program
   IL_0018:  brfalse.s  IL_0031
   IL_001a:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_001f:  ldarg.0
-  IL_0020:  ldfld      ""object A.<Y>k__BackingField""
+  IL_0020:  ldfld      ""object? A.<Y>k__BackingField""
   IL_0025:  ldarg.1
-  IL_0026:  ldfld      ""object A.<Y>k__BackingField""
+  IL_0026:  ldfld      ""object? A.<Y>k__BackingField""
   IL_002b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
   IL_0030:  ret
   IL_0031:  ldc.i4.0
@@ -11947,7 +11947,7 @@ class Program
   IL_0015:  mul
   IL_0016:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""object A.<Y>k__BackingField""
+  IL_001c:  ldfld      ""object? A.<Y>k__BackingField""
   IL_0021:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
   IL_0026:  add
   IL_0027:  ret
@@ -12013,10 +12013,10 @@ class Program
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  stfld      ""object C.<X>k__BackingField""
+  IL_0002:  stfld      ""object? C.<X>k__BackingField""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.2
-  IL_0009:  stfld      ""object C.<Y>k__BackingField""
+  IL_0009:  stfld      ""object? C.<Y>k__BackingField""
   IL_000e:  ldarg.0
   IL_000f:  ldarg.1
   IL_0010:  ldarg.2
@@ -12032,12 +12032,12 @@ class Program
   IL_0002:  call       ""B..ctor(B)""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.1
-  IL_0009:  ldfld      ""object C.<X>k__BackingField""
-  IL_000e:  stfld      ""object C.<X>k__BackingField""
+  IL_0009:  ldfld      ""object? C.<X>k__BackingField""
+  IL_000e:  stfld      ""object? C.<X>k__BackingField""
   IL_0013:  ldarg.0
   IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""object C.<Y>k__BackingField""
-  IL_001a:  stfld      ""object C.<Y>k__BackingField""
+  IL_0015:  ldfld      ""object? C.<Y>k__BackingField""
+  IL_001a:  stfld      ""object? C.<Y>k__BackingField""
   IL_001f:  ret
 }");
             verifier.VerifyIL("C.Deconstruct",
@@ -12067,16 +12067,16 @@ class Program
   IL_000b:  brfalse.s  IL_003c
   IL_000d:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_0012:  ldarg.0
-  IL_0013:  ldfld      ""object C.<X>k__BackingField""
+  IL_0013:  ldfld      ""object? C.<X>k__BackingField""
   IL_0018:  ldarg.1
-  IL_0019:  ldfld      ""object C.<X>k__BackingField""
+  IL_0019:  ldfld      ""object? C.<X>k__BackingField""
   IL_001e:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
   IL_0023:  brfalse.s  IL_003c
   IL_0025:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_002a:  ldarg.0
-  IL_002b:  ldfld      ""object C.<Y>k__BackingField""
+  IL_002b:  ldfld      ""object? C.<Y>k__BackingField""
   IL_0030:  ldarg.1
-  IL_0031:  ldfld      ""object C.<Y>k__BackingField""
+  IL_0031:  ldfld      ""object? C.<Y>k__BackingField""
   IL_0036:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
   IL_003b:  ret
   IL_003c:  ldc.i4.0
@@ -12094,14 +12094,14 @@ class Program
   IL_000b:  mul
   IL_000c:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_0011:  ldarg.0
-  IL_0012:  ldfld      ""object C.<X>k__BackingField""
+  IL_0012:  ldfld      ""object? C.<X>k__BackingField""
   IL_0017:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
   IL_001c:  add
   IL_001d:  ldc.i4     0xa5555529
   IL_0022:  mul
   IL_0023:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
   IL_0028:  ldarg.0
-  IL_0029:  ldfld      ""object C.<Y>k__BackingField""
+  IL_0029:  ldfld      ""object? C.<Y>k__BackingField""
   IL_002e:  callvirt   ""int System.Collections.Generic.EqualityComparer<object>.GetHashCode(object)""
   IL_0033:  add
   IL_0034:  ret
@@ -12673,12 +12673,12 @@ record B : A
   IL_0001:  call       ""object..ctor()""
   IL_0006:  ldarg.0
   IL_0007:  ldarg.1
-  IL_0008:  ldfld      ""object B.<N1>k__BackingField""
-  IL_000d:  stfld      ""object B.<N1>k__BackingField""
+  IL_0008:  ldfld      ""object? B.<N1>k__BackingField""
+  IL_000d:  stfld      ""object? B.<N1>k__BackingField""
   IL_0012:  ldarg.0
   IL_0013:  ldarg.1
-  IL_0014:  ldfld      ""object B.<N2>k__BackingField""
-  IL_0019:  stfld      ""object B.<N2>k__BackingField""
+  IL_0014:  ldfld      ""object? B.<N2>k__BackingField""
+  IL_0019:  stfld      ""object? B.<N2>k__BackingField""
   IL_001e:  ret
 }");
 
@@ -12714,12 +12714,12 @@ record B : A
   IL_0002:  call       ""B..ctor(B)""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.1
-  IL_0009:  ldfld      ""object C.<P1>k__BackingField""
-  IL_000e:  stfld      ""object C.<P1>k__BackingField""
+  IL_0009:  ldfld      ""object? C.<P1>k__BackingField""
+  IL_000e:  stfld      ""object? C.<P1>k__BackingField""
   IL_0013:  ldarg.0
   IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""object C.<P2>k__BackingField""
-  IL_001a:  stfld      ""object C.<P2>k__BackingField""
+  IL_0015:  ldfld      ""object? C.<P2>k__BackingField""
+  IL_001a:  stfld      ""object? C.<P2>k__BackingField""
   IL_001f:  ret
 }");
 
@@ -12766,12 +12766,12 @@ public record C(object P1, object P2) : B(3, 4)
   IL_0002:  call       ""B..ctor(B)""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.1
-  IL_0009:  ldfld      ""object C.<P1>k__BackingField""
-  IL_000e:  stfld      ""object C.<P1>k__BackingField""
+  IL_0009:  ldfld      ""object? C.<P1>k__BackingField""
+  IL_000e:  stfld      ""object? C.<P1>k__BackingField""
   IL_0013:  ldarg.0
   IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""object C.<P2>k__BackingField""
-  IL_001a:  stfld      ""object C.<P2>k__BackingField""
+  IL_0015:  ldfld      ""object? C.<P2>k__BackingField""
+  IL_001a:  stfld      ""object? C.<P2>k__BackingField""
   IL_001f:  ret
 }");
         }
@@ -12822,12 +12822,12 @@ public record C(object P1, object P2) : B(3, 4) { }
   IL_0002:  call       ""B..ctor(B)""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.1
-  IL_0009:  ldfld      ""object C.<P1>k__BackingField""
-  IL_000e:  stfld      ""object C.<P1>k__BackingField""
+  IL_0009:  ldfld      ""object? C.<P1>k__BackingField""
+  IL_000e:  stfld      ""object? C.<P1>k__BackingField""
   IL_0013:  ldarg.0
   IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""object C.<P2>k__BackingField""
-  IL_001a:  stfld      ""object C.<P2>k__BackingField""
+  IL_0015:  ldfld      ""object? C.<P2>k__BackingField""
+  IL_001a:  stfld      ""object? C.<P2>k__BackingField""
   IL_001f:  ret
 }
 ");
@@ -12858,12 +12858,12 @@ public record C(object P1, object P2) : B(3, 4) { }
   IL_0001:  call       ""object..ctor()""
   IL_0006:  ldarg.0
   IL_0007:  ldarg.1
-  IL_0008:  ldfld      ""object C.<N1>k__BackingField""
-  IL_000d:  stfld      ""object C.<N1>k__BackingField""
+  IL_0008:  ldfld      ""object? C.<N1>k__BackingField""
+  IL_000d:  stfld      ""object? C.<N1>k__BackingField""
   IL_0012:  ldarg.0
   IL_0013:  ldarg.1
-  IL_0014:  ldfld      ""object C.<N2>k__BackingField""
-  IL_0019:  stfld      ""object C.<N2>k__BackingField""
+  IL_0014:  ldfld      ""object? C.<N2>k__BackingField""
+  IL_0019:  stfld      ""object? C.<N2>k__BackingField""
   IL_001e:  ldarg.0
   IL_001f:  ldarg.1
   IL_0020:  ldfld      ""int C.field""
@@ -13579,12 +13579,12 @@ public record C(object P1, object P2) : B(3, 4)
   IL_0002:  call       ""B..ctor(B)""
   IL_0007:  ldarg.0
   IL_0008:  ldarg.1
-  IL_0009:  ldfld      ""object C.<P1>k__BackingField""
-  IL_000e:  stfld      ""object C.<P1>k__BackingField""
+  IL_0009:  ldfld      ""object? C.<P1>k__BackingField""
+  IL_000e:  stfld      ""object? C.<P1>k__BackingField""
   IL_0013:  ldarg.0
   IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""object C.<P2>k__BackingField""
-  IL_001a:  stfld      ""object C.<P2>k__BackingField""
+  IL_0015:  ldfld      ""object? C.<P2>k__BackingField""
+  IL_001a:  stfld      ""object? C.<P2>k__BackingField""
   IL_001f:  ldarg.0
   IL_0020:  ldarg.1
   IL_0021:  ldfld      ""int C.field2""
