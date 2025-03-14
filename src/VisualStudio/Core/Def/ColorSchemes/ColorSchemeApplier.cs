@@ -70,10 +70,10 @@ internal sealed partial class ColorSchemeApplier
             _isInitialized = true;
         }
 
-        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBgThreadAsync);
+        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
     }
 
-    private async Task PackageInitializationBgThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
+    private async Task PackageInitializationBackgroundThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
     {
         var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
 

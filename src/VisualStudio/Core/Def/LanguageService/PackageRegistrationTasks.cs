@@ -11,18 +11,23 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
-internal class PackageRegistrationTasks(JoinableTaskFactory jtf)
+internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
 {
-    private readonly List<Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, CancellationToken, Task>> _bgThreadWorkTasks = new();
+    private readonly List<Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, CancellationToken, Task>> _backgroundThreadWorkTasks = new();
     private readonly List<Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, CancellationToken, Task>> _mainThreadWorkTasks = new();
     private readonly JoinableTaskFactory _jtf = jtf;
+    private readonly object _gate = new();
 
     public void AddTask(bool isMainThreadTask, Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, CancellationToken, Task> task)
     {
-        if (isMainThreadTask)
-            _mainThreadWorkTasks.Add(task);
-        else
-            _bgThreadWorkTasks.Add(task);
+        // This lock is a bit extraneous, as the current code doesn't execute any registration of tasks or task processing concurrently.
+        lock (_gate)
+        {
+            if (isMainThreadTask)
+                _mainThreadWorkTasks.Add(task);
+            else
+                _backgroundThreadWorkTasks.Add(task);
+        }
     }
 
     public async Task ProcessTasksAsync(IProgress<ServiceProgressData> progress, CancellationToken cancellationToken)
@@ -32,7 +37,7 @@ internal class PackageRegistrationTasks(JoinableTaskFactory jtf)
             await PerformWorkAsync(useMainThread: false, progress, cancellationToken).ConfigureAwait(false);
 
         // Continue processing work until everything is completed, switching between main and bg threads as needed.
-        while (_mainThreadWorkTasks.Count > 0 || _bgThreadWorkTasks.Count > 0)
+        while (_mainThreadWorkTasks.Count > 0 || _backgroundThreadWorkTasks.Count > 0)
         {
             await PerformWorkAsync(useMainThread: true, progress, cancellationToken).ConfigureAwait(false);
             await PerformWorkAsync(useMainThread: false, progress, cancellationToken).ConfigureAwait(false);
@@ -41,7 +46,7 @@ internal class PackageRegistrationTasks(JoinableTaskFactory jtf)
 
     private async Task PerformWorkAsync(bool useMainThread, IProgress<ServiceProgressData> progress, CancellationToken cancellationToken)
     {
-        var workTasks = useMainThread ? _mainThreadWorkTasks : _bgThreadWorkTasks;
+        var workTasks = useMainThread ? _mainThreadWorkTasks : _backgroundThreadWorkTasks;
 
         if (workTasks.Count == 0)
             return;

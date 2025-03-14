@@ -144,10 +144,10 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         base.RegisterInitializationWork(packageRegistrationTasks);
 
-        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBgThreadAsync);
+        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
     }
 
-    private Task PackageInitializationBgThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
+    private Task PackageInitializationBackgroundThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
     {
         _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
         _colorSchemeApplier.RegisterInitializationWork(packageRegistrationTasks);
