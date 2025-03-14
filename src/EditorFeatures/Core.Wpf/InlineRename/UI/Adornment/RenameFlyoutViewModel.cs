@@ -98,27 +98,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _ => EditorFeaturesResources.Rename_symbols_file
         };
 
-        private string? _searchText;
         public string? SearchText
         {
-            get => _searchText;
-            set => Set(ref _searchText, value);
+            get;
+            set => Set(ref field, value);
         }
-
-        private string? _statusText;
         public string? StatusText
         {
-            get => _statusText;
-            set => Set(ref _statusText, value);
+            get;
+            set => Set(ref field, value);
         }
 
-        private Severity _statusSeverity;
         public Severity StatusSeverity
         {
-            get => _statusSeverity;
+            get;
             set
             {
-                if (Set(ref _statusSeverity, value))
+                if (Set(ref field, value))
                 {
                     NotifyPropertyChanged(nameof(ShowStatusText));
                     NotifyPropertyChanged(nameof(StatusImageMoniker));
@@ -126,10 +122,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public bool ShowStatusText => _statusSeverity != Severity.None;
-        public bool ShowSearchText => _statusSeverity != Severity.Error;
+        public bool ShowStatusText => StatusSeverity != Severity.None;
+        public bool ShowSearchText => StatusSeverity != Severity.Error;
 
-        public ImageMoniker StatusImageMoniker => _statusSeverity switch
+        public ImageMoniker StatusImageMoniker => StatusSeverity switch
         {
             Severity.Error => KnownMonikers.StatusError,
             Severity.Warning => KnownMonikers.StatusWarning,
@@ -213,12 +209,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             => Session.HasRenameOverloads;
 
         public TextSpan StartingSelection { get; }
-
-        private Visibility _visibility;
         public Visibility Visibility
         {
-            get => _visibility;
-            set => Set(ref _visibility, value);
+            get;
+            set => Set(ref field, value);
         }
 
         public bool Submit()
