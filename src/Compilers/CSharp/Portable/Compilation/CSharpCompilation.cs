@@ -316,9 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns true if this method should be processed with runtime async handling instead
         /// of compiler async state machine generation.
         /// </summary>
-#pragma warning disable IDE0060 // Remove unused parameter
         internal bool IsRuntimeAsyncEnabledIn(MethodSymbol method)
-#pragma warning restore IDE0060 // Remove unused parameter
         {
             // PROTOTYPE: EE tests fail this assert, handle and test
             //Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
@@ -327,8 +325,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // PROTOTYPE: Check for attributes that turn on/off the feature member-by-member
-            return true;
+            return method switch
+            {
+                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.True } => true,
+                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.False } => false,
+                _ => Feature("runtime-async") == "on"
+            };
         }
 
         /// <summary>
