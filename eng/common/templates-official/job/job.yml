@@ -36,6 +36,7 @@ parameters:
   enableSbom: true
   PackageVersion: 6.0.0
   BuildDropPath: '$(Build.SourcesDirectory)/artifacts'
+  ManifestDirPath: $(Build.ArtifactStagingDirectory)/sbom
 
 jobs:
 - job: ${{ parameters.name }}
