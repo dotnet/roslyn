@@ -11,6 +11,15 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
+/// <summary>
+/// Provides a mechanism for registering work to be done during package initialization. Work is registered
+/// as either main thread or background thread appropriate. This allows processing of these work items
+/// in a batched manner, reducing the number of thread switches required during the performance sensitive
+/// package loading timeframe.
+/// 
+/// Note that currently the processing of these tasks isn't done concurrently. A future optimization may
+/// allow parallel background thread task execution, or even concurrent main and background thread work.
+/// </summary>
 internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
 {
     private readonly List<Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, CancellationToken, Task>> _backgroundThreadWorkTasks = new();
@@ -23,10 +32,8 @@ internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
         // This lock is a bit extraneous, as the current code doesn't execute any registration of tasks or task processing concurrently.
         lock (_gate)
         {
-            if (isMainThreadTask)
-                _mainThreadWorkTasks.Add(task);
-            else
-                _backgroundThreadWorkTasks.Add(task);
+            var workTasks = GetWorkTasks(isMainThreadTask);
+            workTasks.Add(task);
         }
     }
 
@@ -34,25 +41,28 @@ internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
     {
         // prime the pump by doing the first group of bg thread work if the initiating thread is not the main thread
         if (!_jtf.Context.IsOnMainThread)
-            await PerformWorkAsync(useMainThread: false, progress, cancellationToken).ConfigureAwait(false);
+            await PerformWorkAsync(isMainThreadTask: false, progress, cancellationToken).ConfigureAwait(false);
 
         // Continue processing work until everything is completed, switching between main and bg threads as needed.
         while (_mainThreadWorkTasks.Count > 0 || _backgroundThreadWorkTasks.Count > 0)
         {
-            await PerformWorkAsync(useMainThread: true, progress, cancellationToken).ConfigureAwait(false);
-            await PerformWorkAsync(useMainThread: false, progress, cancellationToken).ConfigureAwait(false);
+            await PerformWorkAsync(isMainThreadTask: true, progress, cancellationToken).ConfigureAwait(false);
+            await PerformWorkAsync(isMainThreadTask: false, progress, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private async Task PerformWorkAsync(bool useMainThread, IProgress<ServiceProgressData> progress, CancellationToken cancellationToken)
+    private List<Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, CancellationToken, Task>> GetWorkTasks(bool isMainThreadTask)
+        => isMainThreadTask ? _mainThreadWorkTasks : _backgroundThreadWorkTasks;
+
+    private async Task PerformWorkAsync(bool isMainThreadTask, IProgress<ServiceProgressData> progress, CancellationToken cancellationToken)
     {
-        var workTasks = useMainThread ? _mainThreadWorkTasks : _backgroundThreadWorkTasks;
+        var workTasks = GetWorkTasks(isMainThreadTask);
 
         if (workTasks.Count == 0)
             return;
 
         // Ensure we're invoking the task on the right thread
-        if (useMainThread)
+        if (isMainThreadTask)
             await _jtf.SwitchToMainThreadAsync(cancellationToken);
         else if (_jtf.Context.IsOnMainThread)
             await TaskScheduler.Default;

@@ -28,7 +28,8 @@ internal abstract class AbstractPackage : AsyncPackage
     protected virtual void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
     {
         // This treatment of registering work on the bg/main threads is a bit unique as we want the component model initialized at the beginning
-        // of whichever context is invoked first.
+        // of whichever context is invoked first. The current architecture doesn't execute any of the registered tasks concurrently,
+        // so that isn't a concern for running calculating or setting _componentModel_doNotAccessDirectly multiple times.
         packageRegistrationTasks.AddTask(isMainThreadTask: false, task: EnsureComponentModelAsync);
         packageRegistrationTasks.AddTask(isMainThreadTask: true, task: EnsureComponentModelAsync);
 
@@ -42,6 +43,9 @@ internal abstract class AbstractPackage : AsyncPackage
         }
     }
 
+    /// This method is called upon package creation and is the mechanism by which roslyn packages calculate and
+    /// process all package initialization work. Do not override this sealed method, instead override RegisterInitializationWork
+    /// to indicate the work your package needs upon initialization.
     protected sealed override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
         var packageRegistrationTasks = new PackageRegistrationTasks(JoinableTaskFactory);

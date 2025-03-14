@@ -43,6 +43,10 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
     private async Task PackageInitializationMainThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
     {
+        // This code uses various main thread only services, so it must run completely on the main thread
+        // (thus the CA(true) usage throughout)
+        Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
+
         var shell = (IVsShell7?)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
         var solution = (IVsSolution?)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
         Assumes.Present(shell);
@@ -74,7 +78,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
 
         // Be a bit paranoid, as LoadPackageAsync returns an IVsTask, and I'm not certain of it's
-        // behavior if call finishes on a different thread. This should be removed soon anyway as the code
+        // behavior if the call finishes on a different thread. This should be removed soon anyway as the code
         // following this looks like it can be reordered/refactored to not require the main thread.
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
