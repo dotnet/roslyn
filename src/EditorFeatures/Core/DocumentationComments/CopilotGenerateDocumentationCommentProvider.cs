@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         public async Task GenerateDocumentationProposalAsync(DocumentationCommentSnippet snippet,
             ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
         {
-            await Task.Yield().ConfigureAwait(false);
+            await Microsoft.CodeAnalysis.Threading.YieldAwaitableExtensions.ConfigureAwait(Task.Yield(), false);
 
             if (!Enabled)
             {
@@ -63,10 +64,21 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             // Do not do IntelliCode line completions if we're about to generate a documentation comment
             // so that won't have interfering grey text.
             var intellicodeLineCompletionsDisposable = await _suggestionManager!.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
+            var suggestion = new DocumentationCommentSuggestion(this, _suggestionManager, intellicodeLineCompletionsDisposable);
+            SuggestionSessionBase? suggestionSession = null;
+            await RunWithEnqueueActionAsync(
+                "StartWork",
+                async () => suggestionSession = await suggestion.GetSuggestionSessionAsync(cancellationToken).ConfigureAwait(false),
+                cancellationToken).ConfigureAwait(false);
 
+            if (suggestionSession is null)
+            {
+                await intellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
+                return;
+            }
             var proposalEdits = await GetProposedEditsAsync(snippetProposal, _copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
 
-            var proposal = Proposal.TryCreateProposal(null, proposalEdits, oldCaret, flags: ProposalFlags.SingleTabToAccept);
+            var proposal = Proposal.TryCreateProposal(null, proposalEdits, oldCaret, flags: ProposalFlags.ShowCommitHighlight);
 
             if (proposal is null)
             {
@@ -74,8 +86,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return;
             }
 
-            var suggestion = new DocumentationCommentSuggestion(this, proposal, _suggestionManager, intellicodeLineCompletionsDisposable);
-            await suggestion.TryDisplaySuggestionAsync(cancellationToken).ConfigureAwait(false);
+            await suggestion.TryDisplaySuggestionAsync(proposal, suggestionSession, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -277,6 +288,26 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             _enabled = false;
             return Task.CompletedTask;
+        }
+
+        private async Task RunWithEnqueueActionAsync(string description, Func<Task> action, CancellationToken cancel)
+        {
+            Assumes.NotNull(_suggestionManager);
+
+            var tcs = new TaskCompletionSource<bool>();
+
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
+            _suggestionManager.EnqueueAction(description, async () =>
+            {
+                await action().ConfigureAwait(false);
+                tcs.SetResult(true);
+            });
+
+            if (!tcs.Task.IsCompleted)
+            {
+                await TaskScheduler.Default;
+                await tcs.Task.ConfigureAwait(false);
+            }
         }
     }
 }

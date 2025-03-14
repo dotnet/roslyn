@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Copilot;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
@@ -13,16 +14,14 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
-    internal class DocumentationCommentSuggestion(CopilotGenerateDocumentationCommentProvider providerInstance, ProposalBase proposal,
+    internal class DocumentationCommentSuggestion(CopilotGenerateDocumentationCommentProvider providerInstance,
         SuggestionManagerBase suggestionManager, VisualStudio.Threading.IAsyncDisposable? intellicodeLineCompletionsDisposable) : SuggestionBase
     {
-        public ProposalBase Proposal { get; } = proposal;
-
         public SuggestionManagerBase SuggestionManager { get; } = suggestionManager;
 
         public VisualStudio.Threading.IAsyncDisposable? IntellicodeLineCompletionsDisposable { get; set; } = intellicodeLineCompletionsDisposable;
 
-        public override TipStyle TipStyle => TipStyle.AlwaysShowTip;
+        public override TipStyle TipStyle => TipStyle.AlwaysShowTip | CopilotConstants.ShowThinkingStateTipStyle;
 
         public override EditDisplayStyle EditStyle => EditDisplayStyle.GrayText;
 
@@ -65,26 +64,26 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return Task.CompletedTask;
         }
 
-        public async Task TryDisplaySuggestionAsync(CancellationToken cancellationToken)
+        public async Task<SuggestionSessionBase?> GetSuggestionSessionAsync(CancellationToken cancellationToken)
         {
-            _suggestionSession = await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false);
+            return await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false);
+        }
 
-            if (_suggestionSession != null)
+        public async Task TryDisplaySuggestionAsync(ProposalBase proposal, SuggestionSessionBase suggestionSession, CancellationToken cancellationToken)
+        {
+            var success = await TryDisplayProposalAsync(suggestionSession, proposal, cancellationToken).ConfigureAwait(false);
+            if (success)
             {
-                var success = await TryDisplayProposalAsync(_suggestionSession, cancellationToken).ConfigureAwait(false);
-                if (success)
-                {
-                    Logger.Log(FunctionId.Copilot_Generate_Documentation_Displayed, logLevel: LogLevel.Information);
-                }
+                Logger.Log(FunctionId.Copilot_Generate_Documentation_Displayed, logLevel: LogLevel.Information);
             }
         }
 
-        private async Task<bool> TryDisplayProposalAsync(SuggestionSessionBase session, CancellationToken cancellationToken)
+        private async Task<bool> TryDisplayProposalAsync(SuggestionSessionBase session, ProposalBase proposal, CancellationToken cancellationToken)
         {
             try
             {
                 await providerInstance.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                await session.DisplayProposalAsync(Proposal, cancellationToken).ConfigureAwait(false);
+                await session.DisplayProposalAsync(proposal, cancellationToken).ConfigureAwait(false);
                 return true;
             }
             catch (OperationCanceledException)

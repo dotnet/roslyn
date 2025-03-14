@@ -3,13 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.VisualStudio.Language.Suggestions;
 
-namespace Microsoft.CodeAnalysis.Copilot;
+namespace Microsoft.CodeAnalysis.Editor.Copilot;
 
 internal static class CopilotConstants
 {
     public const int CopilotIconLogoId = 1;
     public const int CopilotIconSparkleId = 2;
     public const int CopilotIconSparkleBlueId = 3;
+    public const TipStyle ShowThinkingStateTipStyle = (TipStyle)0x20;
     public static readonly Guid CopilotIconMonikerGuid = new("{4515B9BD-70A1-45FA-9545-D4536417C596}");
+    public static readonly Guid CopilotQuotaExceededGuid = new("39B0DEDE-D931-4A92-9AA2-3447BC4998DC");
 }
