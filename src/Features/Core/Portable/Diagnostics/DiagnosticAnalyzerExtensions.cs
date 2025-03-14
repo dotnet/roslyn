@@ -15,7 +15,6 @@ internal static class DiagnosticAnalyzerExtensions
 {
     public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
         => analyzer is DocumentDiagnosticAnalyzer
-        || analyzer is ProjectDiagnosticAnalyzer
         || analyzer == FileContentLoadAnalyzer.Instance
         || analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance;
 

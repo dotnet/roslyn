@@ -11,7 +11,6 @@ internal static partial class DiagnosticAnalyzerExtensions
         {
             FileContentLoadAnalyzer => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis,
             DocumentDiagnosticAnalyzer => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis,
-            ProjectDiagnosticAnalyzer => DiagnosticAnalyzerCategory.None,
             IBuiltInAnalyzer builtInAnalyzer => builtInAnalyzer.GetAnalyzerCategory(),
 
             // Compiler analyzer supports syntax diagnostics, span-based semantic diagnostics and project level diagnostics.

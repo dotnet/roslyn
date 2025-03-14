@@ -148,7 +148,6 @@ internal partial class DiagnosticAnalyzerService
                 FileContentLoadAnalyzer _ => FileContentLoadAnalyzerPriority,
                 GeneratorDiagnosticsPlaceholderAnalyzer _ => GeneratorDiagnosticsPlaceholderAnalyzerPriority,
                 DocumentDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
-                ProjectDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
                 _ => RegularDiagnosticAnalyzerPriority,
             };
         }
