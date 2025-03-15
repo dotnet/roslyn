@@ -274,7 +274,7 @@ public class MethodKeywordRecommenderTests : KeywordRecommenderTests
     }
 
     [Fact]
-    public async Task TestWithinExtension2()
+    public async Task TestWithinExtension1()
     {
         await VerifyAbsenceAsync(
             """
