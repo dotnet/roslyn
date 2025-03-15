@@ -388,7 +388,17 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             INamespaceOrTypeSymbol container, int position, bool excludeInstance)
         {
             if (excludeInstance)
-                return _context.SemanticModel.LookupStaticMembers(position, container);
+            {
+                var staticMembers = _context.SemanticModel.LookupStaticMembers(position, container);
+                if (container is not INamedTypeSymbol)
+                    return staticMembers;
+
+                var staticExtensionsMembers = _context.SemanticModel
+                    .LookupSymbols(position, container, includeReducedExtensionMethods: true)
+                    .WhereAsArray(s => s.IsStatic && s.ContainingType?.IsExtension is true && !staticMembers.Contains(s));
+
+                return [.. staticMembers, .. staticExtensionsMembers];
+            }
 
             var containerMembers = SuppressDefaultTupleElements(
                 container,
