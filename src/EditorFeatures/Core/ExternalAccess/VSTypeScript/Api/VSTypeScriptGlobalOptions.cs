@@ -28,9 +28,6 @@ internal sealed class VSTypeScriptGlobalOptions(IGlobalOptionService globalOptio
             openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
         Service.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, InternalLanguageNames.TypeScript,
             openFilesOnly ? CompilerDiagnosticsScope.OpenFiles : CompilerDiagnosticsScope.FullSolution);
-
-        Service.SetGlobalOption(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript,
-            openFilesOnly);
     }
 
 #pragma warning disable IDE0060 // Remove unused parameter

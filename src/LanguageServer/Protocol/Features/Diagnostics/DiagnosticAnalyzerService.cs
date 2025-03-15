@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => option == NamingStyleOptions.NamingPreferences ||
                option.Definition.Group.Parent == CodeStyleOptionGroups.CodeStyle ||
                option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
-               option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
                option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption ||
                option == s_crashOnAnalyzerException ||
                // Fading is controlled by reporting diagnostics for the faded region.  So if a fading option changes we
