@@ -136,4 +136,19 @@ public sealed class ExtensionKeywordRecommenderTests : KeywordRecommenderTests
             }
             """, s_options);
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        $$
+                    }
+                }
+                """, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+    }
 }
