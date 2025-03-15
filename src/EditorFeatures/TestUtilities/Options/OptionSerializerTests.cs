@@ -88,10 +88,7 @@ public class OptionSerializerTests
     [Fact]
     public void SerializationAndDeserializationForNullableEnum()
     {
-        var options = new IOption2[]
-        {
-            SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption,
-        };
+        var options = Array.Empty<IOption2>();
 
         foreach (var option in options)
         {

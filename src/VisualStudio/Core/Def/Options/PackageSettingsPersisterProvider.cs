@@ -19,14 +19,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Options;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class PackageSettingsPersisterProvider(
     IThreadingContext threadingContext,
-    [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
-    IGlobalOptionService optionService) : IOptionPersisterProvider
+    [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider) : IOptionPersisterProvider
 {
     private PackageSettingsPersister? _lazyPersister;
 
     public ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
     {
-        _lazyPersister ??= new PackageSettingsPersister(threadingContext, serviceProvider, optionService);
+        _lazyPersister ??= new PackageSettingsPersister(threadingContext, serviceProvider);
         return new ValueTask<IOptionPersister>(_lazyPersister);
     }
 }
