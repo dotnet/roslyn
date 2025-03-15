@@ -1,0 +1,30 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!--
+      PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.AnalyzerUtilities,
+      Restore would conclude that there is a cyclic dependency between us and the Microsoft.CodeAnalysis.AnalyzerUtilities package.
+    -->
+    <PackageId>*$(MSBuildProjectFile)*</PackageId>
+    <ExcludeCodeMetricsUtilities>true</ExcludeCodeMetricsUtilities>
+    <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- RS0026: Avoid public API overloads with differences in optional parameters -->
+    <NoWarn>$(NoWarn);RS0026</NoWarn>
+    <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers)</MicrosoftCodeAnalysisVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Analyzer.Utilities.UnitTests" />
+  </ItemGroup>
+  <Import Project="..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
+  <Import Project="..\Utilities\FlowAnalysis\FlowAnalysis.Utilities.projitems" Label="Shared" />
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+</Project>
