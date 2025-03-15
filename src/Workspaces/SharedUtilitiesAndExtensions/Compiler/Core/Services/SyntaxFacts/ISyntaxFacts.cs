@@ -420,8 +420,6 @@ internal interface ISyntaxFacts
     SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
     // Violation.  This is a feature level API.
-    bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span);
-    // Violation.  This is a feature level API.
     TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
     /// <summary>
