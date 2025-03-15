@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -34,7 +33,6 @@ internal sealed class VirtualMemoryNotificationListener : IVsBroadcastMessageEve
     private const string LowVMMoreInfoLink = "https://go.microsoft.com/fwlink/?LinkID=799402&clcid=0x409";
     private readonly IGlobalOptionService _globalOptions;
     private readonly VisualStudioWorkspace _workspace;
-    private readonly WorkspaceCacheService? _workspaceCacheService;
 
     private bool _alreadyLogged;
     private bool _infoBarShown;
@@ -46,7 +44,6 @@ internal sealed class VirtualMemoryNotificationListener : IVsBroadcastMessageEve
     {
         _globalOptions = globalOptions;
         _workspace = workspace;
-        _workspaceCacheService = workspace.Services.GetService<IWorkspaceCacheService>() as WorkspaceCacheService;
 
         if (GCSettings.IsServerGC)
         {
@@ -104,8 +101,6 @@ internal sealed class VirtualMemoryNotificationListener : IVsBroadcastMessageEve
 
                         _alreadyLogged = true;
                     }
-
-                    _workspaceCacheService?.FlushCaches();
 
                     if (ShouldDisableBackgroundAnalysis((long)wParam))
                     {
