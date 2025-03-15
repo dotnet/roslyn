@@ -80,23 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         internal static bool GetIsNewExtensionMember(this Symbol member)
         {
-            switch (member.Kind)
-            {
-                case SymbolKind.Method:
-                case SymbolKind.Property:
-                    return member.ContainingSymbol is TypeSymbol { IsExtension: true };
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
-            }
-        }
-
-        internal static bool GetIsNewExtensionMember(this MethodSymbol member)
-        {
-            return member.ContainingSymbol is TypeSymbol { IsExtension: true };
-        }
-
-        internal static bool GetIsNewExtensionMember(this PropertySymbol member)
-        {
             return member.ContainingSymbol is TypeSymbol { IsExtension: true };
         }
 

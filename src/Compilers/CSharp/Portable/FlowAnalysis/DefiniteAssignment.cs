@@ -368,6 +368,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter))
+            {
+                EnterParameter(extensionParameter);
+            }
+
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
 
             // check that each out parameter is definitely assigned at the end of the method.  If
@@ -392,6 +397,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return pendingReturns;
+        }
+
+        protected bool TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter)
+        {
+            if (_symbol is not null
+                && _symbol.GetIsNewExtensionMember()
+                && !_symbol.IsStatic
+                && _symbol.ContainingType.ExtensionParameter is { } foundExtensionParameter)
+            {
+                extensionParameter = foundExtensionParameter;
+                return true;
+            }
+
+            extensionParameter = null;
+            return false;
         }
 
         protected override ImmutableArray<PendingBranch> RemoveReturns()
@@ -1830,6 +1850,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 SetSlotAssigned(slot, ref topState);
                             }
+                        }
+                    }
+
+                    if (TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter))
+                    {
+                        Debug.Assert(thisParameter.RefKind != RefKind.Out);
+                        int slot = GetOrCreateSlot(thisParameter);
+                        if (slot > 0)
+                        {
+                            SetSlotAssigned(slot, ref topState);
                         }
                     }
                 }
