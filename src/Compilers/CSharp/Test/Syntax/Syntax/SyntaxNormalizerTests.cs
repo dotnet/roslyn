@@ -3790,6 +3790,26 @@ $"  ///  </summary>{Environment.NewLine}" +
 "}");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76856")]
+        public void TestNormalizeDocumentationMultiLineCommentsWithTrailingNewline()
+        {
+            TestNormalizeStatement("""
+               /**
+                * 
+                * Escape XML special characters
+                */
+               private String EscapeXML(String str)
+               {
+               """, """
+                    ///
+                    /// 
+                    /// Escape XML special characters
+                    //////
+                    private String EscapeXML(String str)
+                    {
+                    """);
+        }
+
         [Fact]
         public void TestNormalizeEOL()
         {
