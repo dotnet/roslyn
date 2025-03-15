@@ -292,6 +292,8 @@ public sealed class PropertyKeywordRecommenderTests : KeywordRecommenderTests
                         [$$
                     }
                 }
-                """, CSharpNextParseOptions);
+                """,
+                CSharpNextParseOptions,
+                CSharpNextScriptParseOptions);
     }
 }

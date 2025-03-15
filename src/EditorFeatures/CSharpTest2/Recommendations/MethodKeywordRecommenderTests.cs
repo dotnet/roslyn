@@ -298,6 +298,8 @@ public class MethodKeywordRecommenderTests : KeywordRecommenderTests
                         [$$
                     }
                 }
-                """, CSharpNextParseOptions);
+                """,
+                CSharpNextParseOptions,
+                CSharpNextScriptParseOptions);
     }
 }

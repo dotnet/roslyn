@@ -468,7 +468,9 @@ public sealed class ReturnKeywordRecommenderTests : KeywordRecommenderTests
                         $$
                     }
                 }
-                """, CSharpNextParseOptions);
+                """,
+                CSharpNextParseOptions,
+                CSharpNextScriptParseOptions);
     }
 
     [Fact]
@@ -483,6 +485,8 @@ public sealed class ReturnKeywordRecommenderTests : KeywordRecommenderTests
                         [$$
                     }
                 }
-                """, CSharpNextParseOptions);
+                """,
+                CSharpNextParseOptions,
+                CSharpNextScriptParseOptions);
     }
 }
