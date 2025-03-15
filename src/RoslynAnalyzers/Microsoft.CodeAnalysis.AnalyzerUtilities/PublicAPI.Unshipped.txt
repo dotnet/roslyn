@@ -11,6 +11,26 @@ Analyzer.Utilities.DisposeAnalysisKind.AllPaths = 0 -> Analyzer.Utilities.Dispos
 Analyzer.Utilities.DisposeAnalysisKind.AllPathsOnlyNotDisposed = 1 -> Analyzer.Utilities.DisposeAnalysisKind
 Analyzer.Utilities.DisposeAnalysisKind.NonExceptionPaths = 2 -> Analyzer.Utilities.DisposeAnalysisKind
 Analyzer.Utilities.DisposeAnalysisKind.NonExceptionPathsOnlyNotDisposed = 3 -> Analyzer.Utilities.DisposeAnalysisKind
+Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis.HazardousUsageEvaluationResult
+Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis.HazardousUsageEvaluationResult.Flagged = 2 -> Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis.HazardousUsageEvaluationResult
+Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis.HazardousUsageEvaluationResult.MaybeFlagged = 1 -> Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis.HazardousUsageEvaluationResult
+Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis.HazardousUsageEvaluationResult.Unflagged = 0 -> Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis.HazardousUsageEvaluationResult
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.Dll = 1 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.FilePathInjection = 4 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.HardcodedCertificate = 14 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.HardcodedEncryptionKey = 13 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.InformationDisclosure = 2 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.Ldap = 7 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.ProcessCommand = 5 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.Redirect = 8 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.Regex = 6 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.Sql = 0 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.Xaml = 11 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.Xml = 10 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.XPath = 9 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.Xss = 3 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
+Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind.ZipSlip = 12 -> Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis.SinkKind
 Analyzer.Utilities.Options.EnumValuesPrefixTrigger
 Analyzer.Utilities.Options.EnumValuesPrefixTrigger.AllEnumValues = 1 -> Analyzer.Utilities.Options.EnumValuesPrefixTrigger
 Analyzer.Utilities.Options.EnumValuesPrefixTrigger.AnyEnumValue = 0 -> Analyzer.Utilities.Options.EnumValuesPrefixTrigger
