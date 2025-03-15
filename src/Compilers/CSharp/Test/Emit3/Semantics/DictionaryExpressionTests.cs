@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void LanguageVersionDiagnostics_06(
+        public void BreakingChange_DictionaryAdd_01(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool includeExtensionAdd)
         {
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void LanguageVersionDiagnostics_07(
+        public void BreakingChange_DictionaryAdd_02(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool includeAdd)
         {
@@ -1644,8 +1644,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("V", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(5, 70));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePairConversions_Dynamic_01(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        KeyValuePair<string, int> x = new("two", 2);
+                        IEnumerable<object> y = [new KeyValuePair<string, int>("three", 3)];
+                        FromExpression<string, int>(x).Report();
+                        FromSpread<string, int>(y).Report();
+                    }
+                    static List<KeyValuePair<K, V>> FromExpression<K, V>(dynamic d) => [d];
+                    static List<KeyValuePair<K, V>> FromSpread<K, V>(IEnumerable<dynamic> e) => [..e];
+                }
+                """;
+            var comp = CreateCompilation(
+                [source, s_dictionaryExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net80);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "[two:2], [three:3], ");
+                verifier.VerifyDiagnostics();
+            }
+            else
+            {
+                // PROTOTYPE: Should report: "error CS0029: Cannot implicitly convert type 'dynamic' to 'KeyValuePair<K, V>'"
+                // for these cases, the same as in KeyValuePairConversions_Dynamic_02.
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
         [Fact]
-        public void KeyValuePairConversions_Dynamic_01()
+        public void KeyValuePairConversions_Dynamic_02()
         {
             string source = """
                 using System.Collections.Generic;
@@ -1666,19 +1704,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void KeyValuePairConversions_Dynamic_02()
+        public void KeyValuePairConversions_Dynamic_03()
         {
             string source = """
                 using System.Collections.Generic;
                 class Program
                 {
+                    static void Main()
+                    {
+                        FromPair1<string, int>("one", 1).Report();
+                        FromPair2<string, int>("two", 2).Report();
+                    }
                     static Dictionary<K, V> FromPair1<K, V>(K k, dynamic d) => [k:d];
-                    static Dictionary<K, V> FromPair2<K, V>(V v, dynamic d) => [d:v];
+                    static Dictionary<K, V> FromPair2<K, V>(dynamic d, V v) => [d:v];
                 }
                 """;
-            // PROTOTYPE: Run and verify expected output.
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(
+                [source, s_dictionaryExtensions],
+                targetFramework: TargetFramework.Net80,
+                expectedOutput: "[one:1], [two:2], ");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1708,6 +1753,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (12,16): error CS0029: Cannot implicitly convert type 'U' to 'System.Collections.Generic.KeyValuePair<K, V>'
                 //         d = [..e];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("U", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(12, 16));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void KeyValuePairConversions_LanguageVersion(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        FromExpression(new KeyValuePair<string, int>("one", 1)).Report();
+                        FromSpread([new KeyValuePair<string, int>("two", 2)]).Report();
+                    }
+                    static KeyValuePair<K, V>[] FromExpression<K, V>(KeyValuePair<K, V> e) => [e];
+                    static KeyValuePair<K, V>[] FromSpread<K, V>(IEnumerable<KeyValuePair<K, V>> s) => [..s];
+                }
+                """;
+            var comp = CreateCompilation(
+                [source, s_dictionaryExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "[one:1], [two:2], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.FromExpression<K, V>", """
+                {
+                    // Code size       15 (0xf)
+                    .maxstack  4
+                    IL_0000:  ldc.i4.1
+                    IL_0001:  newarr     "System.Collections.Generic.KeyValuePair<K, V>"
+                    IL_0006:  dup
+                    IL_0007:  ldc.i4.0
+                    IL_0008:  ldarg.0
+                    IL_0009:  stelem     "System.Collections.Generic.KeyValuePair<K, V>"
+                    IL_000e:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.FromSpread<K, V>", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.KeyValuePair<K, V>[] System.Linq.Enumerable.ToArray<System.Collections.Generic.KeyValuePair<K, V>>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>)"
+                  IL_0006:  ret
+                }
+                """);
         }
 
         [Fact]
