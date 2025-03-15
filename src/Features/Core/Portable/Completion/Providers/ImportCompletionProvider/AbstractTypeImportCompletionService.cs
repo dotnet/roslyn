@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal abstract partial class AbstractTypeImportCompletionService : ITypeImportCompletionService
 {
-    private static readonly ConditionalWeakTable<ProjectState, TypeImportCompletionCacheEntry> s_projectItemsCache = new();
+    private static readonly ConditionalWeakTable<ProjectId, TypeImportCompletionCacheEntry> s_projectItemsCache = new();
     private static readonly ConditionalWeakTable<MetadataId, TypeImportCompletionCacheEntry> s_metadataItemsCache = new();
 
     private IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry> CacheService { get; }
@@ -110,7 +110,7 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
                     var upToDateCacheEntry = await GetUpToDateCacheForProjectAsync(project, cancellationToken).ConfigureAwait(false);
                     resultBuilder.Add(upToDateCacheEntry);
                 }
-                else if (s_projectItemsCache.TryGetValue(project.State, out var cacheEntry))
+                else if (s_projectItemsCache.TryGetValue(project.Id, out var cacheEntry))
                 {
                     resultBuilder.Add(cacheEntry);
                 }
@@ -183,7 +183,7 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
         var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
         return CreateCacheWorker(
-            project.State,
+            project.Id,
             compilation.Assembly,
             checksum,
             s_projectItemsCache,
