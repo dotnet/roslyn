@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class DictionaryExpressionTests : CSharpTestBase
     {
+        private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
+
         private const string s_collectionExtensions = CollectionExpressionTests.s_collectionExtensions;
         private const string s_dictionaryExtensions = """
             using System;
@@ -1671,7 +1673,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: TargetFramework.Net80);
             if (languageVersion == LanguageVersion.CSharp13)
             {
-                var verifier = CompileAndVerify(comp, expectedOutput: "[two:2], [three:3], ");
+                var verifier = CompileAndVerify(
+                    comp,
+                    verify: Verification.Skipped,
+                    expectedOutput: IncludeExpectedOutput("[two:2], [three:3], "));
                 verifier.VerifyDiagnostics();
             }
             else
@@ -1722,7 +1727,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(
                 [source, s_dictionaryExtensions],
                 targetFramework: TargetFramework.Net80,
-                expectedOutput: "[one:1], [two:2], ");
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[one:1], [two:2], "));
             verifier.VerifyDiagnostics();
         }
 
