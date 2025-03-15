@@ -63,6 +63,19 @@ internal static partial class ISolutionExtensions
     }
 
 #if !CODE_STYLE
+    public static SourceGeneratedDocument GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(this Solution solution, DocumentId documentId)
+    {
+        if (documentId is null)
+            throw new ArgumentNullException(nameof(documentId));
+
+        var project = solution.GetRequiredProject(documentId.ProjectId);
+        var sourceGeneratedDocument = project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+        if (sourceGeneratedDocument == null)
+            throw CreateDocumentNotFoundException();
+
+        return sourceGeneratedDocument;
+    }
+
     public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
         => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();
 

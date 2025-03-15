@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis;
@@ -79,5 +81,28 @@ public readonly struct SolutionChanges
                 yield return analyzerReference;
             }
         }
+    }
+
+    internal IEnumerable<DocumentId> GetChangedFrozenSourceGeneratedDocuments()
+    {
+        Contract.ThrowIfNull(_newSolution.CompilationState.FrozenSourceGeneratedDocumentStates);
+
+        using var _ = ArrayBuilder<SourceGeneratedDocumentState>.GetInstance(out var oldStateBuilder);
+        foreach (var state in _newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
+        {
+            var id = state.Key;
+            var docState = state.Value;
+            var oldState = _oldSolution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(id);
+            // We only get changes for frozen source generated documents, and we assume that any document that has been frozen
+            // must have been already generated first. We don't want to run generators on this path.
+            Contract.ThrowIfNull(oldState);
+            oldStateBuilder.Add(oldState);
+        }
+
+        var oldStates = new TextDocumentStates<SourceGeneratedDocumentState>(oldStateBuilder);
+        return _newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.GetChangedStateIds(
+            oldStates,
+            ignoreUnchangedContent: true,
+            ignoreUnchangeableDocuments: false);
     }
 }

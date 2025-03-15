@@ -388,13 +388,25 @@ public class Document : TextDocument
     /// Creates a new instance of this document updated to have the text specified.
     /// </summary>
     public Document WithText(SourceText text)
-        => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
+    {
+        var solution = this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity);
+
+        return this.Id.IsSourceGenerated
+            ? solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id)
+            : solution.GetRequiredDocument(Id);
+    }
 
     /// <summary>
     /// Creates a new instance of this document updated to have a syntax tree rooted by the specified syntax node.
     /// </summary>
     public Document WithSyntaxRoot(SyntaxNode root)
-        => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
+    {
+        var solution = this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity);
+
+        return this.Id.IsSourceGenerated
+            ? solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id)
+            : solution.GetRequiredDocument(Id);
+    }
 
     /// <summary>
     /// Creates a new instance of this document updated to have the specified name.
