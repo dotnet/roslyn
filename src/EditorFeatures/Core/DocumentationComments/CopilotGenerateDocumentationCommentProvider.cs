@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
@@ -206,14 +207,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
                 if (edit.SymbolName is not null)
                 {
-                    symbolKey = edit.TagType.ToString() + "- " + edit.SymbolName;
+                    symbolKey = edit.TagType.ToString() + "-" + edit.SymbolName;
                 }
 
                 if (edit.TagType == DocumentationCommentTagType.Summary && documentationCommentDictionary.TryGetValue(DocumentationCommentTagType.Summary.ToString(), out var summary) && !string.IsNullOrEmpty(summary))
                 {
                     copilotStatement = summary;
                 }
-                if (edit.TagType == DocumentationCommentTagType.TypeParam && documentationCommentDictionary.TryGetValue(symbolKey!, out var typeParam) && !string.IsNullOrEmpty(typeParam))
+                else if (edit.TagType == DocumentationCommentTagType.TypeParam && documentationCommentDictionary.TryGetValue(symbolKey!, out var typeParam) && !string.IsNullOrEmpty(typeParam))
                 {
                     copilotStatement = typeParam;
                 }
@@ -239,6 +240,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             static string AddNewLinesToCopilotText(string copilotText, string? indentText, int characterLimit)
             {
+                // Double check that the resultant from Copilot does not produce any strings containing new line characters.
+                copilotText = Regex.Replace(copilotText, @"\r?\n", " ");
                 var builder = new StringBuilder();
                 var words = copilotText.Split(' ');
                 var currentLineLength = 0;
