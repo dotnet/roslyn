@@ -23,6 +23,27 @@
             "stopAtEntry": false
         },
         {
+            "name": "Run `pr-finder` on Razor",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/../../artifacts/bin/Microsoft.RoslynTools/Debug/net9.0/Microsoft.RoslynTools.dll",
+            "args": [
+              "pr-finder",
+              "-s",
+              "e15fe5b8b38c1b1e1adb9c8a4d76567aa1c397db",
+              "-e",
+              "main",
+              "--format",
+              "changelog",
+              "-v",
+              "diag"
+            ],
+            "cwd": "${workspaceFolder}/../../../razor",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
             "name": "Run `vsbranchinfo`",
             "type": "coreclr",
             "request": "launch",

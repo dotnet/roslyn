@@ -93,11 +93,11 @@ internal partial class GitHub : IRepositoryHost
             match = IsGitHubSquashedPRCommit().Match(commit.MessageShort);
             if (match.Success)
             {
-                var prNumber = match.Groups[1].Value;
+                var prNumber = match.Groups[2].Value;
 
                 // Squash PR Messages are in the form "Nullable annotate TypeCompilationState and MessageID (#39449)"
                 // Take the 1st line since it should be descriptive.
-                var comment = commit.MessageShort;
+                var comment = match.Groups[1].Value;
                 return new(prNumber, comment);
             }
         }
@@ -198,6 +198,6 @@ internal partial class GitHub : IRepositoryHost
     private static partial Regex IsGitHubActionCodeFlowCommit();
     [GeneratedRegex(@"^Merge pull request #(\d+) from")]
     private static partial Regex IsGitHubMergePRCommit();
-    [GeneratedRegex(@"\(#(\d+)\)(?:\n|$)")]
+    [GeneratedRegex(@"^(.*) \(#(\d+)\)(?:\n|$)")]
     private static partial Regex IsGitHubSquashedPRCommit();
 }
