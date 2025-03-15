@@ -10,10 +10,5 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal interface IImportCompletionCacheService<TProject, TPortableExecutable> : IWorkspaceService
 {
-    // PE references are keyed on assembly path.
-    IDictionary<string, TPortableExecutable> PEItemsCache { get; }
-
-    IDictionary<ProjectId, TProject> ProjectItemsCache { get; }
-
     AsyncBatchingWorkQueue<Project> WorkQueue { get; }
 }
