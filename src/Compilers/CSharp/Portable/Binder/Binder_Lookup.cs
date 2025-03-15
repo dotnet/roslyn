@@ -199,30 +199,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void EnumerateAllExtensionMembersInSingleBinder(ArrayBuilder<SingleLookupResult> result,
             string? name, int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
         {
-            // 1. Collect new extension members
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
-            var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
 
-            foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
+            // 1. Collect new extension members
+            if (this.Compilation.LanguageVersion.AllowNewExtensions())
             {
-                var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
+                var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
 
-                foreach (var candidate in candidates)
+                foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
                 {
-                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
-                    result.Add(resultOfThisMember);
+                    var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
 
-                    if (candidate is MethodSymbol { IsStatic: false } shadows &&
-                        shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
+                    foreach (var candidate in candidates)
                     {
-                        implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
-                        implementationsToShadow.Add(toShadow);
+                        SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
+                        result.Add(resultOfThisMember);
+
+                        if (candidate is MethodSymbol { IsStatic: false } shadows &&
+                            shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
+                        {
+                            implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
+                            implementationsToShadow.Add(toShadow);
+                        }
                     }
                 }
-            }
 
-            extensionDeclarations.Free();
+                extensionDeclarations.Free();
+            }
 
             // 2. Collect classic extension methods
             var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();

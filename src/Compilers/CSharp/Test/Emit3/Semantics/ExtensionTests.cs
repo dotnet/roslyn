@@ -26600,4 +26600,126 @@ public static class E
         Assert.Equal("void E.<>E__0<System.Int32>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
         Assert.Equal(["void E.<>E__0<System.Int32>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
     }
+
+    [Fact]
+    public void GetSymbolInfo_08()
+    {
+        var src = """
+public static class E
+{
+    public static void M<T>(this T t)
+    {
+        t.M<T>();
+        t.M();
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var extensionParameterSyntax = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().First();
+        IParameterSymbol extensionParameter = model.GetDeclaredSymbol(extensionParameterSyntax);
+        Assert.Equal("T t", extensionParameter.ToTestDisplayString());
+        var t = extensionParameter.Type;
+
+        var expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M<T>()").Expression;
+        Assert.Equal("void T.M<T>()", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void T.M<T>()"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        AssertEqualAndNoDuplicates(["void T.M<T>()"], model.LookupSymbols(position: expr.SpanStart, t, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M()").Expression;
+        Assert.Equal("void T.M<T>()", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void T.M<T>()"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void LangVer_01()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(object)
+    {
+        public void M() { }
+        public static void M2() { }
+        public static int P => 0;
+    }
+}
+
+""";
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        libComp.VerifyEmitDiagnostics();
+        var libRef = libComp.EmitToImageReference();
+
+        var srcCompat = """
+new object().M();
+System.Action a = new object().M;
+var x = new object().M;
+
+E.M(new object());
+E.get_P();
+E.M2();
+""";
+        var comp = CreateCompilation(srcCompat, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(srcCompat, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(srcCompat, references: [libRef]);
+        comp.VerifyEmitDiagnostics();
+
+        // PROTOTYPE function type not yet supported
+        var src = """
+object.M2();
+System.Action a = object.M2;
+//var x = object.M2;
+
+_ = object.P;
+""";
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'M2'
+            // object.M2();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M2").WithArguments("object", "M2").WithLocation(1, 8),
+            // (2,26): error CS0117: 'object' does not contain a definition for 'M2'
+            // System.Action a = object.M2;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M2").WithArguments("object", "M2").WithLocation(2, 26),
+            // (5,12): error CS0117: 'object' does not contain a definition for 'P'
+            // _ = object.P;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("object", "P").WithLocation(5, 12));
+        verifySymbolInfo(comp, newLangVer: false);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp.VerifyEmitDiagnostics();
+        verifySymbolInfo(comp, newLangVer: true);
+
+        comp = CreateCompilation(src, references: [libRef]);
+        comp.VerifyEmitDiagnostics();
+        verifySymbolInfo(comp, newLangVer: true);
+
+        static void verifySymbolInfo(CSharpCompilation comp, bool newLangVer)
+        {
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
+
+            if (newLangVer)
+            {
+                AssertEqualAndNoDuplicates(["void E.<>E__0.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+                AssertEqualAndNoDuplicates(["void E.<>E__0.M2()"], model.LookupSymbols(position: 0, o, name: "M2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+                AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.P { get; }"], model.LookupSymbols(position: 0, o, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+            }
+            else
+            {
+                AssertEqualAndNoDuplicates(["void System.Object.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+                AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "M2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+                AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+            }
+        }
+    }
 }
