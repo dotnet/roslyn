@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
 public sealed class ExtensionKeywordRecommenderTests : KeywordRecommenderTests
 {
-    private static readonly CSharpParseOptions s_options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
+    private static readonly CSharpParseOptions s_options = CSharpNextParseOptions;
 
     [Fact]
     public async Task NotInRoot()
@@ -149,6 +149,6 @@ public sealed class ExtensionKeywordRecommenderTests : KeywordRecommenderTests
                         $$
                     }
                 }
-                """, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                """, CSharpNextParseOptions);
     }
 }

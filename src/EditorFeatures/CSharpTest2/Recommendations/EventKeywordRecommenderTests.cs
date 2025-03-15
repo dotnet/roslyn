@@ -670,6 +670,6 @@ public sealed class EventKeywordRecommenderTests : KeywordRecommenderTests
                         $$
                     }
                 }
-                """, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                """, CSharpNextParseOptions);
     }
 }

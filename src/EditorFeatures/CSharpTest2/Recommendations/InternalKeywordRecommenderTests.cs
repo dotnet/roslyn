@@ -491,7 +491,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                         $$
                     }
                 }
-                """, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                """,
+                CSharpNextParseOptions,
+                CSharpNextScriptParseOptions);
         }
     }
 }

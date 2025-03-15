@@ -470,7 +470,7 @@ public sealed class ReturnKeywordRecommenderTests : KeywordRecommenderTests
                         $$
                     }
                 }
-                """, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                """, CSharpNextParseOptions);
     }
 
     [Fact]
@@ -485,6 +485,6 @@ public sealed class ReturnKeywordRecommenderTests : KeywordRecommenderTests
                         [$$
                     }
                 }
-                """, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                """, CSharpNextParseOptions);
     }
 }

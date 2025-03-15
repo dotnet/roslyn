@@ -656,6 +656,6 @@ public sealed class DelegateKeywordRecommenderTests : KeywordRecommenderTests
                         $$
                     }
                 }
-                """, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                """, CSharpNextParseOptions);
     }
 }

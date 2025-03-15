@@ -1399,7 +1399,7 @@ class C
                         $$
                     }
                 }
-                """, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                """, CSharpNextParseOptions);
         }
     }
 }

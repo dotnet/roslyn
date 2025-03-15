@@ -1186,7 +1186,7 @@ $@"{type} N
                         $$
                     }
                 }
-                """, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                """, CSharpNextParseOptions);
         }
     }
 }

@@ -279,7 +279,7 @@ public sealed class PropertyKeywordRecommenderTests : KeywordRecommenderTests
                         $$
                     }
                 }
-                """, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                """, CSharpNextParseOptions);
     }
 
     [Fact]
@@ -294,6 +294,6 @@ public sealed class PropertyKeywordRecommenderTests : KeywordRecommenderTests
                         [$$
                     }
                 }
-                """, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+                """, CSharpNextParseOptions);
     }
 }
