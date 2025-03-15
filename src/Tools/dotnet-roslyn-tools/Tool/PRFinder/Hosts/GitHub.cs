@@ -96,7 +96,7 @@ internal partial class GitHub : IRepositoryHost
                 var prNumber = match.Groups[2].Value;
 
                 // Squash PR Messages are in the form "Nullable annotate TypeCompilationState and MessageID (#39449)"
-                // Take the 1st line since it should be descriptive.
+                // Take the first line up until the PR number.
                 var comment = match.Groups[1].Value;
                 return new(prNumber, comment);
             }
