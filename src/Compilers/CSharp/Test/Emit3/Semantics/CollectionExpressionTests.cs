@@ -4988,7 +4988,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[5]").WithArguments("System.Collections.Generic.ID<object, object>").WithLocation(10, 32));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
         }
 
         [Fact]
@@ -5043,7 +5043,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("System.IEquatable<int>").WithLocation(8, 29));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
         }
 
         [Fact]
@@ -5097,7 +5097,7 @@ static class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[2]").WithArguments("System.Collections.Generic.List`1", "ToArray").WithLocation(8, 30));
 
             var listType = comp.GetWellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, listType, out var elementType));
+            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, listType, out var elementType));
             Assert.False(elementType.HasType);
         }
 
@@ -9342,25 +9342,15 @@ static class Program
                     {
                         Dictionary<int, int> d;
                         d = [default];
+                        d.Report();
                         d = [new KeyValuePair<int, int>(1, 2)];
+                        d.Report();
                         d = [3:4];
+                        d.Report();
                     }
                 }
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (7,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[default]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 13),
-                // (8,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [new KeyValuePair<int, int>(1, 2)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[new KeyValuePair<int, int>(1, 2)]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(8, 13),
-                // (9,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[3:4]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(9, 13),
-                // (9,14): error CS9275: Collection expression type 'Dictionary<int, int>' does not support key-value pair elements.
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "3:4").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(9, 14));
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[[0, 0]], [[1, 2]], [[3, 4]], ");
         }
 
         [Fact]
@@ -14203,6 +14193,25 @@ namespace System
                 // (6,22): warning CS8601: Possible null reference assignment.
                 //     object[] b = [..(m() ? a1 : a2)];
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "m() ? a1 : a2").WithLocation(6, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
+        public void Nullable_Spread_04()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                {
+                    IEnumerable<object?> a = [null];
+                    List<object> b = [..a];
+                }
+                {
+                    IEnumerable<object?> a = [null];
+                    List<object> b = [..a!];
+                }
+                """;
+            // https://github.com/dotnet/roslyn/issues/68786: Should report warning for [..a].
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
@@ -27508,7 +27517,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics(
                 // (4,52): error CS9215: Collection expression type 'Dictionary<string, object>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //     Dictionary<string, object> Config => /*<bind>*/[
@@ -30438,7 +30447,7 @@ partial class Program
                 """);
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out var elementType));
+            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out var elementType));
             Assert.False(elementType.HasType);
         }
 
@@ -30498,7 +30507,7 @@ partial class Program
 
             var comp = (CSharpCompilation)verifier.Compilation;
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.CollectionBuilder, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
         }
 
         [Fact]
@@ -30709,7 +30718,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
 
             // ImmutableCollectionsMarshal.AsImmutableArray is not sufficient to optimize collection expressions
             // targeting ImmutableArray<T>. ImmutableArray<T> must also have a [CollectionBuilder] attribute.
@@ -30733,7 +30742,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
         }
 
         [Fact]
@@ -30768,7 +30777,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
 
             // With ImmutableCollectionsMarshal.AsImmutableArray.
             string sourceB = """
@@ -30790,7 +30799,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionImmutableArray, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<T>").WithLocation(7, 35));
 
             collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.ImplementsIEnumerable, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
         }
 
         [Fact]
@@ -30822,7 +30831,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(7, 35));
 
             var collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
 
             // With ImmutableCollectionsMarshal.AsImmutableArray.
             string sourceB = """
@@ -30844,7 +30853,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("System.Collections.Immutable.ImmutableArray<int>").WithLocation(7, 35));
 
             collectionType = comp.GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKind(comp, collectionType, out _));
+            Assert.Equal(CollectionExpressionTypeKind.None, ConversionsBase.GetCollectionExpressionTypeKindCore(comp, collectionType, out _));
         }
 
         [Fact]
@@ -38548,8 +38557,10 @@ partial class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
-        [Fact]
-        public void Add_ParamsArray_01()
+        [Theory]
+        [CombinatorialData]
+        public void Add_ParamsArray_01(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
@@ -38578,7 +38589,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ");
 
@@ -38627,8 +38641,10 @@ partial class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
-        [Fact]
-        public void Add_ParamsCollection_01()
+        [Theory]
+        [CombinatorialData]
+        public void Add_ParamsCollection_01(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
@@ -38657,7 +38673,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ").VerifyDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
