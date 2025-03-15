@@ -85,8 +85,10 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
 
         try
         {
-            var setting = _settingsReader.GetValue<bool>($"{option.Name}");
-            return setting.Value;
+            if (_settingsReader.GetValue<bool>(option.Name) is { Outcome: SettingRetrievalOutcome.Success } setting)
+                return setting.Value;
+
+            return option.DefaultValue;
         }
         catch
         {
