@@ -4293,8 +4293,8 @@ outerDefault:
                         }
                     }
 
-                    member = construct(member, typeArguments);
-                    leastOverriddenMember = construct(GetConstructedFrom(leastOverriddenMember), typeArguments);
+                    member = member.ConstructWithAllTypeParameters(typeArguments);
+                    leastOverriddenMember = GetConstructedFrom(leastOverriddenMember).ConstructWithAllTypeParameters(typeArguments);
 
                     // Spec (§7.6.5.1)
                     //   Once the (inferred) type arguments are substituted for the corresponding method type parameters, 
@@ -4367,46 +4367,6 @@ outerDefault:
                 isMethodGroupConversion: isMethodGroupConversion,
                 useSiteInfo: ref useSiteInfo);
             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult, hasTypeArgumentsInferredFromFunctionType);
-
-            static TMember construct(TMember member, ImmutableArray<TypeWithAnnotations> typeArguments)
-            {
-                if (member is MethodSymbol method)
-                {
-                    if (method.GetIsNewExtensionMember())
-                    {
-                        NamedTypeSymbol extension = method.ContainingType;
-                        if (extension.Arity > 0)
-                        {
-                            extension = extension.Construct(typeArguments[..extension.Arity]);
-                            method = method.AsMember(extension);
-                        }
-
-                        if (method.Arity > 0)
-                        {
-                            return (TMember)(Symbol)method.Construct(typeArguments[extension.Arity..]);
-                        }
-
-                        return (TMember)(Symbol)method;
-                    }
-
-                    return (TMember)(Symbol)method.Construct(typeArguments);
-                }
-
-                if (member is PropertySymbol property)
-                {
-                    Debug.Assert(property.GetIsNewExtensionMember());
-                    NamedTypeSymbol extension = property.ContainingType;
-                    Debug.Assert(extension.Arity > 0);
-                    Debug.Assert(extension.Arity == typeArguments.Length);
-
-                    extension = extension.Construct(typeArguments);
-                    property = property.AsMember(extension);
-
-                    return (TMember)(Symbol)property;
-                }
-
-                throw ExceptionUtilities.UnexpectedValue(member);
-            }
 
             static ImmutableArray<TypeWithAnnotations> getAllTypeArguments(TMember member, bool isNewExtensionMember)
             {

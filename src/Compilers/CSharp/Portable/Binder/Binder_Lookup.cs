@@ -44,13 +44,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void LookupExtensionMethods(LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+#nullable enable
+        internal void LookupAllExtensions(LookupResult result, TypeSymbol receiverType, string? name, LookupOptions options)
         {
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
             foreach (var scope in new ExtensionScopes(this))
             {
-                this.LookupExtensionMethodsInSingleBinder(scope, result, name, arity, options, ref useSiteInfo);
+                scope.Binder.LookupAllExtensionMembersInSingleBinder(
+                  result, receiverType, name, arity: 0,
+                  options: options, originalBinder: this, classicExtensionUseSiteInfo: ref discardedUseSiteInfo);
             }
         }
+#nullable disable
 
         /// <summary>
         /// Look for any symbols in scope with the given name and arity.
@@ -177,34 +183,75 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private void LookupExtensionMembersInSingleBinder(LookupResult result, TypeSymbol receiverType,
-            string name, int arity, ConsList<TypeSymbol>? basesBeingResolved, LookupOptions options,
-            Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void LookupAllExtensionMembersInSingleBinder(LookupResult result, TypeSymbol receiverType,
+            string? name, int arity, LookupOptions options, Binder originalBinder,
+            ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
         {
-            Debug.Assert(name is not null);
-
-            var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-
-            Debug.Assert(!receiverType.IsDynamic());
-            if (!receiverType.IsErrorType())
+            var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
+            EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, receiverType, name, arity, options, originalBinder, ref classicExtensionUseSiteInfo);
+            foreach (var singleLookupResult in singleLookupResults)
             {
-                this.GetExtensionDeclarations(extensions, originalBinder);
+                result.MergeEqual(singleLookupResult);
             }
 
-            var tempResult = LookupResult.GetInstance();
-            foreach (NamedTypeSymbol extension in extensions)
-            {
-                // No need for "diagnose" since we discard the lookup results (and associated diagnostic info)
-                // unless the results are good.
-                LookupMembersInClass(tempResult, extension, name, arity, basesBeingResolved,
-                    options, originalBinder, diagnose: false, ref useSiteInfo);
+            singleLookupResults.Free();
+        }
 
-                result.MergeEqual(tempResult);
-                tempResult.Clear();
+        internal void EnumerateAllExtensionMembersInSingleBinder(ArrayBuilder<SingleLookupResult> result,
+            TypeSymbol receiverType, string? name, int arity, LookupOptions options, Binder originalBinder,
+            ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
+        {
+            if (receiverType.IsErrorType() || receiverType.IsDynamic())
+            {
+                return;
             }
 
-            tempResult.Free();
-            extensions.Free();
+            // 1. Collect new extension members
+            var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
+
+            PooledHashSet<MethodSymbol>? implementationsToShadow = null;
+
+            foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
+            {
+                var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
+
+                foreach (var candidate in candidates)
+                {
+                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref classicExtensionUseSiteInfo);
+                    result.Add(resultOfThisMember);
+
+                    if (!candidate.IsStatic)
+                    {
+                        implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
+
+                        if (candidate is MethodSymbol { IsStatic: false } shadows &&
+                            shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
+                        {
+                            implementationsToShadow.Add(toShadow);
+                        }
+                    }
+                }
+            }
+
+            extensionDeclarations.Free();
+
+            // 2. Collect classic extension methods
+            var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+            this.GetCandidateExtensionMethods(extensionMethods, name, arity, options, originalBinder: originalBinder);
+
+            foreach (var method in extensionMethods)
+            {
+                // Prefer instance extension declarations vs. their implementations
+                if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
+                {
+                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref classicExtensionUseSiteInfo);
+                    result.Add(resultOfThisMember);
+                }
+            }
+
+            extensionMethods.Free();
+            implementationsToShadow?.Free();
         }
 #nullable disable
 
@@ -484,6 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE we should be able to remove this method once all the callers are updated to account for new extension members
         /// <summary>
         /// Lookup extension methods by name and arity in the given binder and
         /// check viability in this binder. The lookup is performed on a single
