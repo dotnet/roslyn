@@ -1601,11 +1601,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol valueType,
                 ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                // PROTOTYPE: Test shadowing with new. How do we describe this in the spec?
+                // PROTOTYPE: Test shadowing with new.
                 // PROTOTYPE: Test params T[] parameter when the dictionary key is T, and when the dictionary key is T[].
                 // PROTOTYPE: Test explicit interface implementation.
                 // PROTOTYPE: Test more derived type returned from overridden indexer compared to base type.
-                // PROTOTYPE: Test only one of get or set overridden from base type. How do we describe this in the spec? (Use the base virtual or abstract indexer?)
+                // PROTOTYPE: Test only one of get or set overridden from base type.
                 if (indexer is
                     {
                         IsStatic: false,

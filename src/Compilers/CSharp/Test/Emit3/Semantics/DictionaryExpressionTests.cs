@@ -1407,8 +1407,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        // PROTOTYPE: Confirm that we want to support conversion from KeyValuePair<K1, V1> to
-        // KeyValuePair<K2, V2> when there are implicit conversions from K1 to K2 and from V1 to V2.
         [Fact]
         public void KeyValuePairConversions_02()
         {
@@ -1646,7 +1644,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("V", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(5, 70));
         }
 
-        // PROTOTYPE: No dynamic support. Update the spec accordingly.
         [Fact]
         public void KeyValuePairConversions_Dynamic_01()
         {
@@ -2548,6 +2545,90 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void IndexerSignature_MultipleIndexers()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    private Dictionary<K, V> _d = new();
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => _d.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    public int this[string key]
+                    {
+                        get { return (int)(object)_d[(K)(object)key]; }
+                        set { Console.WriteLine("string:{0}, int:{1}", key, value); _d[(K)(object)key] = (V)(object)value; }
+                    }
+                    public object this[object key]
+                    {
+                        get { return _d[(K)key]; }
+                        set { Console.WriteLine("object:{0}, object:{1}", key, value); _d[(K)key] = (V)value; }
+                    }
+                }
+                """;
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyDictionary<string, object> d;
+                        d = ["one":1];
+                        d = ["two":(object)2];
+                        d = [(object)"three":(object)3];
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB1]);
+            comp.VerifyEmitDiagnostics(
+                // (6,13): error CS1061: 'MyDictionary<string, object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<string, object>' could be found (are you missing a using directive or an assembly reference?)
+                //         d = ["one":1];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[""one"":1]").WithArguments("MyDictionary<string, object>", "Add").WithLocation(6, 13),
+                // (6,14): error CS9275: Collection expression type 'MyDictionary<string, object>' does not support key-value pair elements.
+                //         d = ["one":1];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"""one"":1").WithArguments("MyDictionary<string, object>").WithLocation(6, 14),
+                // (7,13): error CS1061: 'MyDictionary<string, object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<string, object>' could be found (are you missing a using directive or an assembly reference?)
+                //         d = ["two":(object)2];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[""two"":(object)2]").WithArguments("MyDictionary<string, object>", "Add").WithLocation(7, 13),
+                // (7,14): error CS9275: Collection expression type 'MyDictionary<string, object>' does not support key-value pair elements.
+                //         d = ["two":(object)2];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"""two"":(object)2").WithArguments("MyDictionary<string, object>").WithLocation(7, 14),
+                // (8,13): error CS1061: 'MyDictionary<string, object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<string, object>' could be found (are you missing a using directive or an assembly reference?)
+                //         d = [(object)"three":(object)3];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[(object)""three"":(object)3]").WithArguments("MyDictionary<string, object>", "Add").WithLocation(8, 13),
+                // (8,14): error CS9275: Collection expression type 'MyDictionary<string, object>' does not support key-value pair elements.
+                //         d = [(object)"three":(object)3];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"(object)""three"":(object)3").WithArguments("MyDictionary<string, object>").WithLocation(8, 14));
+
+            string sourceB2 = """
+                class MyDictionary1 : MyDictionary<string, int> { }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyDictionary1 d1 = ["one":1];
+                        d1.Report();
+                        MyDictionary<string, int> d2 = ["two":2];
+                        d2.Report();
+                        MyDictionary<object, object> d3 = ["three":3];
+                        d3.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB2, s_dictionaryExtensions],
+                expectedOutput: """
+                    string:one, int:1
+                    [one:1], string:two, int:2
+                    [two:2], object:three, object:3
+                    [three:3], 
+                    """);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
