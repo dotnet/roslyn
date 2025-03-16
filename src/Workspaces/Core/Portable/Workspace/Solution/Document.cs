@@ -312,7 +312,7 @@ public class Document : TextDocument
     /// </returns>
     public Task<SemanticModel?> GetSemanticModelAsync(CancellationToken cancellationToken = default)
     {
-        return GetSemanticModelHelperAsync(disableNullableAnalysis: false, cancellationToken);
+        return await GetSemanticModelHelperAsync(disableNullableAnalysis: false, cancellationToken);
     }
 
     /// <summary>
