@@ -12859,5 +12859,69 @@ internal class Program
                 Await state.AssertCompletionItemsContain("customer", displayTextSuffix:="")
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5399")>
+        Public Async Function TestSpeculativeTInExtension(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                static class C
+                {
+                    extension(Customer customer)
+                    {
+                        $$
+                    }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("T", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5399")>
+        Public Async Function TestReturnSymbolInExtension1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                using System;
+
+                static class C
+                {
+                    extension(Customer customer)
+                    {
+                        $$
+                    }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("String", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/5399")>
+        Public Async Function TestReturnSymbolInExtension2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                using System;
+
+                static class C
+                {
+                    extension(Customer customer)
+                    {
+                        public $$
+                    }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("String", displayTextSuffix:="")
+            End Using
+        End Function
     End Class
 End Namespace
