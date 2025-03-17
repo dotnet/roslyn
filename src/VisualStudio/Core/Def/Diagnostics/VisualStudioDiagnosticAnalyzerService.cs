@@ -47,6 +47,7 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
     private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService;
 
     private IServiceProvider? _serviceProvider;
+    private BackgroundAnalysisScope? _analysisScope;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -173,18 +174,7 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
         }
 
         command.Enabled = true;
-
-        // The command is checked if RoslynPackage is loaded and the analysis scope for this command matches the
-        // value saved for the solution.
-        var roslynPackage = _threadingContext.JoinableTaskFactory.Run(() =>
-        {
-            return RoslynPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).AsTask();
-        });
-
-        if (roslynPackage is not null)
-        {
-            command.Checked = roslynPackage.AnalysisScope == scope;
-        }
+        command.Checked = _analysisScope == scope;
 
         // For the specific case of the default analysis scope command, update the command text to show the
         // current effective default in the context of the language(s) used in the solution.
@@ -245,20 +235,7 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
 
     private void OnSetAnalysisScope(BackgroundAnalysisScope? scope)
     {
-        if (_serviceProvider is null
-            || !_serviceProvider.TryGetService<SVsShell, IVsShell>(_threadingContext.JoinableTaskFactory, out var shell))
-        {
-            return;
-        }
-
-        var roslynPackage = _threadingContext.JoinableTaskFactory.Run(() =>
-        {
-            return RoslynPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).AsTask();
-        });
-
-        Assumes.Present(roslynPackage);
-
-        roslynPackage.AnalysisScope = scope;
+        _analysisScope = scope;
     }
 
     private void OnRunCodeAnalysisForSelectedProjectStatus(object sender, EventArgs e)
@@ -335,14 +312,21 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
                 ? new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, (uint)totalProjectCount)
                 : null;
 
-            await TaskScheduler.Default;
-
-            var onAfterProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnAfterProjectAnalyzed : (Action<Project>)((Project _) => { });
-            await _codeAnalysisService.RunAnalysisAsync(solution, project?.Id, onAfterProjectAnalyzed, CancellationToken.None).ConfigureAwait(false);
+            await RunAnalysisAsync(statusBarUpdater, project?.Id).ConfigureAwait(false);
 
             foreach (var otherProject in otherProjectsForMultiTfmProject)
-                await _codeAnalysisService.RunAnalysisAsync(solution, otherProject.Id, onAfterProjectAnalyzed, CancellationToken.None).ConfigureAwait(false);
+                await RunAnalysisAsync(statusBarUpdater, otherProject.Id).ConfigureAwait(false);
         });
+
+        async Task RunAnalysisAsync(
+            StatusBarUpdater? statusBarUpdater, ProjectId? projectId)
+        {
+            await TaskScheduler.Default;
+            await _codeAnalysisService.RunAnalysisAsync(
+                solution, projectId,
+                statusBarUpdater != null ? statusBarUpdater.OnAfterProjectAnalyzed : _ => { },
+                CancellationToken.None).ConfigureAwait(false);
+        }
     }
 
     private Project? GetProject(IVsHierarchy? hierarchy)
