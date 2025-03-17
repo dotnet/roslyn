@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -156,7 +157,8 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         var classDeclarationEditor = new SyntaxEditor(classDeclaration, CSharpSyntaxGenerator.Instance);
         foreach (var group in groups.OrderBy(g => g.Min(info => info.ExtensionMethod.SpanStart)))
         {
-            var newExtension = CreateExtension(codeGenerationService, [.. group]);
+            var newExtension = CreateExtension([.. group]);
+
             classDeclarationEditor.ReplaceNode(group.First().ExtensionMethod, newExtension);
 
             foreach (var extensionMethod in group.Skip(1))
@@ -164,26 +166,67 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         }
 
         return (ClassDeclarationSyntax)classDeclarationEditor.GetChangedRoot();
+
+        ExtensionDeclarationSyntax CreateExtension(ImmutableArray<ExtensionMethodInfo> group)
+        {
+            Contract.ThrowIfTrue(group.IsEmpty);
+
+            var codeGenerationInfo = new CSharpCodeGenerationContextInfo(
+                CodeGenerationContext.Default,
+                CSharpCodeGenerationOptions.Default,
+                (CSharpCodeGenerationService)codeGenerationService,
+                LanguageVersionExtensions.CSharpNext);
+
+            var firstExtensionInfo = group[0];
+            var typeParameters = firstExtensionInfo.MethodTypeParameters.CastArray<ITypeParameterSymbol>();
+
+            // Create a disconnected parameter.  This way when we look at it, we won't think of it as an extension method
+            // parameter any more.  This will prevent us from undesirable things (like placing 'this' on it when adding to
+            // the extension declaration).
+            var firstParameter = CodeGenerationSymbolFactory.CreateParameterSymbol(firstExtensionInfo.FirstParameter);
+
+            var extensionDeclaration = ExtensionDeclaration()
+                .WithTypeParameterList(TypeParameterGenerator.GenerateTypeParameterList(typeParameters, codeGenerationInfo))
+                .WithConstraintClauses(typeParameters.GenerateConstraintClauses())
+                .WithParameterList(ParameterGenerator.GenerateParameterList([firstParameter], isExplicit: false, codeGenerationInfo))
+                .WithMembers([.. group.Select((info, index) => ConvertExtensionMethod(info, index))]);
+
+            // Move the blank lines above the first extension method inside the extension to the extension itself.
+            firstExtensionInfo.ExtensionMethod.GetNodeWithoutLeadingBlankLines(out var leadingBlankLines);
+            return extensionDeclaration.WithLeadingTrivia(leadingBlankLines);
+        }
+
+        MethodDeclarationSyntax ConvertExtensionMethod(
+            ExtensionMethodInfo extensionMethodInfo, int index)
+        {
+            var converted = extensionMethodInfo.ExtensionMethod
+                .WithParameterList(ConvertParameters(extensionMethodInfo))
+                .WithTypeParameterList(ConvertTypeParameters(extensionMethodInfo))
+                .WithConstraintClauses(ConvertConstraintClauses(extensionMethodInfo));
+
+            if (index == 0)
+                converted = converted.GetNodeWithoutLeadingBlankLines();
+
+            // Note: Formatting in this fashion is not desirable.  Ideally we would use
+            // https://github.com/dotnet/roslyn/issues/59228 to just attach an indentation annotation to the extension
+            // method to indent it instead.
+            return converted.WithAdditionalAnnotations(Formatter.Annotation);
+        }
     }
 
-    private static ExtensionDeclarationSyntax CreateExtension(
-        ICodeGenerationService codeGenerationService, ImmutableArray<ExtensionMethodInfo> group)
+    private static ParameterListSyntax ConvertParameters(ExtensionMethodInfo extensionMethodInfo)
     {
-        Contract.ThrowIfTrue(group.IsEmpty);
-
-        var codeGenerationInfo = new CSharpCodeGenerationContextInfo(
-            CodeGenerationContext.Default,
-            CSharpCodeGenerationOptions.Default,
-            (CSharpCodeGenerationService)codeGenerationService,
-            LanguageVersionExtensions.CSharpNext);
-
-        var firstExtensionInfo = group[0];
-        var typeParameters = firstExtensionInfo.MethodTypeParameters.CastArray<ITypeParameterSymbol>();
-
-        var extensionDeclaration = ExtensionDeclaration()
-            .WithTypeParameterList(TypeParameterGenerator.GenerateTypeParameterList(typeParameters, codeGenerationInfo))
-            .WithConstraintClauses(typeParameters.GenerateConstraintClauses());
-
-
+        throw new NotImplementedException();
     }
+
+    private static TypeParameterListSyntax? ConvertTypeParameters(ExtensionMethodInfo extensionMethodInfo)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static SyntaxList<TypeParameterConstraintClauseSyntax> ConvertConstraintClauses(ExtensionMethodInfo extensionMethodInfo)
+    {
+        throw new NotImplementedException();
+    }
+
 }
