@@ -33,8 +33,8 @@ internal class CustomMessageDocumentHandler()
 
     public async Task<CustomResponse> HandleRequestAsync(CustomMessageDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var project = context.Document?.Project
-            ?? throw new InvalidOperationException();
+        Contract.ThrowIfNull(context.Document);
+        var project = context.Document.Project;
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
 
         if (client is not null)
@@ -60,7 +60,8 @@ internal class CustomMessageDocumentHandler()
         }
         else
         {
-            var service = context.Workspace!.Services.GetRequiredService<ICustomMessageHandlerService>();
+            Contract.ThrowIfNull(context.Workspace);
+            var service = context.Workspace.Services.GetRequiredService<ICustomMessageHandlerService>();
             var response = await service.HandleCustomMessageAsync(
                     project.Solution,
                     request.AssemblyFolderPath,

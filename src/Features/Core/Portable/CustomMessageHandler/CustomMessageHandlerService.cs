@@ -8,7 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,8 +29,8 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
 
     private readonly ICustomMessageHandlerFactory _customMessageHandlerFactory;
 
-    private readonly System.Runtime.Loader.AssemblyLoadContext _defaultLoadContext
-        = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(typeof(CustomMessageHandlerService).Assembly)
+    private readonly AssemblyLoadContext _defaultLoadContext
+        = AssemblyLoadContext.GetLoadContext(typeof(CustomMessageHandlerService).Assembly)
         ?? throw new InvalidOperationException($"Cannot get assembly load context for {nameof(CustomMessageHandlerService)}.");
 
     private readonly object _lockObject = new();
@@ -53,64 +55,70 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         System.Diagnostics.Debugger.Launch();
 #endif
 
-        _ = assemblyFolderPath ?? throw new ArgumentNullException(nameof(assemblyFolderPath));
-        _ = assemblyFileName ?? throw new ArgumentNullException(nameof(assemblyFileName));
-        _ = typeFullName ?? throw new ArgumentNullException(nameof(typeFullName));
-        _ = jsonMessage ?? throw new ArgumentNullException(nameof(jsonMessage));
-
         var assemblyPath = Path.Combine(assemblyFolderPath, assemblyFileName);
 
         Document? document = null;
         if (documentId is not null)
         {
-            document = solution.GetDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+            document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(document);
         }
 
-        try
+        ICustomMessageHandlerWrapper? handler;
+        CustomMessageHandlerExtension extension;
+        lock (_lockObject)
         {
-            ICustomMessageHandlerWrapper? handler;
-            lock (_lockObject)
+            // Check if the assembly is already loaded.
+            if (!_extensions.TryGetValue(assemblyFolderPath, out extension))
             {
-                // Check if the assembly is already loaded.
-                if (!_extensions.TryGetValue(assemblyFolderPath, out var extension))
-                {
-                    var loadContext = new System.Runtime.Loader.AssemblyLoadContext(name: $"RemoteCustomMessageHandlerService assembly load context for {assemblyFolderPath}", isCollectible: true);
-                    loadContext.Resolving += ResolveExtensionAssembly;
+                var loadContext = new AssemblyLoadContext(name: $"RemoteCustomMessageHandlerService assembly load context for {assemblyFolderPath}", isCollectible: true);
+                loadContext.Resolving += ResolveExtensionAssembly;
 
-                    extension = new CustomMessageHandlerExtension(loadContext);
-                    _extensions[assemblyFolderPath] = extension;
-                }
+                extension = new CustomMessageHandlerExtension(loadContext);
+                _extensions[assemblyFolderPath] = extension;
+            }
+        }
 
-                if (!extension.Handlers.TryGetValue(typeFullName, out handler))
+        lock (extension.Handlers)
+        {
+            if (!extension.Handlers.TryGetValue(typeFullName, out handler))
+            {
+                try
                 {
                     var assembly = extension.AssemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
                     var type = assembly.GetType(typeFullName)
                         ?? throw new InvalidOperationException($"Cannot find type {typeFullName} in {assemblyPath}.");
 
                     handler = _customMessageHandlerFactory.Create(type);
+                    extension.Handlers[typeFullName] = handler;
+                }
+                catch (Exception e)
+                {
+                    Logger.Log(
+                        FunctionId.CustomMessageHandlerService_HandleCustomMessageAsync,
+                        $"Error creating custom handler {assemblyPath} {typeFullName}: {e}",
+                        LogLevel.Error);
+
+                    extension.Handlers[typeFullName] = null;
+                    throw;
                 }
             }
-
-            var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
-
-            var result = await handler.ExecuteAsync(message, document, solution, cancellationToken)
-                .ConfigureAwait(false);
-
-            var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
-
-            return responseJson;
-        }
-        catch (Exception e)
-        {
-            Logger.Log(
-                FunctionId.CustomMessageHandlerService_HandleCustomMessageAsync,
-                $"Custom handler {assemblyPath} {typeFullName} error: {e}",
-                LogLevel.Error);
-            throw;
+            else if (handler is null)
+            {
+                throw new InvalidOperationException($"A previous attempt to instantiate {typeFullName} in {assemblyPath} failed.");
+            }
         }
 
-        Assembly? ResolveExtensionAssembly(System.Runtime.Loader.AssemblyLoadContext context, AssemblyName assemblyName)
+        var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
+
+        var result = await handler.ExecuteAsync(message, document, solution, cancellationToken)
+            .ConfigureAwait(false);
+
+        var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
+
+        return responseJson;
+
+        Assembly? ResolveExtensionAssembly(AssemblyLoadContext context, AssemblyName assemblyName)
         {
             try
             {
@@ -135,26 +143,31 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         System.Diagnostics.Debugger.Launch();
 #endif
 
-        _ = assemblyFolderPath ?? throw new ArgumentNullException(nameof(assemblyFolderPath));
-
         try
         {
+            CustomMessageHandlerExtension extension = default;
             lock (_lockObject)
             {
-                if (_extensions.TryGetValue(assemblyFolderPath, out var extension))
+                if (_extensions.TryGetValue(assemblyFolderPath, out extension))
                 {
                     _extensions.Remove(assemblyFolderPath);
-                    extension.AssemblyLoadContext.Unload();
                 }
             }
+
+            extension.AssemblyLoadContext?.Unload();
         }
-        catch (Exception e)
+        catch (Exception e) when (LogAndPropagate(e))
+        {
+            // unreachable
+        }
+
+        bool LogAndPropagate(Exception e)
         {
             Logger.Log(
                 FunctionId.CustomMessageHandlerService_UnloadCustomMessageHandlerAsync,
                 $"Error unloading {assemblyFolderPath}: {e}",
                 LogLevel.Error);
-            return ValueTask.FromException(e);
+            return false;
         }
 
         return ValueTask.CompletedTask;
@@ -162,21 +175,25 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
 
     public void Dispose()
     {
+        List<CustomMessageHandlerExtension> extensions;
         lock (_lockObject)
         {
-            foreach (var extension in _extensions.Values)
-            {
-                extension.Handlers.Clear();
-                extension.AssemblyLoadContext.Unload();
-            }
-
+            extensions = _extensions.Values.ToList();
             _extensions.Clear();
+        }
+
+        foreach (var extension in extensions)
+        {
+            extension.Handlers.Clear();
+            extension.AssemblyLoadContext.Unload();
         }
     }
 
-    private record struct CustomMessageHandlerExtension(System.Runtime.Loader.AssemblyLoadContext AssemblyLoadContext)
+    private readonly struct CustomMessageHandlerExtension(AssemblyLoadContext assemblyLoadContext)
     {
-        public Dictionary<string, ICustomMessageHandlerWrapper> Handlers { get; } = new();
+        public AssemblyLoadContext AssemblyLoadContext { get; } = assemblyLoadContext;
+
+        public Dictionary<string, ICustomMessageHandlerWrapper?> Handlers { get; } = new();
     }
 }
 #endif
