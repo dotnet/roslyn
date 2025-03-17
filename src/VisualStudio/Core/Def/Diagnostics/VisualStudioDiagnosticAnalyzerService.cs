@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -308,8 +309,8 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
             // Add a message to VS status bar that we are running code analysis.
             var statusBar = await _statusbar.GetValueOrNullAsync().ConfigureAwait(true);
             var totalProjectCount = project != null ? (1 + otherProjectsForMultiTfmProject.Length) : solution.ProjectIds.Count;
-            using var statusBarUpdater = statusBar != null
-                ? new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, (uint)totalProjectCount)
+            var statusBarUpdater = statusBar != null
+                ? new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, totalProjectCount)
                 : null;
 
             await RunAnalysisAsync(statusBarUpdater, project?.Id).ConfigureAwait(false);
@@ -324,7 +325,7 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
             await TaskScheduler.Default;
             await _codeAnalysisService.RunAnalysisAsync(
                 solution, projectId,
-                statusBarUpdater != null ? statusBarUpdater.OnAfterProjectAnalyzed : _ => { },
+                statusBarUpdater != null ? _ => statusBarUpdater.OnAfterProjectAnalyzed() : _ => { },
                 CancellationToken.None).ConfigureAwait(false);
         }
     }
@@ -344,92 +345,69 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
         return null;
     }
 
-    private sealed class StatusBarUpdater : IDisposable
+    private sealed class StatusBarUpdater
     {
         private readonly IVsStatusbar _statusBar;
         private readonly IThreadingContext _threadingContext;
-        private readonly uint _totalProjectCount;
         private readonly string _statusMessageWhileRunning;
-        private readonly string _statusMesageOnCompleted;
-        private readonly string _statusMesageOnTerminated;
-        private readonly Timer _timer;
+        private readonly string _statusMessageOnCompleted;
 
-        private int _analyzedProjectCount;
-        private bool _disposed;
         private uint _statusBarCookie;
 
-        public StatusBarUpdater(IVsStatusbar statusBar, IThreadingContext threadingContext, string? projectOrSolutionName, uint totalProjectCount)
+        private readonly StreamingProgressTracker _progressTracker;
+
+        public StatusBarUpdater(
+            IVsStatusbar statusBar,
+            IThreadingContext threadingContext,
+            string? projectOrSolutionName,
+            int totalProjectCount)
         {
             threadingContext.ThrowIfNotOnUIThread();
             _statusBar = statusBar;
             _threadingContext = threadingContext;
-            _totalProjectCount = totalProjectCount;
 
             _statusMessageWhileRunning = projectOrSolutionName != null
                 ? string.Format(ServicesVSResources.Running_code_analysis_for_0, projectOrSolutionName)
                 : ServicesVSResources.Running_code_analysis_for_Solution;
-            _statusMesageOnCompleted = projectOrSolutionName != null
+            _statusMessageOnCompleted = projectOrSolutionName != null
                 ? string.Format(ServicesVSResources.Code_analysis_completed_for_0, projectOrSolutionName)
                 : ServicesVSResources.Code_analysis_completed_for_Solution;
-            _statusMesageOnTerminated = projectOrSolutionName != null
-                ? string.Format(ServicesVSResources.Code_analysis_terminated_before_completion_for_0, projectOrSolutionName)
-                : ServicesVSResources.Code_analysis_terminated_before_completion_for_Solution;
 
             // Set the initial status bar progress and text.
-            _statusBar.Progress(ref _statusBarCookie, fInProgress: 1, _statusMessageWhileRunning, nComplete: 0, nTotal: totalProjectCount);
+            _statusBar.Progress(ref _statusBarCookie, fInProgress: 1, _statusMessageWhileRunning, nComplete: 0, nTotal: (uint)totalProjectCount);
             _statusBar.SetText(_statusMessageWhileRunning);
 
-            // Create a timer to periodically update the status message while running analysis.
-            _timer = new Timer(new TimerCallback(UpdateStatusOnTimer), new AutoResetEvent(false),
-                dueTime: TimeSpan.FromSeconds(5), period: TimeSpan.FromSeconds(5));
-        }
-
-        internal void OnAfterProjectAnalyzed(Project _)
-        {
-            Interlocked.Increment(ref _analyzedProjectCount);
-            UpdateStatusCore();
-        }
-
-        // Add a message to VS status bar that we are running code analysis.
-        private void UpdateStatusOnTimer(object state)
-            => UpdateStatusCore();
-
-        public void Dispose()
-        {
-            _timer.Dispose();
-            _disposed = true;
-            UpdateStatusCore();
-        }
-
-        private void UpdateStatusCore()
-        {
-            _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+            _progressTracker = new StreamingProgressTracker(async (analyzedProjectCount, totalProjectCount, cancellationToken) =>
             {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                string message;
-                int fInProgress;
-                var analyzedProjectCount = (uint)_analyzedProjectCount;
-                if (analyzedProjectCount == _totalProjectCount)
-                {
-                    message = _statusMesageOnCompleted;
-                    fInProgress = 0;
-                }
-                else if (_disposed)
-                {
-                    message = _statusMesageOnTerminated;
-                    fInProgress = 0;
-                }
-                else
-                {
-                    message = _statusMessageWhileRunning;
-                    fInProgress = 1;
-                }
+                    string message;
+                    int fInProgress;
+                    if (analyzedProjectCount == totalProjectCount)
+                    {
+                        message = _statusMessageOnCompleted;
+                        fInProgress = 0;
+                    }
+                    else
+                    {
+                        message = _statusMessageWhileRunning;
+                        fInProgress = 1;
+                    }
 
-                // Update the status bar progress and text.
-                _statusBar.Progress(ref _statusBarCookie, fInProgress, message, analyzedProjectCount, _totalProjectCount);
-                _statusBar.SetText(message);
+                    // Update the status bar progress and text.
+                    _statusBar.Progress(ref _statusBarCookie, fInProgress, message, (uint)analyzedProjectCount, (uint)totalProjectCount);
+                    _statusBar.SetText(message);
+                });
             });
+
+            _ = _progressTracker.AddItemsAsync(totalProjectCount, CancellationToken.None).AsTask();
+        }
+
+        internal void OnAfterProjectAnalyzed()
+        {
+            _ = _progressTracker.ItemCompletedAsync(CancellationToken.None).AsTask();
         }
     }
 }
