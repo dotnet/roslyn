@@ -261,9 +261,16 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         return extensionMethod.TypeParameterList.WithParameters(SeparatedList<TypeParameterSyntax>(newTypeParameters));
     }
 
-    private static SyntaxList<TypeParameterConstraintClauseSyntax> ConvertConstraintClauses(ExtensionMethodInfo extensionMethodInfo)
+    private static SyntaxList<TypeParameterConstraintClauseSyntax> ConvertConstraintClauses(
+        ExtensionMethodInfo extensionMethodInfo,
+        HashSet<string> typeParametersToRemove)
     {
-        throw new NotImplementedException();
-    }
+        var extensionMethod = extensionMethodInfo.ExtensionMethod;
 
+        // If the extension method had no constraints, or we're not removing any type parameters, there's nothing to do.
+        if (extensionMethod.ConstraintClauses.Count == 0 || typeParametersToRemove.Count == 0)
+            return extensionMethod.ConstraintClauses;
+
+        return [.. extensionMethod.ConstraintClauses.Where(c => !typeParametersToRemove.Contains(c.Name.Identifier.ValueText))];
+    }
 }
