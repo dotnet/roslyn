@@ -1972,9 +1972,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var conversionsAsMethods = new Dictionary<MethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
             var conversionsAsConversions = new HashSet<SourceUserDefinedConversionSymbol>(ConversionSignatureComparer.Comparer);
 
-            Dictionary<MethodSymbol, OneOrMany<MethodSymbol>>? staticExtensionImplementationsWithoutReturn = null;
-            Dictionary<MethodSymbol, MethodSymbol>? staticExtensionImplementationsWithReturn = null;
-
             // SPEC: The signature of an operator must differ from the signatures of all other
             // SPEC: operators declared in the same class.
 
@@ -2116,89 +2113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             ReportMethodSignatureCollision(diagnostics, conversion, previousMethod);
                         }
-
-                        if (staticExtensionImplementationsWithoutReturn?.TryGetValue(conversion, out OneOrMany<MethodSymbol> previousStaticExtension) == true)
-                        {
-                            Debug.Assert(false); // At the moment this code path is not reachable because implementation methods always come after all user defined methods
-                            ReportMethodSignatureCollision(diagnostics, conversion, previousStaticExtension.First());
-                        }
-
                         // Do not add the conversion to the set of previously-seen methods; that set
                         // is only non-conversion methods.
                     }
-                    else if (symbol is SourceExtensionImplementationMethodSymbol { UnderlyingMethod.IsStatic: true } staticExtension)
-                    {
-                        staticExtensionImplementationsWithReturn ??= new Dictionary<MethodSymbol, MethodSymbol>(MemberSignatureComparer.DuplicateSourceWithReturnComparer);
-
-                        // Does this method collide with any previously-seen static extension implementation?
-                        if (staticExtensionImplementationsWithReturn.TryGetValue(staticExtension, out var fullMatch))
-                        {
-                            ReportMethodSignatureCollision(diagnostics, staticExtension, fullMatch);
-                        }
-                        else
-                        {
-                            staticExtensionImplementationsWithReturn.Add(staticExtension, staticExtension);
-
-                            staticExtensionImplementationsWithoutReturn ??= new Dictionary<MethodSymbol, OneOrMany<MethodSymbol>>(MemberSignatureComparer.DuplicateSourceComparer);
-
-                            if (staticExtensionImplementationsWithoutReturn.TryGetValue(staticExtension, out OneOrMany<MethodSymbol> previousStaticExtension))
-                            {
-                                NamedTypeSymbol extension = staticExtension.UnderlyingMethod.ContainingType;
-                                var extensionParameter = extension.ExtensionParameter;
-                                bool foundExtendedTypeConflict = false;
-
-                                if (extensionParameter is not null)
-                                {
-                                    foreach (SourceExtensionImplementationMethodSymbol partialMatch in previousStaticExtension)
-                                    {
-                                        NamedTypeSymbol partialMatchExtension = partialMatch.UnderlyingMethod.ContainingType;
-                                        if (extension.Arity != partialMatchExtension.Arity ||
-                                            partialMatchExtension.ExtensionParameter is not { } partialMatchExtensionParameter)
-                                        {
-                                            continue;
-                                        }
-
-                                        if (extensionParameter.Type.Equals(
-                                                extension.Arity == 0 ?
-                                                    partialMatchExtensionParameter.Type :
-                                                    (new TypeMap(partialMatchExtension.TypeParameters, extension.TypeParameters)).SubstituteType(partialMatchExtensionParameter.Type).Type,
-                                                TypeCompareKind.AllIgnoreOptions))
-                                        {
-                                            foundExtendedTypeConflict = true;
-                                            ReportMethodSignatureCollision(diagnostics, staticExtension, partialMatch);
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (!foundExtendedTypeConflict)
-                                {
-                                    staticExtensionImplementationsWithoutReturn[staticExtension] = previousStaticExtension.Add(staticExtension);
-                                }
-                            }
-                            else
-                            {
-                                staticExtensionImplementationsWithoutReturn.Add(staticExtension, OneOrMany.Create<MethodSymbol>(staticExtension));
-                            }
-                        }
-
-                        // Does this static extension implementation collide *as a method* with any previously-seen
-                        // non-static-extension-implementation method?
-
-                        if (methodsBySignature.TryGetValue(staticExtension, out var previousMethod))
-                        {
-                            ReportMethodSignatureCollision(diagnostics, staticExtension, previousMethod);
-                        }
-
-                        if (conversionsAsMethods.TryGetValue(staticExtension, out var previousConversion))
-                        {
-                            ReportMethodSignatureCollision(diagnostics, staticExtension, previousConversion);
-                        }
-                    }
                     else if (symbol is MethodSymbol method && method is (SourceMemberMethodSymbol or SourceExtensionImplementationMethodSymbol))
                     {
-                        Debug.Assert(method is not SourceExtensionImplementationMethodSymbol { UnderlyingMethod.IsStatic: true });
-
                         // Does this method collide *as a method* with any previously-seen
                         // conversion?
 
@@ -2209,15 +2128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // Do not add the method to the set of previously-seen conversions.
 
                         // Does this method collide *as a method* with any previously-seen
-                        // static extension implementation method?
-
-                        if (staticExtensionImplementationsWithoutReturn?.TryGetValue(method, out OneOrMany<MethodSymbol> previousStaticExtension) == true)
-                        {
-                            ReportMethodSignatureCollision(diagnostics, method, previousStaticExtension.First());
-                        }
-
-                        // Does this method collide *as a method* with any previously-seen
-                        // non-conversion or non-static-extension-implementation method?
+                        // non-conversion method?
 
                         if (methodsBySignature.TryGetValue(method, out var previousMethod))
                         {
