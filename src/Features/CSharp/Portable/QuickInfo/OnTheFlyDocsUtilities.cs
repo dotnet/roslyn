@@ -15,9 +15,24 @@ internal static class OnTheFlyDocsUtilities
     {
         var parameters = symbol.GetParameters();
         var typeArguments = symbol.GetTypeArguments();
+
         var parameterStrings = parameters.Select(parameter =>
         {
             var typeSymbol = parameter.Type;
+            return GetOnTheFlyDocsRelevantFileInfo(typeSymbol);
+
+        }).ToImmutableArray();
+
+        var typeArgumentStrings = typeArguments.Select(typeArgument =>
+        {
+            return GetOnTheFlyDocsRelevantFileInfo(typeArgument);
+
+        }).ToImmutableArray();
+
+        return parameterStrings.AddRange(typeArgumentStrings);
+
+        OnTheFlyDocsRelevantFileInfo? GetOnTheFlyDocsRelevantFileInfo(ITypeSymbol typeSymbol)
+        {
             var typeSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
             if (typeSyntaxReference is not null)
             {
@@ -30,26 +45,6 @@ internal static class OnTheFlyDocsUtilities
             }
 
             return null;
-
-        }).ToImmutableArray();
-
-        var typeArgumentStrings = typeArguments.Select(typeArgument =>
-        {
-            var typeSyntaxReference = typeArgument.DeclaringSyntaxReferences.FirstOrDefault();
-            if (typeSyntaxReference is not null)
-            {
-                var typeSpan = typeSyntaxReference.Span;
-                var syntaxReferenceDocument = solution.GetDocument(typeSyntaxReference.SyntaxTree);
-                if (syntaxReferenceDocument is not null)
-                {
-                    return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, typeSpan);
-                }
-            }
-
-            return null;
-
-        }).ToImmutableArray();
-
-        return parameterStrings.AddRange(typeArgumentStrings);
+        }
     }
 }

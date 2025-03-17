@@ -6,10 +6,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.QuickInfo;
 
-internal sealed class OnTheFlyDocsRelevantFileInfo(Document document, TextSpan textSpan)
+internal sealed record OnTheFlyDocsRelevantFileInfo
 {
-    public Document Document { get; } = document;
-    public TextSpan TextSpan { get; } = textSpan;
+    public Document Document { get; }
+    public TextSpan TextSpan { get; }
 
+    public OnTheFlyDocsRelevantFileInfo(Document document, TextSpan textSpan)
+    {
+        Document = document;
+        TextSpan = textSpan;
+    }
 }
 

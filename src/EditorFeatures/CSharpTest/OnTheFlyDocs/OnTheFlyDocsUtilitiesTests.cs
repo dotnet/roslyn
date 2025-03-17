@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.QuickInfo;
@@ -37,14 +35,14 @@ public sealed class OnTheFlyDocsUtilitiesTests
         var syntaxTree = await document.GetSyntaxTreeAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
-        var methodDeclaration = syntaxTree.GetRoot()
+        var methodDeclaration = syntaxTree!.GetRoot()
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
             .First();
 
-        var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration);
+        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
 
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol);
+        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
         Assert.True(result.All(item => item == null));
     }
 
@@ -73,14 +71,14 @@ public sealed class OnTheFlyDocsUtilitiesTests
         var syntaxTree = await document.GetSyntaxTreeAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
-        var methodDeclaration = syntaxTree.GetRoot()
+        var methodDeclaration = syntaxTree!.GetRoot()
             .DescendantNodes()
             .OfType<MethodDeclarationSyntax>()
             .First();
 
-        var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration);
+        var methodSymbol = semanticModel!.GetDeclaredSymbol(methodDeclaration);
 
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol);
+        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
         Assert.NotNull(result.First());
         Assert.Null(result.Last());
     }
@@ -119,14 +117,14 @@ public sealed class OnTheFlyDocsUtilitiesTests
         var syntaxTree = await document.GetSyntaxTreeAsync();
         var semanticModel = await document.GetSemanticModelAsync();
 
-        var methodInvocation = syntaxTree.GetRoot()
+        var methodInvocation = syntaxTree!.GetRoot()
             .DescendantNodes()
             .OfType<InvocationExpressionSyntax>()
             .First();
 
-        var methodSymbol = semanticModel.GetSymbolInfo(methodInvocation).Symbol;
+        var methodSymbol = semanticModel!.GetSymbolInfo(methodInvocation).Symbol;
 
-        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol);
+        var result = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, methodSymbol!);
         Assert.True(result.All(item => item is not null));
     }
 }
