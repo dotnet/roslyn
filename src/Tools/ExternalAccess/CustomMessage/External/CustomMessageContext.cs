@@ -11,7 +11,7 @@ public sealed class CustomMessageContext
     internal CustomMessageContext(Document? document, Solution solution)
     {
         Document = document;
-        Solution = solution ?? throw new ArgumentNullException(nameof(solution));
+        Solution = solution;
     }
 
     public Document? Document { get; }
