@@ -183,13 +183,6 @@ internal sealed class RoslynPackage : AbstractPackage
                 serviceBrokerContainer.Proffer(
                     ManagedHotReloadLanguageServiceDescriptor.Descriptor,
                     (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
-
-                packageRegistrationTasks.AddTask(
-                    isMainThreadTask: false,
-                    task: async (progress, packageRegistrationTasks, cancellationToken) =>
-                    {
-                        await miscellaneousFilesWorkspace.InitializeAsync().ConfigureAwait(false);
-                    });
             });
 
         return Task.CompletedTask;

@@ -58,32 +58,30 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             RegisterEditorFactory(editorFactory);
         }
 
-        RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
-        {
-            // Ensure we're on the BG when creating the language service.
-            await TaskScheduler.Default;
-
-            // Create the language service, tell it to set itself up, then store it in a field
-            // so we can notify it that it's time to clean up.
-            _languageService = CreateLanguageService();
-            await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
-
-            return _languageService.ComAggregate!;
-        });
-
         var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
         // awaiting an IVsTask guarantees to return on the captured context
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
 
-        RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+        packageRegistrationTasks.AddTask(
+             isMainThreadTask: false,
+             task: async (IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken) =>
+             {
+                 RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
+                 {
+                     // Ensure we're on the BG when creating the language service.
+                     await TaskScheduler.Default;
 
-        if (!_shell.IsInCommandLineMode())
-        {
-            // not every derived package support object browser and for those languages
-            // this is a no op
-            RegisterObjectBrowserLibraryManager();
-        }
+                     // Create the language service, tell it to set itself up, then store it in a field
+                     // so we can notify it that it's time to clean up.
+                     _languageService = CreateLanguageService();
+                     await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
+
+                     return _languageService.ComAggregate!;
+                 });
+
+                 RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+             });
     }
 
     protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
@@ -91,6 +89,13 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
 
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        if (_shell != null && !_shell.IsInCommandLineMode())
+        {
+            // not every derived package support object browser and for those languages
+            // this is a no op
+            RegisterObjectBrowserLibraryManager();
+        }
 
         LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
     }

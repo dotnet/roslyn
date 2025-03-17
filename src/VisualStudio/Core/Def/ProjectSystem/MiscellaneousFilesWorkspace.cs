@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -17,11 +18,9 @@ using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -34,7 +33,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     private readonly OpenTextBufferProvider _openTextBufferProvider;
     private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
 
-    private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = [];
+    private readonly ConcurrentDictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = [];
 
     /// <summary>
     /// <see cref="WorkspaceRegistration"/> instances for all open buffers being tracked by by this object
@@ -49,8 +48,6 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     private readonly Dictionary<string, (ProjectId projectId, SourceTextContainer textContainer)> _monikersToProjectIdAndContainer = [];
 
     private readonly ImmutableArray<MetadataReference> _metadataReferences;
-
-    private IVsTextManager? _textManager;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -70,11 +67,6 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         _metadataReferences = [.. CreateMetadataReferences()];
 
         _openTextBufferProvider.AddListener(this);
-    }
-
-    public async Task InitializeAsync()
-    {
-        _textManager = await _textManagerService.GetValueAsync().ConfigureAwait(false);
     }
 
     void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? _) => TrackOpenedDocument(moniker, textBuffer);
@@ -115,9 +107,12 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
 
     private LanguageInformation? TryGetLanguageInformation(string filename)
     {
+        _threadingContext.ThrowIfNotOnUIThread();
+
         LanguageInformation? languageInformation = null;
 
-        if (_textManager != null && ErrorHandler.Succeeded(_textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
+        var textManager = _threadingContext.JoinableTaskFactory.Run(() => _textManagerService.GetValueOrNullAsync(CancellationToken.None));
+        if (textManager != null && ErrorHandler.Succeeded(textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
         {
             _languageInformationByLanguageGuid.TryGetValue(fileLanguageGuid, out languageInformation);
         }
