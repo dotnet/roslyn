@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToExtension;
@@ -50,13 +49,11 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         {
             if (IsExtensionMethod(methodDeclaration, out var classDeclaration))
             {
-                await ComputeRefactoringsAsync(
+                ComputeRefactorings(
                     context, classDeclaration, [methodDeclaration],
                     CSharpFeaturesResources.Convert_extension_method_to_extension,
-                    nameof(CSharpFeaturesResources.Convert_extension_method_to_extension)).ConfigureAwait(false);
+                    nameof(CSharpFeaturesResources.Convert_extension_method_to_extension));
             }
-
-            return;
         }
         else
         {
@@ -64,10 +61,10 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             var classDeclaration = await context.TryGetRelevantNodeAsync<ClassDeclarationSyntax>().ConfigureAwait(false);
             if (classDeclaration != null)
             {
-                await ComputeRefactoringsAsync(
+                ComputeRefactorings(
                     context, classDeclaration, GetExtensionMethods(classDeclaration),
                     CSharpFeaturesResources.Convert_all_extension_methods_to_extension,
-                    nameof(CSharpFeaturesResources.Convert_all_extension_methods_to_extension)).ConfigureAwait(false);
+                    nameof(CSharpFeaturesResources.Convert_all_extension_methods_to_extension));
             }
         }
     }
@@ -92,7 +89,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             ? [.. classDeclaration.Members.OfType<MethodDeclarationSyntax>().Where(m => IsExtensionMethod(m, out _))]
             : [];
 
-    private async Task ComputeRefactoringsAsync(
+    private static void ComputeRefactorings(
         CodeRefactoringContext context,
         ClassDeclarationSyntax classDeclaration,
         ImmutableArray<MethodDeclarationSyntax> extensionMethods,
@@ -108,7 +105,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             equivalenceKey));
     }
 
-    private async Task<Document> ConvertToExtensionAsync(
+    private static async Task<Document> ConvertToExtensionAsync(
         Document document,
         ClassDeclarationSyntax classDeclaration,
         ImmutableArray<MethodDeclarationSyntax> extensionMethods,
@@ -120,8 +117,8 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        var newDeclaration = await ConvertToExtensionAsync(
-            codeGenerationService, semanticModel, classDeclaration, extensionMethods, cancellationToken).ConfigureAwait(false);
+        var newDeclaration = ConvertToExtension(
+            codeGenerationService, semanticModel, classDeclaration, extensionMethods, cancellationToken);
 
         var newRoot = root.ReplaceNode(classDeclaration, newDeclaration);
         return document.WithSyntaxRoot(newRoot);
@@ -133,7 +130,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
     /// will just be one extension method.  When called on a class declaration, this will be all the extension methods
     /// in that class.
     /// </summary>
-    private static async Task<ClassDeclarationSyntax> ConvertToExtensionAsync(
+    private static ClassDeclarationSyntax ConvertToExtension(
         ICodeGenerationService codeGenerationService,
         SemanticModel semanticModel,
         ClassDeclarationSyntax classDeclaration,
