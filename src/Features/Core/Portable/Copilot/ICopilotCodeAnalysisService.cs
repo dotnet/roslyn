@@ -65,8 +65,17 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </summary>
     Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Retrieves the prompt 
+    /// </summary>
+    /// <param name="onTheFlyDocsInfo">Type containing code and other context about the symbol being examined.</param>
+    /// <returns></returns>
     Task<string> GetOnTheFlyDocsPromptAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Retrieves the response from Copilot summarizing what a symbol is being used for and whether or not the quota has exceeded.
+    /// </summary>
+    /// <param name="prompt">The input text used to generate the response.</param>
     Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken);
 
     /// <summary>

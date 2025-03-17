@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
@@ -207,50 +206,8 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return null;
         }).ToImmutableArray();
 
-        var additionalContext = GetAdditionalOnTheFlyDocsContext(solution, symbol);
+        var additionalContext = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, symbol);
 
         return new OnTheFlyDocsInfo(symbol.ToDisplayString(), declarationCode, symbol.Language, hasContentExcluded, additionalContext);
-    }
-
-    private static ImmutableArray<OnTheFlyDocsRelevantFileInfo?> GetAdditionalOnTheFlyDocsContext(Solution solution, ISymbol symbol)
-    {
-        var parameters = symbol.GetParameters();
-        var typeArguments = symbol.GetTypeArguments();
-        var parameterStrings = parameters.Select(parameter =>
-        {
-            var typeSymbol = parameter.Type;
-            var typeSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
-            if (typeSyntaxReference is not null)
-            {
-                var typeSpan = typeSyntaxReference.Span;
-                var syntaxReferenceDocument = solution.GetDocument(typeSyntaxReference.SyntaxTree);
-                if (syntaxReferenceDocument is not null)
-                {
-                    return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, typeSpan);
-                }
-            }
-
-            return null;
-
-        }).ToImmutableArray();
-
-        var typeArgumentStrings = typeArguments.Select(typeArgument =>
-        {
-            var typeSyntaxReference = typeArgument.DeclaringSyntaxReferences.FirstOrDefault();
-            if (typeSyntaxReference is not null)
-            {
-                var typeSpan = typeSyntaxReference.Span;
-                var syntaxReferenceDocument = solution.GetDocument(typeSyntaxReference.SyntaxTree);
-                if (syntaxReferenceDocument is not null)
-                {
-                    return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, typeSpan);
-                }
-            }
-
-            return null;
-
-        }).ToImmutableArray();
-
-        return parameterStrings.AddRange(typeArgumentStrings);
     }
 }
