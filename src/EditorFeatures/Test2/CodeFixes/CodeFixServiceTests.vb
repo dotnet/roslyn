@@ -375,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Public Function GetOnTheFlyDocsResponseAsync(prompt As String, cancellationToken As CancellationToken) As Task(Of (responseString As String, isQuotaExceeded As Boolean)) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsResponseAsync
                 Return Task.FromResult((String.Empty, False))
             End Function
-            
+
             Public Function IsImplementNotImplementedExceptionsAvailableAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsImplementNotImplementedExceptionsAvailableAsync
                 Return Task.FromResult(False)
             End Function
