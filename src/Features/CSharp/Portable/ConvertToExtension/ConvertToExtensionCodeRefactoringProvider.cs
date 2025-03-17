@@ -3,32 +3,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
-using System.Collections;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToExtension;
-
-using FixAllScope = CodeAnalysis.CodeFixes.FixAllScope;
-
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToExtension), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -126,6 +118,12 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         return document.WithSyntaxRoot(newRoot);
     }
 
+    /// <summary>
+    /// Core function that the normal fix and the fix-all-provider call into to fixup one class declaration and the set
+    /// of desired extension methods within that class declaration.  When called on an extension method itself, this
+    /// will just be one extension method.  When called on a class declaration, this will be all the extension methods
+    /// in that class.
+    /// </summary>
     private static async Task<ClassDeclarationSyntax> ConvertToExtensionAsync(
         SemanticModel semanticModel,
         ClassDeclarationSyntax classDeclaration,
@@ -165,56 +163,5 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         IGrouping<ExtensionMethodInfo, ExtensionMethodInfo> group)
     {
         throw new NotImplementedException();
-    }
-
-    private sealed class ConvertToExtensionFixAllProvider()
-        : DocumentBasedFixAllProvider(
-            [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType])
-    {
-        protected override async Task<Document?> FixAllAsync(
-            FixAllContext fixAllContext,
-            Document document,
-            Optional<ImmutableArray<TextSpan>> fixAllSpans)
-        {
-            var cancellationToken = fixAllContext.CancellationToken;
-
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
-            foreach (var declaration in GetTopLevelClassDeclarations(root, fixAllSpans))
-            {
-                var extensionMethods = GetExtensionMethods(declaration);
-                if (extensionMethods.IsEmpty)
-                    continue;
-
-                var newDeclaration = await ConvertToExtensionAsync(
-                    semanticModel, declaration, extensionMethods, cancellationToken).ConfigureAwait(false);
-                editor.ReplaceNode(declaration, newDeclaration);
-            }
-
-            var newRoot = editor.GetChangedRoot();
-            return document.WithSyntaxRoot(newRoot);
-        }
-
-        private static IEnumerable<ClassDeclarationSyntax> GetTopLevelClassDeclarations(
-            SyntaxNode root, Optional<ImmutableArray<TextSpan>> fixAllSpans)
-        {
-            if (!fixAllSpans.HasValue)
-            {
-                // Processing the whole file.  Return all top level classes in the file.
-                return root
-                    .DescendantNodes(descendIntoChildren: n => n is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax)
-                    .OfType<ClassDeclarationSyntax>();
-            }
-            else
-            {
-                // User selected 'fix all in containing type'.  Core code refactoring engine will return the spans
-                // of the containing class
-                return fixAllSpans.Value
-                    .Select(span => root.FindNode(span) as ClassDeclarationSyntax)
-                    .WhereNotNull();
-            }
-        }
     }
 }
