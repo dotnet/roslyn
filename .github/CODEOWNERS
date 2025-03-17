@@ -2,7 +2,7 @@
 
 # More information: https://github.com/blog/2392-introducing-code-owners
 
-\*.yml @dotnet/roslyn-infrastructure
+*.yml @dotnet/roslyn-infrastructure
 .github/ @dotnet/roslyn-infrastructure
 
 docs/compilers @dotnet/roslyn-compiler
@@ -10,7 +10,7 @@ docs/ide @dotnet/roslyn-ide
 
 eng/ @dotnet/roslyn-infrastructure
 /eng/DotNetBuild.props @dotnet/product-construction
-/eng/SourceBuild\* @dotnet/source-build
+/eng/SourceBuild* @dotnet/source-build
 scripts/ @dotnet/roslyn-infrastructure
 
 src/Analyzers/ @dotnet/roslyn-ide
