@@ -52,6 +52,9 @@
 
     <!-- This is the version of Microsoft.CodeAnalysis used by RoslynAnalyzers for tooling executed
          in repo source-build, as well as unit tests. -->
+    <UsagePattern IdentityGlob="Microsoft.CodeAnalysis*/*3.11.0*" />
+    <UsagePattern IdentityGlob="Microsoft.CodeAnalysis*/*4.0.1*" />
+    <UsagePattern IdentityGlob="Microsoft.CodeAnalysis*/*4.1.0*" />
     <UsagePattern IdentityGlob="Microsoft.CodeAnalysis*/*4.6.0-1.final*" />
     <!-- Dependency of Microsoft.CodeAnalysis.Common 4.6.0-1.final -->
     <UsagePattern IdentityGlob="Microsoft.CodeAnalysis.Analyzers/*3.3.4*" />
