@@ -65,7 +65,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
         packageRegistrationTasks.AddTask(
              isMainThreadTask: false,
-             task: async (IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken) =>
+             task: (IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken) =>
              {
                  RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
                  {
@@ -81,6 +81,8 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
                  });
 
                  RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
+
+                 return Task.CompletedTask;
              });
     }
 
