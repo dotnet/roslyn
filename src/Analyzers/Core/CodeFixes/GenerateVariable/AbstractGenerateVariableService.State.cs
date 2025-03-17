@@ -462,7 +462,9 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             // Substitute 'object' for all captured method type parameters.  Note: we may need to
             // do this for things like anonymous types, as well as captured type parameters that
             // aren't in scope in the destination type.
-            var capturedMethodTypeParameters = inferredType.GetReferencedMethodTypeParameters();
+            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var capturedMethodTypeParameters);
+            inferredType.AddReferencedMethodTypeParameters(capturedMethodTypeParameters);
+
             var mapping = capturedMethodTypeParameters.ToDictionary(tp => tp,
                 tp => compilation.ObjectType);
 
