@@ -51,7 +51,7 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         if (externalCSharpOnTheFlyDocsService is null)
             FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpOnTheFlyDocsService)), ErrorSeverity.Diagnostic);
 
-        if (externalCSharpCopilotGenerateDocumentationService is null)
+        if (externalCSharpCopilotGenerateImplementationService is null)
             FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpCopilotGenerateImplementationService)), ErrorSeverity.Diagnostic);
 
         AnalysisService = externalCopilotService;
