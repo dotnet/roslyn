@@ -10,9 +10,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,6 +23,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToExtension;
+
+using static SyntaxFactory;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToExtension), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -108,11 +113,12 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
     {
         Contract.ThrowIfTrue(extensionMethods.IsEmpty);
 
+        var codeGenerationService = document.GetRequiredLanguageService<ICodeGenerationService>();
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var newDeclaration = await ConvertToExtensionAsync(
-            semanticModel, classDeclaration, extensionMethods, cancellationToken).ConfigureAwait(false);
+            codeGenerationService, semanticModel, classDeclaration, extensionMethods, cancellationToken).ConfigureAwait(false);
 
         var newRoot = root.ReplaceNode(classDeclaration, newDeclaration);
         return document.WithSyntaxRoot(newRoot);
@@ -125,6 +131,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
     /// in that class.
     /// </summary>
     private static async Task<ClassDeclarationSyntax> ConvertToExtensionAsync(
+        ICodeGenerationService codeGenerationService,
         SemanticModel semanticModel,
         ClassDeclarationSyntax classDeclaration,
         ImmutableArray<MethodDeclarationSyntax> extensionMethods,
@@ -149,7 +156,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         var classDeclarationEditor = new SyntaxEditor(classDeclaration, CSharpSyntaxGenerator.Instance);
         foreach (var group in groups.OrderBy(g => g.Min(info => info.ExtensionMethod.SpanStart)))
         {
-            var newExtension = CreateExtension(group);
+            var newExtension = CreateExtension(codeGenerationService, [.. group]);
             classDeclarationEditor.ReplaceNode(group.First().ExtensionMethod, newExtension);
 
             foreach (var extensionMethod in group.Skip(1))
@@ -160,8 +167,23 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
     }
 
     private static ExtensionDeclarationSyntax CreateExtension(
-        IGrouping<ExtensionMethodInfo, ExtensionMethodInfo> group)
+        ICodeGenerationService codeGenerationService, ImmutableArray<ExtensionMethodInfo> group)
     {
-        throw new NotImplementedException();
+        Contract.ThrowIfTrue(group.IsEmpty);
+
+        var codeGenerationInfo = new CSharpCodeGenerationContextInfo(
+            CodeGenerationContext.Default,
+            CSharpCodeGenerationOptions.Default,
+            (CSharpCodeGenerationService)codeGenerationService,
+            LanguageVersionExtensions.CSharpNext);
+
+        var firstExtensionInfo = group[0];
+        var typeParameters = firstExtensionInfo.MethodTypeParameters.CastArray<ITypeParameterSymbol>();
+
+        var extensionDeclaration = ExtensionDeclaration()
+            .WithTypeParameterList(TypeParameterGenerator.GenerateTypeParameterList(typeParameters, codeGenerationInfo))
+            .WithConstraintClauses(typeParameters.GenerateConstraintClauses());
+
+
     }
 }

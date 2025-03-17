@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -30,6 +32,8 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
+            var codeGenerationService = (CSharpCodeGenerationService)document.GetRequiredLanguageService<ICodeGenerationService>();
+
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -44,7 +48,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider
                 // For each class declaration we hit that has extension methods in it, convert all the extension methods
                 // to extensions and replace the old declaration with the new one.
                 var newDeclaration = await ConvertToExtensionAsync(
-                    semanticModel, declaration, extensionMethods, cancellationToken).ConfigureAwait(false);
+                    codeGenerationService, semanticModel, declaration, extensionMethods, cancellationToken).ConfigureAwait(false);
                 editor.ReplaceNode(declaration, newDeclaration);
             }
 
