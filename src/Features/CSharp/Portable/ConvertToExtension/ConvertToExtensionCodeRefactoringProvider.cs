@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -21,6 +22,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToExtension;
@@ -189,7 +191,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
                 .WithTypeParameterList(TypeParameterGenerator.GenerateTypeParameterList(typeParameters, codeGenerationInfo))
                 .WithConstraintClauses(typeParameters.GenerateConstraintClauses())
                 .WithParameterList(ParameterGenerator.GenerateParameterList([firstParameter], isExplicit: false, codeGenerationInfo))
-                .WithMembers([.. group.Select((info, index) => ConvertExtensionMethod(info, index))]);
+                .WithMembers([.. group.Select(ConvertExtensionMethod)]);
 
             // Move the blank lines above the first extension method inside the extension to the extension itself.
             firstExtensionInfo.ExtensionMethod.GetNodeWithoutLeadingBlankLines(out var leadingBlankLines);
@@ -199,10 +201,12 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         MethodDeclarationSyntax ConvertExtensionMethod(
             ExtensionMethodInfo extensionMethodInfo, int index)
         {
+            using var _ = PooledHashSet<string>.GetInstance(out var typeParametersToRemove);
+
             var converted = extensionMethodInfo.ExtensionMethod
                 .WithParameterList(ConvertParameters(extensionMethodInfo))
-                .WithTypeParameterList(ConvertTypeParameters(extensionMethodInfo))
-                .WithConstraintClauses(ConvertConstraintClauses(extensionMethodInfo));
+                .WithTypeParameterList(ConvertTypeParameters(extensionMethodInfo, typeParametersToRemove))
+                .WithConstraintClauses(ConvertConstraintClauses(extensionMethodInfo, typeParametersToRemove));
 
             if (index == 0)
                 converted = converted.GetNodeWithoutLeadingBlankLines();
@@ -216,12 +220,45 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
 
     private static ParameterListSyntax ConvertParameters(ExtensionMethodInfo extensionMethodInfo)
     {
-        throw new NotImplementedException();
+        var extensionMethod = extensionMethodInfo.ExtensionMethod;
+
+        // skip the first parameter, which is the 'this' parameter, and the comma that follows it.
+        return extensionMethod.ParameterList.WithParameters(
+            SeparatedList<ParameterSyntax>(extensionMethodInfo.ExtensionMethod.ParameterList.Parameters.GetWithSeparators().Skip(2)));
     }
 
-    private static TypeParameterListSyntax? ConvertTypeParameters(ExtensionMethodInfo extensionMethodInfo)
+    private static TypeParameterListSyntax? ConvertTypeParameters(
+        ExtensionMethodInfo extensionMethodInfo,
+        HashSet<string> typeParametersToRemove)
     {
-        throw new NotImplementedException();
+        var extensionMethod = extensionMethodInfo.ExtensionMethod;
+
+        // If the extension method wasn't generic, or we're not removing any type parameters, there's nothing to do.
+        if (extensionMethod.TypeParameterList is null || typeParametersToRemove.Count == 0)
+            return extensionMethod.TypeParameterList;
+
+        // If we're removing all the type parameters, remove the type parameter list entirely.
+        if (typeParametersToRemove.Count == extensionMethod.TypeParameterList.Parameters.Count)
+            return null;
+
+        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var newTypeParameters);
+        var nodesAndTokens = extensionMethod.TypeParameterList.Parameters.GetWithSeparators();
+
+        for (var i = 0; i < nodesAndTokens.Count; i += 2)
+        {
+            var typeParameter = (TypeParameterSyntax)nodesAndTokens[i]!;
+            if (typeParametersToRemove.Contains(typeParameter.Identifier.ValueText))
+                continue;
+
+            // Add preceding comma if needed.  Note: this will always succeed as we can only have a prior
+            // newTypeParameter if we hit a type parameter before us that we want to keep.
+            if (newTypeParameters.Count > 0)
+                newTypeParameters.Add(nodesAndTokens[i - 1]);
+
+            newTypeParameters.Add(typeParameter);
+        }
+
+        return extensionMethod.TypeParameterList.WithParameters(SeparatedList<TypeParameterSyntax>(newTypeParameters));
     }
 
     private static SyntaxList<TypeParameterConstraintClauseSyntax> ConvertConstraintClauses(ExtensionMethodInfo extensionMethodInfo)
