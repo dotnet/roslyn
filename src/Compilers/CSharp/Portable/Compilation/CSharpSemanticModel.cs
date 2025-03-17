@@ -1399,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// scope around position is used.</param>
         /// <param name="name">The name of the symbol to find. If null is specified then symbols
         /// with any names are returned.</param>
-        /// <param name="includeReducedExtensionMethods">Consider extension members. Classic extension methods will be returned in reduced form.</param>
+        /// <param name="includeExtensions">Consider extension members. Classic extension methods will be returned in reduced form.</param>
         /// <returns>A list of symbols that were found. If no symbols were found, an empty list is returned.</returns>
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible. Even if "container" is
@@ -1408,15 +1408,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// Labels are not considered (see <see cref="LookupLabels"/>).
         /// 
-        /// Non-reduced extension methods are considered regardless of the value of <paramref name="includeReducedExtensionMethods"/>.
+        /// Non-reduced extension methods are considered regardless of the value of <paramref name="includeExtensions"/>.
         /// </remarks>
         public ImmutableArray<ISymbol> LookupSymbols(
             int position,
             NamespaceOrTypeSymbol container = null,
             string name = null,
-            bool includeReducedExtensionMethods = false)
+            bool includeExtensions = false)
         {
-            var options = includeReducedExtensionMethods ? LookupOptions.IncludeExtensionMembers : LookupOptions.Default;
+            var options = includeExtensions ? LookupOptions.IncludeExtensionMembers : LookupOptions.Default;
             return LookupSymbolsInternal(position, container, name, options, useBaseReferenceAccessibility: false);
         }
 
@@ -4665,6 +4665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return filteredMembers.ToImmutableAndFree();
         }
 
+#nullable enable
         // Reduce classic extension methods to their reduced form, and remove:
         //   a) Extension methods are aren't applicable to receiverType
         //   including constraint checking.
@@ -4685,11 +4686,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (member is MethodSymbol method)
             {
                 MethodSymbol constructedMethod;
-                if (!typeArguments.IsDefaultOrEmpty && method.GetMemberTotalArity() == typeArguments.Length)
+                if (!typeArguments.IsDefaultOrEmpty && method.GetMemberArityIncludingExtension() == typeArguments.Length)
                 {
-                    constructedMethod = method.ConstructWithAllTypeParameters(typeArguments);
+                    constructedMethod = method.ConstructIncludingExtension(typeArguments);
                     Debug.Assert((object)constructedMethod != null);
-                    // PROTOTYPE we should check constraints
+
+                    if (!checkConstraintsIncludingExtension(method, typeArguments, compilation, method.ContainingAssembly.CorLibrary.TypeConversions))
+                    {
+                        return false;
+                    }
                 }
                 else
                 {
@@ -4705,7 +4710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         Debug.Assert(method.GetIsNewExtensionMember());
-                        constructedMethod = (MethodSymbol)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, constructedMethod, receiverType);
+                        constructedMethod = (MethodSymbol)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, constructedMethod, receiverType)!;
                     }
 
                     if ((object)constructedMethod == null)
@@ -4728,7 +4733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(receiverType is not null);
                 Debug.Assert(property.GetIsNewExtensionMember());
-                var constructedProperty = (PropertySymbol)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, property, receiverType);
+                var constructedProperty = (PropertySymbol)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, property, receiverType)!;
 
                 if (constructedProperty is null)
                 {
@@ -4741,6 +4746,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             throw ExceptionUtilities.UnexpectedValue(member.Kind);
+
+            static bool checkConstraintsIncludingExtension(MethodSymbol symbol, ImmutableArray<TypeWithAnnotations> typeArgs, CSharpCompilation compilation, TypeConversions conversions)
+            {
+                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
+
+                var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
+
+                bool success = true;
+
+                if (symbol.GetIsNewExtensionMember())
+                {
+                    NamedTypeSymbol extensionDeclaration = symbol.ContainingType;
+                    if (extensionDeclaration.Arity > 0)
+                    {
+                        var extensionTypeParameters = extensionDeclaration.TypeParameters;
+                        var extensionTypeArguments = typeArgs[..extensionDeclaration.Arity];
+                        var extensionSubstitution = new TypeMap(extensionTypeParameters, extensionTypeArguments);
+
+                        success = extensionDeclaration.CheckConstraints(
+                           constraintArgs, extensionSubstitution, extensionTypeParameters, extensionTypeArguments, diagnosticsBuilder,
+                           nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder, ignoreTypeConstraintsDependentOnTypeParametersOpt: null);
+                    }
+                }
+
+                if (success && symbol.Arity > 0)
+                {
+                    var memberTypeParameters = symbol.TypeParameters;
+                    var memberTypeArguments = typeArgs[^symbol.Arity..];
+                    var memberSubstitution = new TypeMap(memberTypeParameters, memberTypeArguments);
+
+                    success = symbol.CheckConstraints(
+                        constraintArgs, memberSubstitution, memberTypeParameters, memberTypeArguments, diagnosticsBuilder,
+                        nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder, ignoreTypeConstraintsDependentOnTypeParametersOpt: null);
+                }
+
+                diagnosticsBuilder.Free();
+
+                return success;
+            }
+#nullable disable
         }
 
         private static void MergeReducedAndFilteredSymbol(

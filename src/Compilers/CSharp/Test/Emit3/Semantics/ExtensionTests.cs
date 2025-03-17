@@ -11098,8 +11098,7 @@ static class E
         var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "new C<int>().M<int, string>()");
         Assert.Null(model.GetSymbolInfo(invocation).Symbol);
         Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
-
-        Assert.Equal(["void E.<>E__0<System.Int32>.M<System.String>()"], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(invocation.Expression).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12852,7 +12851,7 @@ namespace Inner
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object>");
         Assert.Equal("void E2.<>E__0.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["System.String Inner.E1.<>E__0.M<System.Object>()", "void E2.<>E__0.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal(["void E2.<>E__0.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -24886,7 +24885,7 @@ static class E
         Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M<object>");
-        Assert.Equal(["void E.<>E__0<System.Object>.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE incompatible extension due to broken constraint should be removed
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -25047,6 +25046,45 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<string, long>");
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void ExplicitTypeArguments_09()
+    {
+        var src = """
+42.M<object>(42);
+42.M2<object>(42);
+
+static class E
+{
+    extension(int i)
+    {
+        public void M<T>(T t) where T : struct { }
+    }
+
+    public static void M2<T>(this int i, T t) where T : struct { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,4): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.extension(int).M<T>(T)'
+            // 42.M<object>(42);
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M<object>").WithArguments("E.extension(int).M<T>(T)", "T", "object").WithLocation(1, 4),
+            // (2,4): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'E.M2<T>(int, T)'
+            // 42.M2<object>(42);
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2<object>").WithArguments("E.M2<T>(int, T)", "T", "object").WithLocation(2, 4));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M<object>");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M2<object>");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
@@ -25407,12 +25445,11 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
 
-        // PROTOTYPE incompatible extension due to broken constraint should be removed
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M<int>");
-        Assert.Equal(["void E.<>E__0.M<System.Int32>()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M2<int>");
-        Assert.Equal(["void System.Object.M2<System.Int32>()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -25481,10 +25518,10 @@ static class E
         var model = comp.GetSemanticModel(tree);
 
         var memberAccess1 = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.M<int>");
-        Assert.Equal(["void E.<>E__0<System.Int32>.M()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.M2<int>");
-        Assert.Equal(["void System.Int32.M2<System.Int32>()"], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings());
     }
 
     [Fact]
