@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToExtension;
 
@@ -31,7 +32,7 @@ using FixAllScope = CodeAnalysis.CodeFixes.FixAllScope;
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToExtension), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ConvertToExtensionCodeRefactoringProvider() : CodeRefactoringProvider
+internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : CodeRefactoringProvider
 {
     private readonly record struct ExtensionMethodInfo(
         MethodDeclarationSyntax ExtensionMethod,
@@ -132,6 +133,8 @@ internal sealed class ConvertToExtensionCodeRefactoringProvider() : CodeRefactor
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(extensionMethods.IsEmpty);
+
+        // Group extension methods as long as their first-parameter is compatible.
         var extensionMethodInfos = extensionMethods
             .Select(extensionMethod =>
             {
@@ -140,131 +143,28 @@ internal sealed class ConvertToExtensionCodeRefactoringProvider() : CodeRefactor
                 return new ExtensionMethodInfo(
                     extensionMethod, firstParameter, [.. methodTypeParameters.OrderBy(t => t.Name)]);
             });
+
         var groups = extensionMethodInfos.GroupBy(x => x, ExtensionMethodEqualityComparer.Instance);
 
+        // Process all the groups, ordered by the first extension method's start position.  That way each group of extensions
+        // is merged into a final extension that will go into that location in the original class declaration.
+        var classDeclarationEditor = new SyntaxEditor(classDeclaration, CSharpSyntaxGenerator.Instance);
         foreach (var group in groups.OrderBy(g => g.Min(info => info.ExtensionMethod.SpanStart)))
         {
-            var extensionParameter = group.Key.FirstParameter;
+            var newExtension = CreateExtension(group);
+            classDeclarationEditor.ReplaceNode(group.First().ExtensionMethod, newExtension);
 
+            foreach (var extensionMethod in group.Skip(1))
+                classDeclarationEditor.RemoveNode(extensionMethod.ExtensionMethod);
         }
+
+        return (ClassDeclarationSyntax)classDeclarationEditor.GetChangedRoot();
     }
 
-    private sealed class ExtensionMethodEqualityComparer :
-        IEqualityComparer<AttributeData>,
-        IEqualityComparer<ITypeParameterSymbol>,
-        IEqualityComparer<ExtensionMethodInfo>
+    private static ExtensionDeclarationSyntax CreateExtension(
+        IGrouping<ExtensionMethodInfo, ExtensionMethodInfo> group)
     {
-        public static readonly ExtensionMethodEqualityComparer Instance = new();
-
-        private static readonly SymbolEquivalenceComparer s_equivalenceComparer = new(
-            assemblyComparer: null,
-            distinguishRefFromOut: true,
-            // `void Goo(this (int x, int y) tuple)` doesn't match `void Goo(this (int a, int b) tuple)
-            tupleNamesMustMatch: true,
-            // `void Goo(this string? x)` doesn't matches `void Goo(this string x)`
-            ignoreNullableAnnotations: false,
-            // `void Goo(this object x)` doesn't matches `void Goo(this dynamic x)`
-            objectAndDynamicCompareEqually: false,
-            // `void Goo(this string[] x)` doesn't matches `void Goo(this Span<string> x)`
-            arrayAndReadOnlySpanCompareEqually: false);
-
-        #region IEqualityComparer<AttributeData>
-
-        private bool AttributesMatch(ImmutableArray<AttributeData> attributes1, ImmutableArray<AttributeData> attributes2)
-            => attributes1.SequenceEqual(attributes2, this);
-
-        public bool Equals(AttributeData? x, AttributeData? y)
-        {
-            if (x == y)
-                return true;
-
-            if (x is null || y is null)
-                return false;
-
-            if (!Equals(x.AttributeClass, y.AttributeClass))
-                return false;
-
-            return x.ConstructorArguments.SequenceEqual(y.ConstructorArguments) &&
-                   x.NamedArguments.SequenceEqual(y.NamedArguments);
-        }
-
-        // Not needed as we never group by attributes.  We only SequenceEqual compare them.
-        public int GetHashCode([DisallowNull] AttributeData obj)
-            => throw ExceptionUtilities.Unreachable();
-
-        #endregion
-
-        #region IEqualityComparer<ITypeParameterSymbol>
-
-        public bool Equals(ITypeParameterSymbol? x, ITypeParameterSymbol? y)
-        {
-            if (x == y)
-                return true;
-
-            if (x is null || y is null)
-                return false;
-
-            // Names must match as the code in the extension methods may reference the type parameters by name and has
-            // to continue working.
-            if (x.Name != y.Name)
-                return false;
-
-            // Attributes have to match as we're moving these type parameters up to the extension itself.
-            if (!AttributesMatch(x.GetAttributes(), y.GetAttributes()))
-                return false;
-
-            // Constraints have to match as we're moving these type parameters up to the extension itself.
-            if (x.HasConstructorConstraint != y.HasConstructorConstraint)
-                return false;
-
-            if (x.HasNotNullConstraint != y.HasNotNullConstraint)
-                return false;
-
-            if (x.HasReferenceTypeConstraint != y.HasReferenceTypeConstraint)
-                return false;
-
-            if (x.HasUnmanagedTypeConstraint != y.HasUnmanagedTypeConstraint)
-                return false;
-
-            if (x.HasValueTypeConstraint != y.HasValueTypeConstraint)
-                return false;
-
-            // Constraints have to match as we're moving these type parameters up to the extension itself.
-            // We again 
-            if (!x.ConstraintTypes.SequenceEqual(y.ConstraintTypes, s_equivalenceComparer.SignatureTypeEquivalenceComparer))
-                return false;
-
-            return true;
-        }
-
-        // Not needed as we never group by type parameters.  We only SequenceEqual compare them.
-        public int GetHashCode([DisallowNull] ITypeParameterSymbol obj)
-            => throw ExceptionUtilities.Unreachable();
-
-        #endregion
-
-        #region IEqualityComparer<ExtensionMethodInfo>
-
-        public bool Equals(ExtensionMethodInfo x, ExtensionMethodInfo y)
-        {
-            // For us to consider two extension methods to be equivalent, they must have a first parameter that we
-            // consider equal, any method type parameters they use must have the same constraints, and they must have
-            // the same attributes on them.  
-            //
-            // Note: The initial check will ensure that the same method-type-parameters are used in both methods *when
-            // compared by type parameter ordinal*.  The MethodTypeParameterMatch will then check that the type
-            // parameters that we would lift to the extension method would be considered the same as well.
-            return s_equivalenceComparer.ParameterEquivalenceComparer.Equals(x.FirstParameter, y.FirstParameter) &&
-                AttributesMatch(x.FirstParameter.GetAttributes(), y.FirstParameter.GetAttributes()) &&
-                x.MethodTypeParameters.SequenceEqual(y.MethodTypeParameters, this);
-        }
-
-        public int GetHashCode(ExtensionMethodInfo obj)
-            // Loosely match any extension methods if they have the same first parameter type (treating method type
-            // parameters by ordinal) and same name.  We'll do a more full match in .Equals above.
-            => s_equivalenceComparer.ParameterEquivalenceComparer.GetHashCode(obj.FirstParameter) ^ obj.FirstParameter.Name.GetHashCode();
-
-        #endregion
+        throw new NotImplementedException();
     }
 
     private sealed class ConvertToExtensionFixAllProvider()
