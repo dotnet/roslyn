@@ -88,7 +88,11 @@ public class OptionSerializerTests
     [Fact]
     public void SerializationAndDeserializationForNullableEnum()
     {
-        var options = Array.Empty<IOption2>();
+        var options = new IOption2[]
+        {
+            new Option2<ConsoleColor?>("Name1", null),
+            new Option2<ConsoleColor?>("Name2", ConsoleColor.Black),
+        };
 
         foreach (var option in options)
         {
