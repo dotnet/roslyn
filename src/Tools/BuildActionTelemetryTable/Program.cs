@@ -75,6 +75,7 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace.AbstractSyncNamespaceCodeRefactoringProvider`3+MoveFileCodeAction", "Sync Namespace: Move File (Refactoring)" },
             { "Microsoft.CodeAnalysis.CodeStyle.CSharpFormattingCodeFixProvider", "Formatting" },
             { "Microsoft.CodeAnalysis.CodeStyle.VisualBasicFormattingCodeFixProvider", "Formatting" },
+            { "Microsoft.CodeAnalysis.CSharp.Copilot.CSharpImplementNotImplementedExceptionFixProvider", "Implement with Copilot" },
             { "Microsoft.CodeAnalysis.ConvertToInterpolatedString.ConvertRegularStringToInterpolatedStringRefactoringProvider", "Convert To Interpolated String: Convert Regular String To Interpolated String (Refactoring)" },
             { "Microsoft.CodeAnalysis.CSharp.AddOrRemoveAccessibilityModifiers.CSharpAddOrRemoveAccessibilityModifiersCodeFixProvider", "Add Accessibility Modifiers" },
             { "Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName.CSharpAddAnonymousTypeMemberNameCodeFixProvider", "Add Anonymous Type Member Name" },
