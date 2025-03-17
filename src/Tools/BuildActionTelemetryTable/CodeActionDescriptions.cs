@@ -13,7 +13,7 @@ internal static class CodeActionDescriptions
     {
         { "Microsoft.CodeAnalysis.AddConstructorParametersFromMembers.AddConstructorParametersFromMembersCodeRefactoringProvider", "Add Constructor Parameters From Members (Refactoring)" },
         { "Microsoft.CodeAnalysis.AddConstructorParametersFromMembers.AddConstructorParametersFromMembersCodeRefactoringProvider+AddConstructorParametersCodeAction", "Add Constructor Parameters From Members: Add Constructor Parameters (Refactoring)" },
-        { "Microsoft.CodeAnalysis.AddImport.AbstractAddImportFeatureService`1+AssemblyReferenceCodeAction", "**NEEDS REVIEW** Add Import: Assembly Reference" },
+        { "Microsoft.CodeAnalysis.AddImport.AbstractAddImportFeatureService`1+AssemblyReferenceCodeAction", "Add Import: Assembly Reference" },
         { "Microsoft.CodeAnalysis.AddImport.AbstractAddImportFeatureService`1+InstallWithPackageManagerCodeAction", "Add Import: Install With Package Manager" },
         { "Microsoft.CodeAnalysis.AddImport.AbstractAddImportFeatureService`1+MetadataSymbolReferenceCodeAction", "Add Import: Metadata Symbol Reference" },
         { "Microsoft.CodeAnalysis.AddImport.AbstractAddImportFeatureService`1+ProjectSymbolReferenceCodeAction", "Add Import: Project Symbol Reference" },
