@@ -31,7 +31,6 @@ internal sealed class VirtualMemoryNotificationListener : IVsBroadcastMessageEve
 
     // low vm more info page link
     private const string LowVMMoreInfoLink = "https://go.microsoft.com/fwlink/?LinkID=799402&clcid=0x409";
-    private readonly IGlobalOptionService _globalOptions;
     private readonly VisualStudioWorkspace _workspace;
 
     private bool _alreadyLogged;
@@ -39,10 +38,8 @@ internal sealed class VirtualMemoryNotificationListener : IVsBroadcastMessageEve
 
     private VirtualMemoryNotificationListener(
         IVsShell shell,
-        IGlobalOptionService globalOptions,
         VisualStudioWorkspace workspace)
     {
-        _globalOptions = globalOptions;
         _workspace = workspace;
 
         if (GCSettings.IsServerGC)
@@ -62,7 +59,6 @@ internal sealed class VirtualMemoryNotificationListener : IVsBroadcastMessageEve
         VisualStudioWorkspace workspace,
         IThreadingContext threadingContext,
         IAsyncServiceProvider serviceProvider,
-        IGlobalOptionService globalOptions,
         CancellationToken cancellationToken)
     {
         await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -70,7 +66,7 @@ internal sealed class VirtualMemoryNotificationListener : IVsBroadcastMessageEve
         var shell = (IVsShell?)await serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
         Assumes.Present(shell);
 
-        return new VirtualMemoryNotificationListener(shell, globalOptions, workspace);
+        return new VirtualMemoryNotificationListener(shell, workspace);
     }
 
     /// <summary>
@@ -108,12 +104,6 @@ internal sealed class VirtualMemoryNotificationListener : IVsBroadcastMessageEve
                         ShowInfoBarIfRequired();
                     }
 
-                    // turn off low latency GC mode.
-                    // once we hit this, not hitting "Out of memory" exception is more important than typing being smooth all the time.
-                    // once it is turned off, user will hit time to time keystroke which responsive time is more than 50ms. in our own perf lab,
-                    // about 1-2% was over 50ms with this off when we first introduced this GC mode.
-                    GCManager.TurnOffLowLatencyMode();
-
                     break;
                 }
         }
@@ -121,7 +111,7 @@ internal sealed class VirtualMemoryNotificationListener : IVsBroadcastMessageEve
         return VSConstants.S_OK;
     }
 
-    private bool ShouldDisableBackgroundAnalysis(long availableMemory)
+    private static bool ShouldDisableBackgroundAnalysis(long availableMemory)
     {
         // conditions
         // 1. Available memory is less than the threshold and 
@@ -129,8 +119,7 @@ internal sealed class VirtualMemoryNotificationListener : IVsBroadcastMessageEve
         // 3. Background analysis memory monitor is on (user can set it off using registry to prevent turning off background analysis)
 
         return availableMemory < MemoryThreshold &&
-            !SolutionCrawlerOptionsStorage.LowMemoryForcedMinimalBackgroundAnalysis &&
-            _globalOptions.GetOption(VirtualMemoryNotificationListenerOptionsStorage.BackgroundAnalysisMemoryMonitor);
+            !SolutionCrawlerOptionsStorage.LowMemoryForcedMinimalBackgroundAnalysis;
     }
 
     private static void DisableBackgroundAnalysis()

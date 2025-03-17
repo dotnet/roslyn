@@ -74,7 +74,6 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
 
     public async Task InitializeAsync()
     {
-        await TaskScheduler.Default;
         _textManager = await _textManagerService.GetValueAsync().ConfigureAwait(false);
     }
 

@@ -4,11 +4,11 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
@@ -25,20 +25,42 @@ internal abstract class AbstractPackage : AsyncPackage
         }
     }
 
-    protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+    protected virtual void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+        // This treatment of registering work on the bg/main threads is a bit unique as we want the component model initialized at the beginning
+        // of whichever context is invoked first. The current architecture doesn't execute any of the registered tasks concurrently,
+        // so that isn't a concern for running calculating or setting _componentModel_doNotAccessDirectly multiple times.
+        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: EnsureComponentModelAsync);
+        packageRegistrationTasks.AddTask(isMainThreadTask: true, task: EnsureComponentModelAsync);
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        async Task EnsureComponentModelAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken token)
+        {
+            if (_componentModel_doNotAccessDirectly == null)
+            {
+                _componentModel_doNotAccessDirectly = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(false);
+                Assumes.Present(_componentModel_doNotAccessDirectly);
+            }
+        }
+    }
 
-        _componentModel_doNotAccessDirectly = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
-        Assumes.Present(_componentModel_doNotAccessDirectly);
+    /// This method is called upon package creation and is the mechanism by which roslyn packages calculate and
+    /// process all package initialization work. Do not override this sealed method, instead override RegisterInitializationWork
+    /// to indicate the work your package needs upon initialization.
+    protected sealed override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+    {
+        var packageRegistrationTasks = new PackageRegistrationTasks(JoinableTaskFactory);
+
+        // Request all initially known work, classified into whether it should be processed on the main or
+        // background thread. These lists can be modified by the work itself to add more work for subsequent processing.
+        // Requesting this information is useful as it lets us batch up work on these threads, significantly
+        // reducing thread switches during package load.
+        RegisterInitializationWork(packageRegistrationTasks);
+
+        await packageRegistrationTasks.ProcessTasksAsync(progress, cancellationToken).ConfigureAwait(false);
     }
 
     protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
     {
-        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
-
         // TODO: remove, workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1985204
         var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
         if (globalOptions.GetOption(SemanticSearchFeatureFlag.Enabled))
