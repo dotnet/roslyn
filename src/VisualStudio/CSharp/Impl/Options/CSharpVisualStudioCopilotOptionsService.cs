@@ -43,7 +43,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     private readonly CopilotOption _copilotCodeAnalysisOption = new("copilot.featureFlags.editor.enableCSharpCodeAnalysis", false);
     private readonly CopilotOption _copilotRefineOption = new("copilot.featureFlags.editor.enableCSharpRefineQuickActionSuggestion", false);
     private readonly CopilotOption _copilotOnTheFlyDocsOption = new("copilot.general.editor.enableOnTheFlyDocs", true);
-    private readonly CopilotOption _copilotGenerateDocumentationCommentOption = new("copilot.general.editor.enableCSharpGenerateDocumentationComment", true);
+    private readonly CopilotOption _copilotGenerateDocumentationCommentOption = new("copilot.general.editor.enableGenerateDocumentationComment", true);
     private readonly CopilotOption _copilotGenerateMethodImplementationOption = new("copilot.featureFlags.editor.enableCSharpGenerateMethodImplementation", false);
 
     private static readonly UIContext s_copilotHasLoadedUIContext = UIContext.FromUIContextGuid(new Guid(CopilotHasLoadedGuid));
