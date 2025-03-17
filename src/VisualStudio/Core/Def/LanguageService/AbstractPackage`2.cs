@@ -34,16 +34,21 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     {
     }
 
-    protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+    protected override void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+        base.RegisterInitializationWork(packageRegistrationTasks);
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        packageRegistrationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
+    }
+
+    private async Task PackageInitializationMainThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
+    {
+        // This code uses various main thread only services, so it must run completely on the main thread
+        // (thus the CA(true) usage throughout)
+        Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
 
         var shell = (IVsShell7?)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-        var solution = (IVsSolution?)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
         Assumes.Present(shell);
-        Assumes.Present(solution);
 
         _shell = (IVsShell?)shell;
         Assumes.Present(_shell);
@@ -66,9 +71,11 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             return _languageService.ComAggregate!;
         });
 
+        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+
+        // awaiting an IVsTask guarantees to return on the captured context
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
 
-        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
         RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
         if (!_shell.IsInCommandLineMode())
@@ -77,6 +84,13 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             // this is a no op
             RegisterObjectBrowserLibraryManager();
         }
+    }
+
+    protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
+    {
+        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
     }

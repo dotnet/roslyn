@@ -15,10 +15,10 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.ColorSchemes;
@@ -60,7 +60,7 @@ internal sealed partial class ColorSchemeApplier
             threadingContext.DisposalToken);
     }
 
-    public async Task InitializeAsync(CancellationToken cancellationToken)
+    public void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
     {
         lock (_gate)
         {
@@ -70,14 +70,15 @@ internal sealed partial class ColorSchemeApplier
             _isInitialized = true;
         }
 
-        // We need to update the theme whenever the Editor Color Scheme setting changes.
-        await TaskScheduler.Default;
+        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
+    }
+
+    private async Task PackageInitializationBackgroundThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
+    {
         var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
 
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        // We need to update the theme whenever the Editor Color Scheme setting changes.
         settingsManager.GetSubset(ColorSchemeOptionsStorage.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
-
-        await TaskScheduler.Default;
 
         // Try to migrate the `useEnhancedColorsSetting` to the new `ColorSchemeName` setting.
         _settings.MigrateToColorSchemeSetting();

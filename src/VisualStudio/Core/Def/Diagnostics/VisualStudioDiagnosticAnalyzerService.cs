@@ -15,9 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -30,44 +28,29 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 
 [Export(typeof(IVisualStudioDiagnosticAnalyzerService))]
-internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiagnosticAnalyzerService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class VisualStudioDiagnosticAnalyzerService(
+    VisualStudioWorkspace workspace,
+    IVsService<SVsStatusbar, IVsStatusbar> statusbar,
+    DiagnosticAnalyzerInfoCache.SharedGlobalCache diagnosticAnalyzerInfoCache,
+    IThreadingContext threadingContext,
+    IVsHierarchyItemManager vsHierarchyItemManager,
+    IAsynchronousOperationListenerProvider listenerProvider) : IVisualStudioDiagnosticAnalyzerService
 {
     // "Run Code Analysis on <%ProjectName%>" command for Top level "Build" and "Analyze" menus.
     // The below ID is actually defined as "ECMD_RUNFXCOPSEL" in stdidcmd.h, we're just referencing it here.
     private const int RunCodeAnalysisForSelectedProjectCommandId = 1647;
 
-    private readonly VisualStudioWorkspace _workspace;
-    private readonly IVsService<IVsStatusbar> _statusbar;
-    private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache;
-    private readonly IThreadingContext _threadingContext;
-    private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
-    private readonly IAsynchronousOperationListener _listener;
-    private readonly IGlobalOptionService _globalOptions;
-    private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService;
+    private readonly VisualStudioWorkspace _workspace = workspace;
+    private readonly IVsService<IVsStatusbar> _statusbar = statusbar;
+    private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache = diagnosticAnalyzerInfoCache.AnalyzerInfoCache;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IVsHierarchyItemManager _vsHierarchyItemManager = vsHierarchyItemManager;
+    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
+    private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService = workspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
     private IServiceProvider? _serviceProvider;
-    private BackgroundAnalysisScope? _analysisScope;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioDiagnosticAnalyzerService(
-        VisualStudioWorkspace workspace,
-        IVsService<SVsStatusbar, IVsStatusbar> statusbar,
-        DiagnosticAnalyzerInfoCache.SharedGlobalCache diagnosticAnalyzerInfoCache,
-        IThreadingContext threadingContext,
-        IVsHierarchyItemManager vsHierarchyItemManager,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        IGlobalOptionService globalOptions)
-    {
-        _workspace = workspace;
-        _statusbar = statusbar;
-        _diagnosticAnalyzerInfoCache = diagnosticAnalyzerInfoCache.AnalyzerInfoCache;
-        _threadingContext = threadingContext;
-        _vsHierarchyItemManager = vsHierarchyItemManager;
-        _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
-        _globalOptions = globalOptions;
-        _codeAnalysisService = workspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
-    }
 
     public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
@@ -80,11 +63,6 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, RunCodeAnalysisForSelectedProjectCommandId, VSConstants.VSStd2K, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
             VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.RunCodeAnalysisForProject, Guids.RoslynGroupId, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeDefault, Guids.RoslynGroupId, OnSetAnalysisScopeDefault, OnSetAnalysisScopeDefaultStatus);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeCurrentDocument, Guids.RoslynGroupId, OnSetAnalysisScopeCurrentDocument, OnSetAnalysisScopeCurrentDocumentStatus);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeOpenDocuments, Guids.RoslynGroupId, OnSetAnalysisScopeOpenDocuments, OnSetAnalysisScopeOpenDocumentsStatus);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeEntireSolution, Guids.RoslynGroupId, OnSetAnalysisScopeEntireSolution, OnSetAnalysisScopeEntireSolutionStatus);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeNone, Guids.RoslynGroupId, OnSetAnalysisScopeNone, OnSetAnalysisScopeNoneStatus);
         }
     }
 
@@ -145,96 +123,6 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
     {
         // unfortunately, we had to do this since ruleset editor and us are set to use this signature
         return map.ToDictionary(kv => kv.Key, kv => (IEnumerable<DiagnosticDescriptor>)kv.Value);
-    }
-
-    private void OnSetAnalysisScopeDefaultStatus(object sender, EventArgs e)
-        => OnSetAnalysisScopeStatus((OleMenuCommand)sender, scope: null);
-
-    private void OnSetAnalysisScopeCurrentDocumentStatus(object sender, EventArgs e)
-        => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics);
-
-    private void OnSetAnalysisScopeOpenDocumentsStatus(object sender, EventArgs e)
-        => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.OpenFiles);
-
-    private void OnSetAnalysisScopeEntireSolutionStatus(object sender, EventArgs e)
-        => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.FullSolution);
-
-    private void OnSetAnalysisScopeNoneStatus(object sender, EventArgs e)
-        => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.None);
-
-    private void OnSetAnalysisScopeStatus(OleMenuCommand command, BackgroundAnalysisScope? scope)
-    {
-        // The command is enabled as long as we have a service provider
-        if (_serviceProvider is null)
-        {
-            // Not yet initialized
-            command.Enabled = false;
-            return;
-        }
-
-        command.Enabled = true;
-        command.Checked = _analysisScope == scope;
-
-        // For the specific case of the default analysis scope command, update the command text to show the
-        // current effective default in the context of the language(s) used in the solution.
-        if (scope is null)
-        {
-            command.Text = GetBackgroundAnalysisScope(_workspace.CurrentSolution, _globalOptions) switch
-            {
-                BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics => ServicesVSResources.Default_Current_Document,
-                BackgroundAnalysisScope.OpenFiles => ServicesVSResources.Default_Open_Documents,
-                BackgroundAnalysisScope.FullSolution => ServicesVSResources.Default_Entire_Solution,
-                BackgroundAnalysisScope.None => ServicesVSResources.Default_None,
-                _ => ServicesVSResources.Default_,
-            };
-        }
-
-        return;
-
-        // Local functions
-        static BackgroundAnalysisScope? GetBackgroundAnalysisScope(Solution solution, IGlobalOptionService globalOptions)
-        {
-            var csharpAnalysisScope = globalOptions.GetOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
-            var visualBasicAnalysisScope = globalOptions.GetOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic);
-
-            var containsCSharpProject = solution.Projects.Any(static project => project.Language == LanguageNames.CSharp);
-            var containsVisualBasicProject = solution.Projects.Any(static project => project.Language == LanguageNames.VisualBasic);
-            if (containsCSharpProject && containsVisualBasicProject)
-            {
-                if (csharpAnalysisScope == visualBasicAnalysisScope)
-                    return csharpAnalysisScope;
-                else
-                    return null;
-            }
-            else if (containsVisualBasicProject)
-            {
-                return visualBasicAnalysisScope;
-            }
-            else
-            {
-                return csharpAnalysisScope;
-            }
-        }
-    }
-
-    private void OnSetAnalysisScopeDefault(object sender, EventArgs args)
-        => OnSetAnalysisScope(scope: null);
-
-    private void OnSetAnalysisScopeCurrentDocument(object sender, EventArgs args)
-        => OnSetAnalysisScope(BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics);
-
-    private void OnSetAnalysisScopeOpenDocuments(object sender, EventArgs args)
-        => OnSetAnalysisScope(BackgroundAnalysisScope.OpenFiles);
-
-    private void OnSetAnalysisScopeEntireSolution(object sender, EventArgs args)
-        => OnSetAnalysisScope(BackgroundAnalysisScope.FullSolution);
-
-    private void OnSetAnalysisScopeNone(object sender, EventArgs args)
-        => OnSetAnalysisScope(BackgroundAnalysisScope.None);
-
-    private void OnSetAnalysisScope(BackgroundAnalysisScope? scope)
-    {
-        _analysisScope = scope;
     }
 
     private void OnRunCodeAnalysisForSelectedProjectStatus(object sender, EventArgs e)
