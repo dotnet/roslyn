@@ -8132,7 +8132,7 @@ public class C
   IL_0016:  call       ""void C.X.set""
   IL_001b:  ldarg.0
   IL_001c:  ldloc.1
-  IL_001d:  stfld      ""string C.<Y>k__BackingField""
+  IL_001d:  stfld      ""string? C.<Y>k__BackingField""
   IL_0022:  ldloc.2
   IL_0023:  stind.i4
   IL_0024:  ret
