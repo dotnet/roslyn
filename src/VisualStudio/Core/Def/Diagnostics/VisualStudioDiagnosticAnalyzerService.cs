@@ -17,13 +17,10 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Threading;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -348,7 +345,6 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
 
     private sealed class StatusBarUpdater : IDisposable
     {
-        private readonly IVsStatusbar _statusBar;
         private readonly string _statusMessageWhileRunning;
         private readonly string _statusMessageOnCompleted;
         private readonly string _statusMessageOnTerminated;
@@ -365,7 +361,6 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
         {
             var threadingContext = service._threadingContext;
             threadingContext.ThrowIfNotOnUIThread();
-            _statusBar = statusBar;
 
             _statusMessageWhileRunning = projectOrSolutionName != null
                 ? string.Format(ServicesVSResources.Running_code_analysis_for_0, projectOrSolutionName)
@@ -380,8 +375,8 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
             // Set the initial status bar progress and text.
 
             uint statusBarCookie = 0;
-            _statusBar.Progress(ref statusBarCookie, fInProgress: 1, _statusMessageWhileRunning, nComplete: 0, nTotal: (uint)totalProjectCount);
-            _statusBar.SetText(_statusMessageWhileRunning);
+            statusBar.Progress(ref statusBarCookie, fInProgress: 1, _statusMessageWhileRunning, nComplete: 0, nTotal: (uint)totalProjectCount);
+            statusBar.SetText(_statusMessageWhileRunning);
 
             _progressTracker = new(
                 DelayTimeSpan.Medium,
@@ -398,12 +393,12 @@ internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiag
                             disposed ? _statusMessageOnTerminated : _statusMessageWhileRunning;
 
                         await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        _statusBar.Progress(
+                        statusBar.Progress(
                             ref statusBarCookie,
                             fInProgress: inProgress ? 1 : 0,
                             message,
                             (uint)analyzedProjectCount, (uint)totalProjectCount);
-                        _statusBar.SetText(message);
+                        statusBar.SetText(message);
                     });
                 },
                 service._listener,
