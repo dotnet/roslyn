@@ -84,7 +84,7 @@ public abstract partial class Workspace
         if (ev.HasHandlers)
         {
             args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-            RaiseEventForHandlers(ev, args, FunctionId.Workspace_EventsImmediate);
+            RaiseEventForHandlers(ev, sender: this, args, FunctionId.Workspace_EventsImmediate);
         }
 
         ev = GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
@@ -93,7 +93,7 @@ public abstract partial class Workspace
             args ??= new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
             return this.ScheduleTask(() =>
             {
-                RaiseEventForHandlers(ev, args, FunctionId.Workspace_Events);
+                RaiseEventForHandlers(ev, sender: this, args, FunctionId.Workspace_Events);
             }, WorkspaceChangeEventName);
         }
         else
@@ -103,12 +103,13 @@ public abstract partial class Workspace
 
         static void RaiseEventForHandlers(
             EventMap.EventHandlerSet<EventHandler<WorkspaceChangeEventArgs>> handlers,
+            Workspace sender,
             WorkspaceChangeEventArgs args,
             FunctionId functionId)
         {
             using (Logger.LogBlock(functionId, (s, p, d, k) => $"{s.Id} - {p} - {d} {args.Kind.ToString()}", args.NewSolution, args.ProjectId, args.DocumentId, args.Kind, CancellationToken.None))
             {
-                handlers.RaiseEvent(static (handler, args) => handler(args.NewSolution.Workspace, args), args);
+                handlers.RaiseEvent(static (handler, arg) => handler(arg.sender, arg.args), (sender, args));
             }
         }
     }
