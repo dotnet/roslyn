@@ -198,6 +198,11 @@ internal sealed class SemanticSearchToolWindowImpl(
             return null;
         }
 
+        if (!globalOptions.GetOption(SemanticSearchFeatureFlag.PromptEnabled))
+        {
+            return null;
+        }
+
         var outerGrid = new Grid()
         {
             Background = (Brush)Application.Current.FindResource(CommonControlsColors.TextBoxBackgroundBrushKey),
