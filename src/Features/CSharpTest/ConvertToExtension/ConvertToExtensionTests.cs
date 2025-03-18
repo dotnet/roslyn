@@ -650,6 +650,20 @@ public sealed class ConvertToExtensionTests
                     [||]public static void N(this int i) { }
                 }
                 """,
+            FixedCode = """
+                using System;
+                
+                class XAttribute : Attribute { }
+                
+                static class C
+                {
+                    public static void M([X] this int i) { }
+                    extension(int i)
+                    {
+                        public void N() { }
+                    }
+                }
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
@@ -669,6 +683,21 @@ public sealed class ConvertToExtensionTests
                 {
                     public static void M([X] this int i) { }
                     [||]public static void N([Y] this int i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    public static void M([X] this int i) { }
+                    extension([Y] int i)
+                    {
+                        public void N() { }
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
@@ -694,6 +723,23 @@ public sealed class ConvertToExtensionTests
                     [||]public static void N([X(1)] this int i) { }
                 }
                 """,
+            FixedCode = """
+                using System;
+
+                class XAttribute : Attribute
+                {
+                    public XAttribute(int i) { }
+                }
+
+                static class C
+                {
+                    public static void M([X(0)] this int i) { }
+                    extension([X(1)] int i)
+                    {
+                        public void N() { }
+                    }
+                }
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
@@ -708,8 +754,6 @@ public sealed class ConvertToExtensionTests
 
                 class XAttribute : Attribute
                 {
-                    public XAttribute { }
-
                     public int I;
                 }
 
@@ -717,6 +761,23 @@ public sealed class ConvertToExtensionTests
                 {
                     public static void M([X(I=1)] this int i) { }
                     [||]public static void N([X(I=2)] this int i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class XAttribute : Attribute
+                {
+                    public int I;
+                }
+
+                static class C
+                {
+                    public static void M([X(I=1)] this int i) { }
+                    extension([X(I = 2)] int i)
+                    {
+                        public void N() { }
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
