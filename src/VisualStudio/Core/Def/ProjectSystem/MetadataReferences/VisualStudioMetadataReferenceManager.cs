@@ -63,7 +63,6 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     private readonly TemporaryStorageService _temporaryStorageService;
     private readonly VSThreading.AsyncLazy<IVsXMLMemberIndexService> _xmlMemberIndexService;
     private readonly ReaderWriterLockSlim _smartOpenScopeLock = new();
-    private readonly IThreadingContext _threadingContext;
 
     /// <summary>
     /// The smart open scope service. This can be null during shutdown when using the service might crash. Any
@@ -79,7 +78,6 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace)
     {
-        _threadingContext = threadingContext;
         _runtimeDirectories = GetRuntimeDirectories();
 
         _xmlMemberIndexService = new VSThreading.AsyncLazy<IVsXMLMemberIndexService>(
