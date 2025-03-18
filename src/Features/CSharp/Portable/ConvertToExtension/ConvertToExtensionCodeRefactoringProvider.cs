@@ -38,6 +38,11 @@ using static SyntaxFactory;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : CodeRefactoringProvider
 {
+    /// <summary>
+    /// Information about a class extension method we can convert to a modern extension.  Extension methods with
+    /// 'identical' receiver parameters will compare/hash as equal.  That way we can easily find and group all the
+    /// methods we want to move into a single extension together.
+    /// </summary>
     private readonly record struct ExtensionMethodInfo(
         ClassDeclarationSyntax ClassDeclaration,
         MethodDeclarationSyntax ExtensionMethod,
