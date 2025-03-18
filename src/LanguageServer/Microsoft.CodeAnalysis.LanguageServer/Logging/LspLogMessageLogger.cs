@@ -78,7 +78,8 @@ internal sealed class LspLogMessageLogger(string categoryName, ILoggerFactory fa
     {
         return logLevel switch
         {
-            LogLevel.Trace => MessageType.Log,
+            // Count "Trace" as "Debug", as right now the VS Code LSP client doesn't have a concept of "trace", and using a generic "Log" puts no severity at all which is even more confusing.
+            LogLevel.Trace => MessageType.Debug,
             LogLevel.Debug => MessageType.Debug,
             LogLevel.Information => MessageType.Info,
             LogLevel.Warning => MessageType.Warning,
