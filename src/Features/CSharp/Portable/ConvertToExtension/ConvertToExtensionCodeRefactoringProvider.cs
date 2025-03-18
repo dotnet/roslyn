@@ -151,42 +151,6 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         }
     }
 
-    //private static bool IsExtensionMethod(
-    //    MethodDeclarationSyntax methodDeclaration,
-    //    [NotNullWhen(true)] out ClassDeclarationSyntax? classDeclaration)
-    //{
-    //    classDeclaration = null;
-    //    if (methodDeclaration.ParameterList.Parameters is not [var firstParameter, ..])
-    //        return false;
-
-    //    if (!firstParameter.Modifiers.Any(SyntaxKind.ThisKeyword))
-    //        return false;
-
-    //    classDeclaration = methodDeclaration.Parent as ClassDeclarationSyntax;
-    //    return classDeclaration != null;
-    //}
-
-    //private static ImmutableArray<MethodDeclarationSyntax> GetExtensionMethods(ClassDeclarationSyntax classDeclaration)
-    //    => classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) && classDeclaration.Parent is BaseNamespaceDeclarationSyntax
-    //        ? [.. classDeclaration.Members.OfType<MethodDeclarationSyntax>().Where(m => IsExtensionMethod(m, out _))]
-    //        : [];
-
-    //private static void ComputeRefactorings(
-    //    CodeRefactoringContext context,
-    //    ClassDeclarationSyntax classDeclaration,
-    //    ImmutableArray<MethodDeclarationSyntax> extensionMethods,
-    //    string title,
-    //    string equivalenceKey)
-    //{
-    //    if (extensionMethods.IsEmpty)
-    //        return;
-
-    //    context.RegisterRefactoring(CodeAction.Create(
-    //        title,
-    //        cancellationToken => ConvertToExtensionAsync(context.Document, classDeclaration, extensionMethods, cancellationToken),
-    //        equivalenceKey));
-    //}
-
     private static async Task<Document> ConvertToExtensionAsync(
         Document document,
         ClassDeclarationSyntax classDeclaration,
