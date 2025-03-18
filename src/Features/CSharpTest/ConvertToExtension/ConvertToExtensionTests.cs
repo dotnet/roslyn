@@ -1486,7 +1486,7 @@ public sealed class ConvertToExtensionTests
                 static class C
                 {
                     [||]public static void M(this string? i) { }
-                    public static void N(this string j) { }
+                    public static void N(this string i) { }
                 }
                 """,
             FixedCode = """
@@ -1542,6 +1542,16 @@ public sealed class ConvertToExtensionTests
                 }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            TestState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(8,31): error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
+                    DiagnosticResult.CompilerError("CS1103").WithSpan(8, 31, 8, 38).WithArguments("dynamic"),
+                    // /0/Test0.cs(9,31): error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
+                    DiagnosticResult.CompilerError("CS1103").WithSpan(9, 31, 9, 38).WithArguments("dynamic"),
+                }
+            }
         }.RunAsync();
     }
 
@@ -1579,6 +1589,14 @@ public sealed class ConvertToExtensionTests
                 }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            TestState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(8,31): error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
+                    DiagnosticResult.CompilerError("CS1103").WithSpan(8, 31, 8, 38).WithArguments("dynamic"),
+                }
+            }
         }.RunAsync();
     }
 
