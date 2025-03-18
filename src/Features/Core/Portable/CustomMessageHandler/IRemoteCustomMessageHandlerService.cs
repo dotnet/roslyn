@@ -9,21 +9,22 @@ namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 
 internal interface IRemoteCustomMessageHandlerService
 {
-    /// <summary>
-    /// Loads the assembly <paramref name="assemblyFileName"/> at <paramref name="assemblyFolderPath"/>
-    /// loads the <paramref name="typeFullName"/> handler from the assembly,
-    /// converts <paramref name="jsonMessage"/> to a .NET object of the type expected by the handler,
-    /// dispatches the message to the handler,
-    /// returns the handler's response to the caller as a json string.
-    /// </summary>
-    /// <returns>A json message.</returns>
-    ValueTask<string> HandleCustomMessageAsync(
-        Checksum solutionChecksum,
+    ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
         string assemblyFolderPath,
         string assemblyFileName,
-        string typeFullName,
+        CancellationToken cancellationToken);
+
+    ValueTask<string> HandleCustomDocumentMessageAsync(
+        Checksum solutionChecksum,
+        string messageName,
         string jsonMessage,
-        DocumentId? documentId,
+        DocumentId documentId,
+        CancellationToken cancellationToken);
+
+    ValueTask<string> HandleCustomMessageAsync(
+        Checksum solutionChecksum,
+        string messageName,
+        string jsonMessage,
         CancellationToken cancellationToken);
 
     ValueTask UnloadCustomMessageHandlersAsync(

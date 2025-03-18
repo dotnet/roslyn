@@ -8,15 +8,24 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 
-public interface ICustomMessageHandlerService : IWorkspaceService
+internal interface ICustomMessageHandlerService : IWorkspaceService
 {
-    ValueTask<string> HandleCustomMessageAsync(
-        Solution solution,
+    ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
         string assemblyFolderPath,
         string assemblyFileName,
-        string typeFullName,
+        CancellationToken cancellationToken);
+
+    ValueTask<string> HandleCustomMessageAsync(
+        Solution solution,
+        string messageName,
         string jsonMessage,
-        DocumentId? documentId,
+        CancellationToken cancellationToken);
+
+    ValueTask<string> HandleCustomDocumentMessageAsync(
+        Solution solution,
+        string messageName,
+        string jsonMessage,
+        DocumentId documentId,
         CancellationToken cancellationToken);
 
     ValueTask UnloadCustomMessageHandlersAsync(

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 
-internal interface ICustomMessageHandlerWrapper
+internal interface ICustomMessageDocumentHandlerWrapper
 {
     Type MessageType { get; }
 
@@ -16,5 +16,5 @@ internal interface ICustomMessageHandlerWrapper
 
     string Name { get; }
 
-    Task<object?> ExecuteAsync(object? message, Solution solution, CancellationToken cancellationToken);
+    Task<object?> ExecuteAsync(object? message, Document document, Solution solution, CancellationToken cancellationToken);
 }

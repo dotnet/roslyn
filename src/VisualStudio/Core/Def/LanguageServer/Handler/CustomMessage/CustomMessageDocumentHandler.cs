@@ -41,11 +41,9 @@ internal class CustomMessageDocumentHandler()
         {
             var response = await client.TryInvokeAsync<IRemoteCustomMessageHandlerService, string>(
                 project,
-                (service, solutionInfo, cancellationToken) => service.HandleCustomMessageAsync(
+                (service, solutionInfo, cancellationToken) => service.HandleCustomDocumentMessageAsync(
                     solutionInfo,
-                    request.AssemblyFolderPath,
-                    request.AssemblyFileName,
-                    request.TypeFullName,
+                    request.MessageName,
                     request.Message,
                     context.Document.Id,
                     cancellationToken),
@@ -62,11 +60,9 @@ internal class CustomMessageDocumentHandler()
         {
             Contract.ThrowIfNull(context.Workspace);
             var service = context.Workspace.Services.GetRequiredService<ICustomMessageHandlerService>();
-            var response = await service.HandleCustomMessageAsync(
+            var response = await service.HandleCustomDocumentMessageAsync(
                     project.Solution,
-                    request.AssemblyFolderPath,
-                    request.AssemblyFileName,
-                    request.TypeFullName,
+                    request.MessageName,
                     request.Message,
                     context.Document.Id,
                     cancellationToken).ConfigureAwait(false);

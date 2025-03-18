@@ -12,34 +12,32 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(CustomMessageHandler)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(CustomMessageUnloadHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CustomMessageHandler()
-    : ILspServiceRequestHandler<CustomMessageParams, CustomResponse>
+internal class CustomMessageLoadHandler()
+    : ILspServiceRequestHandler<CustomMessageLoadParams, CustomMessageLoadResponse>
 {
-    private const string MethodName = "roslyn/customMessage";
+    private const string MethodName = "roslyn/customMessageLoad";
 
     public bool MutatesSolutionState => false;
 
     public bool RequiresLSPSolution => true;
 
-    public async Task<CustomResponse> HandleRequestAsync(CustomMessageParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<CustomMessageLoadResponse> HandleRequestAsync(CustomMessageLoadParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
-
-        var solution = context.Solution;
+        var solution = context.Solution
+            ?? throw new InvalidOperationException();
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
 
         if (client is not null)
         {
-            var response = await client.TryInvokeAsync<IRemoteCustomMessageHandlerService, string>(
+            var response = await client.TryInvokeAsync<IRemoteCustomMessageHandlerService, RegisterHandlersResponse>(
                 solution,
-                (service, solutionInfo, cancellationToken) => service.HandleCustomMessageAsync(
-                    solutionInfo,
-                    request.MessageName,
-                    request.Message,
+                (service, solutionInfo, cancellationToken) => service.LoadCustomMessageHandlersAsync(
+                    request.AssemblyFolderPath,
+                    request.AssemblyFileName,
                     cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
@@ -48,18 +46,17 @@ internal class CustomMessageHandler()
                 throw new InvalidOperationException("The remote message handler didn't return any value.");
             }
 
-            return new CustomResponse(response.Value);
+            return new(response.Value.Handlers, response.Value.DocumentHandlers);
         }
         else
         {
             var service = context.Workspace!.Services.GetRequiredService<ICustomMessageHandlerService>();
-            var response = await service.HandleCustomMessageAsync(
-                    solution,
-                    request.MessageName,
-                    request.Message,
+            var response = await service.LoadCustomMessageHandlersAsync(
+                    request.AssemblyFolderPath,
+                    request.AssemblyFileName,
                     cancellationToken).ConfigureAwait(false);
 
-            return new CustomResponse(response);
+            return new(response.Handlers, response.DocumentHandlers);
         }
     }
 }

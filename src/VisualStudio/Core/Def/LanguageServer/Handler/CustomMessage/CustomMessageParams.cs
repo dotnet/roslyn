@@ -10,12 +10,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 /// <summary>
 /// Parameters for the <see cref="CustomMessageHandler"/> request.
 /// </summary>
-/// <param name="AssemblyFolderPath">Full path to the folder that contains <paramref name="AssemblyFileName"/>.</param>
-/// <param name="AssemblyFileName">File name of the assembly that contains the message handler.</param>
+/// <param name="MessageName">Name of the custom message to be invoked.</param>
 /// <param name="TypeFullName">Full name of the <see cref="Type"/> of the message handler.</param>
 /// <param name="Message">Json message to be passed to a custom message handler.</param>
 internal readonly record struct CustomMessageParams(
-    [property: JsonPropertyName("assemblyFolderPath")] string AssemblyFolderPath,
-    [property: JsonPropertyName("assemblyFileName")] string AssemblyFileName,
+    [property: JsonPropertyName("messageName")] string MessageName,
     [property: JsonPropertyName("typeFullName")] string TypeFullName,
     [property: JsonPropertyName("message")] string Message);

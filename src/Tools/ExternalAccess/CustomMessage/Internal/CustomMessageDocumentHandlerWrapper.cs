@@ -9,21 +9,21 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 
-internal sealed class CustomMessageHandlerWrapper : ICustomMessageHandlerWrapper
+internal sealed class CustomMessageDocumentHandlerWrapper : ICustomMessageDocumentHandlerWrapper
 {
     private readonly object handler;
     private readonly MethodInfo executeAsyncMethod;
     private readonly PropertyInfo responseTaskResultProperty;
 
-    public CustomMessageHandlerWrapper(object handler, Type iCustomMessageHandlerInterface)
+    public CustomMessageDocumentHandlerWrapper(object handler, Type iCustomMessageDocumentHandlerInterface)
     {
         this.handler = handler;
 
         Name = handler.GetType().FullName;
-        MessageType = iCustomMessageHandlerInterface.GenericTypeArguments[0];
-        ResponseType = iCustomMessageHandlerInterface.GenericTypeArguments[1];
+        MessageType = iCustomMessageDocumentHandlerInterface.GenericTypeArguments[0];
+        ResponseType = iCustomMessageDocumentHandlerInterface.GenericTypeArguments[1];
 
-        executeAsyncMethod = iCustomMessageHandlerInterface.GetMethod(nameof(ICustomMessageHandler<,>.ExecuteAsync));
+        executeAsyncMethod = iCustomMessageDocumentHandlerInterface.GetMethod(nameof(ICustomMessageHandler<,>.ExecuteAsync));
         responseTaskResultProperty = typeof(Task<>).MakeGenericType(ResponseType).GetProperty(nameof(Task<>.Result));
     }
 
@@ -33,14 +33,14 @@ internal sealed class CustomMessageHandlerWrapper : ICustomMessageHandlerWrapper
 
     public string Name { get; }
 
-    public async Task<object?> ExecuteAsync(object? message, Solution solution, CancellationToken cancellationToken)
+    public async Task<object?> ExecuteAsync(object? message, Document? document, Solution solution, CancellationToken cancellationToken)
     {
         if ((message is null && MessageType.IsValueType) || (message is not null && !MessageType.IsAssignableFrom(message.GetType())))
         {
             throw new InvalidOperationException($"The message type {message?.GetType().FullName ?? "null"} is not assignable to {MessageType.FullName}.");
         }
 
-        var responseTask = (Task)executeAsyncMethod.Invoke(handler, [message, new CustomMessageContext(solution), cancellationToken]);
+        var responseTask = (Task)executeAsyncMethod.Invoke(handler, [message, new CustomMessageContext(solution), document, cancellationToken]);
         await responseTask.ConfigureAwait(false);
         var response = responseTaskResultProperty.GetValue(responseTask);
 

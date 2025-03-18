@@ -2,19 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 
-internal interface ICustomMessageHandlerWrapper
+public interface ICustomMessageDocumentHandler<TMessage, TResponse>
 {
-    Type MessageType { get; }
-
-    Type ResponseType { get; }
-
-    string Name { get; }
-
-    Task<object?> ExecuteAsync(object? message, Solution solution, CancellationToken cancellationToken);
+    Task<TResponse> ExecuteAsync(TMessage message, CustomMessageContext context, Document document, CancellationToken cancellationToken);
 }

@@ -24,26 +24,59 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
 #endif
     }
 
-    public ValueTask<string> HandleCustomMessageAsync(
-        Checksum solutionChecksum,
+    public ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
         string assemblyFolderPath,
         string assemblyFileName,
-        string typeFullName,
-        string jsonMessage,
-        DocumentId? documentId,
         CancellationToken cancellationToken)
     {
         var service = this.GetWorkspace().Services.GetRequiredService<ICustomMessageHandlerService>();
         return RunServiceAsync(
-            solutionChecksum,
-            solution => service.HandleCustomMessageAsync(
-                solution,
+            (_) => service.LoadCustomMessageHandlersAsync(
                 assemblyFolderPath,
                 assemblyFileName,
-                typeFullName,
+                cancellationToken),
+            cancellationToken);
+    }
+
+    public ValueTask<string> HandleCustomDocumentMessageAsync(
+        Checksum solutionChecksum,
+        string messageName,
+        string jsonMessage,
+        DocumentId documentId,
+        CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(
+            solutionChecksum,
+            solution =>
+            {
+                var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
+                return service.HandleCustomDocumentMessageAsync(
+                solution,
+                messageName,
                 jsonMessage,
                 documentId,
-                cancellationToken),
+                cancellationToken);
+            },
+            cancellationToken);
+    }
+
+    public ValueTask<string> HandleCustomMessageAsync(
+        Checksum solutionChecksum,
+        string messageName,
+        string jsonMessage,
+        CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(
+            solutionChecksum,
+            solution =>
+            {
+                var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
+                return service.HandleCustomMessageAsync(
+                solution,
+                messageName,
+                jsonMessage,
+                cancellationToken);
+            },
             cancellationToken);
     }
 

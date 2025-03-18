@@ -7,9 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text.Json;
 using System.Threading;
@@ -27,13 +29,23 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
     /// </summary>
     private readonly Dictionary<string, CustomMessageHandlerExtension> _extensions = new();
 
+    /// <summary>
+    /// Handlers of document-related messages, indexed by handler message name.
+    /// </summary>
+    private readonly Dictionary<string, ICustomMessageDocumentHandlerWrapper> _documentHandlers = new();
+
+    /// <summary>
+    /// Handlers of non-document-related messages, indexed by handler message name.
+    /// </summary>
+    private readonly Dictionary<string, ICustomMessageHandlerWrapper> _handlers = new();
+
     private readonly ICustomMessageHandlerFactory _customMessageHandlerFactory;
+
+    private readonly object _lockObject = new();
 
     private readonly AssemblyLoadContext _defaultLoadContext
         = AssemblyLoadContext.GetLoadContext(typeof(CustomMessageHandlerService).Assembly)
         ?? throw new InvalidOperationException($"Cannot get assembly load context for {nameof(CustomMessageHandlerService)}.");
-
-    private readonly object _lockObject = new();
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -42,13 +54,9 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         _customMessageHandlerFactory = customMessageHandlerFactory;
     }
 
-    public async ValueTask<string> HandleCustomMessageAsync(
-        Solution solution,
+    public ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
         string assemblyFolderPath,
         string assemblyFileName,
-        string typeFullName,
-        string jsonMessage,
-        DocumentId? documentId,
         CancellationToken cancellationToken)
     {
 #if DEBUG
@@ -57,14 +65,6 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
 
         var assemblyPath = Path.Combine(assemblyFolderPath, assemblyFileName);
 
-        Document? document = null;
-        if (documentId is not null)
-        {
-            document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(document);
-        }
-
-        ICustomMessageHandlerWrapper? handler;
         CustomMessageHandlerExtension extension;
         lock (_lockObject)
         {
@@ -79,44 +79,94 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
             }
         }
 
-        lock (extension.Handlers)
+        // AssemblyLoadLockObject is only used to avoid multiple calls from the same extensions to load the same assembly concurrently
+        // resulting in the constructors of the same handlers being called more than once.
+        // All other concurrent operations, including modifying extension.Assemblies are protected by _lockObject.
+        lock (extension.AssemblyLoadLockObject)
         {
-            if (!extension.Handlers.TryGetValue(typeFullName, out handler))
+            if (extension.Assemblies.TryGetValue(assemblyFileName, out var extensionAssembly))
             {
+                if (extensionAssembly.HasValue)
+                {
+                    return ValueTask.FromResult<RegisterHandlersResponse>(
+                        new(extensionAssembly.Value.Handlers.ToArray(), extensionAssembly.Value.DocumentHandlers.ToArray()));
+                }
+                else
+                {
+                    throw new InvalidOperationException($"A previous attempt to load {assemblyPath} failed.");
+                }
+            }
+            else
+            {
+                var mustCleanupExtension = false;
                 try
                 {
                     var assembly = extension.AssemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
-                    var type = assembly.GetType(typeFullName)
-                        ?? throw new InvalidOperationException($"Cannot find type {typeFullName} in {assemblyPath}.");
+                    var messageHandlers = _customMessageHandlerFactory.CreateMessageHandlers(assembly)
+                        .ToDictionary(h => h.Name, h => h);
+                    var messageDocumentHandlers = _customMessageHandlerFactory.CreateMessageDocumentHandlers(assembly)
+                        .ToDictionary(h => h.Name, h => h);
 
-                    handler = _customMessageHandlerFactory.Create(type);
-                    extension.Handlers[typeFullName] = handler;
+                    // Important, you can lock _lockObject when holding a lock on AssemblyLoadLockObject, not vice-versa
+                    lock (_lockObject)
+                    {
+                        // Make sure a call to UnloadCustomMessageHandlersAsync hasn't happened while we relinquished the lock on _lockObject
+                        if (!_extensions.TryGetValue(assemblyFolderPath, out var currentExtension) || !currentExtension.Equals(extension))
+                        {
+                            // extension is not in the _extensions dictionary anymore, so it's AssemblyLoadContext must be unloaded
+                            mustCleanupExtension = true;
+                            throw new InvalidOperationException($"{assemblyPath} was unloaded while loading handlers.");
+                        }
+
+                        var duplicateHandler = _handlers.Keys.Intersect(messageHandlers.Keys).Concat(
+                            _documentHandlers.Keys.Intersect(messageHandlers.Keys)).Concat(
+                            _handlers.Keys.Intersect(messageDocumentHandlers.Keys)).Concat(
+                            _documentHandlers.Keys.Intersect(messageDocumentHandlers.Keys)).FirstOrDefault();
+
+                        if (duplicateHandler is not null)
+                        {
+                            throw new InvalidOperationException($"Handler name {duplicateHandler} is already registered.");
+                        }
+
+                        foreach (var handler in messageHandlers)
+                        {
+                            _handlers.Add(handler.Key, handler.Value);
+                        }
+
+                        foreach (var handler in messageDocumentHandlers)
+                        {
+                            _documentHandlers.Add(handler.Key, handler.Value);
+                        }
+
+                        extension.Assemblies[assemblyFileName] = new()
+                        {
+                            Handlers = messageHandlers.Keys.ToHashSet(),
+                            DocumentHandlers = messageDocumentHandlers.Keys.ToHashSet(),
+                        };
+
+                        return ValueTask.FromResult<RegisterHandlersResponse>(
+                            new(messageHandlers.Keys.ToArray(), messageDocumentHandlers.Keys.ToArray()));
+                    }
                 }
                 catch (Exception e)
                 {
                     Logger.Log(
                         FunctionId.CustomMessageHandlerService_HandleCustomMessageAsync,
-                        $"Error creating custom handler {assemblyPath} {typeFullName}: {e}",
+                        $"Error loading handlers from {assemblyPath}: {e}",
                         LogLevel.Error);
 
-                    extension.Handlers[typeFullName] = null;
+                    if (mustCleanupExtension)
+                    {
+                        extension.AssemblyLoadContext.Unload();
+                    }
+                    else
+                    {
+                        extension.Assemblies[assemblyFileName] = null;
+                    }
                     throw;
                 }
             }
-            else if (handler is null)
-            {
-                throw new InvalidOperationException($"A previous attempt to instantiate {typeFullName} in {assemblyPath} failed.");
-            }
         }
-
-        var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
-
-        var result = await handler.ExecuteAsync(message, document, solution, cancellationToken)
-            .ConfigureAwait(false);
-
-        var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
-
-        return responseJson;
 
         Assembly? ResolveExtensionAssembly(AssemblyLoadContext context, AssemblyName assemblyName)
         {
@@ -135,6 +185,62 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         }
     }
 
+    public async ValueTask<string> HandleCustomMessageAsync(
+        Solution solution,
+        string messageName,
+        string jsonMessage,
+        CancellationToken cancellationToken)
+    {
+#if DEBUG
+        System.Diagnostics.Debugger.Launch();
+#endif
+
+        ICustomMessageHandlerWrapper handler;
+        lock (_lockObject)
+        {
+            if (!_handlers.TryGetValue(messageName, out handler!))
+            {
+                throw new InvalidOperationException($"No handler found for message {messageName}.");
+            }
+        }
+
+        var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
+        var result = await handler.ExecuteAsync(message, solution, cancellationToken)
+            .ConfigureAwait(false);
+        var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
+        return responseJson;
+    }
+
+    public async ValueTask<string> HandleCustomDocumentMessageAsync(
+        Solution solution,
+        string messageName,
+        string jsonMessage,
+        DocumentId documentId,
+        CancellationToken cancellationToken)
+    {
+#if DEBUG
+        System.Diagnostics.Debugger.Launch();
+#endif
+
+        var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfNull(document);
+
+        ICustomMessageDocumentHandlerWrapper handler;
+        lock (_lockObject)
+        {
+            if (!_documentHandlers.TryGetValue(messageName, out handler!))
+            {
+                throw new InvalidOperationException($"No document handler found for message {messageName}.");
+            }
+        }
+
+        var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
+        var result = await handler.ExecuteAsync(message, document, solution, cancellationToken)
+            .ConfigureAwait(false);
+        var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
+        return responseJson;
+    }
+
     public ValueTask UnloadCustomMessageHandlersAsync(
         string assemblyFolderPath,
         CancellationToken cancellationToken)
@@ -151,6 +257,22 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                 if (_extensions.TryGetValue(assemblyFolderPath, out extension))
                 {
                     _extensions.Remove(assemblyFolderPath);
+
+                    foreach (var assembly in extension.Assemblies)
+                    {
+                        if (assembly.Value.HasValue)
+                        {
+                            foreach (var handler in assembly.Value.Value.Handlers)
+                            {
+                                _handlers.Remove(handler);
+                            }
+
+                            foreach (var documentHandler in assembly.Value.Value.DocumentHandlers)
+                            {
+                                _documentHandlers.Remove(documentHandler);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -180,20 +302,40 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         {
             extensions = _extensions.Values.ToList();
             _extensions.Clear();
+            _handlers.Clear();
+            _documentHandlers.Clear();
         }
 
         foreach (var extension in extensions)
         {
-            extension.Handlers.Clear();
             extension.AssemblyLoadContext.Unload();
         }
     }
 
-    private readonly struct CustomMessageHandlerExtension(AssemblyLoadContext assemblyLoadContext)
+    private readonly struct CustomMessageHandlerExtension(AssemblyLoadContext assemblyLoadContext) : IEquatable<CustomMessageHandlerExtension>
     {
         public AssemblyLoadContext AssemblyLoadContext { get; } = assemblyLoadContext;
 
-        public Dictionary<string, ICustomMessageHandlerWrapper?> Handlers { get; } = new();
+        public Dictionary<string, CustomMessageHandlerAssembly?> Assemblies { get; } = new();
+
+        public object AssemblyLoadLockObject { get; } = new();
+
+        // Used to avoid race conditions between RegisterHandlersAsync and UnloadCustomMessageHandlersAsync
+        public bool Equals(CustomMessageHandlerExtension other)
+            => ReferenceEquals(Assemblies, other.Assemblies);
+
+        public override bool Equals([NotNullWhen(true)] object? obj)
+            => obj is CustomMessageHandlerExtension other && Equals(other);
+
+        public override int GetHashCode()
+            => RuntimeHelpers.GetHashCode(Assemblies);
+    }
+
+    private readonly struct CustomMessageHandlerAssembly
+    {
+        public required HashSet<string> DocumentHandlers { get; init; }
+
+        public required HashSet<string> Handlers { get; init; }
     }
 }
 #endif
