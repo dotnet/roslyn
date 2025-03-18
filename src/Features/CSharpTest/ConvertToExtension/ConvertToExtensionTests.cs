@@ -381,4 +381,108 @@ public sealed class ConvertToExtensionTests
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestSimpleGrouping1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class C
+                {
+                    [||]public static void M(this int i) { }
+                    public static void N(this int i) { }
+                }
+                """,
+            FixedCode = """
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping1_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class C
+                {
+                    public static void M(this int i) { }
+                    [||]public static void N(this int i) { }
+                }
+                """,
+            FixedCode = """
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class C
+                {
+                    [||]public static void M(this int i) { }
+                    public static void N(this int i, string s) { }
+                }
+                """,
+            FixedCode = """
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M() { }
+                        public void N(string s) { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping2_A()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class C
+                {
+                    public static void M(this int i) { }
+                    [||]public static void N(this int i, string s) { }
+                }
+                """,
+            FixedCode = """
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M() { }
+                        public void N(string s) { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
 }
