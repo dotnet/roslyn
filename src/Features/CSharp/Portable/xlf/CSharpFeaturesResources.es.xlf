@@ -143,8 +143,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Convert_0_extension_methods_to_extension">
-        <source>Convert '0' extension methods to extension</source>
-        <target state="new">Convert '0' extension methods to extension</target>
+        <source>Convert '{0}' extension methods to extension</source>
+        <target state="new">Convert '{0}' extension methods to extension</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_0_to_record">
