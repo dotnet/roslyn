@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -240,12 +239,10 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         MethodDeclarationSyntax ConvertExtensionMethod(
             ExtensionMethodInfo extensionMethodInfo, int index)
         {
-            using var _ = PooledHashSet<string>.GetInstance(out var typeParametersToRemove);
-
             var converted = extensionMethodInfo.ExtensionMethod
                 .WithParameterList(ConvertParameters(extensionMethodInfo))
-                .WithTypeParameterList(ConvertTypeParameters(extensionMethodInfo, typeParametersToRemove))
-                .WithConstraintClauses(ConvertConstraintClauses(extensionMethodInfo, typeParametersToRemove));
+                .WithTypeParameterList(ConvertTypeParameters(extensionMethodInfo))
+                .WithConstraintClauses(ConvertConstraintClauses(extensionMethodInfo));
 
             if (index == 0)
                 converted = converted.GetNodeWithoutLeadingBlankLines();
@@ -267,49 +264,37 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
     }
 
     private static TypeParameterListSyntax? ConvertTypeParameters(
-        ExtensionMethodInfo extensionMethodInfo,
-        HashSet<string> typeParametersToRemove)
+        ExtensionMethodInfo extensionMethodInfo)
     {
         var extensionMethod = extensionMethodInfo.ExtensionMethod;
+        var movedTypeParameterCount = extensionMethodInfo.MethodTypeParameters.Length;
 
         // If the extension method wasn't generic, or we're not removing any type parameters, there's nothing to do.
-        if (extensionMethod.TypeParameterList is null || typeParametersToRemove.Count == 0)
+        if (extensionMethod.TypeParameterList is null || movedTypeParameterCount == 0)
             return extensionMethod.TypeParameterList;
 
         // If we're removing all the type parameters, remove the type parameter list entirely.
-        if (typeParametersToRemove.Count == extensionMethod.TypeParameterList.Parameters.Count)
+        if (extensionMethodInfo.MethodTypeParameters.Length == movedTypeParameterCount)
             return null;
 
-        using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var newTypeParameters);
-        var nodesAndTokens = extensionMethod.TypeParameterList.Parameters.GetWithSeparators();
-
-        for (var i = 0; i < nodesAndTokens.Count; i += 2)
-        {
-            var typeParameter = (TypeParameterSyntax)nodesAndTokens[i]!;
-            if (typeParametersToRemove.Contains(typeParameter.Identifier.ValueText))
-                continue;
-
-            // Add preceding comma if needed.  Note: this will always succeed as we can only have a prior
-            // newTypeParameter if we hit a type parameter before us that we want to keep.
-            if (newTypeParameters.Count > 0)
-                newTypeParameters.Add(nodesAndTokens[i - 1]);
-
-            newTypeParameters.Add(typeParameter);
-        }
-
-        return extensionMethod.TypeParameterList.WithParameters(SeparatedList<TypeParameterSyntax>(newTypeParameters));
+        // We want to remove the type parameter and the comma that follows it.  So we multiple the count of type
+        // parameters we're removing by two to grab both.
+        return extensionMethod.TypeParameterList.WithParameters(SeparatedList<TypeParameterSyntax>(
+            extensionMethod.TypeParameterList.Parameters.GetWithSeparators().Skip(movedTypeParameterCount * 2)));
     }
 
     private static SyntaxList<TypeParameterConstraintClauseSyntax> ConvertConstraintClauses(
-        ExtensionMethodInfo extensionMethodInfo,
-        HashSet<string> typeParametersToRemove)
+        ExtensionMethodInfo extensionMethodInfo)
     {
         var extensionMethod = extensionMethodInfo.ExtensionMethod;
+        var movedTypeParameterCount = extensionMethodInfo.MethodTypeParameters.Length;
 
         // If the extension method had no constraints, or we're not removing any type parameters, there's nothing to do.
-        if (extensionMethod.ConstraintClauses.Count == 0 || typeParametersToRemove.Count == 0)
+        if (extensionMethod.ConstraintClauses.Count == 0 || movedTypeParameterCount == 0)
             return extensionMethod.ConstraintClauses;
 
-        return [.. extensionMethod.ConstraintClauses.Where(c => !typeParametersToRemove.Contains(c.Name.Identifier.ValueText))];
+        // Remove clauses referring to type parameters that are being moved to the extension method.
+        return [.. extensionMethod.ConstraintClauses.Where(
+            c => !extensionMethodInfo.MethodTypeParameters.Any(t => t.Name == c.Name.Identifier.ValueText))];
     }
 }
