@@ -135,26 +135,30 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         var cancellationToken = context.CancellationToken;
 
         var document = context.Document;
+
+        // Only offer if the user us on C# 14 or later where extension types are supported.
         if (!document.Project.ParseOptions!.LanguageVersion().SupportsExtensions())
             return;
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var methodDeclaration = await context.TryGetRelevantNodeAsync<MethodDeclarationSyntax>().ConfigureAwait(false);
 
+        // If the user is on an extension method itself, offer to convert all the extension methods in the containing
+        // class with the same receiver parameter to an extension.
         if (methodDeclaration != null)
         {
-            var extensionInfo = TryGetExtensionMethodInfo(semanticModel, methodDeclaration, cancellationToken);
-            if (extensionInfo == null)
+            var specificExtension = TryGetExtensionMethodInfo(semanticModel, methodDeclaration, cancellationToken);
+            if (specificExtension == null)
                 return;
 
             var allExtensionMethods = GetAllExtensionMethods(
-                semanticModel, extensionInfo.Value.ClassDeclaration, cancellationToken);
+                semanticModel, specificExtension.Value.ClassDeclaration, cancellationToken);
 
             // Offer to change all the extension methods that match this particular parameter
             context.RegisterRefactoring(CodeAction.Create(
-                string.Format(CSharpFeaturesResources.Convert_0_extension_methods_to_extension, extensionInfo.Value.FirstParameter.Type.ToDisplayString()),
+                string.Format(CSharpFeaturesResources.Convert_0_extension_methods_to_extension, specificExtension.Value.FirstParameter.Type.ToDisplayString()),
                 cancellationToken => ConvertToExtensionAsync(
-                    document, extensionInfo.Value.ClassDeclaration, allExtensionMethods, extensionInfo, cancellationToken),
+                    document, specificExtension.Value.ClassDeclaration, allExtensionMethods, specificExtension, cancellationToken),
                 CSharpFeaturesResources.Convert_0_extension_methods_to_extension));
         }
         else
@@ -211,13 +215,17 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         Contract.ThrowIfTrue(allExtensionMethods.IsEmpty);
 
         var classDeclarationEditor = new SyntaxEditor(classDeclaration, CSharpSyntaxGenerator.Instance);
+
         if (specificExtension != null)
         {
+            // If we were invoked on a specific extension, then only convert the extensions in this class with the same
+            // receiver parameter.
             var matchingExtensions = allExtensionMethods[specificExtension.Value];
             ConvertAndReplaceExtensions(matchingExtensions);
         }
         else
         {
+            // Otherwise, convert all the extension methods in this class.
             foreach (var (_, matchingExtensions) in allExtensionMethods)
                 ConvertAndReplaceExtensions(matchingExtensions);
         }
@@ -228,8 +236,11 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         {
             var newExtension = CreateExtension(extensionMethods);
 
+            // Replace the first extension method in the group (which will always be earliest in the class decl) with
+            // the new extension declaration itself.
             classDeclarationEditor.ReplaceNode(extensionMethods.First().ExtensionMethod, newExtension);
 
+            // Then remove the rest of the extensions in the group.
             foreach (var siblingExtension in extensionMethods.Skip(1))
                 classDeclarationEditor.RemoveNode(siblingExtension.ExtensionMethod);
         }
@@ -277,9 +288,13 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
                 .WithTypeParameterList(ConvertTypeParameters(extensionMethodInfo))
                 .WithConstraintClauses(ConvertConstraintClauses(extensionMethodInfo));
 
+            // remove 'static' from the classic extension method, now that it is in the extension declaration. it
+            // represents an 'instance' method in the new form.
             converted = (MethodDeclarationSyntax)CSharpSyntaxGenerator.Instance.WithModifiers(converted,
                 CSharpSyntaxGenerator.Instance.GetModifiers(converted).WithIsStatic(false));
 
+            // If we're on the first extension method in the group, then remove its leading blank lines.  Those will be
+            // moved to the extension declaration itself.
             if (index == 0)
                 converted = converted.GetNodeWithoutLeadingBlankLines();
 
@@ -288,49 +303,47 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             // method to indent it instead.
             return converted.WithAdditionalAnnotations(Formatter.Annotation);
         }
-    }
 
-    private static ParameterListSyntax ConvertParameters(ExtensionMethodInfo extensionMethodInfo)
-    {
-        var extensionMethod = extensionMethodInfo.ExtensionMethod;
+        static ParameterListSyntax ConvertParameters(ExtensionMethodInfo extensionMethodInfo)
+        {
+            // skip the first parameter, which is the 'this' parameter, and the comma that follows it.
+            return extensionMethodInfo.ExtensionMethod.ParameterList.WithParameters(SeparatedList<ParameterSyntax>(
+                extensionMethodInfo.ExtensionMethod.ParameterList.Parameters.GetWithSeparators().Skip(2)));
+        }
 
-        // skip the first parameter, which is the 'this' parameter, and the comma that follows it.
-        return extensionMethod.ParameterList.WithParameters(SeparatedList<ParameterSyntax>(
-            extensionMethodInfo.ExtensionMethod.ParameterList.Parameters.GetWithSeparators().Skip(2)));
-    }
+        static TypeParameterListSyntax? ConvertTypeParameters(
+            ExtensionMethodInfo extensionMethodInfo)
+        {
+            var extensionMethod = extensionMethodInfo.ExtensionMethod;
+            var movedTypeParameterCount = extensionMethodInfo.MethodTypeParameters.Length;
 
-    private static TypeParameterListSyntax? ConvertTypeParameters(
-        ExtensionMethodInfo extensionMethodInfo)
-    {
-        var extensionMethod = extensionMethodInfo.ExtensionMethod;
-        var movedTypeParameterCount = extensionMethodInfo.MethodTypeParameters.Length;
+            // If the extension method wasn't generic, or we're not removing any type parameters, there's nothing to do.
+            if (extensionMethod.TypeParameterList is null || movedTypeParameterCount == 0)
+                return extensionMethod.TypeParameterList;
 
-        // If the extension method wasn't generic, or we're not removing any type parameters, there's nothing to do.
-        if (extensionMethod.TypeParameterList is null || movedTypeParameterCount == 0)
-            return extensionMethod.TypeParameterList;
+            // If we're removing all the type parameters, remove the type parameter list entirely.
+            if (extensionMethod.TypeParameterList.Parameters.Count == movedTypeParameterCount)
+                return null;
 
-        // If we're removing all the type parameters, remove the type parameter list entirely.
-        if (extensionMethod.TypeParameterList.Parameters.Count == movedTypeParameterCount)
-            return null;
+            // We want to remove the type parameter and the comma that follows it.  So we multiple the count of type
+            // parameters we're removing by two to grab both.
+            return extensionMethod.TypeParameterList.WithParameters(SeparatedList<TypeParameterSyntax>(
+                extensionMethod.TypeParameterList.Parameters.GetWithSeparators().Skip(movedTypeParameterCount * 2)));
+        }
 
-        // We want to remove the type parameter and the comma that follows it.  So we multiple the count of type
-        // parameters we're removing by two to grab both.
-        return extensionMethod.TypeParameterList.WithParameters(SeparatedList<TypeParameterSyntax>(
-            extensionMethod.TypeParameterList.Parameters.GetWithSeparators().Skip(movedTypeParameterCount * 2)));
-    }
+        static SyntaxList<TypeParameterConstraintClauseSyntax> ConvertConstraintClauses(
+            ExtensionMethodInfo extensionMethodInfo)
+        {
+            var extensionMethod = extensionMethodInfo.ExtensionMethod;
+            var movedTypeParameterCount = extensionMethodInfo.MethodTypeParameters.Length;
 
-    private static SyntaxList<TypeParameterConstraintClauseSyntax> ConvertConstraintClauses(
-        ExtensionMethodInfo extensionMethodInfo)
-    {
-        var extensionMethod = extensionMethodInfo.ExtensionMethod;
-        var movedTypeParameterCount = extensionMethodInfo.MethodTypeParameters.Length;
+            // If the extension method had no constraints, or we're not removing any type parameters, there's nothing to do.
+            if (extensionMethod.ConstraintClauses.Count == 0 || movedTypeParameterCount == 0)
+                return extensionMethod.ConstraintClauses;
 
-        // If the extension method had no constraints, or we're not removing any type parameters, there's nothing to do.
-        if (extensionMethod.ConstraintClauses.Count == 0 || movedTypeParameterCount == 0)
-            return extensionMethod.ConstraintClauses;
-
-        // Remove clauses referring to type parameters that are being moved to the extension method.
-        return [.. extensionMethod.ConstraintClauses.Where(
-            c => !extensionMethodInfo.MethodTypeParameters.Any(t => t.Name == c.Name.Identifier.ValueText))];
+            // Remove clauses referring to type parameters that are being moved to the extension method.
+            return [.. extensionMethod.ConstraintClauses.Where(
+                c => !extensionMethodInfo.MethodTypeParameters.Any(t => t.Name == c.Name.Identifier.ValueText))];
+        }
     }
 }
