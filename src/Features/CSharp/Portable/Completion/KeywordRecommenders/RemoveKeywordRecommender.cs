@@ -8,13 +8,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class RemoveKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class RemoveKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.RemoveKeyword)
 {
-    public RemoveKeywordRecommender()
-        : base(SyntaxKind.RemoveKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         => context.TargetToken.IsAccessorDeclarationContext<EventDeclarationSyntax>(position, SyntaxKind.RemoveKeyword);
 }

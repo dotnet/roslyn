@@ -27,6 +27,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     /// </summary>
     private readonly Lazy<IRequestExecutionQueue<TRequestContext>> _queue;
     private readonly Lazy<ILspServices> _lspServices;
+    private readonly Lazy<AbstractHandlerProvider> _handlerProvider;
 
     public bool IsInitialized { get; private set; }
 
@@ -67,6 +68,13 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
         _lspServices = new Lazy<ILspServices>(() => ConstructLspServices());
         _queue = new Lazy<IRequestExecutionQueue<TRequestContext>>(() => ConstructRequestExecutionQueue());
+        _handlerProvider = new Lazy<AbstractHandlerProvider>(() =>
+        {
+            var lspServices = _lspServices.Value;
+            var handlerProvider = new HandlerProvider(lspServices, TypeRefResolver);
+            SetupRequestDispatcher(handlerProvider);
+            return handlerProvider;
+        });
     }
 
     /// <summary>
@@ -89,10 +97,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     {
         get
         {
-            var lspServices = _lspServices.Value;
-            var handlerProvider = new HandlerProvider(lspServices, TypeRefResolver);
-            SetupRequestDispatcher(handlerProvider);
-            return handlerProvider;
+            return _handlerProvider.Value;
         }
     }
 

@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
@@ -189,5 +188,5 @@ internal interface ICodeGenerationService : ILanguageService
     /// then the declaration in the same file, then non auto-generated file,
     /// then all the potential location. Return null if no declaration.
     /// </summary>
-    Task<SyntaxNode?> FindMostRelevantNameSpaceOrTypeDeclarationAsync(Solution solution, INamespaceOrTypeSymbol namespaceOrType, Location? location, CancellationToken cancellationToken);
+    SyntaxNode? FindMostRelevantNameSpaceOrTypeDeclaration(Solution solution, INamespaceOrTypeSymbol namespaceOrType, Location? location, CancellationToken cancellationToken);
 }

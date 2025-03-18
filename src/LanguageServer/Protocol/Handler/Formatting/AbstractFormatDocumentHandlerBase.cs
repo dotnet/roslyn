@@ -7,10 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -23,11 +24,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         protected static async Task<LSP.TextEdit[]?> GetTextEditsAsync(
             RequestContext context,
             LSP.FormattingOptions options,
+            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken,
             LSP.Range? range = null)
         {
-            var document = context.Document;
-            if (document is null)
+            if (context.Document is not { } document)
                 return null;
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -38,9 +39,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // We should use the options passed in by LSP instead of the document's options.
             var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(options, document, cancellationToken).ConfigureAwait(false);
-
             var services = document.Project.Solution.Services;
-            var textChanges = Formatter.GetFormattedTextChanges(root, [formattingSpan], services, formattingOptions, rules: default, cancellationToken);
+            var formattingChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), services, formattingOptions, cancellationToken);
+
+            // We only organize the imports when formatting the entire document. This means we can stop
+            // if we are provided a range or sorting imports is disabled/
+            if (range is not null || !globalOptions.GetOption(LspOptionsStorage.LspOrganizeImportsOnFormat, document.Project.Language))
+            {
+                return [.. formattingChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text))];
+            }
+
+            var formattedDocument = document.WithText(text.WithChanges(formattingChanges));
+
+            var organizeImports = formattedDocument.GetRequiredLanguageService<IOrganizeImportsService>();
+            var organizeImportsOptions = await formattedDocument.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var organizedDocument = await organizeImports.OrganizeImportsAsync(formattedDocument, organizeImportsOptions, cancellationToken).ConfigureAwait(false);
+
+            var textChanges = await organizedDocument.GetTextChangesAsync(context.Document).ConfigureAwait(false);
             return [.. textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text))];
         }
 

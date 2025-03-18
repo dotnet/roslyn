@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Utilities;
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 }
 
                 var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, [diagnostic], CancellationToken.None).GetAwaiter().GetResult();
-                if (fixes == null || fixes.Count() <= 0)
+                if (fixes == null || fixes.Length <= 0)
                 {
                     continue;
                 }

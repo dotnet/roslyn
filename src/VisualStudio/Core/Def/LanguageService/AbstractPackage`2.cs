@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -25,10 +24,11 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     where TPackage : AbstractPackage<TPackage, TLanguageService>
     where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
 {
-    private TLanguageService _languageService;
+    private TLanguageService? _languageService;
 
-    private PackageInstallerService _packageInstallerService;
-    private VisualStudioSymbolSearchService _symbolSearchService;
+    private PackageInstallerService? _packageInstallerService;
+    private VisualStudioSymbolSearchService? _symbolSearchService;
+    private IVsShell? _shell;
 
     protected AbstractPackage()
     {
@@ -40,11 +40,13 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var shell = (IVsShell7)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-        var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
-        cancellationToken.ThrowIfCancellationRequested();
+        var shell = (IVsShell7?)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+        var solution = (IVsSolution?)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
         Assumes.Present(shell);
         Assumes.Present(solution);
+
+        _shell = (IVsShell?)shell;
+        Assumes.Present(_shell);
 
         foreach (var editorFactory in CreateEditorFactories())
         {
@@ -61,7 +63,7 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             _languageService = CreateLanguageService();
             await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
 
-            return _languageService.ComAggregate;
+            return _languageService.ComAggregate!;
         });
 
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
@@ -69,11 +71,11 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
         RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
-        if (!IVsShellExtensions.IsInCommandLineMode(JoinableTaskFactory))
+        if (!_shell.IsInCommandLineMode())
         {
             // not every derived package support object browser and for those languages
             // this is a no op
-            await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
+            RegisterObjectBrowserLibraryManager();
         }
 
         LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
@@ -117,9 +119,11 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     {
         if (disposing)
         {
-            if (!IVsShellExtensions.IsInCommandLineMode(JoinableTaskFactory))
+            // Per VS core team, Package.Dispose is called on the UI thread.
+            Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
+            if (_shell != null && !_shell.IsInCommandLineMode())
             {
-                JoinableTaskFactory.Run(async () => await UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None).ConfigureAwait(true));
+                UnregisterObjectBrowserLibraryManager();
             }
 
             // If we've created the language service then tell it it's time to clean itself up now.
@@ -135,17 +139,15 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
     protected abstract string RoslynLanguageName { get; }
 
-    protected virtual Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+    protected virtual void RegisterObjectBrowserLibraryManager()
     {
         // it is virtual rather than abstract to not break other languages which derived from our
         // base package implementations
-        return Task.CompletedTask;
     }
 
-    protected virtual Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
+    protected virtual void UnregisterObjectBrowserLibraryManager()
     {
         // it is virtual rather than abstract to not break other languages which derived from our
         // base package implementations
-        return Task.CompletedTask;
     }
 }

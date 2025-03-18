@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot</RootNamespace>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot</PackageId>
+    <PackageDescription>
+      A supporting package for the GitHub Copilot in Visual Studio Code.
+    </PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      ⚠ ONLY COPILOT ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.LanguageServer" Key="$(CopilotKey)" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" PrivateAssets="all" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="InternalAPI.Shipped.txt" />
+    <PublicAPI Include="InternalAPI.Unshipped.txt" />
+  </ItemGroup>
+
+</Project>

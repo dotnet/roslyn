@@ -147,6 +147,10 @@
   <!-- Workaround to fix https://github.com/dotnet/msbuild/issues/10306 -->
   <Target Name="ExtensionJsonOutputGroupFixed" Returns="@(ExtensionJsonOutputGroupOutput)" DependsOnTargets="PrepareResources;ExtensionJsonOutputGroup" />
 
+  <!-- Import workarounds for the fast up to date check, but only if VsSdkTargetsImported is set which is set in the VS SDK targets themselves;
+       if we don't have that condition, we might try to include it when we don't have some targets we depend on, and things will break -->
+  <Import Project="VisualStudio.FastUpToDateCheckWorkarounds.targets" Condition="'$(VsSdkTargetsImported)' == 'true'"/>
+
   <!--
     Workaround for missing dependency publishing feature in the VS SDK.
     
@@ -161,6 +165,7 @@
   
   <PropertyGroup>
     <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);PublishProjectReferencesForVsixCreation</CreateVsixContainerDependsOn>
+    <CollectUpToDateCheckInputDesignTimeDependsOn>$(CollectUpToDateCheckInputDesignTimeDependsOn);AddUpToDateCheckItemsForPublishProjectReferences</CollectUpToDateCheckInputDesignTimeDependsOn>
   </PropertyGroup>
 
   <Target Name="PublishProjectReferencesForVsixCreation">
@@ -173,5 +178,23 @@
              Properties="%(_ProjectsToPublish.SetConfiguration);%(_ProjectsToPublish.SetPlatform);%(_ProjectsToPublish.SetTargetFramework)"
              Targets="PublishVsixItems"
              RebaseOutputs="true" />
+  </Target>
+
+  <Target Name="AddUpToDateCheckItemsForPublishProjectReferences">
+    <ItemGroup>
+      <_ProjectsToPublishForUpToDateCheck Include="@(ProjectReference)" Condition="$([MSBuild]::ValueOrDefault('%(ProjectReference.IncludeOutputGroupsInVSIX)', '').Contains('PublishedProjectOutputGroup'))"/>
+    </ItemGroup>
+    <MSBuild Projects="@(_ProjectsToPublishForUpToDateCheck)"
+           BuildInParallel="$(BuildInParallel)"
+           Properties="%(_ProjectsToPublishForUpToDateCheck.SetConfiguration);%(_ProjectsToPublishForUpToDateCheck.SetPlatform);%(_ProjectsToPublishForUpToDateCheck.SetTargetFramework)"
+           Targets="PublishItemsOutputGroup"
+           RebaseOutputs="true"
+           ContinueOnError="$(ContinueOnError)">
+      <Output TaskParameter="TargetOutputs" ItemName="_PublishUpToDateInputs" />
+    </MSBuild>
+
+    <ItemGroup>
+      <UpToDateCheckInput Include="@(_PublishUpToDateInputs)" Set="VSIX" />
+    </ItemGroup>
   </Target>
 </Project>

@@ -1343,11 +1343,11 @@ class C
             WithRuntimeInstance(compilation0, runtime =>
             {
                 ImmutableArray<MetadataBlock> blocks;
-                Guid moduleVersionId;
+                ModuleId moduleId;
                 ISymUnmanagedReader symReader;
                 int methodToken;
                 int localSignatureToken;
-                GetContextState(runtime, "C.<M>d__0.MoveNext", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+                GetContextState(runtime, "C.<M>d__0.MoveNext", out blocks, out moduleId, out symReader, out methodToken, out localSignatureToken);
 
                 var appDomain = new AppDomain();
                 uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 100);
@@ -1355,7 +1355,7 @@ class C
                     appDomain,
                     blocks,
                     symReader,
-                    moduleVersionId,
+                    moduleId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: ilOffset,
@@ -1373,7 +1373,7 @@ class C
                     appDomain,
                     blocks,
                     symReader,
-                    moduleVersionId,
+                    moduleId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: ilOffset,

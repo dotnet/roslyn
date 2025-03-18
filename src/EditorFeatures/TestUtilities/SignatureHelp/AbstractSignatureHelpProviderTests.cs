@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -182,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         private static void CompareAndAssertCollectionsAndCurrentParameter(
             IEnumerable<SignatureHelpTestItem> expectedTestItems, SignatureHelpItems actualSignatureHelpItems)
         {
-            Assert.True(expectedTestItems.Count() == actualSignatureHelpItems.Items.Count(), $"Expected {expectedTestItems.Count()} items, but got {actualSignatureHelpItems.Items.Count()}");
+            Assert.True(expectedTestItems.Count() == actualSignatureHelpItems.Items.Count, $"Expected {expectedTestItems.Count()} items, but got {actualSignatureHelpItems.Items.Count}");
 
             for (var i = 0; i < expectedTestItems.Count(); i++)
             {

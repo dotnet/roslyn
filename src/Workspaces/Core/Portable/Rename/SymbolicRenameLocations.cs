@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -39,7 +38,7 @@ internal sealed partial class SymbolicRenameLocations
         ImmutableArray<ReferenceLocation> implicitLocations,
         ImmutableArray<ISymbol> referencedSymbols)
     {
-        Debug.Assert(locations.Distinct().Count() == locations.Length, "Locations should be unique");
+        Debug.Assert(locations.Distinct().Length == locations.Length, "Locations should be unique");
         Contract.ThrowIfTrue(locations.IsDefault);
         Contract.ThrowIfTrue(implicitLocations.IsDefault);
         Contract.ThrowIfTrue(referencedSymbols.IsDefault);

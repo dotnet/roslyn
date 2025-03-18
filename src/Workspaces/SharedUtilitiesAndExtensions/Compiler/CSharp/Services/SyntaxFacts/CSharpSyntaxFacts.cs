@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,12 +23,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
-internal class CSharpSyntaxFacts : ISyntaxFacts
+internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 {
     internal static readonly CSharpSyntaxFacts Instance = new();
-
-    // Specifies false for trimOnFree as these objects commonly exceed the default ObjectPool threshold
-    private static readonly ObjectPool<List<SyntaxNode>> s_syntaxNodeListPool = new ObjectPool<List<SyntaxNode>>(() => [], trimOnFree: false);
 
     protected CSharpSyntaxFacts()
     {
@@ -75,6 +73,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     public bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options)
         => options.LanguageVersion() >= LanguageVersion.CSharp10;
+
+    public bool SupportsFieldExpression(ParseOptions options)
+        => options.LanguageVersion() >= LanguageVersionExtensions.CSharpNext;
 
     public SyntaxToken ParseToken(string text)
         => SyntaxFactory.ParseToken(text);
@@ -728,11 +729,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     }
 
     public bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node)
-    {
-        return node is BaseNamespaceDeclarationSyntax or
-               TypeDeclarationSyntax or
-               EnumDeclarationSyntax;
-    }
+        => node is BaseNamespaceDeclarationSyntax or BaseTypeDeclarationSyntax;
 
     private const string dotToken = ".";
 
@@ -885,30 +882,10 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         }
     }
 
-    public PooledObject<List<SyntaxNode>> GetTopLevelAndMethodLevelMembers(SyntaxNode? root)
-    {
-        var pooledObject = s_syntaxNodeListPool.GetPooledObject();
-        var list = pooledObject.Object;
-
-        AppendMembers(root, list, topLevel: true, methodLevel: true);
-
-        return pooledObject;
-    }
-
-    public PooledObject<List<SyntaxNode>> GetMethodLevelMembers(SyntaxNode? root)
-    {
-        var pooledObject = s_syntaxNodeListPool.GetPooledObject();
-        var list = pooledObject.Object;
-
-        AppendMembers(root, list, topLevel: false, methodLevel: true);
-
-        return pooledObject;
-    }
-
     public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
         => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
-    private void AppendMembers(SyntaxNode? node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
+    protected override void AppendMembers(SyntaxNode? node, ArrayBuilder<SyntaxNode> list, bool topLevel, bool methodLevel)
     {
         Debug.Assert(topLevel || methodLevel);
 
@@ -935,52 +912,18 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node)
     {
         if (node.Span.IsEmpty)
-        {
             return default;
-        }
 
         var member = GetContainingMemberDeclaration(node, node.SpanStart);
         if (member == null)
-        {
             return default;
-        }
 
         // TODO: currently we only support method for now
-        if (member is BaseMethodDeclarationSyntax method)
-        {
-            if (method.Body == null)
-            {
-                return default;
-            }
-
-            return GetBlockBodySpan(method.Body);
-        }
+        if (member is BaseMethodDeclarationSyntax { Body: not null } method)
+            return TextSpan.FromBounds(method.Body.OpenBraceToken.Span.End, method.Body.CloseBraceToken.SpanStart);
 
         return default;
     }
-
-    public bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span)
-    {
-        switch (node)
-        {
-            case ConstructorDeclarationSyntax constructor:
-                return (constructor.Body != null && GetBlockBodySpan(constructor.Body).Contains(span)) ||
-                       (constructor.Initializer != null && constructor.Initializer.Span.Contains(span));
-            case BaseMethodDeclarationSyntax method:
-                return method.Body != null && GetBlockBodySpan(method.Body).Contains(span);
-            case BasePropertyDeclarationSyntax property:
-                return property.AccessorList != null && property.AccessorList.Span.Contains(span);
-            case EnumMemberDeclarationSyntax @enum:
-                return @enum.EqualsValue != null && @enum.EqualsValue.Span.Contains(span);
-            case BaseFieldDeclarationSyntax field:
-                return field.Declaration != null && field.Declaration.Span.Contains(span);
-        }
-
-        return false;
-    }
-
-    private static TextSpan GetBlockBodySpan(BlockSyntax body)
-        => TextSpan.FromBounds(body.OpenBraceToken.Span.End, body.CloseBraceToken.SpanStart);
 
     public SyntaxNode? TryGetBindableParent(SyntaxToken token)
     {

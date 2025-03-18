@@ -6,8 +6,6 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -143,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             [MethodImpl(MethodImplOptions.NoInlining)]
             private static void ThrowFailedTransferExceptionForCapture()
-                => throw new InvalidOperationException($"Code cannot switch to the main thread without configuring the {nameof(IThreadingContext)}.");
+                => throw new InvalidOperationException($"Code cannot switch to the main thread without configuring IThreadingContext.");
         }
     }
 }

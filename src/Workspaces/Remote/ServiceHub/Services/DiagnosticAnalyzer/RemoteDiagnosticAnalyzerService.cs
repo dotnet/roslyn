@@ -8,13 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
-using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -67,7 +64,6 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
                         arguments.ProjectAnalyzerIds, arguments.HostAnalyzerIds, documentAnalysisKind,
                         _analyzerInfoCache, hostWorkspaceServices,
                         isExplicit: arguments.IsExplicit,
-                        reportSuppressedDiagnostics: arguments.ReportSuppressedDiagnostics,
                         logPerformanceInfo: arguments.LogPerformanceInfo,
                         getTelemetryInfo: arguments.GetTelemetryInfo,
                         cancellationToken).ConfigureAwait(false);

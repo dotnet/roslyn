@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -44,12 +43,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document is null)
                 return null;
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-
-            if (string.IsNullOrEmpty(request.Character) || SyntaxFacts.IsNewLine(request.Character[0]))
+            if (string.IsNullOrEmpty(request.Character))
             {
                 return [];
             }
+
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var formattingService = document.Project.Services.GetRequiredService<ISyntaxFormattingService>();
             var documentSyntax = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
@@ -70,6 +69,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (textChanges.IsEmpty)
             {
                 return [];
+            }
+
+            if (SyntaxFacts.IsNewLine(request.Character[0]))
+            {
+                // When formatting after a newline is pressed, the cursor line will be all whitespace
+                // and we do not want to remove the indentation from it.
+                //
+                // Take the following example of pressing enter after an opening brace.
+                //
+                // ```
+                //    public void M() {||}
+                // ```
+                //
+                // The editor moves the cursor to the next line and uses it's languageconfig to add
+                // the appropriate level of indentation.
+                //
+                // ```
+                //     public void M() {
+                //         ||
+                //     }
+                // ```
+                //
+                // At this point `formatOnType` is called. The formatting service will generate two
+                // text changes. The first moves the opening brace to a new line with proper
+                // indentation. The second removes the whitespace from the cursor line and rewrites
+                // the indentation prior to the closing brace.
+                // 
+                // Letting the second change go through would be a bad experience for the user as they
+                // will now be responsible for adding back the proper indentation.
+
+                textChanges = textChanges.WhereAsArray(static (change, position) => !change.Span.Contains(position), position);
             }
 
             return [.. textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, documentSyntax.Text))];

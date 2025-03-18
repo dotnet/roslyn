@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -53,7 +51,7 @@ internal sealed partial class CSharpSemanticFactsService : AbstractSemanticFacts
 
         // Some symbols in the enclosing block could cause conflicts even if they are not available at the location.
         // E.g. symbols inside if statements / try catch statements.
-        var symbolsInBlock = semanticModel.GetExistingSymbols(container, cancellationToken,
+        var symbolsInBlock = semanticModel.GetAllDeclaredSymbols(container, cancellationToken,
             descendInto: n => ShouldDescendInto(n));
 
         return symbolsInBlock.Concat(visibleSymbols);

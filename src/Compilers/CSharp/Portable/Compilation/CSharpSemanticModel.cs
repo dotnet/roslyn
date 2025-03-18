@@ -1679,7 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (name == null)
-                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: default(VoidResult));
+                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: 0);
 
             return results.ToImmutableAndFree();
         }
@@ -3534,7 +3534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (conversion.ConversionKind.IsUserDefinedConversion())
                         {
-                            GetSymbolsAndResultKind(conversion, conversion.SymbolOpt, conversion.OriginalUserDefinedConversionsOpt, out symbols, out resultKind);
+                            GetSymbolsAndResultKind(conversion, conversion.SymbolOpt, conversion.Conversion.OriginalUserDefinedConversions, out symbols, out resultKind);
                         }
                         else
                         {

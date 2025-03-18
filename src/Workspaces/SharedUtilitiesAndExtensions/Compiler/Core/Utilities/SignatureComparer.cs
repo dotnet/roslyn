@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
@@ -103,34 +104,28 @@ internal sealed class SignatureComparer
     }
 
     public bool HaveSameSignature(
-        IList<IParameterSymbol> parameters1,
-        IList<IParameterSymbol> parameters2)
+        ImmutableArray<IParameterSymbol> parameters1,
+        ImmutableArray<IParameterSymbol> parameters2)
     {
-        if (parameters1.Count != parameters2.Count)
-        {
+        if (parameters1.Length != parameters2.Length)
             return false;
-        }
 
         return parameters1.SequenceEqual(parameters2, this.ParameterEquivalenceComparer);
     }
 
     public bool HaveSameSignature(
-        IList<IParameterSymbol> parameters1,
-        IList<IParameterSymbol> parameters2,
+        ImmutableArray<IParameterSymbol> parameters1,
+        ImmutableArray<IParameterSymbol> parameters2,
         bool compareParameterName,
         bool isCaseSensitive)
     {
-        if (parameters1.Count != parameters2.Count)
-        {
+        if (parameters1.Length != parameters2.Length)
             return false;
-        }
 
-        for (var i = 0; i < parameters1.Count; ++i)
+        for (var i = 0; i < parameters1.Length; ++i)
         {
             if (!_symbolEquivalenceComparer.ParameterEquivalenceComparer.Equals(parameters1[i], parameters2[i], compareParameterName, isCaseSensitive))
-            {
                 return false;
-            }
         }
 
         return true;

@@ -11,7 +11,6 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -495,19 +494,15 @@ internal partial struct SymbolKey
 
         public bool ShouldWriteTypeParameterOrdinal(ISymbol symbol, out int methodIndex)
         {
-            if (symbol.Kind == SymbolKind.TypeParameter)
+            if (symbol is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } typeParameter)
             {
-                var typeParameter = (ITypeParameterSymbol)symbol;
-                if (typeParameter.TypeParameterKind == TypeParameterKind.Method)
+                for (int i = 0, n = _methodSymbolStack.Count; i < n; i++)
                 {
-                    for (int i = 0, n = _methodSymbolStack.Count; i < n; i++)
+                    var method = _methodSymbolStack[i];
+                    if (typeParameter.DeclaringMethod!.Equals(method))
                     {
-                        var method = _methodSymbolStack[i];
-                        if (typeParameter.DeclaringMethod!.Equals(method))
-                        {
-                            methodIndex = i;
-                            return true;
-                        }
+                        methodIndex = i;
+                        return true;
                     }
                 }
             }

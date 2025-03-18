@@ -36,8 +36,8 @@ End Class"
                     Dim typeName As String = Nothing
                     Dim assembly = context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)
                     Assert.NotNull(assembly)
-                    Assert.Equal(0, assembly.Count)
-                    Assert.Equal(0, locals.Count)
+                    Assert.Empty(assembly)
+                    Assert.Empty(locals)
                     locals.Free()
                 End Sub)
         End Sub
@@ -1789,7 +1789,7 @@ End Class"
                         Diagnostic(ERRID.ERR_TypeRefResolutionError3, "a").WithArguments("A", "Test.dll").WithLocation(1, 1)
                     })
 
-                    Assert.Equal(0, locals.Count)
+                    Assert.Empty(locals)
                     locals.Free()
                 End Sub)
         End Sub
@@ -3373,7 +3373,7 @@ End Class"
 
             Assert.NotNull(assembly)
             If count = 0 Then
-                Assert.Equal(0, assembly.Count)
+                Assert.Empty(assembly)
             Else
                 Assert.InRange(assembly.Count, 0, Integer.MaxValue)
             End If
@@ -3382,10 +3382,10 @@ End Class"
 
         Private Shared Sub GetLocals(runtime As RuntimeInstance, methodName As String, debugInfo As MethodDebugInfoBytes, locals As ArrayBuilder(Of LocalAndMethod), count As Integer)
             Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
-            Dim moduleVersionId As Guid = Nothing
+            Dim moduleId As ModuleId = Nothing
             Dim methodToken = 0
             Dim localSignatureToken = 0
-            GetContextState(runtime, methodName, blocks, moduleVersionId, symReader:=Nothing, methodOrTypeToken:=methodToken, localSignatureToken:=localSignatureToken)
+            GetContextState(runtime, methodName, blocks, moduleId, symReader:=Nothing, methodOrTypeToken:=methodToken, localSignatureToken:=localSignatureToken)
 
             Dim symReader = New MockSymUnmanagedReader(
                 New Dictionary(Of Integer, MethodDebugInfoBytes)() From
@@ -3397,7 +3397,7 @@ End Class"
                 blocks,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,
-                moduleVersionId,
+                moduleId,
                 methodToken,
                 methodVersion:=1,
                 ilOffset:=0,
@@ -3408,7 +3408,7 @@ End Class"
 
             Assert.NotNull(assembly)
             If count = 0 Then
-                Assert.Equal(0, assembly.Count)
+                Assert.Empty(assembly)
             Else
                 Assert.InRange(assembly.Count, 0, Integer.MaxValue)
             End If

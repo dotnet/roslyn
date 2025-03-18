@@ -3,29 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [Export(typeof(IDiagnosticAnalyzerService))]
-    [Shared]
+    [Export(typeof(IDiagnosticAnalyzerService)), Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
         private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
@@ -33,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
         public IAsynchronousOperationListener Listener { get; }
-        public IGlobalOptionService GlobalOptions { get; }
+        private IGlobalOptionService GlobalOptions { get; }
 
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map = new();
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
@@ -62,6 +56,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             });
         }
 
+        public static Task<VersionStamp> GetDiagnosticVersionAsync(Project project, CancellationToken cancellationToken)
+            => project.GetDependentVersionAsync(cancellationToken);
+
         public bool CrashOnAnalyzerException
             => GlobalOptions.GetOption(s_crashOnAnalyzerException);
 
@@ -71,17 +68,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
                option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
                option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption ||
-               option == s_crashOnAnalyzerException;
+               option == s_crashOnAnalyzerException ||
+               // Fading is controlled by reporting diagnostics for the faded region.  So if a fading option changes we
+               // want to recompute and rereport up to date diagnostics.
+               option == FadingOptions.FadeOutUnusedImports ||
+               option == FadingOptions.FadeOutUnusedMembers ||
+               option == FadingOptions.FadeOutUnreachableCode;
 
         public void RequestDiagnosticRefresh()
-            => _diagnosticsRefresher?.RequestWorkspaceRefresh();
+            => _diagnosticsRefresher.RequestWorkspaceRefresh();
 
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
             TextDocument document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
-            bool includeCompilerDiagnostics,
-            bool includeSuppressedDiagnostics,
             ICodeActionRequestPriorityProvider priorityProvider,
             DiagnosticKind diagnosticKinds,
             bool isExplicit,
@@ -94,36 +94,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
             return await analyzer.GetDiagnosticsForSpanAsync(
-                document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
-                priorityProvider, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
+                document, range, shouldIncludeDiagnostic, priorityProvider, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
-        {
-            var analyzer = CreateIncrementalAnalyzer(workspace);
-            return analyzer.GetCachedDiagnosticsAsync(workspace.CurrentSolution, projectId, documentId, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
-        }
-
-        public async Task ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
             var analyzer = CreateIncrementalAnalyzer(project.Solution.Workspace);
-            await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+            return await analyzer.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(
-            Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, Func<Project, DocumentId?, IReadOnlyList<DocumentId>>? getDocuments, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+            Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         {
-            var analyzer = CreateIncrementalAnalyzer(solution.Workspace);
-            return analyzer.GetDiagnosticsForIdsAsync(solution, projectId, documentId, diagnosticIds, shouldIncludeAnalyzer, getDocuments, includeSuppressedDiagnostics, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
+            var analyzer = CreateIncrementalAnalyzer(project.Solution.Workspace);
+            return analyzer.GetDiagnosticsForIdsAsync(project, documentId, diagnosticIds, shouldIncludeAnalyzer, includeLocalDocumentDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
-            Solution solution, ProjectId? projectId, ImmutableHashSet<string>? diagnosticIds,
-            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeSuppressedDiagnostics,
+            Project project, ImmutableHashSet<string>? diagnosticIds,
+            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
             bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         {
-            var analyzer = CreateIncrementalAnalyzer(solution.Workspace);
-            return analyzer.GetProjectDiagnosticsForIdsAsync(solution, projectId, diagnosticIds, shouldIncludeAnalyzer, includeSuppressedDiagnostics, includeNonLocalDocumentDiagnostics, cancellationToken);
+            var analyzer = CreateIncrementalAnalyzer(project.Solution.Workspace);
+            return analyzer.GetProjectDiagnosticsForIdsAsync(project, diagnosticIds, shouldIncludeAnalyzer, includeNonLocalDocumentDiagnostics, cancellationToken);
+        }
+
+        public TestAccessor GetTestAccessor()
+            => new(this);
+
+        public readonly struct TestAccessor(DiagnosticAnalyzerService service)
+        {
+            public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersAsync(Project project, CancellationToken cancellationToken)
+            {
+                return service.CreateIncrementalAnalyzer(project.Solution.Workspace).GetAnalyzersForTestingPurposesOnlyAsync(project, cancellationToken);
+            }
         }
     }
 }

@@ -27,7 +27,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.PatternMatching;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.EditorUtilities.NavigateTo;
@@ -166,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             expecteditems = [.. expecteditems.OrderBy(i => i.Name)];
             items = items.OrderBy(i => i.Name).ToList();
 
-            Assert.Equal(expecteditems.Count(), items.Count());
+            Assert.Equal(expecteditems.Count, items.Count());
 
             for (var i = 0; i < expecteditems.Count; i++)
             {
