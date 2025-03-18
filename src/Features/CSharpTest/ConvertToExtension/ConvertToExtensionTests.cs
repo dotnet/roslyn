@@ -1055,9 +1055,6 @@ public sealed class ConvertToExtensionTests
                 using System;
                 using System.Collections.Generic;
 
-                class XAttribute : Attribute { }
-                class YAttribute : Attribute { }
-
                 static class C
                 {
                     [||]public static void M<T>(this IList<T> list) where T : new() { }
@@ -1067,9 +1064,6 @@ public sealed class ConvertToExtensionTests
             FixedCode = """
                 using System;
                 using System.Collections.Generic;
-            
-                class XAttribute : Attribute { }
-                class YAttribute : Attribute { }
             
                 static class C
                 {
@@ -1093,9 +1087,6 @@ public sealed class ConvertToExtensionTests
                 using System;
                 using System.Collections.Generic;
 
-                class XAttribute : Attribute { }
-                class YAttribute : Attribute { }
-
                 static class C
                 {
                     [||]public static void M<T>(this IList<T> list) where T : new() { }
@@ -1105,9 +1096,6 @@ public sealed class ConvertToExtensionTests
             FixedCode = """
                 using System;
                 using System.Collections.Generic;
-            
-                class XAttribute : Attribute { }
-                class YAttribute : Attribute { }
             
                 static class C
                 {
@@ -1132,9 +1120,6 @@ public sealed class ConvertToExtensionTests
                 using System;
                 using System.Collections.Generic;
 
-                class XAttribute : Attribute { }
-                class YAttribute : Attribute { }
-
                 static class C
                 {
                     [||]public static void M<T>(this IList<T> list) where T : class { }
@@ -1144,9 +1129,6 @@ public sealed class ConvertToExtensionTests
             FixedCode = """
                 using System;
                 using System.Collections.Generic;
-            
-                class XAttribute : Attribute { }
-                class YAttribute : Attribute { }
             
                 static class C
                 {
@@ -1170,9 +1152,6 @@ public sealed class ConvertToExtensionTests
                 using System;
                 using System.Collections.Generic;
 
-                class XAttribute : Attribute { }
-                class YAttribute : Attribute { }
-
                 static class C
                 {
                     [||]public static void M<T>(this IList<T> list) where T : class { }
@@ -1182,9 +1161,6 @@ public sealed class ConvertToExtensionTests
             FixedCode = """
                 using System;
                 using System.Collections.Generic;
-            
-                class XAttribute : Attribute { }
-                class YAttribute : Attribute { }
             
                 static class C
                 {
@@ -1209,9 +1185,6 @@ public sealed class ConvertToExtensionTests
                 using System;
                 using System.Collections.Generic;
 
-                class XAttribute : Attribute { }
-                class YAttribute : Attribute { }
-
                 static class C
                 {
                     [||]public static void M<T>(this IList<T> list) where T : IList<T> { }
@@ -1221,9 +1194,6 @@ public sealed class ConvertToExtensionTests
             FixedCode = """
                 using System;
                 using System.Collections.Generic;
-            
-                class XAttribute : Attribute { }
-                class YAttribute : Attribute { }
             
                 static class C
                 {
@@ -1247,9 +1217,6 @@ public sealed class ConvertToExtensionTests
                 using System;
                 using System.Collections.Generic;
 
-                class XAttribute : Attribute { }
-                class YAttribute : Attribute { }
-
                 static class C
                 {
                     [||]public static void M<T>(this IList<T> list) where T : IList<T> { }
@@ -1259,9 +1226,6 @@ public sealed class ConvertToExtensionTests
             FixedCode = """
                 using System;
                 using System.Collections.Generic;
-            
-                class XAttribute : Attribute { }
-                class YAttribute : Attribute { }
             
                 static class C
                 {
@@ -1401,6 +1365,217 @@ public sealed class ConvertToExtensionTests
                     }
 
                     public static void N(this int j) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_Parameters_SameParameterTupleNames()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M(this (int i, int j) i) { }
+                    public static void N(this (int i, int j) i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension((int i, int j) i)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_Parameters_DifferentParameterTupleNames()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M(this (int i, int j) i) { }
+                    public static void N(this (int k, int l) i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension((int i, int j) i)
+                    {
+                        public void M() { }
+                    }
+
+                    public static void N(this (int k, int l) i) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_Parameters_SameParameterNullability()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M(this string? i) { }
+                    public static void N(this string? i) { }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension(string? i)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_Parameters_DifferentParameterNullability()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M(this string? i) { }
+                    public static void N(this string j) { }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension(string? i)
+                    {
+                        public void M() { }
+                    }
+                
+                    public static void N(this string i) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_Parameters_SameParameterDynamic()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M(this dynamic i) { }
+                    public static void N(this dynamic i) { }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension(dynamic i)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_Parameters_DifferentDynamic()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M(this dynamic i) { }
+                    public static void N(this object i) { }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension(dynamic i)
+                    {
+                        public void M() { }
+                    }
+                
+                    public static void N(this object i) { }
                 }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
