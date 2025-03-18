@@ -25,8 +25,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToExtension;
 
-using static SyntaxFactory;
 using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToExtension), Shared]
 [method: ImportingConstructor]

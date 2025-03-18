@@ -43,6 +43,30 @@ public sealed class ConvertToExtensionTests
     }
 
     [Fact]
+    public async Task TestRefReceiver()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class C
+                {
+                    [||]public static void M(this ref int i) { }
+                }
+                """,
+            FixedCode = """
+                static class C
+                {
+                    extension(ref int i)
+                    {
+                        public void M() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNotOnCSharp13()
     {
         await new VerifyCS.Test
@@ -1044,7 +1068,7 @@ public sealed class ConvertToExtensionTests
                         public void M() { }
                     }
 
-                    public static void N<T>([Y] this IList<T> list) { }
+                    public static void N<T>(this IList<T> list) { }
                 }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
@@ -1199,6 +1223,320 @@ public sealed class ConvertToExtensionTests
                     }
 
                     public static void N<T>(this IList<T> list) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_Parameters_SameParameterRef()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M(this ref int i) { }
+                    public static void N(this ref int i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension(ref int i)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_Parameters_DifferentParameterRef()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M(this ref int i) { }
+                    public static void N(this int i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension(ref int i)
+                    {
+                        public void M() { }
+                    }
+
+                    public static void N(this int i) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_Parameters_SameParameterName()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M(this int i) { }
+                    public static void N(this int i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_Parameters_DifferentParameterName()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M(this int i) { }
+                    public static void N(this int j) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M() { }
+                    }
+
+                    public static void N(this int j) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTriviaMove1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    public static void M(this int i) { }
+
+                    [||]public static void N(this int j) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    public static void M(this int i) { }
+
+                    extension(int j)
+                    {
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestTriviaMove2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    public static void M(this int i) { }
+
+                    /// <summary></summary>
+                    [||]public static void N(this int j) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    public static void M(this int i) { }
+
+                    extension(int j)
+                    {
+                        /// <summary></summary>
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGroupingWithNonExtension1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    public static void O() { }
+
+                    public static void M(this int i) { }
+
+                    [||]public static void N(this int i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    public static void O() { }
+
+                    extension(int i)
+                    {
+                        public void M() { }
+
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGroupingWithNonExtension2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    public static void M(this int i) { }
+
+                    public static void O() { }
+
+                    [||]public static void N(this int i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M() { }
+
+                        public void N() { }
+                    }
+
+                    public static void O() { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGroupingWithNonExtension3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    public static void M(this int i) { }
+
+                    [||]public static void N(this int i) { }
+                
+                    public static void O() { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M() { }
+
+                        public void N() { }
+                    }
+
+                    public static void O() { }
                 }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
