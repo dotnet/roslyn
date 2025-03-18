@@ -26,6 +26,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToExtension;
 
 using static SyntaxFactory;
+using static CSharpSyntaxTokens;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToExtension), Shared]
 [method: ImportingConstructor]
@@ -62,10 +63,13 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         if (methodDeclaration.Parent is not ClassDeclarationSyntax classDeclaration)
             return null;
 
+        if (!methodDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword))
+            return null;
+
         if (!classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword))
             return null;
 
-        if (classDeclaration.Parent is not BaseNamespaceDeclarationSyntax)
+        if (classDeclaration.Parent is not BaseNamespaceDeclarationSyntax and not CompilationUnitSyntax)
             return null;
 
         var firstParameterSymbol = semanticModel.GetRequiredDeclaredSymbol(firstParameter, cancellationToken);
@@ -225,11 +229,17 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             // the extension declaration).
             var firstParameter = CodeGenerationSymbolFactory.CreateParameterSymbol(firstExtensionInfo.FirstParameter);
 
-            var extensionDeclaration = ExtensionDeclaration()
-                .WithTypeParameterList(TypeParameterGenerator.GenerateTypeParameterList(typeParameters, codeGenerationInfo))
-                .WithConstraintClauses(typeParameters.GenerateConstraintClauses())
-                .WithParameterList(ParameterGenerator.GenerateParameterList([firstParameter], isExplicit: false, codeGenerationInfo))
-                .WithMembers([.. group.Select(ConvertExtensionMethod)]);
+            var extensionDeclaration = ExtensionDeclaration(
+                attributeLists: default,
+                modifiers: default,
+                ExtensionKeyword,
+                TypeParameterGenerator.GenerateTypeParameterList(typeParameters, codeGenerationInfo),
+                ParameterGenerator.GenerateParameterList([firstParameter], isExplicit: false, codeGenerationInfo),
+                typeParameters.GenerateConstraintClauses(),
+                OpenBraceToken,
+                [.. group.Select(ConvertExtensionMethod)],
+                CloseBraceToken,
+                semicolonToken: default);
 
             // Move the blank lines above the first extension method inside the extension to the extension itself.
             firstExtensionInfo.ExtensionMethod.GetNodeWithoutLeadingBlankLines(out var leadingBlankLines);
@@ -243,6 +253,9 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
                 .WithParameterList(ConvertParameters(extensionMethodInfo))
                 .WithTypeParameterList(ConvertTypeParameters(extensionMethodInfo))
                 .WithConstraintClauses(ConvertConstraintClauses(extensionMethodInfo));
+
+            converted = (MethodDeclarationSyntax)CSharpSyntaxGenerator.Instance.WithModifiers(converted,
+                CSharpSyntaxGenerator.Instance.GetModifiers(converted).WithIsStatic(false));
 
             if (index == 0)
                 converted = converted.GetNodeWithoutLeadingBlankLines();

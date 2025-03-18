@@ -6,12 +6,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.ConvertToExtension;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.ConvertToExtension;
 
 using VerifyCS = CSharpCodeRefactoringVerifier<ConvertToExtensionCodeRefactoringProvider>;
 
+[UseExportProvider]
+[Trait(Traits.Feature, Traits.Features.CodeActionsConvertToExtension)]
 public sealed class ConvertToExtensionTests
 {
     [Fact]
