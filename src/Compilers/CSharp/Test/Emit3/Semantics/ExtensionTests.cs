@@ -37,7 +37,7 @@ public class ExtensionTests : CompilingTestBase
         }
     }
 
-    private static void AssertSetStrictlyEqual(string[] expected, string[] actual)
+    private static void AssertEqualAndNoDuplicates(string[] expected, string[] actual)
     {
         Assert.True(expected.All(new HashSet<string>().Add), $"Duplicates were found in '{nameof(expected)}'");
         Assert.True(actual.All(new HashSet<string>().Add), $"Duplicates were found in '{nameof(actual)}'");
@@ -2802,7 +2802,7 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertSetStrictlyEqual(_objectMembers, model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(_objectMembers, model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -24364,8 +24364,8 @@ static class E
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "d.P");
         var dynamicType = model.GetTypeInfo(memberAccess.Expression).Type;
         Assert.True(dynamicType.IsDynamic());
-        AssertSetStrictlyEqual(["System.Int32 E.<>E__0.P { get; }"], model.LookupSymbols(position: 0, dynamicType, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-        AssertSetStrictlyEqual(["System.Int32 E.<>E__0.P { get; }"], model.LookupSymbols(position: 0, dynamicType, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.P { get; }"], model.LookupSymbols(position: 0, dynamicType, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.P { get; }"], model.LookupSymbols(position: 0, dynamicType, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -25148,25 +25148,25 @@ public static class E
         Assert.Equal("System.Int32 E.<>E__0.Property { get; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
 
         var e = ((Compilation)comp).GlobalNamespace.GetTypeMember("E");
-        AssertSetStrictlyEqual(["void E.M()"], model.LookupSymbols(position: 0, e, name: "M").ToTestDisplayStrings());
-        AssertSetStrictlyEqual(["void E.M()", "void E.<>E__0.M()"], model.LookupSymbols(position: 0, e, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void E.M()"], model.LookupSymbols(position: 0, e, name: "M").ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void E.M()", "void E.<>E__0.M()"], model.LookupSymbols(position: 0, e, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, e, name: "Property").ToTestDisplayStrings());
-        AssertSetStrictlyEqual(["System.Int32 E.<>E__0.Property { get; }"], model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, e, name: "Property").ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.Property { get; }"], model.LookupSymbols(position: 0, e, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["System.Int32 E.get_Property()"], model.LookupSymbols(position: 0, e, name: "get_Property").ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.get_Property()"], model.LookupSymbols(position: 0, e, name: "get_Property").ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["System.Int32 E.get_Property()"],
+        AssertEqualAndNoDuplicates(["System.Int32 E.get_Property()"],
             model.LookupSymbols(position: 0, e, name: "get_Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
-        AssertSetStrictlyEqual(["void E.<>E__0.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void E.<>E__0.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
-        AssertSetStrictlyEqual(["System.Int32 E.<>E__0.Property { get; }"], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.Property { get; }"], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["void E.<>E__0.M()", "System.Int32 E.<>E__0.Property { get; }", .. _objectMembers],
+        AssertEqualAndNoDuplicates(["void E.<>E__0.M()", "System.Int32 E.<>E__0.Property { get; }", .. _objectMembers],
             model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         Assert.Equal([
@@ -25207,13 +25207,13 @@ public static class E
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
-        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
-        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(_objectMembers, model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(_objectMembers, model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -25240,21 +25240,21 @@ public static class E
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
-        AssertSetStrictlyEqual(["void E.<>E__0<System.Object>.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "M").ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void E.<>E__0<System.Object>.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
-        AssertSetStrictlyEqual(["System.Int32 E.<>E__0<System.Object>.Property { get; }"], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "Property").ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0<System.Object>.Property { get; }"], model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["void E.<>E__0<System.Object>.M()", "System.Int32 E.<>E__0<System.Object>.Property { get; }", .. _objectMembers],
+        AssertEqualAndNoDuplicates(["void E.<>E__0<System.Object>.M()", "System.Int32 E.<>E__0<System.Object>.Property { get; }", .. _objectMembers],
             model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         var s = ((Compilation)comp).GetSpecialType(SpecialType.System_String);
-        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, s, name: "M").ToTestDisplayStrings());
-        AssertSetStrictlyEqual(["void E.<>E__0<System.String>.M()"], model.LookupSymbols(position: 0, s, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, s, name: "M").ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void E.<>E__0<System.String>.M()"], model.LookupSymbols(position: 0, s, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, s, name: "Property").ToTestDisplayStrings());
-        AssertSetStrictlyEqual(["System.Int32 E.<>E__0<System.String>.Property { get; }"], model.LookupSymbols(position: 0, s, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, s, name: "Property").ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0<System.String>.Property { get; }"], model.LookupSymbols(position: 0, s, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -25279,7 +25279,7 @@ public static class E
         var model = comp.GetSemanticModel(tree);
 
         var s = ((Compilation)comp).GetSpecialType(SpecialType.System_String);
-        AssertSetStrictlyEqual(["void E.<>E__0<System.String>.M<U>(U u)"], model.LookupSymbols(position: 0, s, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates(["void E.<>E__0<System.String>.M<U>(U u)"], model.LookupSymbols(position: 0, s, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -25309,13 +25309,13 @@ public static class E
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertSetStrictlyEqual(["void E.<>E__0.M()", "void E.<>E__1.M()"],
+        AssertEqualAndNoDuplicates(["void E.<>E__0.M()", "void E.<>E__1.M()"],
             model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["System.Int32 E.<>E__0.Property { get; }", "System.Int32 E.<>E__1.Property { get; }"],
+        AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.Property { get; }", "System.Int32 E.<>E__1.Property { get; }"],
             model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual([
+        AssertEqualAndNoDuplicates([
             "void E.<>E__0.M()",
             "System.Int32 E.<>E__0.Property { get; }",
             "void E.<>E__1.M()",
@@ -25348,10 +25348,10 @@ public static class E
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertSetStrictlyEqual(["void E.<>E__0.MP()", "System.Int32 E.<>E__1.MP { get; }"],
+        AssertEqualAndNoDuplicates(["void E.<>E__0.MP()", "System.Int32 E.<>E__1.MP { get; }"],
             model.LookupSymbols(position: 0, o, name: "MP", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["void E.<>E__0.MP()", "System.Int32 E.<>E__1.MP { get; }", .. _objectMembers],
+        AssertEqualAndNoDuplicates(["void E.<>E__0.MP()", "System.Int32 E.<>E__1.MP { get; }", .. _objectMembers],
             model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
@@ -25379,10 +25379,10 @@ public static class E
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertSetStrictlyEqual(["void E.<>E__0.M()", "void E.<>E__0.M(System.String s)", "void System.Object.M(System.Int32 i)"],
+        AssertEqualAndNoDuplicates(["void E.<>E__0.M()", "void E.<>E__0.M(System.String s)", "void System.Object.M(System.Int32 i)"],
             model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertSetStrictlyEqual(["void E.<>E__0.M()", "void E.<>E__0.M(System.String s)", "void System.Object.M(System.Int32 i)", .. _objectMembers],
+        AssertEqualAndNoDuplicates(["void E.<>E__0.M()", "void E.<>E__0.M(System.String s)", "void System.Object.M(System.Int32 i)", .. _objectMembers],
             model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
@@ -25410,8 +25410,8 @@ public static class E
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertSetStrictlyEqual([], model.LookupSymbols(position: 0, o, name: "Nested", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-        AssertSetStrictlyEqual([.. _objectMembers], model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "Nested", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+        AssertEqualAndNoDuplicates([.. _objectMembers], model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         Assert.Empty(model.LookupNamespacesAndTypes(position: 0, o, name: null));
     }

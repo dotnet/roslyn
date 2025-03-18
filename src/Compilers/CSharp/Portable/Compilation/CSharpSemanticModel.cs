@@ -4638,7 +4638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var scope in new ExtensionScopes(binder))
                 {
                     singleLookupResults.Clear();
-                    scope.Binder.EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, name, arity, options, originalBinder: binder, classicExtensionUseSiteInfo: ref discardedUseSiteInfo);
+                    scope.Binder.EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, name, arity, options, originalBinder: binder, useSiteInfo: ref discardedUseSiteInfo, classicExtensionUseSiteInfo: ref discardedUseSiteInfo);
 
                     foreach (SingleLookupResult singleLookupResult in singleLookupResults)
                     {
@@ -4849,6 +4849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    // TODO2
                     receiverType = call.Arguments[0].Type;
                 }
 

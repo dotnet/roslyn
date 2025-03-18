@@ -8597,7 +8597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                 scope.Binder.LookupAllExtensionMembersInSingleBinder(
                     lookupResult, memberName, arity, lookupOptions,
-                    originalBinder: binder, classicExtensionUseSiteInfo: ref classicExtensionUseSiteInfo);
+                    originalBinder: binder, useSiteInfo: ref useSiteInfo, classicExtensionUseSiteInfo: ref classicExtensionUseSiteInfo);
 
                 diagnostics.Add(expression, classicExtensionUseSiteInfo);
 
