@@ -11,7 +11,6 @@ using Microsoft.Extensions.Logging;
 using NuGet.ProjectModel;
 using NuGet.Versioning;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal static class ProjectDependencyHelper

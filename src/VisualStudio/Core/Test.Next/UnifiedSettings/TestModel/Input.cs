@@ -5,7 +5,6 @@
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.VisualStudio.LanguageServices.Options.VisualStudioOptionStorage;
 

@@ -16,7 +16,6 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -65,7 +64,7 @@ internal sealed class SemanticSearchToolWindowImpl(
     IStreamingFindUsagesPresenter resultsPresenter,
     ITextUndoHistoryRegistry undoHistoryRegistry,
     ISemanticSearchCopilotService copilotService,
-    ISemanticSearchCopilotUIProvider copilotUIProvider,
+    Lazy<ISemanticSearchCopilotUIProvider> copilotUIProvider, // lazy to avoid loading Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot
     IVsService<SVsUIShell, IVsUIShell> vsUIShellProvider) : ISemanticSearchWorkspaceHost, OptionsProvider<ClassificationOptions>
 {
     private const int ToolBarHeight = 26;
@@ -194,7 +193,12 @@ internal sealed class SemanticSearchToolWindowImpl(
 
     private CopilotUI? CreateCopilotUI()
     {
-        if (!copilotUIProvider.IsAvailable || !copilotService.IsAvailable)
+        if (!copilotUIProvider.Value.IsAvailable || !copilotService.IsAvailable)
+        {
+            return null;
+        }
+
+        if (!globalOptions.GetOption(SemanticSearchFeatureFlag.PromptEnabled))
         {
             return null;
         }
@@ -217,7 +221,7 @@ internal sealed class SemanticSearchToolWindowImpl(
         promptGrid.ColumnDefinitions.Add(new ColumnDefinition { MaxWidth = 600, Width = GridLength.Auto });
         promptGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        var promptTextBox = copilotUIProvider.GetTextBox();
+        var promptTextBox = copilotUIProvider.Value.GetTextBox();
 
         var panel = new StackPanel()
         {
