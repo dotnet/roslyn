@@ -23,20 +23,324 @@ public sealed class ConvertToExtensionTests
         await new VerifyCS.Test
         {
             TestCode = """
-            static class C
-            {
-                [||]public static void M(this int i) { }
-            }
-            """,
-            FixedCode = """
-            static class C
-            {
-                extension(int i)
+                static class C
                 {
-                    public void M() { }
+                    [||]public static void M(this int i) { }
                 }
-            }
-            """,
+                """,
+            FixedCode = """
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotOnCSharp13()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class C
+                {
+                    [||]public static void M(this int i) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithMultipleParameters()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class C
+                {
+                    [||]public static void M(this int i, string j) { }
+                }
+                """,
+            FixedCode = """
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M(string j) { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInsideNamespace1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    static class C
+                    {
+                        [||]public static void M(this int i, string j) { }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    static class C
+                    {
+                        extension(int i)
+                        {
+                            public void M(string j) { }
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInsideNamespace2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N;
+
+                static class C
+                {
+                    [||]public static void M(this int i, string j) { }
+                }
+                """,
+            FixedCode = """
+                namespace N;
+
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M(string j) { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotWithNoParameters()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class C
+                {
+                    [||]public static void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotInsideStruct()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct C
+                {
+                    [||]public static void M(this int i) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotInsideInstanceClass()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    [||]public static void M(this int i) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotForInstanceMethod()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class C
+                {
+                    [||]public void M(this int i) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotForNestedClass()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class Outer
+                {
+                    static class C
+                    {
+                        [||]public void M(this int i) { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithReferencedTypeParameterInOrder1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M<T>(this IList<T> list) { }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    extension<T>(IList<T> list)
+                    {
+                        public void M() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithReferencedTypeParameterInOrder2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M<K,V>(this IDictionary<K,V> map) { }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    extension<K, V>(IDictionary<K, V> map)
+                    {
+                        public void M() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithReferencedTypeParameterInOrder3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M<K,V>(this IDictionary<V,K> map) { }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    extension<K, V>(IDictionary<V, K> map)
+                    {
+                        public void M() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithReferencedTypeParameterInOrder4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M<K,V>(this IList<K> list) { }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    extension<K>(IList<K> list)
+                    {
+                        public void M<V>() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWithReferencedTypeParameterNotInOrder1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M<K,V>(this IList<V> list) { }
+                }
+                """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
