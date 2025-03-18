@@ -3193,6 +3193,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitModuleCancellationTokenExpression(ModuleCancellationTokenExpression node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitStatementList(BoundStatementList node)
         {
             return VisitStatementListWorker(node);

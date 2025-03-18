@@ -1,0 +1,15 @@
+// Used by .github/workflows/main-merge.yml
+{
+    "merge-flow-configurations": {
+        // Merge any main changes to main-vs-deps.
+        "main": {
+            "MergeToBranch": "main-vs-deps",
+            "ExtraSwitches": "-QuietComments"
+        },
+        // Merge any main-vs-deps changes to release/dev18.0.
+        "main-vs-deps": {
+            "MergeToBranch": "release/dev18.0",
+            "ExtraSwitches": "-QuietComments"
+        }
+    }
+}

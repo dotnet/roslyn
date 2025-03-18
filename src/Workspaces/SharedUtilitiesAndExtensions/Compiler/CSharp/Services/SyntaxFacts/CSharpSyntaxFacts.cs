@@ -912,52 +912,18 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
     public TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node)
     {
         if (node.Span.IsEmpty)
-        {
             return default;
-        }
 
         var member = GetContainingMemberDeclaration(node, node.SpanStart);
         if (member == null)
-        {
             return default;
-        }
 
         // TODO: currently we only support method for now
-        if (member is BaseMethodDeclarationSyntax method)
-        {
-            if (method.Body == null)
-            {
-                return default;
-            }
-
-            return GetBlockBodySpan(method.Body);
-        }
+        if (member is BaseMethodDeclarationSyntax { Body: not null } method)
+            return TextSpan.FromBounds(method.Body.OpenBraceToken.Span.End, method.Body.CloseBraceToken.SpanStart);
 
         return default;
     }
-
-    public bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span)
-    {
-        switch (node)
-        {
-            case ConstructorDeclarationSyntax constructor:
-                return (constructor.Body != null && GetBlockBodySpan(constructor.Body).Contains(span)) ||
-                       (constructor.Initializer != null && constructor.Initializer.Span.Contains(span));
-            case BaseMethodDeclarationSyntax method:
-                return method.Body != null && GetBlockBodySpan(method.Body).Contains(span);
-            case BasePropertyDeclarationSyntax property:
-                return property.AccessorList != null && property.AccessorList.Span.Contains(span);
-            case EnumMemberDeclarationSyntax @enum:
-                return @enum.EqualsValue != null && @enum.EqualsValue.Span.Contains(span);
-            case BaseFieldDeclarationSyntax field:
-                return field.Declaration != null && field.Declaration.Span.Contains(span);
-        }
-
-        return false;
-    }
-
-    private static TextSpan GetBlockBodySpan(BlockSyntax body)
-        => TextSpan.FromBounds(body.OpenBraceToken.Span.End, body.CloseBraceToken.SpanStart);
 
     public SyntaxNode? TryGetBindableParent(SyntaxToken token)
     {

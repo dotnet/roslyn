@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -48,11 +46,11 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     /// The mapping of all monikers in the RDT and the <see cref="ProjectId"/> of the project and <see cref="SourceTextContainer"/> of the open
     /// file we have created for that open buffer. An entry should only be in here if it's also already in <see cref="_monikerToWorkspaceRegistration"/>.
     /// </summary>
-    private readonly Dictionary<string, (ProjectId projectId, SourceTextContainer textContainer)> _monikersToProjectIdAndContainer = new Dictionary<string, (ProjectId, SourceTextContainer)>();
+    private readonly Dictionary<string, (ProjectId projectId, SourceTextContainer textContainer)> _monikersToProjectIdAndContainer = [];
 
     private readonly ImmutableArray<MetadataReference> _metadataReferences;
 
-    private IVsTextManager _textManager;
+    private IVsTextManager? _textManager;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -80,7 +78,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         _textManager = await _textManagerService.GetValueAsync().ConfigureAwait(false);
     }
 
-    void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _) => TrackOpenedDocument(moniker, textBuffer);
+    void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? _) => TrackOpenedDocument(moniker, textBuffer);
 
     void IOpenTextBufferEventListener.OnCloseDocument(string moniker) => TryUntrackClosingDocument(moniker);
 
@@ -116,11 +114,11 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
         => _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
 
-    private LanguageInformation TryGetLanguageInformation(string filename)
+    private LanguageInformation? TryGetLanguageInformation(string filename)
     {
-        LanguageInformation languageInformation = null;
+        LanguageInformation? languageInformation = null;
 
-        if (ErrorHandler.Succeeded(_textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
+        if (_textManager != null && ErrorHandler.Succeeded(_textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
         {
             _languageInformationByLanguageGuid.TryGetValue(fileLanguageGuid, out languageInformation);
         }
@@ -132,6 +130,9 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     {
         var manager = this.Services.GetService<VisualStudioMetadataReferenceManager>();
         var searchPaths = VisualStudioMetadataReferenceManager.GetReferencePaths();
+
+        if (manager == null)
+            return [];
 
         return from fileName in new[] { "mscorlib.dll", "System.dll", "System.Core.dll" }
                let fullPath = FileUtilities.ResolveRelativePath(fileName, basePath: null, baseDirectory: null, searchPaths: searchPaths, fileExists: File.Exists)
