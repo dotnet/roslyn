@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 // where [] denotes CurrentStatementSpan, should use the start of CurrentStatementSpan
                 // as the adjusted context, and should not place a semicolon before debuggerMappedSpan.
                 // Not doing either of those would place debuggerMappedSpan outside the for loop.
-                separatorBeforeDebuggerMappedSpan = string.Empty;
+                separatorBeforeDebuggerMappedSpan = " ";
                 adjustedStart = token.Parent.SpanStart;
             }
 
@@ -110,10 +110,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             var afterAdjustedStart = ContextBuffer.CurrentSnapshot.CreateTrackingSpanFromIndexToEnd(adjustedStart, SpanTrackingMode.EdgePositive);
 
             return ProjectionBufferFactoryService.CreateProjectionBuffer(
-                projectionEditResolver: null,
-                sourceSpans: [beforeAdjustedStart, separatorBeforeDebuggerMappedSpan, debuggerMappedSpan, StatementTerminator, afterAdjustedStart],
-                options: ProjectionBufferOptions.None,
-                contentType: ContentType);
+                    projectionEditResolver: null,
+                    sourceSpans: [beforeAdjustedStart, separatorBeforeDebuggerMappedSpan, debuggerMappedSpan, StatementTerminator, afterAdjustedStart],
+                    options: ProjectionBufferOptions.None,
+                    contentType: ContentType);
         }
 
         public override bool CompletionStartsOnQuestionMark
