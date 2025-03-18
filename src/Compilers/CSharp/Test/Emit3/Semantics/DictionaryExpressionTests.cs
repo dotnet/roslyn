@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (2,30): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (2,30): error CS9174: Cannot initialize type 'IDictionary<int, string>' with a collection expression because the type is not constructible.
                     // IDictionary<int, string> d = [1:"one"];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"[1:""one""]").WithArguments("dictionary expressions").WithLocation(2, 30),
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, @"[1:""one""]").WithArguments("System.Collections.Generic.IDictionary<int, string>").WithLocation(2, 30),
                     // (2,32): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     // IDictionary<int, string> d = [1:"one"];
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(2, 32));
@@ -93,15 +93,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,5): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (3,5): error CS9174: Cannot initialize type 'IDictionary<int, string>' with a collection expression because the type is not constructible.
                     // d = [];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "[]").WithArguments("dictionary expressions").WithLocation(3, 5),
-                    // (6,5): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("System.Collections.Generic.IDictionary<int, string>").WithLocation(3, 5),
+                    // (6,5): error CS9174: Cannot initialize type 'IDictionary<int, string>' with a collection expression because the type is not constructible.
                     // d = [x];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "[x]").WithArguments("dictionary expressions").WithLocation(6, 5),
-                    // (7,5): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[x]").WithArguments("System.Collections.Generic.IDictionary<int, string>").WithLocation(6, 5),
+                    // (7,5): error CS9174: Cannot initialize type 'IDictionary<int, string>' with a collection expression because the type is not constructible.
                     // d = [..y];
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "[..y]").WithArguments("dictionary expressions").WithLocation(7, 5));
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[..y]").WithArguments("System.Collections.Generic.IDictionary<int, string>").WithLocation(7, 5));
             }
             else
             {
@@ -784,18 +784,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 else
                 {
-                    // PROTOTYPE: Should report an error for:
-                    //   static void Params<K, V>(params IDictionary<K, V> args) { ... }
                     comp.VerifyEmitDiagnostics(
-                        // (6,9): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        // (6,9): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'Program.Params<K, V>(params IDictionary<K, V>)'
                         //         Params<int, string>();
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "Params<int, string>()").WithArguments("dictionary expressions").WithLocation(6, 9),
-                        // (9,33): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Params<int, string>").WithArguments("args", $"Program.Params<K, V>(params System.Collections.Generic.{typeName}<K, V>)").WithLocation(6, 9),
+                        // (9,33): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'Program.Params<K, V>(params IDictionary<K, V>)'
                         //     static void Empty<K, V>() { Params<K, V>(); }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "Params<K, V>()").WithArguments("dictionary expressions").WithLocation(9, 33),
-                        // (10,97): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Params<K, V>").WithArguments("args", $"Program.Params<K, V>(params System.Collections.Generic.{typeName}<K, V>)").WithLocation(9, 33),
+                        // (10,97): error CS1501: No overload for method 'Params' takes 3 arguments
                         //     static void Three<K, V>(KeyValuePair<K, V> x, KeyValuePair<K, V> y, KeyValuePair<K, V> z) { Params(x, y, z); }
-                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "Params(x, y, z)").WithArguments("dictionary expressions").WithLocation(10, 97));
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "Params").WithArguments("Params", "3").WithLocation(10, 97),
+                        // (11,30): error CS0225: The params parameter must have a valid collection type
+                        //     static void Params<K, V>(params IDictionary<K, V> args) { args.Report(); }
+                        Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(11, 30));
                 }
             }
             else

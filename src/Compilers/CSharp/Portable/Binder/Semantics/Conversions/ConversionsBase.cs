@@ -1723,17 +1723,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = default;
                 return CollectionExpressionTypeKind.CollectionBuilder;
             }
-            else if (destination.IsArrayInterface(out elementType))
+            else if (destination.IsInterfaceType())
             {
-                return CollectionExpressionTypeKind.ArrayInterface;
-            }
-            else if (isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IDictionary_KV, out elementType) ||
-                isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV, out elementType))
-            {
-                // PROTOTYPE: Should DictionaryInterface be conditional on language version? See DictionaryExpressionTests.Dictionary_Params()
-                // where we're not reporting an error for the following declaration when compiling with -langversion:13.
-                //   static void Params<K, V>(params IDictionary<K, V> args) { ... }
-                return CollectionExpressionTypeKind.DictionaryInterface;
+                if (destination.IsArrayInterface(out elementType))
+                {
+                    return CollectionExpressionTypeKind.ArrayInterface;
+                }
+                else if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
+                    (isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IDictionary_KV, out elementType) ||
+                    isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV, out elementType)))
+                {
+                    return CollectionExpressionTypeKind.DictionaryInterface;
+                }
             }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
             {
@@ -1752,6 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool implementsSpecialInterface(CSharpCompilation compilation, TypeSymbol targetType, SpecialType specialInterface)
             {
+                Debug.Assert(!targetType.IsInterfaceType());
                 var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
                 var specialType = compilation.GetSpecialType(specialInterface);
                 return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);

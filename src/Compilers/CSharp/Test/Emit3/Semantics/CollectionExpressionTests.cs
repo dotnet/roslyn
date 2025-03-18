@@ -5695,7 +5695,7 @@ static class Program
         }
 
         [Fact]
-        public void InterfaceType()
+        public void InterfaceType_ComImport()
         {
             string source = """
                 using System;
@@ -5736,6 +5736,94 @@ static class Program
                 // (27,13): error CS9174: Cannot initialize type 'I' with a collection expression because the type is not constructible.
                 //         i = [3, 4];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3, 4]").WithArguments("I").WithLocation(27, 13));
+        }
+
+        [Fact]
+        public void InterfaceType_ImplementsIEnumerable_01()
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                interface IMyCollection1<T> : IEnumerable
+                {
+                    void Add(T t);
+                }
+                interface IMyCollection2<T> : IEnumerable<T>
+                {
+                    void Add(T t);
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        IMyCollection1<int> x;
+                        x = [];
+                        x = [1];
+                        IMyCollection2<int> y;
+                        y = [];
+                        y = [2];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (16,13): error CS9174: Cannot initialize type 'IMyCollection1<int>' with a collection expression because the type is not constructible.
+                //         x = [];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("IMyCollection1<int>").WithLocation(16, 13),
+                // (17,13): error CS9174: Cannot initialize type 'IMyCollection1<int>' with a collection expression because the type is not constructible.
+                //         x = [1];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("IMyCollection1<int>").WithLocation(17, 13),
+                // (19,13): error CS9174: Cannot initialize type 'IMyCollection2<int>' with a collection expression because the type is not constructible.
+                //         y = [];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("IMyCollection2<int>").WithLocation(19, 13),
+                // (20,13): error CS9174: Cannot initialize type 'IMyCollection2<int>' with a collection expression because the type is not constructible.
+                //         y = [2];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("IMyCollection2<int>").WithLocation(20, 13));
+        }
+
+        [Fact]
+        public void InterfaceType_ImplementsIEnumerable_02()
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                interface IMyCollection1<T> : IEnumerable
+                {
+                    void Add(T t) { }
+                }
+                interface IMyCollection2<T> : IEnumerable<T>
+                {
+                    void Add(T t) { }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        IMyCollection1<int> x;
+                        x = [];
+                        x = [1];
+                        IMyCollection2<int> y;
+                        y = [];
+                        y = [2];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (16,13): error CS9174: Cannot initialize type 'IMyCollection1<int>' with a collection expression because the type is not constructible.
+                //         x = [];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("IMyCollection1<int>").WithLocation(16, 13),
+                // (17,13): error CS9174: Cannot initialize type 'IMyCollection1<int>' with a collection expression because the type is not constructible.
+                //         x = [1];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("IMyCollection1<int>").WithLocation(17, 13),
+                // (19,13): error CS9174: Cannot initialize type 'IMyCollection2<int>' with a collection expression because the type is not constructible.
+                //         y = [];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("IMyCollection2<int>").WithLocation(19, 13),
+                // (20,13): error CS9174: Cannot initialize type 'IMyCollection2<int>' with a collection expression because the type is not constructible.
+                //         y = [2];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("IMyCollection2<int>").WithLocation(20, 13));
         }
 
         [Fact]

@@ -176,7 +176,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer &&
                 !_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
             {
-                // PROTOTYPE: Are we testing this case for ImplementsIEnumerableWithIndexer?
                 return Conversion.NoConversion;
             }
 
