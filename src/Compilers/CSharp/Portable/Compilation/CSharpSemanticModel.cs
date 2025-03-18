@@ -4849,7 +4849,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // TODO2
                     receiverType = call.Arguments[0].Type;
                 }
 
