@@ -485,4 +485,277 @@ public sealed class ConvertToExtensionTests
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestSimpleGrouping_MatchingAttributes1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class XAttribute : Attribute { }
+
+                static class C
+                {
+                    public static void M([X] this int i) { }
+                    [||]public static void N([X] this int i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class XAttribute : Attribute { }
+                
+                static class C
+                {
+                    extension([X] int i)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_MatchingAttributes2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class XAttribute : Attribute { }
+
+                static class C
+                {
+                    public static void M([X] this int i) { }
+                    [||]public static void N([XAttribute] this int i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class XAttribute : Attribute { }
+                
+                static class C
+                {
+                    extension([X] int i)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_MatchingAttributes3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class XAttribute : Attribute
+                {
+                    public XAttribute(int i) { }
+                }
+
+                static class C
+                {
+                    public static void M([X(0)] this int i) { }
+                    [||]public static void N([X(0)] this int i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class XAttribute : Attribute
+                {
+                    public XAttribute(int i) { }
+                }
+                
+                static class C
+                {
+                    extension([X(0)] int i)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_MatchingAttributes4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class XAttribute : Attribute
+                {
+                    public int I;
+                }
+
+                static class C
+                {
+                    public static void M([X(I=1)] this int i) { }
+                    [||]public static void N([X(I=1)] this int i) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class XAttribute : Attribute
+                {
+                    public int I;
+                }
+                
+                static class C
+                {
+                    extension([X(I = 1)] int i)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_NonMatchingAttributes1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class XAttribute : Attribute { }
+
+                static class C
+                {
+                    public static void M([X] this int i) { }
+                    [||]public static void N(this int i) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_NonMatchingAttributes2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    public static void M([X] this int i) { }
+                    [||]public static void N([Y] this int i) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_NonMatchingAttributes3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class XAttribute : Attribute
+                {
+                    public XAttribute(int i) { }
+                }
+
+                static class C
+                {
+                    public static void M([X(0)] this int i) { }
+                    [||]public static void N([X(1)] this int i) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_NonMatchingAttributes4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class XAttribute : Attribute
+                {
+                    public XAttribute { }
+
+                    public int I;
+                }
+
+                static class C
+                {
+                    public static void M([X(I=1)] this int i) { }
+                    [||]public static void N([X(I=2)] this int i) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_UnrelatedAttributes()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    public static void M(this int i, [X] string s) { }
+                    [||]public static void N(this int i, [Y] string s) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+            
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M([X] string s) { }
+                        public void N([Y] string s) { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
 }
