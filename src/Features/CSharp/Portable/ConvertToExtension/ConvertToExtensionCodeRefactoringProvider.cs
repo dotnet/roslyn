@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToExtension;
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
+/// <summary>
+/// Refactoring to convert from classic extension methods to modern C# 14 extension types.  Practically all classic
+/// extension methods are supported <em>except</em> for those where the 'this' parameter references method type
+/// parameters that are not the starting type parameters of the extension method.  Those extension methods do not
+/// have a 'modern' form as modern extensions have no way of lowering to that classic ABI shape.
+/// </summary>
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToExtension), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -54,6 +60,10 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         MethodDeclarationSyntax methodDeclaration,
         CancellationToken cancellationToken)
     {
+        // For ease of processing, only operate on legal extension methods in a legal static class.  e.g.
+        //
+        //  static class S { static R M(this T t, ...) { } }
+
         if (methodDeclaration.ParameterList.Parameters is not [var firstParameter, ..])
             return null;
 
@@ -69,6 +79,8 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         if (!classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword))
             return null;
 
+        // Has to be in a top level class.  This also makes the fix-all provider easier to implement as we can just look
+        // for top level static classes to examine for extension methods.
         if (classDeclaration.Parent is not BaseNamespaceDeclarationSyntax and not CompilationUnitSyntax)
             return null;
 
@@ -92,6 +104,12 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         return new(classDeclaration, methodDeclaration, firstParameterSymbol, methodTypeParameters.ToImmutableAndClear());
     }
 
+    /// <summary>
+    /// Returns all the legal extension methods in <paramref name="classDeclaration"/> grouped by their receiver
+    /// parameter. The groupings are only for receiver parameters that are considered <em>identical</em>, and thus could
+    /// be the extension parameter P in a new <c>extension(P)</c> declaration.  This means they must have the same type,
+    /// name, ref-ness, constraints, attributes, etc.
+    /// </summary>
     private static ImmutableDictionary<ExtensionMethodInfo, ImmutableArray<ExtensionMethodInfo>> GetAllExtensionMethods(
         SemanticModel semanticModel, ClassDeclarationSyntax classDeclaration, CancellationToken cancellationToken)
     {
