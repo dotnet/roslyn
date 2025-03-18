@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using VSThreading = Microsoft.VisualStudio.Threading;
@@ -74,7 +75,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioMetadataReferenceManager(
-        IServiceProvider serviceProvider,
+        SVsServiceProvider serviceProvider,
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace)
     {
