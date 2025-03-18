@@ -34,26 +34,102 @@ using static SyntaxFactory;
 internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : CodeRefactoringProvider
 {
     private readonly record struct ExtensionMethodInfo(
+        ClassDeclarationSyntax ClassDeclaration,
         MethodDeclarationSyntax ExtensionMethod,
         IParameterSymbol FirstParameter,
-        ImmutableArray<ITypeParameterSymbol> MethodTypeParameters);
+        ImmutableArray<ITypeParameterSymbol> MethodTypeParameters)
+    {
+        public bool Equals(ExtensionMethodInfo info)
+            => ExtensionMethodEqualityComparer.Instance.Equals(this, info);
+
+        public override int GetHashCode()
+            => ExtensionMethodEqualityComparer.Instance.GetHashCode(this);
+    }
 
     internal override FixAllProvider? GetFixAllProvider()
         => new ConvertToExtensionFixAllProvider();
 
+    private static ExtensionMethodInfo? TryGetExtensionMethodInfo(
+        SemanticModel semanticModel,
+        MethodDeclarationSyntax methodDeclaration,
+        CancellationToken cancellationToken)
+    {
+        if (methodDeclaration.ParameterList.Parameters is not [var firstParameter, ..])
+            return null;
+
+        if (!firstParameter.Modifiers.Any(SyntaxKind.ThisKeyword))
+            return null;
+
+        if (methodDeclaration.Parent is not ClassDeclarationSyntax classDeclaration)
+            return null;
+
+        if (!classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword))
+            return null;
+
+        if (classDeclaration.Parent is not BaseNamespaceDeclarationSyntax)
+            return null;
+
+        var firstParameterSymbol = semanticModel.GetRequiredDeclaredSymbol(firstParameter, cancellationToken);
+        var methodSymbol = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
+
+        // Gather the referenced method type parameters (in their original method order) in the extension method 'this'
+        // parameter.  If method type parameters are used in that parameter, they must be the a prefix of the type
+        // parameters of the method.
+        using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var methodTypeParameters);
+        firstParameterSymbol.Type.AddReferencedMethodTypeParameters(methodTypeParameters);
+
+        methodTypeParameters.Sort(static (t1, t2) => t1.Ordinal - t2.Ordinal);
+        for (var i = 0; i < methodTypeParameters.Count; i++)
+        {
+            var typeParameter = methodTypeParameters[i];
+            if (typeParameter.Ordinal != i)
+                return null;
+        }
+
+        return new(classDeclaration, methodDeclaration, firstParameterSymbol, methodTypeParameters.ToImmutableAndClear());
+    }
+
+    private static ImmutableDictionary<ExtensionMethodInfo, ImmutableArray<ExtensionMethodInfo>> GetAllExtensionMethods(
+        SemanticModel semanticModel, ClassDeclarationSyntax classDeclaration, CancellationToken cancellationToken)
+    {
+        var map = PooledDictionary<ExtensionMethodInfo, ArrayBuilder<ExtensionMethodInfo>>.GetInstance();
+
+        foreach (var member in classDeclaration.Members)
+        {
+            if (member is not MethodDeclarationSyntax methodDeclaration)
+                continue;
+
+            var extensionInfo = TryGetExtensionMethodInfo(semanticModel, methodDeclaration, cancellationToken);
+            if (extensionInfo == null)
+                continue;
+
+            map.MultiAdd(extensionInfo.Value, extensionInfo.Value);
+        }
+
+        return map.ToImmutableMultiDictionaryAndFree();
+    }
+
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
-        // If the user is on an extension method, offer to convert it to a modern extension.
+        var cancellationToken = context.CancellationToken;
+        var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken) .ConfigureAwait(false);
         var methodDeclaration = await context.TryGetRelevantNodeAsync<MethodDeclarationSyntax>().ConfigureAwait(false);
+
         if (methodDeclaration != null)
         {
-            if (IsExtensionMethod(methodDeclaration, out var classDeclaration))
-            {
-                ComputeRefactorings(
-                    context, classDeclaration, [methodDeclaration],
-                    CSharpFeaturesResources.Convert_extension_method_to_extension,
-                    nameof(CSharpFeaturesResources.Convert_extension_method_to_extension));
-            }
+            var extensionInfo = TryGetExtensionMethodInfo(semanticModel, methodDeclaration, cancellationToken);
+            if (extensionInfo == null)
+                return;
+
+            var allExtensionMethods = GetAllExtensionMethods(
+                semanticModel, extensionInfo.Value.ClassDeclaration, cancellationToken);
+            var extensionMethodInfos = allExtensionMethods[extensionInfo.Value];
+
+            // Offer to change all the extension methods that match this particular parameter
+            context.RegisterRefactoring(CodeAction.Create(
+                string.Format(CSharpFeaturesResources.Convert_0_extension_methods_to_extension, extensionInfo.Value.FirstParameter.Type.ToDisplayString()),
+                cancellationToken => ConvertToExtensionAsync(context.Document, allExtensionMethods, extensionInfo, cancellationToken),
+                CSharpFeaturesResources.Convert_0_extension_methods_to_extension));
         }
         else
         {
@@ -61,28 +137,33 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             var classDeclaration = await context.TryGetRelevantNodeAsync<ClassDeclarationSyntax>().ConfigureAwait(false);
             if (classDeclaration != null)
             {
-                ComputeRefactorings(
-                    context, classDeclaration, GetExtensionMethods(classDeclaration),
-                    CSharpFeaturesResources.Convert_all_extension_methods_to_extension,
-                    nameof(CSharpFeaturesResources.Convert_all_extension_methods_to_extension));
+                var allExtensionMethods = GetAllExtensionMethods(
+                    semanticModel, classDeclaration, cancellationToken);
+                if (allExtensionMethods.IsEmpty)
+                    return;
+
+                context.RegisterRefactoring(CodeAction.Create(
+                    string.Format(CSharpFeaturesResources.Convert_all_extension_methods_in_0_to_extension, classDeclaration.Identifier.ValueText),
+                    cancellationToken => ConvertToExtensionAsync(context.Document, allExtensionMethods, extensionInfo: null, cancellationToken),
+                    CSharpFeaturesResources.Convert_all_extension_methods_in_0_to_extension));
             }
         }
     }
 
-    private static bool IsExtensionMethod(
-        MethodDeclarationSyntax methodDeclaration,
-        [NotNullWhen(true)] out ClassDeclarationSyntax? classDeclaration)
-    {
-        classDeclaration = null;
-        if (methodDeclaration.ParameterList.Parameters is not [var firstParameter, ..])
-            return false;
+    //private static bool IsExtensionMethod(
+    //    MethodDeclarationSyntax methodDeclaration,
+    //    [NotNullWhen(true)] out ClassDeclarationSyntax? classDeclaration)
+    //{
+    //    classDeclaration = null;
+    //    if (methodDeclaration.ParameterList.Parameters is not [var firstParameter, ..])
+    //        return false;
 
-        if (!firstParameter.Modifiers.Any(SyntaxKind.ThisKeyword))
-            return false;
+    //    if (!firstParameter.Modifiers.Any(SyntaxKind.ThisKeyword))
+    //        return false;
 
-        classDeclaration = methodDeclaration.Parent as ClassDeclarationSyntax;
-        return classDeclaration != null;
-    }
+    //    classDeclaration = methodDeclaration.Parent as ClassDeclarationSyntax;
+    //    return classDeclaration != null;
+    //}
 
     private static ImmutableArray<MethodDeclarationSyntax> GetExtensionMethods(ClassDeclarationSyntax classDeclaration)
         => classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) && classDeclaration.Parent is BaseNamespaceDeclarationSyntax
