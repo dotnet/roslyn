@@ -292,7 +292,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             return extensionMethod.TypeParameterList;
 
         // If we're removing all the type parameters, remove the type parameter list entirely.
-        if (extensionMethodInfo.MethodTypeParameters.Length == movedTypeParameterCount)
+        if (extensionMethod.TypeParameterList.Parameters.Count == movedTypeParameterCount)
             return null;
 
         // We want to remove the type parameter and the comma that follows it.  So we multiple the count of type
