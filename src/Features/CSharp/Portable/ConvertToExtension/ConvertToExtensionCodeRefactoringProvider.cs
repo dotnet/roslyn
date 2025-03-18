@@ -112,7 +112,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var cancellationToken = context.CancellationToken;
-        var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken) .ConfigureAwait(false);
+        var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var methodDeclaration = await context.TryGetRelevantNodeAsync<MethodDeclarationSyntax>().ConfigureAwait(false);
 
         if (methodDeclaration != null)
@@ -123,12 +123,12 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
 
             var allExtensionMethods = GetAllExtensionMethods(
                 semanticModel, extensionInfo.Value.ClassDeclaration, cancellationToken);
-            var extensionMethodInfos = allExtensionMethods[extensionInfo.Value];
 
             // Offer to change all the extension methods that match this particular parameter
             context.RegisterRefactoring(CodeAction.Create(
                 string.Format(CSharpFeaturesResources.Convert_0_extension_methods_to_extension, extensionInfo.Value.FirstParameter.Type.ToDisplayString()),
-                cancellationToken => ConvertToExtensionAsync(context.Document, allExtensionMethods, extensionInfo, cancellationToken),
+                cancellationToken => ConvertToExtensionAsync(
+                    context.Document, extensionInfo.Value.ClassDeclaration, allExtensionMethods, extensionInfo, cancellationToken),
                 CSharpFeaturesResources.Convert_0_extension_methods_to_extension));
         }
         else
@@ -144,7 +144,8 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
 
                 context.RegisterRefactoring(CodeAction.Create(
                     string.Format(CSharpFeaturesResources.Convert_all_extension_methods_in_0_to_extension, classDeclaration.Identifier.ValueText),
-                    cancellationToken => ConvertToExtensionAsync(context.Document, allExtensionMethods, extensionInfo: null, cancellationToken),
+                    cancellationToken => ConvertToExtensionAsync(
+                        context.Document, classDeclaration, allExtensionMethods, specificExtension: null, cancellationToken),
                     CSharpFeaturesResources.Convert_all_extension_methods_in_0_to_extension));
             }
         }
@@ -165,41 +166,42 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
     //    return classDeclaration != null;
     //}
 
-    private static ImmutableArray<MethodDeclarationSyntax> GetExtensionMethods(ClassDeclarationSyntax classDeclaration)
-        => classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) && classDeclaration.Parent is BaseNamespaceDeclarationSyntax
-            ? [.. classDeclaration.Members.OfType<MethodDeclarationSyntax>().Where(m => IsExtensionMethod(m, out _))]
-            : [];
+    //private static ImmutableArray<MethodDeclarationSyntax> GetExtensionMethods(ClassDeclarationSyntax classDeclaration)
+    //    => classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) && classDeclaration.Parent is BaseNamespaceDeclarationSyntax
+    //        ? [.. classDeclaration.Members.OfType<MethodDeclarationSyntax>().Where(m => IsExtensionMethod(m, out _))]
+    //        : [];
 
-    private static void ComputeRefactorings(
-        CodeRefactoringContext context,
-        ClassDeclarationSyntax classDeclaration,
-        ImmutableArray<MethodDeclarationSyntax> extensionMethods,
-        string title,
-        string equivalenceKey)
-    {
-        if (extensionMethods.IsEmpty)
-            return;
+    //private static void ComputeRefactorings(
+    //    CodeRefactoringContext context,
+    //    ClassDeclarationSyntax classDeclaration,
+    //    ImmutableArray<MethodDeclarationSyntax> extensionMethods,
+    //    string title,
+    //    string equivalenceKey)
+    //{
+    //    if (extensionMethods.IsEmpty)
+    //        return;
 
-        context.RegisterRefactoring(CodeAction.Create(
-            title,
-            cancellationToken => ConvertToExtensionAsync(context.Document, classDeclaration, extensionMethods, cancellationToken),
-            equivalenceKey));
-    }
+    //    context.RegisterRefactoring(CodeAction.Create(
+    //        title,
+    //        cancellationToken => ConvertToExtensionAsync(context.Document, classDeclaration, extensionMethods, cancellationToken),
+    //        equivalenceKey));
+    //}
 
     private static async Task<Document> ConvertToExtensionAsync(
         Document document,
         ClassDeclarationSyntax classDeclaration,
-        ImmutableArray<MethodDeclarationSyntax> extensionMethods,
+        ImmutableDictionary<ExtensionMethodInfo, ImmutableArray<ExtensionMethodInfo>> allExtensionMethods,
+        ExtensionMethodInfo? specificExtension,
         CancellationToken cancellationToken)
     {
-        Contract.ThrowIfTrue(extensionMethods.IsEmpty);
+        Contract.ThrowIfTrue(allExtensionMethods.IsEmpty);
 
         var codeGenerationService = document.GetRequiredLanguageService<ICodeGenerationService>();
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var newDeclaration = ConvertToExtension(
-            codeGenerationService, semanticModel, classDeclaration, extensionMethods, cancellationToken);
+            codeGenerationService, semanticModel, classDeclaration, allExtensionMethods, specificExtension, cancellationToken);
 
         var newRoot = root.ReplaceNode(classDeclaration, newDeclaration);
         return document.WithSyntaxRoot(newRoot);
@@ -215,34 +217,23 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         ICodeGenerationService codeGenerationService,
         SemanticModel semanticModel,
         ClassDeclarationSyntax classDeclaration,
-        ImmutableArray<MethodDeclarationSyntax> extensionMethods,
+        ImmutableDictionary<ExtensionMethodInfo, ImmutableArray<ExtensionMethodInfo>> allExtensionMethods,
+        ExtensionMethodInfo? specificExtension,
         CancellationToken cancellationToken)
     {
-        Contract.ThrowIfTrue(extensionMethods.IsEmpty);
-
-        // Group extension methods as long as their first-parameter is compatible.
-        var extensionMethodInfos = extensionMethods
-            .Select(extensionMethod =>
-            {
-                var firstParameter = semanticModel.GetRequiredDeclaredSymbol(extensionMethod.ParameterList.Parameters[0], cancellationToken);
-                using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var methodTypeParameters);
-                return new ExtensionMethodInfo(
-                    extensionMethod, firstParameter, [.. methodTypeParameters.OrderBy(t => t.Name)]);
-            });
-
-        var groups = extensionMethodInfos.GroupBy(x => x, ExtensionMethodEqualityComparer.Instance);
+        Contract.ThrowIfTrue(allExtensionMethods.IsEmpty);
 
         // Process all the groups, ordered by the first extension method's start position.  That way each group of extensions
         // is merged into a final extension that will go into that location in the original class declaration.
         var classDeclarationEditor = new SyntaxEditor(classDeclaration, CSharpSyntaxGenerator.Instance);
-        foreach (var group in groups.OrderBy(g => g.Min(info => info.ExtensionMethod.SpanStart)))
+        foreach (var (_, matchingExtensions) in allExtensionMethods)
         {
-            var newExtension = CreateExtension([.. group]);
+            var newExtension = CreateExtension(matchingExtensions);
 
-            classDeclarationEditor.ReplaceNode(group.First().ExtensionMethod, newExtension);
+            classDeclarationEditor.ReplaceNode(matchingExtensions.First().ExtensionMethod, newExtension);
 
-            foreach (var extensionMethod in group.Skip(1))
-                classDeclarationEditor.RemoveNode(extensionMethod.ExtensionMethod);
+            foreach (var siblingExtension in matchingExtensions.Skip(1))
+                classDeclarationEditor.RemoveNode(siblingExtension.ExtensionMethod);
         }
 
         return (ClassDeclarationSyntax)classDeclarationEditor.GetChangedRoot();

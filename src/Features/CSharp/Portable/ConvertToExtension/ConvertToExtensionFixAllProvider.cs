@@ -41,14 +41,14 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider
             foreach (var declaration in GetTopLevelClassDeclarations(root, fixAllSpans))
             {
                 // We might hit partial parts that have no extension methods in them.  Just skip those.
-                var extensionMethods = GetExtensionMethods(declaration);
+                var extensionMethods = GetAllExtensionMethods(semanticModel, declaration, cancellationToken);
                 if (extensionMethods.IsEmpty)
                     continue;
 
                 // For each class declaration we hit that has extension methods in it, convert all the extension methods
                 // to extensions and replace the old declaration with the new one.
                 var newDeclaration = ConvertToExtension(
-                    codeGenerationService, semanticModel, declaration, extensionMethods, cancellationToken);
+                    codeGenerationService, semanticModel, declaration, extensionMethods, specificExtension: null, cancellationToken);
                 editor.ReplaceNode(declaration, newDeclaration);
             }
 
