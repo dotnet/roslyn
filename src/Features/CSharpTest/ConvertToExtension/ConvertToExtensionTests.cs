@@ -67,6 +67,54 @@ public sealed class ConvertToExtensionTests
     }
 
     [Fact]
+    public async Task TestInReceiver()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class C
+                {
+                    [||]public static void M(this in int i) { }
+                }
+                """,
+            FixedCode = """
+                static class C
+                {
+                    extension(in int i)
+                    {
+                        public void M() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestRefReadonlyReceiver()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class C
+                {
+                    [||]public static void M(this ref readonly int i) { }
+                }
+                """,
+            FixedCode = """
+                static class C
+                {
+                    extension(ref readonly int i)
+                    {
+                        public void M() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestNotOnCSharp13()
     {
         await new VerifyCS.Test
@@ -1626,6 +1674,132 @@ public sealed class ConvertToExtensionTests
                         public void O() { }
 
                         public void P() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCodeBody1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class C
+                {
+                    [||]public static void M(this int i)
+                    {
+                        return;
+                    }
+                }
+                """,
+            FixedCode = """
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M()
+                        {
+                            return;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestCodeBody2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                static class C
+                {
+                    [||]public static DateTime M(this int i)
+                    {
+                        return new()
+                        {
+                        };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public DateTime M()
+                        {
+                            return new()
+                            {
+                            };
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleConstraints1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M<K,V>(this IDictionary<K,V> map) where K : struct where V : class { }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    extension<K, V>(IDictionary<K, V> map)
+                        where K : struct
+                        where V : class
+                    {
+                        public void M() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultipleConstraints2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    [||]public static void M<K,V>(this IList<K> map) where K : struct where V : class { }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                static class C
+                {
+                    extension<K>(IList<K> map) where K : struct
+                    {
+                        public void M<V>() where V : class { }
                     }
                 }
                 """,

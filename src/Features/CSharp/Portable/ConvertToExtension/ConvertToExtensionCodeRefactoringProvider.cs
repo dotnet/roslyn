@@ -277,8 +277,8 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         var extensionMethod = extensionMethodInfo.ExtensionMethod;
 
         // skip the first parameter, which is the 'this' parameter, and the comma that follows it.
-        return extensionMethod.ParameterList.WithParameters(
-            SeparatedList<ParameterSyntax>(extensionMethodInfo.ExtensionMethod.ParameterList.Parameters.GetWithSeparators().Skip(2)));
+        return extensionMethod.ParameterList.WithParameters(SeparatedList<ParameterSyntax>(
+            extensionMethodInfo.ExtensionMethod.ParameterList.Parameters.GetWithSeparators().Skip(2)));
     }
 
     private static TypeParameterListSyntax? ConvertTypeParameters(
