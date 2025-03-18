@@ -198,10 +198,9 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
 
         var codeGenerationService = document.GetRequiredLanguageService<ICodeGenerationService>();
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var newDeclaration = ConvertToExtension(
-            codeGenerationService, semanticModel, classDeclaration, allExtensionMethods, specificExtension, cancellationToken);
+            codeGenerationService, classDeclaration, allExtensionMethods, specificExtension);
 
         var newRoot = root.ReplaceNode(classDeclaration, newDeclaration);
         return document.WithSyntaxRoot(newRoot);
@@ -215,28 +214,35 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
     /// </summary>
     private static ClassDeclarationSyntax ConvertToExtension(
         ICodeGenerationService codeGenerationService,
-        SemanticModel semanticModel,
         ClassDeclarationSyntax classDeclaration,
         ImmutableDictionary<ExtensionMethodInfo, ImmutableArray<ExtensionMethodInfo>> allExtensionMethods,
-        ExtensionMethodInfo? specificExtension,
-        CancellationToken cancellationToken)
+        ExtensionMethodInfo? specificExtension)
     {
         Contract.ThrowIfTrue(allExtensionMethods.IsEmpty);
 
-        // Process all the groups, ordered by the first extension method's start position.  That way each group of extensions
-        // is merged into a final extension that will go into that location in the original class declaration.
         var classDeclarationEditor = new SyntaxEditor(classDeclaration, CSharpSyntaxGenerator.Instance);
-        foreach (var (_, matchingExtensions) in allExtensionMethods)
+        if (specificExtension != null)
         {
-            var newExtension = CreateExtension(matchingExtensions);
-
-            classDeclarationEditor.ReplaceNode(matchingExtensions.First().ExtensionMethod, newExtension);
-
-            foreach (var siblingExtension in matchingExtensions.Skip(1))
-                classDeclarationEditor.RemoveNode(siblingExtension.ExtensionMethod);
+            var matchingExtensions = allExtensionMethods[specificExtension.Value];
+            ConvertAndReplaceExtensions(matchingExtensions);
+        }
+        else
+        {
+            foreach (var (_, matchingExtensions) in allExtensionMethods)
+                ConvertAndReplaceExtensions(matchingExtensions);
         }
 
         return (ClassDeclarationSyntax)classDeclarationEditor.GetChangedRoot();
+
+        void ConvertAndReplaceExtensions(ImmutableArray<ExtensionMethodInfo> extensionMethods)
+        {
+            var newExtension = CreateExtension(extensionMethods);
+
+            classDeclarationEditor.ReplaceNode(extensionMethods.First().ExtensionMethod, newExtension);
+
+            foreach (var siblingExtension in extensionMethods.Skip(1))
+                classDeclarationEditor.RemoveNode(siblingExtension.ExtensionMethod);
+        }
 
         ExtensionDeclarationSyntax CreateExtension(ImmutableArray<ExtensionMethodInfo> group)
         {

@@ -48,7 +48,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider
                 // For each class declaration we hit that has extension methods in it, convert all the extension methods
                 // to extensions and replace the old declaration with the new one.
                 var newDeclaration = ConvertToExtension(
-                    codeGenerationService, semanticModel, declaration, extensionMethods, specificExtension: null, cancellationToken);
+                    codeGenerationService, declaration, extensionMethods, specificExtension: null);
                 editor.ReplaceNode(declaration, newDeclaration);
             }
 
