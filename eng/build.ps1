@@ -268,6 +268,8 @@ function BuildSolution() {
 
   $restoreUseStaticGraphEvaluation = $true
 
+  $runIbcMergeArg = if ($applyOptimizationData) { "" } else { "/p:_RunIbcMerge=false" }
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -286,6 +288,7 @@ function BuildSolution() {
       /p:BootstrapBuildPath=$bootstrapDir `
       /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
+      $runIbcMergeArg `
       /p:IbcOptimizationDataDir=$ibcDir `
       /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
       /p:VisualStudioIbcDrop=$ibcDropName `
