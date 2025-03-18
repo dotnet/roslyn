@@ -158,17 +158,17 @@ internal sealed class RoslynPackage : AbstractPackage
 
         var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
 
-        packageRegistrationTasks.AddTask(
+        // Misc workspace has to be up and running by the time our package is usable so that it can track running
+        // doc events and appropriately map files to/from it and other relevant workspaces (like the
+        // metadata-as-source workspace).
+        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+
+        packageInitializeTasks.AddTask(
             isMainThreadTask: true,
-            task: async (progress, packageRegistrationTasks, cancellationToken) =>
+            task: async (packageInitializeTasks, cancellationToken) =>
             {
                 _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
                 TrackBulkFileOperations(globalNotificationService);
-
-                // Misc workspace has to be up and running by the time our package is usable so that it can track running
-                // doc events and appropriately map files to/from it and other relevant workspaces (like the
-                // metadata-as-source workspace).
-                var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
                 RegisterEditorFactory(settingsEditorFactory);
 
