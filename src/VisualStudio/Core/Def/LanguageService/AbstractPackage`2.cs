@@ -58,6 +58,8 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             RegisterEditorFactory(editorFactory);
         }
 
+        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+
         // awaiting an IVsTask guarantees to return on the captured context
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
 
@@ -77,8 +79,6 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
                      return _languageService.ComAggregate!;
                  });
-
-                 var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
                  RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 

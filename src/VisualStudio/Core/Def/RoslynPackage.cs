@@ -158,11 +158,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
         var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
 
-        // Misc workspace has to be up and running by the time our package is usable so that it can track running
-        // doc events and appropriately map files to/from it and other relevant workspaces (like the
-        // metadata-as-source workspace).
-        var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
-
         packageRegistrationTasks.AddTask(
             isMainThreadTask: true,
             task: async (progress, packageRegistrationTasks, cancellationToken) =>
@@ -183,6 +178,11 @@ internal sealed class RoslynPackage : AbstractPackage
                 serviceBrokerContainer.Proffer(
                     ManagedHotReloadLanguageServiceDescriptor.Descriptor,
                     (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
+
+                // Misc workspace has to be up and running by the time our package is usable so that it can track running
+                // doc events and appropriately map files to/from it and other relevant workspaces (like the
+                // metadata-as-source workspace).
+                var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
             });
 
         return Task.CompletedTask;
