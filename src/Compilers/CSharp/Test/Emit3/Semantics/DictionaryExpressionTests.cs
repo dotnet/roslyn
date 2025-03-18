@@ -2537,8 +2537,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        // PROTOTYPE: Should MyDictionary1<K, V> and MyDictionary2 be supported, and
-        // how should we word the spec so the behavior is clearly defined?
         [Fact]
         public void IndexerSignature_02()
         {
@@ -2731,6 +2729,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void IndexerSignature_ExplicitImplementation()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                interface IMyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    V this[K key] { get; set; }
+                }
+                class MyDictionary<K, V> : IMyDictionary<K, V>
+                {
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    V IMyDictionary<K, V>.this[K key] { get { return default; } set { } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyDictionary<int, string> d = [default:default];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (17,39): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyDictionary<int, string> d = [default:default];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(17, 39),
+                // (17,40): error CS9275: Collection expression type 'MyDictionary<int, string>' does not support key-value pair elements.
+                //         MyDictionary<int, string> d = [default:default];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary<int, string>").WithLocation(17, 40));
+        }
+
+        [Fact]
         public void IndexerSignature_Static()
         {
             string source = """
@@ -2751,7 +2783,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Should report Add() not found.
             comp.VerifyEmitDiagnostics(
                 // (7,21): error CS0106: The modifier 'static' is not valid for this item
                 //     public static V this[K key] { get { return default; } set { } }
@@ -2766,14 +2797,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("out")]
         public void IndexerSignature_RefParameter(string refKind)
         {
+            string assignIfOut = refKind == "out" ? "key = default;" : "              ";
             string source = $$"""
                 using System.Collections;
                 using System.Collections.Generic;
                 class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
                 {
-                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
-                    IEnumerator IEnumerable.GetEnumerator() => null;
-                    public V this[{{refKind}} K key] { get { throw null; } set { throw null; } }
+                    private Dictionary<K, V> _d = new();
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => _d.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    public V this[{{refKind}} K key] { get { {{assignIfOut}} return _d[key]; } set { {{assignIfOut}} _d[key] = value; } }
                 }
                 class Program
                 {
@@ -2781,51 +2814,57 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static MyDictionary<K, V> FromPair<K, V>(K k, V v) => [k:v];
                     static MyDictionary<K, V> FromExpression<K, V>(KeyValuePair<K, V> e) => [e];
                     static MyDictionary<K, V> FromSpread<K, V>(IEnumerable<KeyValuePair<K, V>> s) => [..s];
+                    static void Main()
+                    {
+                        Empty<string, int>().Report();
+                        FromPair(1, "one").Report();
+                        FromExpression(new KeyValuePair<int, string>(2, "two")).Report();
+                        FromSpread(new KeyValuePair<int, string>[] { new(3, "three") }).Report();
+                    }
                 }
                 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([source, s_dictionaryExtensions], options: TestOptions.ReleaseExe);
             switch (refKind)
             {
                 case "":
-                    comp.VerifyEmitDiagnostics();
-                    break;
                 case "in":
-                    // PROTOTYPE: Run and verify IL.
-                    comp.VerifyEmitDiagnostics();
+                    var verifier = CompileAndVerify(comp,
+                        expectedOutput: "[], [1:one], [2:two], [3:three], ");
+                    verifier.VerifyDiagnostics();
                     break;
                 case "ref readonly":
                     comp.VerifyEmitDiagnostics(
-                        // (12,59): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
+                        // (13,59): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
                         //     static MyDictionary<K, V> FromPair<K, V>(K k, V v) => [k:v];
-                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[k:v]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(12, 59),
-                        // (12,60): error CS9275: Collection expression type 'MyDictionary<K, V>' does not support key-value pair elements.
+                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[k:v]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(13, 59),
+                        // (13,60): error CS9275: Collection expression type 'MyDictionary<K, V>' does not support key-value pair elements.
                         //     static MyDictionary<K, V> FromPair<K, V>(K k, V v) => [k:v];
-                        Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("MyDictionary<K, V>").WithLocation(12, 60),
-                        // (13,77): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
+                        Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("MyDictionary<K, V>").WithLocation(13, 60),
+                        // (14,77): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
                         //     static MyDictionary<K, V> FromExpression<K, V>(KeyValuePair<K, V> e) => [e];
-                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[e]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(13, 77),
-                        // (14,86): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
+                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[e]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(14, 77),
+                        // (15,86): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
                         //     static MyDictionary<K, V> FromSpread<K, V>(IEnumerable<KeyValuePair<K, V>> s) => [..s];
-                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[..s]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(14, 86));
+                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[..s]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(15, 86));
                     break;
                 case "ref":
                 case "out":
                     comp.VerifyEmitDiagnostics(
-                        // (7,19): error CS0631: ref and out are not valid in this context
-                        //     public V this[out K key] { get { throw null; } set { throw null; } }
-                        Diagnostic(ErrorCode.ERR_IllegalRefParam, refKind).WithLocation(7, 19),
-                        // (12,59): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
+                        // (8,19): error CS0631: ref and out are not valid in this context
+                        //     public V this[ref K key] { get {                return _d[key]; } set {                _d[key] = value; } }
+                        Diagnostic(ErrorCode.ERR_IllegalRefParam, refKind).WithLocation(8, 19),
+                        // (13,59): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
                         //     static MyDictionary<K, V> FromPair<K, V>(K k, V v) => [k:v];
-                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[k:v]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(12, 59),
-                        // (12,60): error CS9275: Collection expression type 'MyDictionary<K, V>' does not support key-value pair elements.
+                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[k:v]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(13, 59),
+                        // (13,60): error CS9275: Collection expression type 'MyDictionary<K, V>' does not support key-value pair elements.
                         //     static MyDictionary<K, V> FromPair<K, V>(K k, V v) => [k:v];
-                        Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("MyDictionary<K, V>").WithLocation(12, 60),
-                        // (13,77): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
+                        Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "k:v").WithArguments("MyDictionary<K, V>").WithLocation(13, 60),
+                        // (14,77): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
                         //     static MyDictionary<K, V> FromExpression<K, V>(KeyValuePair<K, V> e) => [e];
-                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[e]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(13, 77),
-                        // (14,86): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
+                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[e]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(14, 77),
+                        // (15,86): error CS1061: 'MyDictionary<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<K, V>' could be found (are you missing a using directive or an assembly reference?)
                         //     static MyDictionary<K, V> FromSpread<K, V>(IEnumerable<KeyValuePair<K, V>> s) => [..s];
-                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[..s]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(14, 86));
+                        Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[..s]").WithArguments("MyDictionary<K, V>", "Add").WithLocation(15, 86));
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refKind);
@@ -2949,6 +2988,87 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void IndexerSignature_Overloads_BaseAndDerived_01()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyDictionaryBase<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    protected Dictionary<K, V> _d = new();
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => _d.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    public V this[K key, object arg = null] { get { return default; } set { } }
+                }
+                class MyDictionary<K, V> : MyDictionaryBase<K, V>
+                {
+                    public V this[K key] { get { return _d[key]; } set { _d[key] = value; } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyDictionary<int, string> d = [default];
+                        d.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_dictionaryExtensions],
+                expectedOutput: "[0:null], ");
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<int, string> V_0)
+                  IL_0000:  newobj     "MyDictionary<int, string>..ctor()"
+                  IL_0005:  ldloca.s   V_0
+                  IL_0007:  initobj    "System.Collections.Generic.KeyValuePair<int, string>"
+                  IL_000d:  dup
+                  IL_000e:  ldloca.s   V_0
+                  IL_0010:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                  IL_0015:  ldloca.s   V_0
+                  IL_0017:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                  IL_001c:  callvirt   "void MyDictionary<int, string>.this[int].set"
+                  IL_0021:  call       "void DictionaryExtensions.Report<int, string>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>)"
+                  IL_0026:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void IndexerSignature_Overloads_BaseAndDerived_02()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyDictionaryBase<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    protected Dictionary<K, V> _d = new();
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => _d.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    public V this[K key] { get { return _d[key]; } set { _d[key] = value; } }
+                }
+                class MyDictionary<K, V> : MyDictionaryBase<K, V>
+                {
+                    public V this[K key, object arg = null] { get { return default; } set { } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyDictionary<int, string> d = [default];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (18,39): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyDictionary<int, string> d = [default];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(18, 39));
+        }
+
+        [Fact]
         public void IndexerSignature_Overridden()
         {
             string sourceA = """
@@ -2969,6 +3089,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     public override V this[K key] { set { _d[key] = value; } }
                 }
+                class MyDictionary3<K, V> : MyDictionary<K, V>
+                {
+                    public override V this[K key] { get { return _d[key]; } set { _d[key] = value; } }
+                }
                 """;
             string sourceB = """
                 class Program
@@ -2979,15 +3103,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         d1.Report();
                         MyDictionary2<int, string> d2 = [default];
                         d2.Report();
+                        MyDictionary3<int, string> d3 = [default];
+                        d3.Report();
                     }
                 }
                 """;
             var verifier = CompileAndVerify(
                 [sourceA, sourceB, s_dictionaryExtensions],
-                expectedOutput: "[], [0:null], ");
+                expectedOutput: "[], [0:null], [0:null], ");
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size       77 (0x4d)
+                  // Code size      115 (0x73)
                   .maxstack  4
                   .locals init (System.Collections.Generic.KeyValuePair<int, string> V_0)
                   IL_0000:  newobj     "MyDictionary1<int, string>..ctor()"
@@ -3010,7 +3136,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_003d:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
                   IL_0042:  callvirt   "void MyDictionary<int, string>.this[int].set"
                   IL_0047:  call       "void DictionaryExtensions.Report<int, string>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>)"
-                  IL_004c:  ret
+                  IL_004c:  newobj     "MyDictionary3<int, string>..ctor()"
+                  IL_0051:  ldloca.s   V_0
+                  IL_0053:  initobj    "System.Collections.Generic.KeyValuePair<int, string>"
+                  IL_0059:  dup
+                  IL_005a:  ldloca.s   V_0
+                  IL_005c:  call       "int System.Collections.Generic.KeyValuePair<int, string>.Key.get"
+                  IL_0061:  ldloca.s   V_0
+                  IL_0063:  call       "string System.Collections.Generic.KeyValuePair<int, string>.Value.get"
+                  IL_0068:  callvirt   "void MyDictionary<int, string>.this[int].set"
+                  IL_006d:  call       "void DictionaryExtensions.Report<int, string>(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<int, string>>)"
+                  IL_0072:  ret
                 }
                 """);
         }
@@ -3048,9 +3184,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Indexers in derived types should hide base indexer.
             var comp = CreateCompilation([sourceA, sourceB1]);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (13,34): error CS1061: 'MyDictionary1<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary1<K, V>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyDictionary1<K, V> d1 = [default:default];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary1<K, V>", "Add").WithLocation(13, 34),
+                // (13,35): error CS9275: Collection expression type 'MyDictionary1<K, V>' does not support key-value pair elements.
+                //         MyDictionary1<K, V> d1 = [default:default];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary1<K, V>").WithLocation(13, 35),
+                // (14,34): error CS1061: 'MyDictionary2<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary2<K, V>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyDictionary2<K, V> d2 = [default:default];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary2<K, V>", "Add").WithLocation(14, 34),
+                // (14,35): error CS9275: Collection expression type 'MyDictionary2<K, V>' does not support key-value pair elements.
+                //         MyDictionary2<K, V> d2 = [default:default];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary2<K, V>").WithLocation(14, 35));
 
             string sourceB2 = """
                 class MyDictionary3<K, V> : MyDictionary<K, V>
@@ -3059,21 +3206,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 class Program
                 {
-                    static void F<K, V>()
+                    static void Main()
                     {
-                        MyDictionary3<K, V> d3 = [default:default];
+                        F<int, string>().Report();
+                    }
+                    static MyDictionary3<K, V> F<K, V>()
+                    {
+                        return [default:default];
                     }
                 }
                 """;
-            // PROTOTYPE: Should compile successfully. Check expected output and verify IL for F<K, V>().
-            comp = CreateCompilation([sourceA, sourceB2]);
-            comp.VerifyEmitDiagnostics(
-                // (9,34): error CS1061: 'MyDictionary3<K, V>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary3<K, V>' could be found (are you missing a using directive or an assembly reference?)
-                //         MyDictionary3<K, V> d3 = [default:default];
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default:default]").WithArguments("MyDictionary3<K, V>", "Add").WithLocation(9, 34),
-                // (9,35): error CS9275: Collection expression type 'MyDictionary3<K, V>' does not support key-value pair elements.
-                //         MyDictionary3<K, V> d3 = [default:default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "default:default").WithArguments("MyDictionary3<K, V>").WithLocation(9, 35));
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB2, s_dictionaryExtensions],
+                expectedOutput: "[0:null], ");
+            verifier.VerifyIL("Program.F<K, V>", """
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  4
+                  .locals init (K V_0,
+                                V V_1)
+                  IL_0000:  newobj     "MyDictionary3<K, V>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldloca.s   V_0
+                  IL_0008:  initobj    "K"
+                  IL_000e:  ldloc.0
+                  IL_000f:  ldloca.s   V_1
+                  IL_0011:  initobj    "V"
+                  IL_0017:  ldloc.1
+                  IL_0018:  callvirt   "void MyDictionary3<K, V>.this[K].set"
+                  IL_001d:  ret
+                }
+                """);
         }
 
         [Theory]

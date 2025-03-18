@@ -1564,48 +1564,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        // PROTOTYPE: Compare with BindIndexerOrIndexedPropertyAccess() which does similar lookup.
         internal PropertySymbol? GetCollectionExpressionApplicableIndexer(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
         {
             bool isKeyValuePair = ConversionsBase.IsKeyValuePairType(Compilation, elementType, out var keyType, out var valueType);
             Debug.Assert(keyType is { });
             Debug.Assert(valueType is { });
 
-            var lookupResult = LookupResult.GetInstance();
-            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            LookupMembersWithFallback(lookupResult, targetType, WellKnownMemberNames.Indexer, arity: 0, ref useSiteInfo);
-            diagnostics.Add(syntax, useSiteInfo);
+            var receiver = new BoundValuePlaceholder(syntax, targetType);
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            analyzedArguments.Arguments.Add(new BoundValuePlaceholder(syntax, keyType));
+            var indexerAccess = BindIndexerAccess(syntax, receiver, analyzedArguments, diagnostics);
+            analyzedArguments.Free();
 
-            PropertySymbol? result = null;
-            foreach (var symbol in lookupResult.Symbols)
+            if (indexerAccess is BoundIndexerAccess { Indexer: { } indexer })
             {
-                if (symbol is PropertySymbol indexer &&
-                    isValidIndexer(Conversions, indexer, keyType, valueType, ref useSiteInfo))
-                {
-                    if (result is { })
-                    {
-                        result = null;
-                        break;
-                    }
-                    result = indexer;
-                }
-            }
-            lookupResult.Free();
-
-            return result;
-
-            static bool isValidIndexer(
-                ConversionsBase conversions,
-                PropertySymbol indexer,
-                TypeSymbol keyType,
-                TypeSymbol valueType,
-                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                // PROTOTYPE: Test shadowing with new.
-                // PROTOTYPE: Test params T[] parameter when the dictionary key is T, and when the dictionary key is T[].
-                // PROTOTYPE: Test explicit interface implementation.
-                // PROTOTYPE: Test more derived type returned from overridden indexer compared to base type.
-                // PROTOTYPE: Test only one of get or set overridden from base type.
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                indexer = indexer.GetLeastOverriddenProperty(accessingTypeOpt: null);
                 if (indexer is
                     {
                         IsStatic: false,
@@ -1614,16 +1588,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetMethod: { DeclaredAccessibility: Accessibility.Public },
                         SetMethod: { DeclaredAccessibility: Accessibility.Public },
                         Parameters: [{ RefKind: RefKind.None or RefKind.In } parameter]
-                    })
+                    } &&
+                    Conversions.ClassifyImplicitConversionFromType(parameter.Type, keyType, ref useSiteInfo).IsIdentity &&
+                    Conversions.ClassifyImplicitConversionFromType(indexer.Type, valueType, ref useSiteInfo).IsIdentity)
                 {
-                    if (conversions.ClassifyImplicitConversionFromType(parameter.Type, keyType, ref useSiteInfo).IsIdentity &&
-                        conversions.ClassifyImplicitConversionFromType(indexer.Type, valueType, ref useSiteInfo).IsIdentity)
-                    {
-                        return true;
-                    }
+                    diagnostics.Add(syntax, useSiteInfo);
+                    return indexer;
                 }
-                return false;
             }
+
+            return null;
         }
 
         internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, out ImmutableArray<MethodSymbol> addMethods, BindingDiagnosticBag diagnostics)
