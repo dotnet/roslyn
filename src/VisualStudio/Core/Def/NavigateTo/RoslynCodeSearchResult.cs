@@ -28,7 +28,8 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             IReadOnlyCollection<PatternMatch> patternMatches,
             string? location,
             float perProviderItemPriority,
-            string language)
+            string language,
+            bool isActiveDocument)
             : base(
                   provider._viewFactory,
                   resultType,
@@ -37,7 +38,8 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                   patternMatches,
                   location,
                   perProviderItemPriority: perProviderItemPriority,
-                  language: language)
+                  language: language,
+                  isActiveDocument: isActiveDocument)
         {
             SearchResult = searchResult;
         }

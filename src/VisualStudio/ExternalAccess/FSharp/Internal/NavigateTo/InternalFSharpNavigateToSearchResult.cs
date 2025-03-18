@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 
         public string Summary => null;
 
+        public bool IsActiveDocument => false;
+
         public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
     }
 }
