@@ -819,4 +819,389 @@ public sealed class ConvertToExtensionTests
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestSimpleGrouping_TypeParameters1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    [||]public static void M<T>(this IList<T> list) { }
+                    public static void N<T>(this IList<T> list) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+            
+                static class C
+                {
+                    extension<T>(IList<T> list)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_TypeParameters_DifferentName()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    [||]public static void M<T>(this IList<T> list) { }
+                    public static void N<X>(this IList<X> list) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+            
+                static class C
+                {
+                    extension<T>(IList<T> list)
+                    {
+                        public void M() { }
+                    }
+
+                    public static void N<X>(this IList<X> list) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_TypeParameters_SameAttributes()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    [||]public static void M<T>([X] this IList<T> list) { }
+                    public static void N<T>([X] this IList<T> list) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+            
+                static class C
+                {
+                    extension<T>([X] IList<T> list)
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_TypeParameters_DifferentAttributes()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    [||]public static void M<T>([X] this IList<T> list) { }
+                    public static void N<T>([Y] this IList<T> list) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+            
+                static class C
+                {
+                    extension<T>([X] IList<T> list)
+                    {
+                        public void M() { }
+                    }
+
+                    public static void N<T>([Y] this IList<T> list) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_TypeParameters_SameConstructorConstraint()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    [||]public static void M<T>(this IList<T> list) where T : new() { }
+                    public static void N<T>(this IList<T> list) where T : new() { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+            
+                static class C
+                {
+                    extension<T>(IList<T> list) where T : new()
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_TypeParameters_DifferentConstructorConstraint()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    [||]public static void M<T>(this IList<T> list) where T : new() { }
+                    public static void N<T>(this IList<T> list) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+            
+                static class C
+                {
+                    extension<T>(IList<T> list) where T : new()
+                    {
+                        public void M() { }
+                    }
+
+                    public static void N<T>([Y] this IList<T> list) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_TypeParameters_SameClassConstraint()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    [||]public static void M<T>(this IList<T> list) where T : class { }
+                    public static void N<T>(this IList<T> list) where T : class { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+            
+                static class C
+                {
+                    extension<T>(IList<T> list) where T : class
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_TypeParameters_DifferentClassConstraint()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    [||]public static void M<T>(this IList<T> list) where T : class { }
+                    public static void N<T>(this IList<T> list) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+            
+                static class C
+                {
+                    extension<T>(IList<T> list) where T : class
+                    {
+                        public void M() { }
+                    }
+
+                    public static void N<T>(this IList<T> list) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_TypeParameters_SameTypeConstraint()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    [||]public static void M<T>(this IList<T> list) where T : IList<T> { }
+                    public static void N<T>(this IList<T> list) where T : IList<T> { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+            
+                static class C
+                {
+                    extension<T>(IList<T> list) where T : IList<T>
+                    {
+                        public void M() { }
+                        public void N() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestSimpleGrouping_TypeParameters_DifferentTypeConstraint()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+
+                static class C
+                {
+                    [||]public static void M<T>(this IList<T> list) where T : IList<T> { }
+                    public static void N<T>(this IList<T> list) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                class XAttribute : Attribute { }
+                class YAttribute : Attribute { }
+            
+                static class C
+                {
+                    extension<T>(IList<T> list) where T : IList<T>
+                    {
+                        public void M() { }
+                    }
+
+                    public static void N<T>(this IList<T> list) { }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
 }
