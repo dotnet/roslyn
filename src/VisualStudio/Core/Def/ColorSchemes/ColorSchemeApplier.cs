@@ -14,11 +14,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.ColorSchemes;
@@ -42,7 +40,6 @@ internal sealed partial class ColorSchemeApplier
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ColorSchemeApplier(
         IThreadingContext threadingContext,
-        IVsService<SVsFontAndColorStorage, IVsFontAndColorStorage> fontAndColorStorage,
         IGlobalOptionService globalOptions,
         SVsServiceProvider serviceProvider,
         IAsynchronousOperationListenerProvider listenerProvider)
