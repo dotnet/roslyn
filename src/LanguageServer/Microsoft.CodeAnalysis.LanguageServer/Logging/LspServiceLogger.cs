@@ -19,8 +19,11 @@ internal sealed class LspServiceLogger : AbstractLspLogger, ILspService
         _hostLogger = hostLogger;
     }
 
+    public override IDisposable? CreateContext(string context) => _hostLogger.BeginScope(new LspLoggingScope(context));
+
     public override void LogDebug(string message, params object[] @params) => _hostLogger.LogDebug(message, @params);
 
+    [Obsolete($"Use {nameof(CreateContext)} instead.")]
     public override void LogEndContext(string message, params object[] @params) => _hostLogger.LogDebug($"[{DateTime.UtcNow:hh:mm:ss.fff}][End]{message}", @params);
 
     public override void LogError(string message, params object[] @params) => _hostLogger.LogError(message, @params);
@@ -32,6 +35,7 @@ internal sealed class LspServiceLogger : AbstractLspLogger, ILspService
     /// </summary>
     public override void LogInformation(string message, params object[] @params) => _hostLogger.LogDebug(message, @params);
 
+    [Obsolete($"Use {nameof(CreateContext)} instead.")]
     public override void LogStartContext(string message, params object[] @params) => _hostLogger.LogDebug($"[{DateTime.UtcNow:hh:mm:ss.fff}][Start]{message}", @params);
 
     public override void LogWarning(string message, params object[] @params) => _hostLogger.LogWarning(message, @params);

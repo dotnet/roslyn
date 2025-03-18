@@ -37,6 +37,8 @@ internal sealed class LogHubLspLogger : AbstractLspLogger, ILspService
         _configuration.Dispose();
     }
 
+    public override IDisposable? CreateContext(string context) => null;
+
     public override void LogDebug(string message, params object[] @params)
     {
         _traceSource.TraceEvent(TraceEventType.Verbose, id: 0, message);
@@ -66,11 +68,13 @@ internal sealed class LogHubLspLogger : AbstractLspLogger, ILspService
         _traceSource.TraceEvent(TraceEventType.Error, id: 0, "Exception: {0}", exception);
     }
 
+    [Obsolete($"Use {nameof(CreateContext)} instead.")]
     public override void LogStartContext(string message, params object[] @params)
     {
         _traceSource.TraceEvent(TraceEventType.Start, id: 0, message);
     }
 
+    [Obsolete($"Use {nameof(CreateContext)} instead.")]
     public override void LogEndContext(string message, params object[] @params)
     {
         _traceSource.TraceEvent(TraceEventType.Stop, id: 0, message);
