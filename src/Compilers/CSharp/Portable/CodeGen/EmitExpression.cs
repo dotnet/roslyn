@@ -1665,7 +1665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
 
             _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore,
-                MightEscapeTemporaryRefs(call, used: useKind != UseKind.Unused, receiverAddressKind: null));
+                MightEscapeTemporaryRefs(call, used: useKind != UseKind.Unused));
 
             int stackBehavior = GetCallStackBehavior(method, arguments);
 
@@ -1764,10 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     emitArgumentsAndCallEpilogue(call, callKind, receiverUseKind);
 
-                    _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore, MightEscapeTemporaryRefs(
-                        call,
-                        used: true,
-                        receiverAddressKind: receiverUseKind != UseKind.UsedAsAddress ? null : addressKind));
+                    _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore, MightEscapeTemporaryRefs(call, used: true));
 
                     countBefore = _builder.LocalSlotManager.StartScopeOfTrackingAddressedLocals();
 
@@ -1832,10 +1829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             emitArgumentsAndCallEpilogue(call, callKind, useKind);
 
-            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore, MightEscapeTemporaryRefs(
-                call,
-                used: useKind != UseKind.Unused,
-                receiverAddressKind: useKind != UseKind.UsedAsAddress ? null : addressKind));
+            _builder.LocalSlotManager.EndScopeOfTrackingAddressedLocals(countBefore, MightEscapeTemporaryRefs(call, used: useKind != UseKind.Unused));
 
             FreeOptTemp(tempOpt);
 

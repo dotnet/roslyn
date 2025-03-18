@@ -3,26 +3,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen;
 
 internal partial class CodeGenerator
 {
-    /// <inheritdoc cref="MightEscapeTemporaryRefs(bool, TypeSymbol, RefKind, ParameterSymbol?, AddressKind?, ImmutableArray{ParameterSymbol})"/>
-    private static bool MightEscapeTemporaryRefs(BoundCall node, bool used, AddressKind? receiverAddressKind)
+    /// <inheritdoc cref="MightEscapeTemporaryRefs(bool, TypeSymbol, RefKind, ParameterSymbol?, ImmutableArray{ParameterSymbol})"/>
+    private static bool MightEscapeTemporaryRefs(BoundCall node, bool used)
     {
         return MightEscapeTemporaryRefs(
             used: used,
             returnType: node.Type,
             returnRefKind: node.Method.RefKind,
             thisParameterSymbol: node.Method.TryGetThisParameter(out var thisParameter) ? thisParameter : null,
-            receiverAddressKind: receiverAddressKind,
             parameters: node.Method.Parameters);
     }
 
-    /// <inheritdoc cref="MightEscapeTemporaryRefs(bool, TypeSymbol, RefKind, ParameterSymbol?, AddressKind?, ImmutableArray{ParameterSymbol})"/>
+    /// <inheritdoc cref="MightEscapeTemporaryRefs(bool, TypeSymbol, RefKind, ParameterSymbol?, ImmutableArray{ParameterSymbol})"/>
     private static bool MightEscapeTemporaryRefs(BoundObjectCreationExpression node, bool used)
     {
         return MightEscapeTemporaryRefs(
@@ -30,11 +28,10 @@ internal partial class CodeGenerator
             returnType: node.Type,
             returnRefKind: RefKind.None,
             thisParameterSymbol: null,
-            receiverAddressKind: null,
             parameters: node.Constructor.Parameters);
     }
 
-    /// <inheritdoc cref="MightEscapeTemporaryRefs(bool, TypeSymbol, RefKind, ParameterSymbol?, AddressKind?, ImmutableArray{ParameterSymbol})"/>
+    /// <inheritdoc cref="MightEscapeTemporaryRefs(bool, TypeSymbol, RefKind, ParameterSymbol?, ImmutableArray{ParameterSymbol})"/>
     private static bool MightEscapeTemporaryRefs(BoundFunctionPointerInvocation node, bool used)
     {
         FunctionPointerMethodSymbol method = node.FunctionPointer.Signature;
@@ -43,7 +40,6 @@ internal partial class CodeGenerator
             returnType: node.Type,
             returnRefKind: method.RefKind,
             thisParameterSymbol: null,
-            receiverAddressKind: null,
             parameters: method.Parameters);
     }
 
@@ -67,11 +63,8 @@ internal partial class CodeGenerator
         TypeSymbol returnType,
         RefKind returnRefKind,
         ParameterSymbol? thisParameterSymbol,
-        AddressKind? receiverAddressKind,
         ImmutableArray<ParameterSymbol> parameters)
     {
-        Debug.Assert(receiverAddressKind is null || thisParameterSymbol is not null);
-
         // whether we have any outputs that can capture `ref`s
         bool anyRefTargets = false;
         // whether we have any inputs that can contain `ref`s
