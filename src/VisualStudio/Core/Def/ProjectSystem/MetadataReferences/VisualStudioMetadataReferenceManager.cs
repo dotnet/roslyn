@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -14,10 +15,13 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
+using VSThreading = Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
@@ -31,6 +35,7 @@ using static TemporaryStorageService;
 /// that can be passed to the compiler. These snapshot references serve the underlying metadata blobs from a VS-wide storage, if possible, 
 /// from <see cref="ITemporaryStorageServiceInternal"/>.
 /// </remarks>
+[ExportWorkspaceService(typeof(VisualStudioMetadataReferenceManager), ServiceLayer.Host), Shared]
 internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService, IDisposable
 {
     private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
@@ -56,8 +61,9 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     private readonly ImmutableArray<string> _runtimeDirectories;
     private readonly TemporaryStorageService _temporaryStorageService;
-    private readonly IVsXMLMemberIndexService _xmlMemberIndexService;
+    private readonly VSThreading.AsyncLazy<IVsXMLMemberIndexService> _xmlMemberIndexService;
     private readonly ReaderWriterLockSlim _smartOpenScopeLock = new();
+    private readonly IThreadingContext _threadingContext;
 
     /// <summary>
     /// The smart open scope service. This can be null during shutdown when using the service might crash. Any
@@ -66,19 +72,30 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// </summary>
     private IVsSmartOpenScope? SmartOpenScopeServiceOpt { get; set; }
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioMetadataReferenceManager(
         IServiceProvider serviceProvider,
-        TemporaryStorageService temporaryStorageService)
+        IThreadingContext threadingContext,
+        VisualStudioWorkspace workspace)
     {
+        _threadingContext = threadingContext;
         _runtimeDirectories = GetRuntimeDirectories();
 
-        _xmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
-        Assumes.Present(_xmlMemberIndexService);
+        _xmlMemberIndexService = new VSThreading.AsyncLazy<IVsXMLMemberIndexService>(
+            async () =>
+            {
+                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+
+                return (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
+            },
+            threadingContext.JoinableTaskFactory);
 
         SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
         Assumes.Present(SmartOpenScopeServiceOpt);
 
-        _temporaryStorageService = temporaryStorageService;
+        // If we're in VS we know we must be able to get a TemporaryStorageService
+        _temporaryStorageService = (TemporaryStorageService)workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>();
         Assumes.Present(_temporaryStorageService);
     }
 
