@@ -28,10 +28,13 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.Extensibility.VSSdkCompatibility;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.RpcContracts.RemoteUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -65,7 +68,7 @@ internal sealed class SemanticSearchToolWindowImpl(
     ITextUndoHistoryRegistry undoHistoryRegistry,
     ISemanticSearchCopilotService copilotService,
     Lazy<ISemanticSearchCopilotUIProvider> copilotUIProvider, // lazy to avoid loading Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot
-    IVsService<SVsUIShell, IVsUIShell> vsUIShellProvider) : ISemanticSearchWorkspaceHost, OptionsProvider<ClassificationOptions>
+    IVsService<SVsUIShell, IVsUIShell> vsUIShellProvider) : ISemanticSearchWorkspaceHost, OptionsProvider<ClassificationOptions>, IDisposable
 {
     private const int ToolBarHeight = 26;
     private const int ToolBarButtonSize = 20;
@@ -91,7 +94,27 @@ internal sealed class SemanticSearchToolWindowImpl(
     private IWpfTextView? _textView;
     private ITextBuffer? _textBuffer;
 
-    public async Task<FrameworkElement> InitializeAsync(CancellationToken cancellationToken)
+    private IRemoteUserControl? _lazyContent;
+
+    public void Dispose()
+    {
+        _lazyContent?.Dispose();
+    }
+
+    public async Task<IRemoteUserControl> InitializeAsync(CancellationToken cancellationToken)
+    {
+        var content = _lazyContent;
+        if (content != null)
+        {
+            return content;
+        }
+
+        var element = await CreateContentAsync(cancellationToken).ConfigureAwait(false);
+        Interlocked.CompareExchange(ref _lazyContent, new WpfControlWrapper(element), null);
+        return _lazyContent;
+    }
+
+    private async Task<FrameworkElement> CreateContentAsync(CancellationToken cancellationToken)
     {
         // TODO: replace with XAML once we can represent the editor as a XAML element
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1927626
@@ -485,21 +508,30 @@ internal sealed class SemanticSearchToolWindowImpl(
                 return;
             }
 
-            // Replace text buffer content. Allow using Ctrl+Z to revert to the previous content.
-
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
-
-            Contract.ThrowIfFalse(undoHistoryRegistry.TryGetHistory(_textBuffer, out var undoHistory));
-            using var undoTransaction = undoHistory.CreateTransaction(FeaturesResources.SemanticSearch);
-
-            using (var edit = _textBuffer.CreateEdit())
-            {
-                edit.Replace(0, _textBuffer.CurrentSnapshot.Length, query.Text);
-                edit.Apply();
-            }
-
-            undoTransaction.Complete();
+            SetEditorText(query.Text);
         }
+    }
+
+    /// <summary>
+    /// Replaces current text buffer content with specified <paramref name="text"/>. Allow using Ctrl+Z to revert to the previous content.
+    /// Must be invoked on UI thread.
+    /// </summary>
+    public void SetEditorText(string text)
+    {
+        Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
+        Contract.ThrowIfNull(_textBuffer);
+
+        Contract.ThrowIfFalse(undoHistoryRegistry.TryGetHistory(_textBuffer, out var undoHistory));
+        using var undoTransaction = undoHistory.CreateTransaction(FeaturesResources.SemanticSearch);
+
+        using (var edit = _textBuffer.CreateEdit())
+        {
+            edit.Replace(0, _textBuffer.CurrentSnapshot.Length, text);
+            edit.Apply();
+        }
+
+        undoTransaction.Complete();
     }
 
     private void CancelQuery()
@@ -514,7 +546,11 @@ internal sealed class SemanticSearchToolWindowImpl(
         UpdateUIState();
     }
 
-    private void RunQuery()
+    /// <summary>
+    /// Runs the current query.
+    /// Must be invoked on UI thread.
+    /// </summary>
+    public void RunQuery()
     {
         Contract.ThrowIfFalse(threadingContext.JoinableTaskContext.IsOnMainThread);
         Contract.ThrowIfFalse(!IsExecutingUIState());
