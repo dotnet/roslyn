@@ -115,7 +115,12 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var cancellationToken = context.CancellationToken;
-        var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+        var document = context.Document;
+        if (!document.Project.ParseOptions!.LanguageVersion().SupportsExtensions())
+            return;
+
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var methodDeclaration = await context.TryGetRelevantNodeAsync<MethodDeclarationSyntax>().ConfigureAwait(false);
 
         if (methodDeclaration != null)
@@ -131,7 +136,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             context.RegisterRefactoring(CodeAction.Create(
                 string.Format(CSharpFeaturesResources.Convert_0_extension_methods_to_extension, extensionInfo.Value.FirstParameter.Type.ToDisplayString()),
                 cancellationToken => ConvertToExtensionAsync(
-                    context.Document, extensionInfo.Value.ClassDeclaration, allExtensionMethods, extensionInfo, cancellationToken),
+                    document, extensionInfo.Value.ClassDeclaration, allExtensionMethods, extensionInfo, cancellationToken),
                 CSharpFeaturesResources.Convert_0_extension_methods_to_extension));
         }
         else
@@ -148,7 +153,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
                 context.RegisterRefactoring(CodeAction.Create(
                     string.Format(CSharpFeaturesResources.Convert_all_extension_methods_in_0_to_extension, classDeclaration.Identifier.ValueText),
                     cancellationToken => ConvertToExtensionAsync(
-                        context.Document, classDeclaration, allExtensionMethods, specificExtension: null, cancellationToken),
+                        document, classDeclaration, allExtensionMethods, specificExtension: null, cancellationToken),
                     CSharpFeaturesResources.Convert_all_extension_methods_in_0_to_extension));
             }
         }

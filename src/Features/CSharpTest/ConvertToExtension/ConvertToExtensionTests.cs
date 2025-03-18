@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertToExtension;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.ConvertToExtension;
@@ -165,6 +166,14 @@ public sealed class ConvertToExtensionTests
                 }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            TestState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(1,8): error CS1106: Extension method must be defined in a non-generic static class
+                    DiagnosticResult.CompilerError("CS1106").WithSpan(1, 8, 1, 9),
+                }
+            }
         }.RunAsync();
     }
 
@@ -180,6 +189,14 @@ public sealed class ConvertToExtensionTests
                 }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            TestState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(1,7): error CS1106: Extension method must be defined in a non-generic static class
+                    DiagnosticResult.CompilerError("CS1106").WithSpan(1, 7, 1, 8),
+                }
+            }
         }.RunAsync();
     }
 
@@ -195,6 +212,16 @@ public sealed class ConvertToExtensionTests
                 }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            TestState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(3,17): error CS0708: 'M': cannot declare instance members in a static class
+                    DiagnosticResult.CompilerError("CS0708").WithSpan(3, 17, 3, 18).WithArguments("M"),
+                    // /0/Test0.cs(3,17): error CS1105: Extension method must be static
+                    DiagnosticResult.CompilerError("CS1105").WithSpan(3, 17, 3, 18),
+                }
+            }
         }.RunAsync();
     }
 
@@ -213,6 +240,16 @@ public sealed class ConvertToExtensionTests
                 }
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            TestState =
+            {
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(5,21): error CS0708: 'M': cannot declare instance members in a static class
+                    DiagnosticResult.CompilerError("CS0708").WithSpan(5, 21, 5, 22).WithArguments("M"),
+                    // /0/Test0.cs(5,21): error CS1109: Extension methods must be defined in a top level static class; C is a nested class
+                    DiagnosticResult.CompilerError("CS1109").WithSpan(5, 21, 5, 22).WithArguments("C"),
+                }
+            }
         }.RunAsync();
     }
 
