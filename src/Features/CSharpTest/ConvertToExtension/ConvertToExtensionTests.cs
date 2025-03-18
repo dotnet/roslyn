@@ -1542,4 +1542,94 @@ public sealed class ConvertToExtensionTests
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestFixClass1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                [||]static class C
+                {
+                    public static void M(this int i) { }
+
+                    public static void N(this int i) { }
+                
+                    public static void O(this int j) { }
+                
+                    public static void P(this int j) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M() { }
+
+                        public void N() { }
+                    }
+
+                    extension(int j)
+                    {
+                        public void O() { }
+
+                        public void P() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestFixClass2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+
+                [||]static class C
+                {
+                    public static void M(this int i) { }
+                
+                    public static void O(this int j) { }
+
+                    public static void N(this int i) { }
+                
+                    public static void P(this int j) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+            
+                static class C
+                {
+                    extension(int i)
+                    {
+                        public void M() { }
+
+                        public void N() { }
+                    }
+
+                    extension(int j)
+                    {
+                        public void O() { }
+
+                        public void P() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
 }
