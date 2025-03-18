@@ -1659,7 +1659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.AllMethodsOnArityZero;
                 options &= ~LookupOptions.MustBeInstance;
 
-                binder.LookupAllExtensions(lookupResult, receiverType, name, options);
+                binder.LookupAllExtensions(lookupResult, name, options);
 
                 if (lookupResult.IsMultiViable)
                 {
@@ -4638,7 +4638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var scope in new ExtensionScopes(binder))
                 {
                     singleLookupResults.Clear();
-                    scope.Binder.EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, receiverType, name, arity, options, originalBinder: binder, classicExtensionUseSiteInfo: ref discardedUseSiteInfo);
+                    scope.Binder.EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, name, arity, options, originalBinder: binder, classicExtensionUseSiteInfo: ref discardedUseSiteInfo);
 
                     foreach (SingleLookupResult singleLookupResult in singleLookupResults)
                     {

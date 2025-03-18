@@ -8001,7 +8001,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
             {
                 Debug.Assert(typeArgumentsOpt.IsDefault);
-                diagnostics.AddRange(resolution.Diagnostics); // PROTOTYPE test dependencies/diagnostics
+                if (!receiver.HasErrors)
+                {
+                    diagnostics.AddRange(resolution.Diagnostics); // PROTOTYPE test dependencies/diagnostics
+                }
+
                 resolution.Free();
 
                 return GetExtensionMemberAccess(syntax, receiver, extensionMember, diagnostics);
@@ -8592,8 +8596,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // 1. gather candidates
                 CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                 scope.Binder.LookupAllExtensionMembersInSingleBinder(
-                    lookupResult, left.Type, memberName, arity,
-                    lookupOptions, originalBinder: binder, classicExtensionUseSiteInfo: ref classicExtensionUseSiteInfo);
+                    lookupResult, memberName, arity, lookupOptions,
+                    originalBinder: binder, classicExtensionUseSiteInfo: ref classicExtensionUseSiteInfo);
 
                 diagnostics.Add(expression, classicExtensionUseSiteInfo);
 

@@ -45,15 +45,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal void LookupAllExtensions(LookupResult result, TypeSymbol receiverType, string? name, LookupOptions options)
+        internal void LookupAllExtensions(LookupResult result, string? name, LookupOptions options)
         {
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
             foreach (var scope in new ExtensionScopes(this))
             {
                 scope.Binder.LookupAllExtensionMembersInSingleBinder(
-                  result, receiverType, name, arity: 0,
-                  options: options, originalBinder: this, classicExtensionUseSiteInfo: ref discardedUseSiteInfo);
+                    result, name, arity: 0, options: options,
+                    originalBinder: this, classicExtensionUseSiteInfo: ref discardedUseSiteInfo);
             }
         }
 #nullable disable
@@ -183,12 +183,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private void LookupAllExtensionMembersInSingleBinder(LookupResult result, TypeSymbol receiverType,
-            string? name, int arity, LookupOptions options, Binder originalBinder,
-            ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
+        private void LookupAllExtensionMembersInSingleBinder(LookupResult result, string? name,
+            int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
         {
             var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
-            EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, receiverType, name, arity, options, originalBinder, ref classicExtensionUseSiteInfo);
+            EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, name, arity, options, originalBinder, ref classicExtensionUseSiteInfo);
             foreach (var singleLookupResult in singleLookupResults)
             {
                 result.MergeEqual(singleLookupResult);
@@ -198,40 +197,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal void EnumerateAllExtensionMembersInSingleBinder(ArrayBuilder<SingleLookupResult> result,
-            TypeSymbol receiverType, string? name, int arity, LookupOptions options, Binder originalBinder,
-            ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
+            string? name, int arity, LookupOptions options, Binder originalBinder,  ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
         {
             // 1. Collect new extension members
             PooledHashSet<MethodSymbol>? implementationsToShadow = null;
-            if (!receiverType.IsErrorType() && !receiverType.IsDynamic())
+            var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
+
+            foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
             {
-                var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
+                var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
 
-                foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
+                foreach (var candidate in candidates)
                 {
-                    var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
+                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref classicExtensionUseSiteInfo);
+                    result.Add(resultOfThisMember);
 
-                    foreach (var candidate in candidates)
+                    if (!candidate.IsStatic)
                     {
-                        SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref classicExtensionUseSiteInfo);
-                        result.Add(resultOfThisMember);
+                        implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
 
-                        if (!candidate.IsStatic)
+                        if (candidate is MethodSymbol { IsStatic: false } shadows &&
+                            shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
                         {
-                            implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
-
-                            if (candidate is MethodSymbol { IsStatic: false } shadows &&
-                                shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
-                            {
-                                implementationsToShadow.Add(toShadow);
-                            }
+                            implementationsToShadow.Add(toShadow);
                         }
                     }
                 }
-
-                extensionDeclarations.Free();
             }
+
+            extensionDeclarations.Free();
 
             // 2. Collect classic extension methods
             var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
