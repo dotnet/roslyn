@@ -163,9 +163,9 @@ internal sealed class RoslynPackage : AbstractPackage
         // metadata-as-source workspace).
         var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
-        packageInitializeTasks.AddTask(
+        packageRegistrationTasks.AddTask(
             isMainThreadTask: true,
-            task: async (packageInitializeTasks, cancellationToken) =>
+            task: async (progress, packageRegistrationTasks, cancellationToken) =>
             {
                 _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
                 TrackBulkFileOperations(globalNotificationService);
