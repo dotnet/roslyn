@@ -76,41 +76,7 @@ internal sealed class RoslynPackage : AbstractPackage
         return s_lazyInstance;
     }
 
-<<<<<<< HEAD
-    protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
-=======
-    protected override void OnLoadOptions(string key, Stream stream)
-    {
-        if (key == BackgroundAnalysisScopeOptionKey)
-        {
-            if (stream.ReadByte() == BackgroundAnalysisScopeOptionVersion)
-            {
-                var hasValue = stream.ReadByte() == 1;
-                AnalysisScope = hasValue ? (BackgroundAnalysisScope)stream.ReadByte() : null;
-            }
-            else
-            {
-                AnalysisScope = null;
-            }
-        }
-
-        base.OnLoadOptions(key, stream);
-    }
-
-    protected override void OnSaveOptions(string key, Stream stream)
-    {
-        if (key == BackgroundAnalysisScopeOptionKey)
-        {
-            stream.WriteByte(BackgroundAnalysisScopeOptionVersion);
-            stream.WriteByte(AnalysisScope.HasValue ? (byte)1 : (byte)0);
-            stream.WriteByte((byte)AnalysisScope.GetValueOrDefault());
-        }
-
-        base.OnSaveOptions(key, stream);
-    }
-
     protected override void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
->>>>>>> upstream/release/dev18.0
     {
         base.RegisterInitializationWork(packageRegistrationTasks);
 
