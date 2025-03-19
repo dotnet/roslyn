@@ -391,9 +391,7 @@ public class Document : TextDocument
     {
         var solution = this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity);
 
-        return this.Id.IsSourceGenerated
-            ? solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id)
-            : solution.GetRequiredDocument(Id);
+        return solution.GetRequiredDocument(Id, includeAlreadyGeneratedSourceGeneratedDocuments: true);
     }
 
     /// <summary>
@@ -403,9 +401,7 @@ public class Document : TextDocument
     {
         var solution = this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity);
 
-        return this.Id.IsSourceGenerated
-            ? solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id)
-            : solution.GetRequiredDocument(Id);
+        return solution.GetRequiredDocument(Id, includeAlreadyGeneratedSourceGeneratedDocuments: true);
     }
 
     /// <summary>

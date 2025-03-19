@@ -47,16 +47,29 @@ internal static partial class ISolutionExtensions
     }
 
     public static Document GetRequiredDocument(this Solution solution, DocumentId documentId)
+        => GetRequiredDocument(solution, documentId, includeAlreadyGeneratedSourceGeneratedDocuments: false);
+
+    public static Document GetRequiredDocument(this Solution solution, DocumentId documentId, bool includeAlreadyGeneratedSourceGeneratedDocuments)
     {
         if (documentId is null)
             throw new ArgumentNullException(nameof(documentId));
 
 #if !CODE_STYLE
-        // If we get a source-generated DocumentId, we can give a different exception to make it clear the type of failure this is; otherwise a failure of
-        // this in the wild is hard to guess whether this is because of a logic bug in the feature (where it tried to use a DocumentId for a document that disappeared)
-        // or whether it hasn't been correctly updated to handle source generated files.
         if (documentId.IsSourceGenerated)
+        {
+            if (includeAlreadyGeneratedSourceGeneratedDocuments)
+            {
+                var project = solution.GetRequiredProject(documentId.ProjectId);
+                var sourceGeneratedDocument = project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+                if (sourceGeneratedDocument is not null)
+                    return sourceGeneratedDocument;
+            }
+
+            // If we get a source-generated DocumentId, we can give a different exception to make it clear the type of failure this is; otherwise a failure of
+            // this in the wild is hard to guess whether this is because of a logic bug in the feature (where it tried to use a DocumentId for a document that disappeared)
+            // or whether it hasn't been correctly updated to handle source generated files.
             throw new ArgumentException($"{nameof(GetRequiredDocument)} was given a source-generated DocumentId, but it will never return a source generated document. The caller needs to be calling some other method.");
+        }
 #endif
 
         return solution.GetDocument(documentId) ?? throw CreateDocumentNotFoundException();

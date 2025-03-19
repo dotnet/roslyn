@@ -94,9 +94,7 @@ public abstract partial class CodeAction
             using var _ = ArrayBuilder<(DocumentId documentId, CodeCleanupOptions options)>.GetInstance(documentIds.Length, out var documentIdsAndOptions);
             foreach (var documentId in documentIds)
             {
-                var document = documentId.IsSourceGenerated
-                    ? changedSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(documentId)
-                    : changedSolution.GetRequiredDocument(documentId);
+                var document = changedSolution.GetRequiredDocument(documentId, includeAlreadyGeneratedSourceGeneratedDocuments: true);
 
                 // Only care about documents that support syntax.  Non-C#/VB files can't be cleaned.
                 if (document.SupportsSyntaxTree)
@@ -121,9 +119,7 @@ public abstract partial class CodeAction
             CodeAnalysisProgress.None,
             cancellationToken).ConfigureAwait(false);
 
-        return document.Id.IsSourceGenerated
-            ? cleanedSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(document.Id)
-            : cleanedSolution.GetRequiredDocument(document.Id);
+        return cleanedSolution.GetRequiredDocument(document.Id, includeAlreadyGeneratedSourceGeneratedDocuments: true);
     }
 
     private static async Task<Solution> RunAllCleanupPassesInOrderAsync(
@@ -161,9 +157,7 @@ public abstract partial class CodeAction
                     var (documentId, options) = documentIdAndOptions;
 
                     // Fetch the current state of the document from this fork of the solution.
-                    var document = documentId.IsSourceGenerated
-                        ? solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(documentId)
-                        : solution.GetRequiredDocument(documentId);
+                    var document = solution.GetRequiredDocument(documentId, includeAlreadyGeneratedSourceGeneratedDocuments: true);
                     Contract.ThrowIfFalse(document.SupportsSyntaxTree, "GetDocumentIdsAndOptionsAsync should only be returning documents that support syntax");
 
                     // Now, perform the requested cleanup pass on it.
