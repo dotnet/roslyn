@@ -22,9 +22,11 @@ public sealed class SemanticTokensFullTests(ITestOutputHelper testOutputHelper) 
     public async Task TestGetSemanticTokensFull_FullDocAsync(bool mutatingLspWorkspace, bool isVS)
     {
         var markup =
-@"{|caret:|}// Comment
-static class C { }
-";
+            """
+            {|caret:|}// Comment
+            static class C { }
+
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(
             markup, mutatingLspWorkspace, GetCapabilities(isVS));
 

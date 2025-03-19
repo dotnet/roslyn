@@ -20,9 +20,11 @@ public sealed class SemanticTokensRangesTests(ITestOutputHelper testOutputHelper
     public async Task TestGetSemanticTokensRanges_FullDocAsync(bool mutatingLspWorkspace, bool isVS)
     {
         var markup =
-@"{|caret:|}// Comment
-static class C { }
-";
+            """
+            {|caret:|}// Comment
+            static class C { }
+
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(
             markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
