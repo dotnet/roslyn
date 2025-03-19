@@ -61,7 +61,11 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(
         string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
+        // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
+        // moved off we'll need to fix up it's constructor to be free-threaded.
+
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
         _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
         _visualStudioWorkspaceImpl.SubscribeToSourceGeneratorImpactingEvents();

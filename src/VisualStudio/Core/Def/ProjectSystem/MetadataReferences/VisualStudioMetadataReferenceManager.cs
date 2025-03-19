@@ -62,7 +62,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     private readonly ImmutableArray<string> _runtimeDirectories;
     private readonly TemporaryStorageService _temporaryStorageService;
-    private readonly VSThreading.AsyncLazy<IVsXMLMemberIndexService> _xmlMemberIndexService;
+    private readonly IVsXMLMemberIndexService _xmlMemberIndexService;
     private readonly ReaderWriterLockSlim _smartOpenScopeLock = new();
 
     /// <summary>
@@ -70,25 +70,21 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// use of this field or derived types should be synchronized with <see cref="_smartOpenScopeLock"/> to ensure
     /// you don't grab the field and then use it while shutdown continues.
     /// </summary>
-    private VSThreading.AsyncLazy<IVsSmartOpenScope>? SmartOpenScopeServiceOpt { get; set; }
+    private IVsSmartOpenScope? SmartOpenScopeServiceOpt { get; set; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioMetadataReferenceManager(
-        IVsService<SVsXMLMemberIndexService, IVsXMLMemberIndexService> xmlMemberIndexService,
-        IVsService<SVsSmartOpenScope, IVsSmartOpenScope> smartOpenScopeService,
-        IThreadingContext threadingContext,
+        SVsServiceProvider serviceProvider,
         VisualStudioWorkspace workspace)
     {
         _runtimeDirectories = GetRuntimeDirectories();
 
-        _xmlMemberIndexService = new VSThreading.AsyncLazy<IVsXMLMemberIndexService>(
-            () => xmlMemberIndexService.GetValueAsync(),
-            threadingContext.JoinableTaskFactory);
+        _xmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
+        Assumes.Present(_xmlMemberIndexService);
 
-        SmartOpenScopeServiceOpt = new VSThreading.AsyncLazy<IVsSmartOpenScope>(
-            () => smartOpenScopeService.GetValueAsync(),
-            threadingContext.JoinableTaskFactory);
+        SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
+        Assumes.Present(SmartOpenScopeServiceOpt);
 
         // If we're in VS we know we must be able to get a TemporaryStorageService
         _temporaryStorageService = (TemporaryStorageService)workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>();
@@ -320,7 +316,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                     return false;
                 }
 
-                if (ErrorHandler.Failed(SmartOpenScopeServiceOpt.GetValue().OpenScope(fullPath, (uint)CorOpenFlags.ReadOnly, s_IID_IMetaDataImport, out var ppUnknown)))
+                if (ErrorHandler.Failed(SmartOpenScopeServiceOpt.OpenScope(fullPath, (uint)CorOpenFlags.ReadOnly, s_IID_IMetaDataImport, out var ppUnknown)))
                 {
                     return false;
                 }

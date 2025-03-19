@@ -99,7 +99,7 @@ internal partial class VisualStudioMetadataReferenceManager
         }
 
         protected override DocumentationProvider CreateDocumentationProvider()
-            => new VisualStudioDocumentationProvider(this.FilePath, _provider._xmlMemberIndexService.GetValue());
+            => new VisualStudioDocumentationProvider(this.FilePath, _provider._xmlMemberIndexService);
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
             => new VisualStudioPortableExecutableReference(_provider, properties, this.FilePath, _fileChangeTracker);
