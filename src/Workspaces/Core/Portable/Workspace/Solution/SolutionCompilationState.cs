@@ -1351,13 +1351,9 @@ internal sealed partial class SolutionCompilationState
                 foreach (var projectId in projectIdsToUnfreeze)
                 {
                     Contract.ThrowIfFalse(trackerMap.TryGetValue(projectId, out var existingTracker));
-                    // We unwind all the way, since we could have a chain of frozen source generated documents.
-                    while (existingTracker is WithFrozenSourceGeneratedDocumentsCompilationTracker replacingItemTracker)
-                    {
-                        existingTracker = replacingItemTracker.UnderlyingTracker;
-                    }
-
-                    trackerMap[projectId] = existingTracker;
+                    var replacingItemTracker = (WithFrozenSourceGeneratedDocumentsCompilationTracker)existingTracker;
+                    Contract.ThrowIfTrue(replacingItemTracker.UnderlyingTracker is WithFrozenSourceGeneratedDocumentsCompilationTracker);
+                    trackerMap[projectId] = replacingItemTracker.UnderlyingTracker;
                 }
             },
             projectIdsToUnfreeze,
@@ -1430,6 +1426,19 @@ internal sealed partial class SolutionCompilationState
             }
         }
 
+        if (FrozenSourceGeneratedDocumentStates is not null)
+        {
+            // We also carry forward any previously frozen source generated documents that were not part of this freeze. This ensures multiple
+            // freezes are additive, and everything will be unfrozen correctly, without us needing to have a chain of compilation trackers
+            foreach (var (id, state) in FrozenSourceGeneratedDocumentStates.States)
+            {
+                if (!frozenIds.Contains(id))
+                {
+                    documentStates.Add(state);
+                }
+            }
+        }
+
         // If every document we looked at matched what we've already generated, we have nothing new to do
         if (documentStates.Count == 0)
             return this;
@@ -1450,24 +1459,13 @@ internal sealed partial class SolutionCompilationState
                         existingTracker = CreateCompilationTracker(projectId, arg.SolutionState);
                     }
 
-                    trackerMap[projectId] = new WithFrozenSourceGeneratedDocumentsCompilationTracker(existingTracker, new(documentStatesForProject));
+                    trackerMap[projectId] = existingTracker is WithFrozenSourceGeneratedDocumentsCompilationTracker existingWithFrozen
+                        ? existingWithFrozen.WithReplacementDocumentStates(new(documentStatesForProject))
+                        : new WithFrozenSourceGeneratedDocumentsCompilationTracker(existingTracker, new(documentStatesForProject));
                 }
             },
             (documentStatesByProjectId, this.SolutionState),
             skipEmptyCallback: false);
-
-        if (FrozenSourceGeneratedDocumentStates is not null)
-        {
-            // We also carry forward any previously frozen source generated documents that were not part of this freeze. This ensures multiple
-            // freezes are additive, and everything will be unfrozen correctly.
-            foreach (var (id, state) in FrozenSourceGeneratedDocumentStates.States)
-            {
-                if (!frozenIds.Contains(id))
-                {
-                    documentStates.Add(state);
-                }
-            }
-        }
 
         // We pass the same solution state, since this change is only a change of the generated documents -- none of the core
         // documents or project structure changes in any way.

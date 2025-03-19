@@ -49,6 +49,9 @@ internal sealed partial class SolutionCompilationState
             ICompilationTracker underlyingTracker,
             TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates)
         {
+            // We should never create a chain of trackers wrapping each other.
+            Contract.ThrowIfTrue(underlyingTracker is WithFrozenSourceGeneratedDocumentsCompilationTracker);
+
             this.UnderlyingTracker = underlyingTracker;
             _replacementDocumentStates = replacementDocumentStates;
             _skeletonReferenceCache = underlyingTracker.GetClonedSkeletonReferenceCache();
@@ -92,6 +95,11 @@ internal sealed partial class SolutionCompilationState
             return underlyingTracker == this.UnderlyingTracker
                 ? this
                 : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
+        }
+
+        public ICompilationTracker WithReplacementDocumentStates(TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates)
+        {
+            return new WithFrozenSourceGeneratedDocumentsCompilationTracker(this.UnderlyingTracker, replacementDocumentStates);
         }
 
         public async Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken)
