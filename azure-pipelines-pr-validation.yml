@@ -98,7 +98,7 @@ extends:
 
           - output: pipelineArtifact
             displayName: 'Publish Ngen Logs'
-            condition: and(succeeded(), not(parameters.SkipApplyOptimizationData))
+            condition: and(succeeded(), ${{ not(parameters.SkipApplyOptimizationData) }})
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
             artifactName: 'NGen Logs'
             publishLocation: Container
