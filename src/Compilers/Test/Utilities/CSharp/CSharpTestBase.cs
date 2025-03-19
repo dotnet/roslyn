@@ -813,6 +813,13 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
+        internal const string RuntimeAsyncMethodGenerationAttributeDefinition = """
+            namespace System.Runtime.CompilerServices;
+
+            [AttributeUsage(AttributeTargets.Method)]
+            public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribute();
+            """;
+
         protected static T GetSyntax<T>(SyntaxTree tree, string text)
         {
             return GetSyntaxes<T>(tree, text).Single();
