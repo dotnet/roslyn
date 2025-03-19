@@ -30,11 +30,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            if (ranges.Length == 0)
-            {
-                return [];
-            }
-
             var contextDocument = context.GetRequiredDocument();
             var project = contextDocument.Project;
             var options = globalOptions.GetClassificationOptions(project.Language);
