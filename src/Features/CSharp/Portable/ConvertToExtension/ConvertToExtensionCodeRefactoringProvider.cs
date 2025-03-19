@@ -227,8 +227,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         {
             // If we were invoked on a specific extension, then only convert the extensions in this class with the same
             // receiver parameter.
-            var matchingExtensions = allExtensionMethods[specificExtension.Value];
-            ConvertAndReplaceExtensions(matchingExtensions);
+            ConvertAndReplaceExtensions(allExtensionMethods[specificExtension.Value]);
         }
         else
         {
