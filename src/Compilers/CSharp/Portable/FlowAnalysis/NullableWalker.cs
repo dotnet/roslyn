@@ -6824,7 +6824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return nameSyntax.Kind() != SyntaxKind.GenericName;
         }
 
-        protected override void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
+        protected override void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
         {
             // Callers should be using VisitArguments overload below.
             throw ExceptionUtilities.Unreachable();
