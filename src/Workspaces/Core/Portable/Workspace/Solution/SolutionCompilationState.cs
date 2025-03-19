@@ -779,6 +779,12 @@ internal sealed partial class SolutionCompilationState
             SolutionState.WithDocumentAttributes(documentId, arg, updateAttributes), documentId);
     }
 
+    /// <summary>
+    /// Creates a new solution instance with the documents specified updated to have the texts specified.
+    /// </summary>
+    /// <remarks>
+    /// This method supports updating ordinary documents and source generated documents.
+    /// </remarks>
     internal SolutionCompilationState WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode)
     {
         using var _1 = ArrayBuilder<(DocumentId, SourceText)>.GetInstance(out var ordinaryDocuments);
@@ -971,6 +977,9 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots(ImmutableArray{ValueTuple{DocumentId, SyntaxNode}}, PreservationMode)"/>
+    /// <remarks>
+    /// This method supports updating ordinary documents and source generated documents.
+    /// </remarks>
     public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode)
     {
         using var _1 = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(out var ordinaryDocuments);
