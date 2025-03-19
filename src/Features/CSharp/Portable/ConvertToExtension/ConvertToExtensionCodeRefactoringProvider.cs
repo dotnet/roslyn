@@ -113,6 +113,10 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
     /// be the extension parameter P in a new <c>extension(P)</c> declaration.  This means they must have the same type,
     /// name, ref-ness, constraints, attributes, etc.
     /// </summary>
+    /// <remarks>
+    /// Because the methods are processed in order within the <paramref name="classDeclaration"/>, the arrays of grouped
+    /// extension methods in the dictionary will also be similarly ordered.
+    /// </remarks>
     private static ImmutableDictionary<ExtensionMethodInfo, ImmutableArray<ExtensionMethodInfo>> GetAllExtensionMethods(
         SemanticModel semanticModel, ClassDeclarationSyntax classDeclaration, CancellationToken cancellationToken)
     {
