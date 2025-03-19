@@ -1,1 +1,1 @@
-
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithModifiers(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> Microsoft.CodeAnalysis.SyntaxNode

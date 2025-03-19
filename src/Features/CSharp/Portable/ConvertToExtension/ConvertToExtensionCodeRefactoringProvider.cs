@@ -289,14 +289,19 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
         MethodDeclarationSyntax ConvertExtensionMethod(
             ExtensionMethodInfo extensionMethodInfo, int index)
         {
+            var extensionMethod = extensionMethodInfo.ExtensionMethod;
+            var parameterList = extensionMethod.ParameterList;
+
             var converted = extensionMethodInfo.ExtensionMethod
-                .WithParameterList(ConvertParameters(extensionMethodInfo))
+                // skip the first parameter, which is the 'this' parameter, and the comma that follows it.
+                .WithParameterList(parameterList.WithParameters(SeparatedList<ParameterSyntax>(
+                    parameterList.Parameters.GetWithSeparators().Skip(2))))
                 .WithTypeParameterList(ConvertTypeParameters(extensionMethodInfo))
                 .WithConstraintClauses(ConvertConstraintClauses(extensionMethodInfo));
 
             // remove 'static' from the classic extension method, now that it is in the extension declaration. it
             // represents an 'instance' method in the new form.
-            converted = (MethodDeclarationSyntax)CSharpSyntaxGenerator.Instance.WithModifiers(converted,
+            converted = CSharpSyntaxGenerator.Instance.WithModifiers(converted,
                 CSharpSyntaxGenerator.Instance.GetModifiers(converted).WithIsStatic(false));
 
             // If we're on the first extension method in the group, then remove its leading blank lines.  Those will be
@@ -308,13 +313,6 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             // https://github.com/dotnet/roslyn/issues/59228 to just attach an indentation annotation to the extension
             // method to indent it instead.
             return converted.WithAdditionalAnnotations(Formatter.Annotation);
-        }
-
-        static ParameterListSyntax ConvertParameters(ExtensionMethodInfo extensionMethodInfo)
-        {
-            // skip the first parameter, which is the 'this' parameter, and the comma that follows it.
-            return extensionMethodInfo.ExtensionMethod.ParameterList.WithParameters(SeparatedList<ParameterSyntax>(
-                extensionMethodInfo.ExtensionMethod.ParameterList.Parameters.GetWithSeparators().Skip(2)));
         }
 
         static TypeParameterListSyntax? ConvertTypeParameters(
