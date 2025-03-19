@@ -25876,20 +25876,20 @@ static class E
     }
 
     [Fact]
-    public void GetSymbolInfo_GenericMethodInGenericType()
+    public void GetSymbolInfo_GenericMethodInGenericType_01()
     {
         var src = """
 class C<T>
 {
-    public static void Foo<T2>(T2 x) { }
-    public static void Foo(int x) { }
+    public static void M<T2>(T2 x) { }
+    public static void M(int x) { }
 }
 
-class D : C<int>
+class D
 {
     public void Test()
     {
-        C<int>.Foo<int>(1);
+        C<int>.M<int>(1);
     }
 }
 """;
@@ -25898,7 +25898,65 @@ class D : C<int>
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<GenericNameSyntax>(tree, "Foo<int>");
-        Assert.Equal("void C<System.Int32>.Foo<System.Int32>(System.Int32 x)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        var genericName = GetSyntax<GenericNameSyntax>(tree, "M<int>");
+        Assert.Equal("void C<System.Int32>.M<System.Int32>(System.Int32 x)", model.GetSymbolInfo(genericName).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void GetSymbolInfo_GenericMethodInGenericType_02()
+    {
+        var src = """
+class C<T>
+{
+    public static void M<T2>(T2 x) where T2 : class { }
+}
+
+class D
+{
+    public void Test()
+    {
+        C<int>.M<int>(1);
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (10,16): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'C<int>.M<T2>(T2)'
+            //         C<int>.M<int>(1);
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M<int>").WithArguments("C<int>.M<T2>(T2)", "T2", "int").WithLocation(10, 16));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var genericName = GetSyntax<GenericNameSyntax>(tree, "M<int>");
+        Assert.Null(model.GetSymbolInfo(genericName).Symbol);
+    }
+
+    [Fact]
+    public void GetSymbolInfo_GenericMethodInGenericType_03()
+    {
+        var src = """
+class C<T>
+{
+    public static void M<T2>(T2 x) where T2 : class { }
+}
+
+class D
+{
+    public void Test()
+    {
+        C<int>.M(1);
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (10,16): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'C<int>.M<T2>(T2)'
+            //         C<int>.M(1);
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M").WithArguments("C<int>.M<T2>(T2)", "T2", "int").WithLocation(10, 16));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.M");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 }
