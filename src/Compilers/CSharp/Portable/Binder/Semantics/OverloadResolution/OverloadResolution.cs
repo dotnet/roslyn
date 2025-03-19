@@ -1324,38 +1324,31 @@ outerDefault:
             CollectionExpressionTypeKind collectionTypeKind;
             ConversionsBase.TryGetCollectionExpressionTypeKind(binder, syntax, type, out collectionTypeKind, out elementType);
 
+            if (elementType.Type is null)
+            {
+                return false;
+            }
+
             switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.None:
                     return false;
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                case CollectionExpressionTypeKind.CollectionBuilder:
+                case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
+                    if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
                     {
-                        if (elementType.Type is null)
-                        {
-                            return false;
-                        }
+                        return false;
+                    }
 
-                        // PROTOTYPE: Need to test this code path with ImplementsIEnumerableWithIndexer,
-                        // where we need to check for indexer rather than Add().
-                        if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
-                        {
-                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
-                            {
-                                return false;
-                            }
-
-                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, type, addMethods: out _, BindingDiagnosticBag.Discarded))
-                            {
-                                return false;
-                            }
-                        }
+                    if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable &&
+                        !binder.HasCollectionExpressionApplicableAddMethod(syntax, type, addMethods: out _, BindingDiagnosticBag.Discarded))
+                    {
+                        return false;
                     }
                     break;
             }
 
-            Debug.Assert(elementType.Type is { });
             return true;
         }
 

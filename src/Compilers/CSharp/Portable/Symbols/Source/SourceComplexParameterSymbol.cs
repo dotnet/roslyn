@@ -1587,7 +1587,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (constructor is not null)
                             {
-                                // PROTOTYPE: Are we testing this case with ImplementsIEnumerableWithIndexer?
                                 checkIsAtLeastAsVisible(syntax, binder, constructor, diagnostics);
                             }
 

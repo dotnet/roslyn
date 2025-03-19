@@ -2483,6 +2483,87 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(12, 59));
         }
 
+        [Fact]
+        public void CustomDictionary_Params_LessAccessibleConstructor()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    internal MyDictionary() { }
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public V this[K key] { get { return default; } set { } }
+                }
+                """;
+            string sourceB = """
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var f1 = (params MyDictionary<string, int> args) => { };
+                        static void f2<K, V>(params MyDictionary<K, V> args) { }
+                        f1();
+                        f2<string, int>();
+                    }
+                    public static void F3<K, V>(params MyDictionary<K, V> args) { }
+                    internal static void F4<K, V>(params MyDictionary<K, V> args) { }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (10,33): error CS9224: Method 'MyDictionary<K, V>.MyDictionary()' cannot be less visible than the member with params collection 'Program.F3<K, V>(params MyDictionary<K, V>)'.
+                //     public static void F3<K, V>(params MyDictionary<K, V> args) { }
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>.MyDictionary()", "Program.F3<K, V>(params MyDictionary<K, V>)").WithLocation(10, 33));
+        }
+
+        [Fact]
+        public void CustomDictionary_Params_ProtectedConstructor()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                internal class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    protected MyDictionary() { }
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public V this[K key] { get { return default; } set { } }
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        var f1 = (params MyDictionary<string, int> args) => { };
+                        static void f2<K, V>(params MyDictionary<K, V> args) { }
+                        f1();
+                        f2<string, int>();
+                    }
+                    static void F3<K, V>(params MyDictionary<K, V> args) { }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (5,19): error CS0122: 'MyDictionary<string, int>.MyDictionary()' is inaccessible due to its protection level
+                //         var f1 = (params MyDictionary<string, int> args) => { };
+                Diagnostic(ErrorCode.ERR_BadAccess, "params MyDictionary<string, int> args").WithArguments("MyDictionary<string, int>.MyDictionary()").WithLocation(5, 19),
+                // (6,30): error CS0122: 'MyDictionary<K, V>.MyDictionary()' is inaccessible due to its protection level
+                //         static void f2<K, V>(params MyDictionary<K, V> args) { }
+                Diagnostic(ErrorCode.ERR_BadAccess, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>.MyDictionary()").WithLocation(6, 30),
+                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'obj' of 'Action<MyDictionary<string, int>>'
+                //         f1();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f1").WithArguments("obj", "System.Action<MyDictionary<string, int>>").WithLocation(7, 9),
+                // (8,9): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'f2<K, V>(params MyDictionary<K, V>)'
+                //         f2<string, int>();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f2<string, int>").WithArguments("args", "f2<K, V>(params MyDictionary<K, V>)").WithLocation(8, 9),
+                // (10,26): error CS0122: 'MyDictionary<K, V>.MyDictionary()' is inaccessible due to its protection level
+                //     static void F3<K, V>(params MyDictionary<K, V> args) { }
+                Diagnostic(ErrorCode.ERR_BadAccess, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>.MyDictionary()").WithLocation(10, 26));
+        }
+
         [Theory]
         [InlineData("public V this[K key] { get { return default; } set { } }", true)]
         [InlineData("public K this[K key] { get { return default; } set { } }", false)]
