@@ -812,7 +812,7 @@ outerDefault:
                     ref useSiteDiagnosticsBuilder);
             }
 
-            if (member.GetIsNewExtensionMember() && member.ContainingType is { Arity: > 0 } extension)
+            if (member.GetIsNewExtensionMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
             {
                 constraintsSatisfied &= ConstraintsHelper.CheckConstraints(extension, in constraintsArgs,
                     extension.TypeSubstitution, extension.TypeParameters, extension.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,

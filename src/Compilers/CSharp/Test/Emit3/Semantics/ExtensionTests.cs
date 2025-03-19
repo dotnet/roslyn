@@ -25900,6 +25900,7 @@ class D
         var model = comp.GetSemanticModel(tree);
         var genericName = GetSyntax<GenericNameSyntax>(tree, "M<int>");
         Assert.Equal("void C<System.Int32>.M<System.Int32>(System.Int32 x)", model.GetSymbolInfo(genericName).Symbol.ToTestDisplayString());
+        Assert.Equal(["void C<System.Int32>.M<System.Int32>(System.Int32 x)"], model.GetMemberGroup(genericName).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -25929,6 +25930,7 @@ class D
         var model = comp.GetSemanticModel(tree);
         var genericName = GetSyntax<GenericNameSyntax>(tree, "M<int>");
         Assert.Null(model.GetSymbolInfo(genericName).Symbol);
+        Assert.Equal([], model.GetMemberGroup(genericName).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -25958,5 +25960,148 @@ class D
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["void C<System.Int32>.M<T2>(T2 x)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetSymbolInfo_04()
+    {
+        var src = """
+class C
+{
+    private static void M<T>()
+    {
+        M<T>();
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var genericName = GetSyntax<InvocationExpressionSyntax>(tree, "M<T>()").Expression;
+        Assert.Equal("void C.M<T>()", model.GetSymbolInfo(genericName).Symbol.ToTestDisplayString());
+        Assert.Equal(["void C.M<T>()"], model.GetMemberGroup(genericName).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetSymbolInfo_05()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        static void M()
+        {
+            T.M<T>();
+            T.M();
+            E.M<T>();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //             T.M<T>();
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(7, 13),
+            // (8,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //             T.M();
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(8, 13));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var expr = GetSyntax<InvocationExpressionSyntax>(tree, "T.M<T>()").Expression;
+        Assert.Null(model.GetSymbolInfo(expr).Symbol);
+        Assert.Equal([], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "T.M()").Expression;
+        Assert.Null(model.GetSymbolInfo(expr).Symbol);
+        Assert.Equal([], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "E.M<T>()").Expression;
+        Assert.Equal("void E.M<T>()", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.M<T>()"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetSymbolInfo_06()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        void M()
+        {
+            t.M<T>();
+            t.M();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M<T>()").Expression;
+        Assert.Equal("void E.<>E__0<T>.M()", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0<T>.M()"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M()").Expression;
+        Assert.Equal("void E.<>E__0<T>.M()", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0<T>.M()"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetSymbolInfo_07()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        void M<U>(U u)
+        {
+            t.M<T, U>(u);
+            t.M(u);
+
+            t.M(42);
+            42.M(u);
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var extensionParameterSyntax = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().First();
+        IParameterSymbol extensionParameter = model.GetDeclaredSymbol(extensionParameterSyntax);
+        Assert.Equal("T t", extensionParameter.ToTestDisplayString());
+        var t = extensionParameter.Type;
+
+        var expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M<T, U>(u)").Expression;
+        Assert.Equal("void E.<>E__0<T>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0<T>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        AssertEqualAndNoDuplicates(["void E.<>E__0<T>.M<U>(U u)"], model.LookupSymbols(position: expr.SpanStart, t, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M(u)").Expression;
+        Assert.Equal("void E.<>E__0<T>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0<T>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M(42)").Expression;
+        Assert.Equal("void E.<>E__0<T>.M<System.Int32>(System.Int32 u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0<T>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "42.M(u)").Expression;
+        Assert.Equal("void E.<>E__0<System.Int32>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0<System.Int32>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
     }
 }
