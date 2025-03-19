@@ -89,7 +89,6 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             return null;
 
         var firstParameterSymbol = semanticModel.GetRequiredDeclaredSymbol(firstParameter, cancellationToken);
-        var methodSymbol = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
 
         // Gather the referenced method type parameters (in their original method order) in the extension method 'this'
         // parameter.  If method type parameters are used in that parameter, they must be the a prefix of the type
