@@ -27,8 +27,9 @@ internal class CustomMessageUnloadHandler()
 
     public async Task HandleNotificationAsync(CustomMessageUnloadParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var solution = context.Solution
-            ?? throw new InvalidOperationException();
+        Contract.ThrowIfNull(context.Solution);
+
+        var solution = context.Solution;
         var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
 
         if (client is not null)
@@ -42,7 +43,7 @@ internal class CustomMessageUnloadHandler()
         }
         else
         {
-            var service = context.Workspace!.Services.GetRequiredService<ICustomMessageHandlerService>();
+            var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
             await service.UnloadCustomMessageHandlersAsync(
                     request.AssemblyFolderPath,
                     cancellationToken).ConfigureAwait(false);

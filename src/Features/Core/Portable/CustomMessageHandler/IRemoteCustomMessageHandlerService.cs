@@ -30,4 +30,7 @@ internal interface IRemoteCustomMessageHandlerService
     ValueTask UnloadCustomMessageHandlersAsync(
         string assemblyFolderPath,
         CancellationToken cancellationToken);
+
+    ValueTask ResetAsync(
+        CancellationToken cancellationToken);
 }

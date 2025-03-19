@@ -295,7 +295,16 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         return ValueTask.CompletedTask;
     }
 
+    public ValueTask ResetAsync(CancellationToken cancellationToken)
+    {
+        Clear();
+        return ValueTask.CompletedTask;
+    }
+
     public void Dispose()
+        => Clear();
+
+    private void Clear()
     {
         List<CustomMessageHandlerExtension> extensions;
         lock (_lockObject)

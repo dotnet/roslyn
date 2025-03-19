@@ -52,7 +52,7 @@ internal class CustomMessageHandler()
         }
         else
         {
-            var service = context.Workspace!.Services.GetRequiredService<ICustomMessageHandlerService>();
+            var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
             var response = await service.HandleCustomMessageAsync(
                     solution,
                     request.MessageName,

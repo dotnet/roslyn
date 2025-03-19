@@ -31,4 +31,7 @@ internal interface ICustomMessageHandlerService : IWorkspaceService
     ValueTask UnloadCustomMessageHandlersAsync(
         string assemblyFolderPath,
         CancellationToken cancellationToken);
+
+    ValueTask ResetAsync(
+        CancellationToken cancellationToken);
 }

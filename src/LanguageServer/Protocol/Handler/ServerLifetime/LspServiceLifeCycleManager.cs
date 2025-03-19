@@ -3,8 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CustomMessageHandler;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -14,14 +19,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 internal class LspServiceLifeCycleManager : ILifeCycleManager, ILspService
 {
     private readonly IClientLanguageServerManager _clientLanguageServerManager;
+    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
-    public LspServiceLifeCycleManager(IClientLanguageServerManager clientLanguageServerManager)
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(ILifeCycleManager)), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class LspLifeCycleManagerFactory(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspServiceFactory
+    {
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        {
+            var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+            return new LspServiceLifeCycleManager(clientLanguageServerManager, lspWorkspaceRegistrationService);
+        }
+    }
+
+    private LspServiceLifeCycleManager(IClientLanguageServerManager clientLanguageServerManager, LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
     {
         _clientLanguageServerManager = clientLanguageServerManager;
+        _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
     }
 
     public async Task ShutdownAsync(string message = "Shutting down")
     {
+        var hostWorkspace = _lspWorkspaceRegistrationService.GetAllRegistrations().SingleOrDefault(w => w.Kind == WorkspaceKind.Host);
+        if (hostWorkspace is not null)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(hostWorkspace, CancellationToken.None).ConfigureAwait(false);
+            if (client is not null)
+            {
+                await client.TryInvokeAsync<IRemoteCustomMessageHandlerService>(
+                    (service, cancellationToken) => service.ResetAsync(
+                        cancellationToken),
+                    CancellationToken.None).ConfigureAwait(false);
+            }
+            else
+            {
+                var service = hostWorkspace.Services.GetRequiredService<ICustomMessageHandlerService>();
+                await service.ResetAsync(
+                        CancellationToken.None).ConfigureAwait(false);
+            }
+        }
+
         try
         {
             var messageParams = new LogMessageParams()

@@ -91,4 +91,14 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
                 cancellationToken),
             cancellationToken);
     }
+
+    public ValueTask ResetAsync(
+        CancellationToken cancellationToken)
+    {
+        var service = this.GetWorkspace().Services.GetRequiredService<ICustomMessageHandlerService>();
+        return RunServiceAsync(
+            (_) => service.ResetAsync(
+                cancellationToken),
+            cancellationToken);
+    }
 }

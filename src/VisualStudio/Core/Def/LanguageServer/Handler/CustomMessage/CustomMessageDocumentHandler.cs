@@ -34,6 +34,9 @@ internal class CustomMessageDocumentHandler()
     public async Task<CustomResponse> HandleRequestAsync(CustomMessageDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Document);
+        Contract.ThrowIfNull(context.Solution);
+
+        var solution = context.Solution;
         var project = context.Document.Project;
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
 
@@ -59,9 +62,9 @@ internal class CustomMessageDocumentHandler()
         else
         {
             Contract.ThrowIfNull(context.Workspace);
-            var service = context.Workspace.Services.GetRequiredService<ICustomMessageHandlerService>();
+            var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
             var response = await service.HandleCustomDocumentMessageAsync(
-                    project.Solution,
+                    solution,
                     request.MessageName,
                     request.Message,
                     context.Document.Id,
