@@ -25874,4 +25874,32 @@ static class E
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
     }
+
+    [Fact]
+    public void GenericMethodInGenericType()
+    {
+        // Based on GenericNameTypeInferenceExpansion_GenericBase
+        var src = """
+class C<T>
+{
+    public static void Foo<T2>(T2 x) { }
+    public static void Foo(int x) { }
+}
+
+class D : C<int>
+{
+    public void Test()
+    {
+        C<int>.Foo<int>(1);
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<GenericNameSyntax>(tree, "Foo<int>");
+        Assert.Equal("void C<System.Int32>.Foo<System.Int32>(System.Int32 x)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
 }
