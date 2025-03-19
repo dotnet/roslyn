@@ -70,7 +70,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// use of this field or derived types should be synchronized with <see cref="_smartOpenScopeLock"/> to ensure
     /// you don't grab the field and then use it while shutdown continues.
     /// </summary>
-    private IVsSmartOpenScope? SmartOpenScopeServiceOpt { get; set; }
+    private VSThreading.AsyncLazy<IVsSmartOpenScope>? SmartOpenScopeServiceOpt { get; set; }
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -90,8 +90,14 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             },
             threadingContext.JoinableTaskFactory);
 
-        SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
-        Assumes.Present(SmartOpenScopeServiceOpt);
+        SmartOpenScopeServiceOpt = new VSThreading.AsyncLazy<IVsSmartOpenScope>(
+            async () =>
+            {
+                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+
+                return (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
+            },
+            threadingContext.JoinableTaskFactory);
 
         // If we're in VS we know we must be able to get a TemporaryStorageService
         _temporaryStorageService = (TemporaryStorageService)workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>();
@@ -323,7 +329,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                     return false;
                 }
 
-                if (ErrorHandler.Failed(SmartOpenScopeServiceOpt.OpenScope(fullPath, (uint)CorOpenFlags.ReadOnly, s_IID_IMetaDataImport, out var ppUnknown)))
+                if (ErrorHandler.Failed(SmartOpenScopeServiceOpt.GetValue().OpenScope(fullPath, (uint)CorOpenFlags.ReadOnly, s_IID_IMetaDataImport, out var ppUnknown)))
                 {
                     return false;
                 }
