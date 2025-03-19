@@ -42,6 +42,9 @@ internal class SemanticTokensRangesHandler : ILspServiceDocumentRequestHandler<S
             CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
+        if (request.Ranges.Length == 0)
+            return new SemanticTokens { Data = [] };
+
         var tokensData = await SemanticTokensHelpers.HandleRequestHelperAsync(_globalOptions, _semanticTokenRefreshQueue, request.Ranges, context, cancellationToken).ConfigureAwait(false);
         return new SemanticTokens { Data = tokensData };
     }
