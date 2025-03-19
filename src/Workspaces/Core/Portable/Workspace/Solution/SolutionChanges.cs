@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -88,10 +89,8 @@ public readonly struct SolutionChanges
         Contract.ThrowIfNull(_newSolution.CompilationState.FrozenSourceGeneratedDocumentStates);
 
         using var _ = ArrayBuilder<SourceGeneratedDocumentState>.GetInstance(out var oldStateBuilder);
-        foreach (var state in _newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
+        foreach (var (id, _) in _newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
         {
-            var id = state.Key;
-            var docState = state.Value;
             var oldState = _oldSolution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(id);
             // We only get changes for frozen source generated documents, and we assume that any document that has been frozen
             // must have been already generated first. We don't want to run generators on this path.
