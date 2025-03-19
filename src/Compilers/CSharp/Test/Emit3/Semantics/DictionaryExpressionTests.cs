@@ -536,7 +536,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 // Using indexer rather than instance method Add() is a breaking change from C#13.
-                // PROTOTYPE: Document breaking change.
                 verifier.VerifyIL("Program.Main", """
                     {
                       // Code size      148 (0x94)
