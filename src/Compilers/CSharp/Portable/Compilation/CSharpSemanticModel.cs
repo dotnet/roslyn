@@ -4690,7 +4690,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     constructedMethod = method.ConstructIncludingExtension(typeArguments);
                     Debug.Assert((object)constructedMethod != null);
-                    // PROTOTYPE we should check constraints
+
+                    if (!checkConstraintsIncludingExtension(method, typeArguments, compilation, method.ContainingAssembly.CorLibrary.TypeConversions))
+                    {
+                        return false;
+                    }
                 }
                 else
                 {
@@ -4742,6 +4746,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             throw ExceptionUtilities.UnexpectedValue(member.Kind);
+
+            static bool checkConstraintsIncludingExtension(MethodSymbol symbol, ImmutableArray<TypeWithAnnotations> typeArgs, CSharpCompilation compilation, TypeConversions conversions)
+            {
+                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
+
+                var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
+
+                bool success = true;
+
+                if (symbol.GetIsNewExtensionMember())
+                {
+                    NamedTypeSymbol extensionDeclaration = symbol.ContainingType;
+                    if (extensionDeclaration.Arity > 0)
+                    {
+                        var extensionTypeParameters = extensionDeclaration.TypeParameters;
+                        var extensionTypeArguments = typeArgs[..extensionDeclaration.Arity];
+                        var extensionSubstitution = new TypeMap(extensionTypeParameters, extensionTypeArguments);
+
+                        success = extensionDeclaration.CheckConstraints(
+                           constraintArgs, extensionSubstitution, extensionTypeParameters, extensionTypeArguments, diagnosticsBuilder,
+                           nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder, ignoreTypeConstraintsDependentOnTypeParametersOpt: null);
+                    }
+                }
+
+                if (success && symbol.Arity > 0)
+                {
+                    var memberTypeParameters = symbol.TypeParameters;
+                    var memberTypeArguments = typeArgs[^symbol.Arity..];
+                    var memberSubstitution = new TypeMap(memberTypeParameters, memberTypeArguments);
+
+                    success = symbol.CheckConstraints(
+                        constraintArgs, memberSubstitution, memberTypeParameters, memberTypeArguments, diagnosticsBuilder,
+                        nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder, ignoreTypeConstraintsDependentOnTypeParametersOpt: null);
+                }
+
+                diagnosticsBuilder.Free();
+
+                return success;
+            }
 #nullable disable
         }
 

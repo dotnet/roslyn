@@ -3018,7 +3018,7 @@ public class C
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<int>");
             Assert.Equal("void C.M<System.Int32>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            AssertEx.Equal(["void C.M<System.Int32>()", "void C.M<System.Int32>(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M<System.Int32>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
@@ -3142,7 +3142,7 @@ static class E2
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M<object>");
             Assert.Equal("void System.Object.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            AssertEx.Equal(["void System.Object.M<System.Object>()", "void System.Object.M<System.Object>(System.Object ignored)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void System.Object.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData]
