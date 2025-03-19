@@ -7362,6 +7362,7 @@ class Test1
             }
 
             var comp = CreateCompilation([source, RuntimeAsyncAwaitHelpers], targetFramework: TargetFramework.Net90, parseOptions: parseOptions);
+            comp.Assembly.SetOverrideRuntimeSupportsAsyncMethods();
 
             var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
 
