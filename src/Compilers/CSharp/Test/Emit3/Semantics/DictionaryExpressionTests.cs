@@ -2991,7 +2991,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default]").WithArguments("MyDictionary2<int, string>", "Add").WithLocation(20, 41));
         }
 
-        // PROTOTYPE: Test when there is a more applicable indexer. We should stick with the indexer of the expected pattern.
         [Fact]
         public void IndexerSignature_Overloads_01()
         {
@@ -3065,6 +3064,126 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (15,39): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
                 //         MyDictionary<int, string> d = [default];
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(15, 39));
+        }
+
+        // Use indexer with expected signature, even if a better overload exists.
+        [Fact]
+        public void IndexerSignature_Overloads_BetterOverload()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyDictionary<K, V, KDerived> : IEnumerable<KeyValuePair<K, V>>
+                    where KDerived : K
+                {
+                    protected List<KeyValuePair<K, V>> _list = new();
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    public V this[KDerived key] { get { throw null; } set { throw null; } }
+                    public V this[K key] { get { throw null; } set { _list.Add(new(key, value)); } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        FromPair<object, string, int>(1, "one").Report();
+                        FromExpression<object, string, int>(new KeyValuePair<int, string>(2, "two")).Report();
+                        FromSpread<object, string, int>(new KeyValuePair<int, string>[] { new(3, "three") }).Report();
+                    }
+                    static MyDictionary<object, int, string> FromDefault() => [default];
+                    static MyDictionary<K, V, KDerived> FromPair<K, V, KDerived>(KDerived k, V v)
+                        where KDerived : K
+                    {
+                        return [k:v];
+                    }
+                    static MyDictionary<K, V, KDerived> FromExpression<K, V, KDerived>(KeyValuePair<KDerived, V> e)
+                        where KDerived : K
+                    {
+                        return [e];
+                    }
+                    static MyDictionary<K, V, KDerived> FromSpread<K, V, KDerived>(KeyValuePair<KDerived, V>[] s)
+                        where KDerived : K
+                    {
+                        return [..s];
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_dictionaryExtensions],
+                expectedOutput: "[1:one], [2:two], [3:three], ");
+            verifier.VerifyIL("Program.FromPair<K, V, KDerived>", """
+                {
+                  // Code size       24 (0x18)
+                  .maxstack  4
+                  IL_0000:  newobj     "MyDictionary<K, V, KDerived>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  box        "KDerived"
+                  IL_000c:  unbox.any  "K"
+                  IL_0011:  ldarg.1
+                  IL_0012:  callvirt   "void MyDictionary<K, V, KDerived>.this[K].set"
+                  IL_0017:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.FromExpression<K, V, KDerived>", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<KDerived, V> V_0)
+                  IL_0000:  newobj     "MyDictionary<K, V, KDerived>..ctor()"
+                  IL_0005:  ldarg.0
+                  IL_0006:  stloc.0
+                  IL_0007:  dup
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  call       "KDerived System.Collections.Generic.KeyValuePair<KDerived, V>.Key.get"
+                  IL_000f:  box        "KDerived"
+                  IL_0014:  unbox.any  "K"
+                  IL_0019:  ldloca.s   V_0
+                  IL_001b:  call       "V System.Collections.Generic.KeyValuePair<KDerived, V>.Value.get"
+                  IL_0020:  callvirt   "void MyDictionary<K, V, KDerived>.this[K].set"
+                  IL_0025:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.FromSpread<K, V, KDerived>", """
+                {
+                  // Code size       62 (0x3e)
+                  .maxstack  3
+                  .locals init (MyDictionary<K, V, KDerived> V_0,
+                                System.Collections.Generic.KeyValuePair<KDerived, V>[] V_1,
+                                int V_2,
+                                System.Collections.Generic.KeyValuePair<KDerived, V> V_3)
+                  IL_0000:  newobj     "MyDictionary<K, V, KDerived>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  stloc.1
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stloc.2
+                  IL_000a:  br.s       IL_0036
+                  IL_000c:  ldloc.1
+                  IL_000d:  ldloc.2
+                  IL_000e:  ldelem     "System.Collections.Generic.KeyValuePair<KDerived, V>"
+                  IL_0013:  stloc.3
+                  IL_0014:  ldloc.0
+                  IL_0015:  ldloca.s   V_3
+                  IL_0017:  call       "KDerived System.Collections.Generic.KeyValuePair<KDerived, V>.Key.get"
+                  IL_001c:  box        "KDerived"
+                  IL_0021:  unbox.any  "K"
+                  IL_0026:  ldloca.s   V_3
+                  IL_0028:  call       "V System.Collections.Generic.KeyValuePair<KDerived, V>.Value.get"
+                  IL_002d:  callvirt   "void MyDictionary<K, V, KDerived>.this[K].set"
+                  IL_0032:  ldloc.2
+                  IL_0033:  ldc.i4.1
+                  IL_0034:  add
+                  IL_0035:  stloc.2
+                  IL_0036:  ldloc.2
+                  IL_0037:  ldloc.1
+                  IL_0038:  ldlen
+                  IL_0039:  conv.i4
+                  IL_003a:  blt.s      IL_000c
+                  IL_003c:  ldloc.0
+                  IL_003d:  ret
+                }
+                """);
         }
 
         [Fact]
