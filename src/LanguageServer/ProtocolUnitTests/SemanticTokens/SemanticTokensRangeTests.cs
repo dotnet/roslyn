@@ -474,9 +474,10 @@ class C
             markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+        var text = await document.GetTextAsync();
         var options = ClassificationOptions.Default;
         var results = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-            document, spans: [], isVS, options: options, cancellationToken: CancellationToken.None);
+            document, spans: [text.Lines.GetLinePositionSpan(new(0, text.Length))], isVS, options: options, cancellationToken: CancellationToken.None);
 
         var expectedResults = new LSP.SemanticTokens();
 
