@@ -1249,11 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKeyValuePairElement keyValuePairElement:
                         {
                             // dictionary[key] = value;
-                            Debug.Assert(keyValuePairElement.Key is { });
-                            Debug.Assert(keyValuePairElement.Value is { });
-                            Debug.Assert(keyValuePairElement.KeyPlaceholder is { });
-                            Debug.Assert(keyValuePairElement.ValuePlaceholder is { });
-                            Debug.Assert(keyValuePairElement.IndexerAssignment is { });
+                            Debug.Assert(keyValuePairElement is { Key: { }, Value: { }, KeyPlaceholder: { }, ValuePlaceholder: { }, IndexerAssignment: { } });
                             AddPlaceholderReplacement(keyValuePairElement.KeyPlaceholder, VisitExpression(keyValuePairElement.Key));
                             AddPlaceholderReplacement(keyValuePairElement.ValuePlaceholder, VisitExpression(keyValuePairElement.Value));
                             sideEffects.Add(VisitExpression(keyValuePairElement.IndexerAssignment));

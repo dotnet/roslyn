@@ -1101,9 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(elementType is { });
                 Debug.Assert(elementConversions.All(c => c.Exists));
-
                 Debug.Assert(implicitReceiver is { });
-
                 Debug.Assert(elementKeyType is { });
                 Debug.Assert(elementValueType is { });
 

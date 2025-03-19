@@ -244,7 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         // PROTOTYPE: Test ref safety analysis of indexer set calls for the various cases in [e, k:v, ..s].
-        // PROTOTYPE: Test interceptor targeting indexer setter.
 
         [Theory]
         [CombinatorialData]
