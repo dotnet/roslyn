@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -51,7 +52,7 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
         }
 
         var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
-        if (!Analyze(semanticModel, context.GetCSharpAnalyzerOptions().GetSimplifierOptions(), objectCreation, cancellationToken))
+        if (!Analyze(semanticModel, context.GetCSharpAnalyzerOptions().GetSimplifierOptions(), objectCreation, context.Compilation, cancellationToken))
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -67,20 +68,22 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
         SemanticModel semanticModel,
         CSharpSimplifierOptions simplifierOptions,
         ObjectCreationExpressionSyntax objectCreation,
+        Compilation compilation,
         CancellationToken cancellationToken)
     {
         // type is apparent if we the object creation location is closely tied (spatially) to the explicit type.  Specifically:
         //
-        // 1. Variable declarations.    i.e. `List<int> list = new ...`.  Note: we will suppress ourselves if this
+        // 1. Variable declarations.    e.g. `List<int> list = new ...`.  Note: we will suppress ourselves if this
         //    is a field and the 'var' preferences would lead to preferring this as `var list = ...`
-        // 2. Expression-bodied constructs with an explicit return type.  i.e. `List<int> Prop => new ...` or
+        // 2. Expression-bodied constructs with an explicit return type.  e.g. `List<int> Prop => new ...` or
         //    `List<int> GetValue(...) => ...` The latter doesn't necessarily have the object creation spatially next to
         //    the type.  However, the type is always in a very easy to ascertain location in C#, so it is treated as
-        //    apparent. 
+        //    apparent. This also includes async methods with Task<> or ValueTask<> return types.
         // 3. Collection-like constructs where the type of the collection is itself explicit.  For example: `new
         //    List<C> { new() }` or `new C[] { new() }`.
 
         TypeSyntax? typeNode;
+        var checkTaskLikeTypeParameter = false;
 
         if (objectCreation.Parent is EqualsValueClauseSyntax
             {
@@ -99,16 +102,20 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
         }
         else if (objectCreation.Parent.IsKind(SyntaxKind.ArrowExpressionClause))
         {
-            typeNode = objectCreation.Parent.Parent switch
+            SyntaxTokenList? modifiers;
+
+            (typeNode, modifiers) = objectCreation.Parent.Parent switch
             {
-                LocalFunctionStatementSyntax localFunction => localFunction.ReturnType,
-                MethodDeclarationSyntax method => method.ReturnType,
-                ConversionOperatorDeclarationSyntax conversion => conversion.Type,
-                OperatorDeclarationSyntax op => op.ReturnType,
-                BasePropertyDeclarationSyntax property => property.Type,
-                AccessorDeclarationSyntax(SyntaxKind.GetAccessorDeclaration) { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } } => baseProperty.Type,
-                _ => null,
+                LocalFunctionStatementSyntax localFunction => (localFunction.ReturnType, localFunction.Modifiers),
+                MethodDeclarationSyntax method => (method.ReturnType, method.Modifiers),
+                ConversionOperatorDeclarationSyntax conversion => (conversion.Type, default),
+                OperatorDeclarationSyntax op => (op.ReturnType, default),
+                BasePropertyDeclarationSyntax property => (property.Type, default),
+                AccessorDeclarationSyntax(SyntaxKind.GetAccessorDeclaration) { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } } => (baseProperty.Type, default),
+                _ => (null, default),
             };
+
+            checkTaskLikeTypeParameter = modifiers?.Any(SyntaxKind.AsyncKeyword) == true;
         }
         else if (objectCreation.Parent is InitializerExpressionSyntax { Parent: ObjectCreationExpressionSyntax { Type: var collectionType } })
         {
@@ -146,6 +153,18 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
 
         if (leftType is null || rightType is null)
             return false;
+
+        if (checkTaskLikeTypeParameter &&
+            leftType is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } leftNamedType &&
+            new[] { "System.Threading.Tasks.Task`1", "System.Threading.Tasks.ValueTake`1" }
+                .Select(compilation.GetBestTypeByMetadataName)
+                .Any(leftNamedType.ConstructedFrom.Equals))
+        {
+            // In the event we're looking at an async method with a Task<> or ValueTask<> return type, we should
+            // compare against the type parameter as this is generally recognized as the return type of the
+            // function.
+            leftType = leftNamedType.TypeArguments[0];
+        }
 
         if (leftType.IsErrorType() || rightType.IsErrorType())
             return false;

@@ -643,6 +643,31 @@ public class UseImplicitObjectCreationTests
         }.RunAsync();
     }
 
+    [Fact]
+    public async Task TestWithAsyncMethodExpressionBody()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    async Task<C> Func() => new [|C|]();
+                }
+                """,
+            FixedCode = """
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    async Task<C> Func() => new();
+                }
+                """,
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+        }.RunAsync();
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49291")]
     public async Task TestListOfTuplesWithLabels()
     {
