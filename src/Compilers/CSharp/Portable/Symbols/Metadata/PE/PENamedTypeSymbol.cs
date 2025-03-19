@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var methodSymbol = getMarkerMethodSymbol(@this, uncommon);
 
                     // PROTOTYPE: do we want to tighten the flags check further? (require that type be sealed?)
-                    if (methodSymbol.DeclaredAccessibility != Accessibility.Public ||
+                    if (methodSymbol.DeclaredAccessibility != Accessibility.Private ||
                         methodSymbol.IsGenericMethod ||
                         !methodSymbol.IsStatic ||
                         !methodSymbol.ReturnsVoid ||
@@ -2238,11 +2238,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used 
             var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
 
+            MethodDefinitionHandle? extensionMarkerMethod = _lazyUncommonProperties?.lazyExtensionInfo?.MarkerMethod;
+            Debug.Assert(extensionMarkerMethod is not null || this.TypeKind is not TypeKind.Extension);
+
             try
             {
                 foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(_handle))
                 {
-                    if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions))
+                    if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions) ||
+                        extensionMarkerMethod == methodHandle)
                     {
                         var method = new PEMethodSymbol(moduleSymbol, this, methodHandle);
                         members.Add(method);
