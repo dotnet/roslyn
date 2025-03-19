@@ -813,8 +813,11 @@ internal static partial class ITypeSymbolExtensions
     private static void AddReferencedTypeParameters(
         this ITypeSymbol? type, ArrayBuilder<ITypeParameterSymbol> result, bool onlyMethodTypeParameters)
     {
-        using var collector = new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters);
-        type?.Accept(collector);
+        if (type != null)
+        {
+            using var collector = new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters);
+            type.Accept(collector);
+        }
     }
 
     public static IList<ITypeParameterSymbol> GetReferencedTypeParameters(this ITypeSymbol? type)
