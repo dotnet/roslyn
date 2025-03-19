@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -25,9 +22,11 @@ public sealed class SemanticTokensFullTests(ITestOutputHelper testOutputHelper) 
     public async Task TestGetSemanticTokensFull_FullDocAsync(bool mutatingLspWorkspace, bool isVS)
     {
         var markup =
-@"{|caret:|}// Comment
-static class C { }
-";
+            """
+            {|caret:|}// Comment
+            static class C { }
+
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(
             markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
