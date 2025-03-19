@@ -25876,9 +25876,8 @@ static class E
     }
 
     [Fact]
-    public void GenericMethodInGenericType()
+    public void GetSymbolInfo_GenericMethodInGenericType()
     {
-        // Based on GenericNameTypeInferenceExpansion_GenericBase
         var src = """
 class C<T>
 {

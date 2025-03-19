@@ -4691,7 +4691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constructedMethod = method.ConstructIncludingExtension(typeArguments);
                     Debug.Assert((object)constructedMethod != null);
 
-                    if (!checkConstraintsIncludingExtension(method, typeArguments, compilation, method.ContainingAssembly.CorLibrary.TypeConversions))
+                    if (!checkConstraintsIncludingExtension(constructedMethod, typeArguments, compilation, method.ContainingAssembly.CorLibrary.TypeConversions))
                     {
                         return false;
                     }
@@ -4761,24 +4761,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NamedTypeSymbol extensionDeclaration = symbol.ContainingType;
                     if (extensionDeclaration.Arity > 0)
                     {
-                        var extensionTypeParameters = extensionDeclaration.TypeParameters;
+                        var extensionTypeParameters = extensionDeclaration.OriginalDefinition.TypeParameters;
                         var extensionTypeArguments = typeArgs[..extensionDeclaration.Arity];
-                        var extensionSubstitution = new TypeMap(extensionTypeParameters, extensionTypeArguments);
 
                         success = extensionDeclaration.CheckConstraints(
-                           constraintArgs, extensionSubstitution, extensionTypeParameters, extensionTypeArguments, diagnosticsBuilder,
+                           constraintArgs, extensionDeclaration.TypeSubstitution, extensionTypeParameters, extensionTypeArguments, diagnosticsBuilder,
                            nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder, ignoreTypeConstraintsDependentOnTypeParametersOpt: null);
                     }
                 }
 
                 if (success && symbol.Arity > 0)
                 {
-                    var memberTypeParameters = symbol.TypeParameters;
+                    var memberTypeParameters = symbol.OriginalDefinition.TypeParameters;
                     var memberTypeArguments = typeArgs[^symbol.Arity..];
-                    var memberSubstitution = new TypeMap(memberTypeParameters, memberTypeArguments);
 
                     success = symbol.CheckConstraints(
-                        constraintArgs, memberSubstitution, memberTypeParameters, memberTypeArguments, diagnosticsBuilder,
+                        constraintArgs, symbol.TypeSubstitution, memberTypeParameters, memberTypeArguments, diagnosticsBuilder,
                         nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder, ignoreTypeConstraintsDependentOnTypeParametersOpt: null);
                 }
 
