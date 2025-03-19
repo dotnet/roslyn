@@ -75,28 +75,19 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioMetadataReferenceManager(
-        SVsServiceProvider serviceProvider,
+        IVsService<SVsXMLMemberIndexService, IVsXMLMemberIndexService> xmlMemberIndexService,
+        IVsService<SVsSmartOpenScope, IVsSmartOpenScope> smartOpenScopeService,
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace)
     {
         _runtimeDirectories = GetRuntimeDirectories();
 
         _xmlMemberIndexService = new VSThreading.AsyncLazy<IVsXMLMemberIndexService>(
-            async () =>
-            {
-                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
-
-                return (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
-            },
+            () => xmlMemberIndexService.GetValueAsync(),
             threadingContext.JoinableTaskFactory);
 
         SmartOpenScopeServiceOpt = new VSThreading.AsyncLazy<IVsSmartOpenScope>(
-            async () =>
-            {
-                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
-
-                return (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
-            },
+            () => smartOpenScopeService.GetValueAsync(),
             threadingContext.JoinableTaskFactory);
 
         // If we're in VS we know we must be able to get a TemporaryStorageService
