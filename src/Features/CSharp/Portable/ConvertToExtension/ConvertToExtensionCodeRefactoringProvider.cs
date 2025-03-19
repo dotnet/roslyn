@@ -241,11 +241,11 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
 
         void ConvertAndReplaceExtensions(ImmutableArray<ExtensionMethodInfo> extensionMethods)
         {
-            var newExtension = CreateExtension(extensionMethods);
-
             // Replace the first extension method in the group (which will always be earliest in the class decl) with
             // the new extension declaration itself.
-            classDeclarationEditor.ReplaceNode(extensionMethods.First().ExtensionMethod, newExtension);
+            classDeclarationEditor.ReplaceNode(
+                extensionMethods.First().ExtensionMethod,
+                CreateExtension(extensionMethods));
 
             // Then remove the rest of the extensions in the group.
             foreach (var siblingExtension in extensionMethods.Skip(1))
