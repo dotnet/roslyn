@@ -99,7 +99,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider() : SyntaxEd
 
         TNode UpdateReadOnlyModifier<TNode>(TNode node, bool add) where TNode : SyntaxNode
         {
-            return generator.WithModifiers(node, generator.GetModifiers(node).WithIsReadOnly(add));
+            return (TNode)generator.WithModifiers(node, generator.GetModifiers(node).WithIsReadOnly(add));
         }
     }
 }
