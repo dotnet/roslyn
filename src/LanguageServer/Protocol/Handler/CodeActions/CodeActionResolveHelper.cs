@@ -184,7 +184,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     newSolution.GetDocument,
                     solution.GetDocument).ConfigureAwait(false);
 
-                // Changed source generated documents
+                // Razor calls through our code action handlers with documents that come from the Razor source generator
+                // Those changes are not visible in project changes, because they happen in the compilation state, so we
+                // make sure to pull changes out from that too. Changed source generated documents are "frozen" because
+                // their content no longer comes from the source generator, so thats our cue to know when to handle.
                 if (newSolution.CompilationState.FrozenSourceGeneratedDocumentStates is not null)
                 {
                     await AddTextDocumentEditsAsync(
