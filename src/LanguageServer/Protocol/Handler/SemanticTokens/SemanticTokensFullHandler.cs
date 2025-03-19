@@ -34,8 +34,10 @@ internal sealed class SemanticTokensFullHandler(
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(request.TextDocument);
-        // Passing an empty array of ranges will cause the helper to return tokens for the entire document.
-        var tokensData = await SemanticTokensHelpers.HandleRequestHelperAsync(_globalOptions, _semanticTokenRefreshQueue, ranges: [], context, cancellationToken).ConfigureAwait(false);
+
+        // Passing an null array of ranges will cause the helper to return tokens for the entire document.
+        var tokensData = await SemanticTokensHelpers.HandleRequestHelperAsync(
+            _globalOptions, _semanticTokenRefreshQueue, ranges: null, context, cancellationToken).ConfigureAwait(false);
         return new LSP.SemanticTokens { Data = tokensData };
     }
 }
