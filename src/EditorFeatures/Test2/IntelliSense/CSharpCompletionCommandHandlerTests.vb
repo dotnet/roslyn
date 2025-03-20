@@ -12925,7 +12925,6 @@ internal class Program
         End Function
 
         <WpfTheory, CombinatorialData>
-        Public Async Function TestStaticExtensionInvocation1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
                 using System;
