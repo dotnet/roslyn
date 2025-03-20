@@ -205,10 +205,17 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                 await RoslynParallel.ForEachAsync(
                     projectsToAnalyze,
                     cancellationToken,
-                    (project, cancellationToken) => _codeAnalysisService.RunAnalysisAsync(
-                        solution, project.Id,
-                        _ => statusBarUpdater.OnAfterProjectAnalyzed(),
-                        cancellationToken)).ConfigureAwait(false);
+                    async (project, cancellationToken) =>
+                    {
+                        try
+                        {
+                            await _codeAnalysisService.RunAnalysisAsync(project, cancellationToken).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            statusBarUpdater.OnAfterProjectAnalyzed();
+                        }
+                    }).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

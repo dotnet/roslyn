@@ -89,23 +89,14 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         public bool HasProjectBeenAnalyzed(ProjectId projectId)
             => _analyzedProjectToDiagnostics.ContainsKey(projectId);
 
-        public async ValueTask RunAnalysisAsync(Solution solution, ProjectId projectId, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken)
+        public async ValueTask RunAnalysisAsync(Project project, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             // Force execution on background thread.
             await Task.Yield().ConfigureAwait(false);
-            Contract.ThrowIfFalse(solution.Workspace == _workspace);
+            Contract.ThrowIfFalse(project.Solution.Workspace == _workspace);
 
-            var project = solution.GetProject(projectId);
-            if (project != null)
-            {
-                await AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private async ValueTask AnalyzeProjectCoreAsync(Project project, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken)
-        {
             // Execute force analysis for the project.
             var diagnostics = await _diagnosticAnalyzerService.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
 
@@ -115,9 +106,6 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
 
             // Remove from the cleared list now that we've run a more recent "run code analysis" on this project.
             _clearedProjectIds.Remove(project.Id);
-
-            // Now raise the callback into our caller to indicate this project has been analyzed.
-            onAfterProjectAnalyzed(project);
 
             // Finally, invoke a workspace refresh request for LSP client to pull onto these diagnostics.
             //
