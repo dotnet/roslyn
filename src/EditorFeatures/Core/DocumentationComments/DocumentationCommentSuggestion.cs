@@ -7,10 +7,12 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Copilot;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
@@ -66,7 +68,15 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public async Task<SuggestionSessionBase?> GetSuggestionSessionAsync(CancellationToken cancellationToken)
         {
-            return await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false);
+            SuggestionSessionBase? suggestionSession = null;
+
+            await RunWithEnqueueActionAsync(
+                "StartWork",
+                async () => suggestionSession = await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false),
+            cancellationToken).ConfigureAwait(false);
+
+            return suggestionSession;
+
         }
 
         public async Task TryDisplaySuggestionAsync(ProposalBase proposal, SuggestionSessionBase suggestionSession, CancellationToken cancellationToken)
@@ -82,8 +92,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             try
             {
-                await providerInstance.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                await session.DisplayProposalAsync(proposal, cancellationToken).ConfigureAwait(false);
+                await RunWithEnqueueActionAsync(
+                    "DisplayProposal",
+                    async () => await session.DisplayProposalAsync(proposal, cancellationToken).ConfigureAwait(false),
+                    cancellationToken).ConfigureAwait(false);
                 return true;
             }
             catch (OperationCanceledException)
@@ -92,6 +104,37 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// In general, calls to a SuggestionManager or SuggestionSession need to be wrapped in an EnqueueAction.
+        /// This is the pattern recommended by VS Platform to avoid races.
+        /// </summary>
+        public async Task RunWithEnqueueActionAsync(string description, Func<Task> action, CancellationToken cancel)
+        {
+            Assumes.NotNull(SuggestionManager);
+
+            var taskCompletionSource = new TaskCompletionSource<bool>();
+
+            await providerInstance.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
+            SuggestionManager.EnqueueAction(description, async () =>
+            {
+                try
+                {
+                    await action().ConfigureAwait(false);
+                }
+
+                finally
+                {
+                    taskCompletionSource.SetResult(true);
+                }
+            });
+
+            if (!taskCompletionSource.Task.IsCompleted)
+            {
+                await TaskScheduler.Default;
+                await taskCompletionSource.Task.WithCancellation(cancel).ConfigureAwait(false);
+            }
         }
 
         private async Task ClearSuggestionAsync(ReasonForDismiss reason, CancellationToken cancellationToken)

@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         public async Task GenerateDocumentationProposalAsync(DocumentationCommentSnippet snippet,
             ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
         {
-            await Microsoft.CodeAnalysis.Threading.YieldAwaitableExtensions.ConfigureAwait(Task.Yield(), false);
+            await YieldAwaitableExtensions.ConfigureAwait(Task.Yield(), false);
 
             if (!Enabled)
             {
                 return;
             }
 
-            // MemberNode is not null at this point, checked when determining if the file is exluded.
+            // MemberNode is not null at this point, checked when determining if the file is excluded.
             var snippetProposal = GetSnippetProposal(snippet.SnippetText, snippet.MemberNode!, snippet.Position, snippet.CaretOffset);
 
             if (snippetProposal is null)
@@ -66,17 +66,15 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             // so that won't have interfering grey text.
             var intellicodeLineCompletionsDisposable = await _suggestionManager!.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
             var suggestion = new DocumentationCommentSuggestion(this, _suggestionManager, intellicodeLineCompletionsDisposable);
-            SuggestionSessionBase? suggestionSession = null;
-            await RunWithEnqueueActionAsync(
-                "StartWork",
-                async () => suggestionSession = await suggestion.GetSuggestionSessionAsync(cancellationToken).ConfigureAwait(false),
-                cancellationToken).ConfigureAwait(false);
+
+            var suggestionSession = await suggestion.GetSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
 
             if (suggestionSession is null)
             {
                 await intellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
                 return;
             }
+
             var proposalEdits = await GetProposedEditsAsync(snippetProposal, _copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
 
             var proposal = Proposal.TryCreateProposal(null, proposalEdits, oldCaret, flags: ProposalFlags.ShowCommitHighlight);
@@ -84,6 +82,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             if (proposal is null)
             {
                 await intellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
+                await suggestion.RunWithEnqueueActionAsync(
+                    "DismissSuggestionSession",
+                    async () => await suggestionSession.DismissAsync(ReasonForDismiss.DismissedDueToInvalidProposal, cancellationToken).ConfigureAwait(false),
+                    cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -303,26 +305,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             _enabled = false;
             return Task.CompletedTask;
-        }
-
-        private async Task RunWithEnqueueActionAsync(string description, Func<Task> action, CancellationToken cancel)
-        {
-            Assumes.NotNull(_suggestionManager);
-
-            var tcs = new TaskCompletionSource<bool>();
-
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
-            _suggestionManager.EnqueueAction(description, async () =>
-            {
-                await action().ConfigureAwait(false);
-                tcs.SetResult(true);
-            });
-
-            if (!tcs.Task.IsCompleted)
-            {
-                await TaskScheduler.Default;
-                await tcs.Task.ConfigureAwait(false);
-            }
         }
     }
 }
