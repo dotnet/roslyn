@@ -21,13 +21,13 @@
     https://github.com/dotnet/sdk/issues/45155
   -->
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
-    <MicrosoftIORedistVersion>6.1.1</MicrosoftIORedistVersion>
-    <SystemBuffersVersion>4.6.0</SystemBuffersVersion>
+    <MicrosoftIORedistVersion>6.1.2</MicrosoftIORedistVersion>
+    <SystemBuffersVersion>4.6.1</SystemBuffersVersion>
     <SystemDataSqlClientVersion>4.9.0</SystemDataSqlClientVersion>
-    <SystemMemoryVersion>4.6.1</SystemMemoryVersion>
-    <SystemNumericsVectorsVersion>4.6.0</SystemNumericsVectorsVersion>
+    <SystemMemoryVersion>4.6.2</SystemMemoryVersion>
+    <SystemNumericsVectorsVersion>4.6.1</SystemNumericsVectorsVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.1.1</SystemRuntimeCompilerServicesUnsafeVersion>
-    <SystemThreadingTasksExtensionsVersion>4.6.1</SystemThreadingTasksExtensionsVersion>
+    <SystemThreadingTasksExtensionsVersion>4.6.2</SystemThreadingTasksExtensionsVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
     <MicrosoftIORedistVersion>6.0.1</MicrosoftIORedistVersion>
