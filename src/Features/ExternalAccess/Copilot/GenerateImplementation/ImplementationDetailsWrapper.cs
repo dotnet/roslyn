@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.GenerateImplementation;
 
 /// <summary>
@@ -18,5 +20,5 @@ internal sealed class ImplementationDetailsWrapper
     /// <summary>
     /// Gets the replacement syntax node. Either this property or <see cref="Message"/> must be set.
     /// </summary>
-    public SyntaxNode? ReplacementNode { get; init; }
+    public MemberDeclarationSyntax? ReplacementNode { get; init; }
 }
