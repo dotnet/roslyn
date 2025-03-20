@@ -53,7 +53,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Copilot" />
@@ -117,5 +116,28 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="BrokeredServices\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="InlineRename\UI\Adornment\RenameFlyout.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="InlineRename\UI\Adornment\RenameUserInputTextBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="InlineRename\UI\Dashboard\RenameDashboard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="InlineRename\UI\InlineRenameColors.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="InlineRename\UI\SmartRename\SmartRenameStatusControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="InlineRename\UI\SmartRename\SmartRenameUserInputComboBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="QuickInfo\OnTheFlyDocsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 </Project>
