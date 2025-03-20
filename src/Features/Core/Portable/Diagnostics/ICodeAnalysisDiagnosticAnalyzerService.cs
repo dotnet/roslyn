@@ -21,7 +21,7 @@ internal interface ICodeAnalysisDiagnosticAnalyzerService : IWorkspaceService
     /// Runs all the applicable analyzers on the given project or entire solution if <paramref name="projectId"/> is
     /// null.
     /// </summary>
-    Task RunAnalysisAsync(Solution solution, ProjectId? projectId, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken);
+    ValueTask RunAnalysisAsync(Solution solution, ProjectId? projectId, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken);
 
     /// <summary>
     /// Returns true if <see cref="RunAnalysisAsync(Solution, ProjectId?, Action{Project}, CancellationToken)"/> was

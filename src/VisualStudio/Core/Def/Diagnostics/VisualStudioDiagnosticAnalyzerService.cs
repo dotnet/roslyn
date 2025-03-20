@@ -175,8 +175,8 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         // If a new command comes in to run analyzers again, cancel any existing operation in progress and start a new one.
         var cancellationToken = _cancellationSeries.CreateNext();
 
-        var project = GetProject(hierarchy);
         var solution = _workspace.CurrentSolution;
+        var project = GetProject(solution, hierarchy);
 
         // Handle multi-tfm projects - we want to run code analysis for all tfm flavors of the project.
         string progressName;
@@ -211,8 +211,10 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                 await RoslynParallel.ForEachAsync(
                     projectsToAnalyze,
                     cancellationToken,
-                    (project, cancellationToken) =>
-                        RunAnalysisAsync(statusBarUpdater, project.Id, cancellationToken)).ConfigureAwait(false);
+                    (project, cancellationToken) => _codeAnalysisService.RunAnalysisAsync(
+                        solution, project.Id,
+                        _ => statusBarUpdater.OnAfterProjectAnalyzed(),
+                        cancellationToken)).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -221,31 +223,16 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             {
             }
         });
-
-        async ValueTask RunAnalysisAsync(
-            StatusBarUpdater statusBarUpdater, ProjectId? projectId, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Force complete analyzer execution in background.
-            await TaskScheduler.Default;
-            await _codeAnalysisService.RunAnalysisAsync(
-                solution, projectId,
-                _ => statusBarUpdater.OnAfterProjectAnalyzed(),
-                cancellationToken).ConfigureAwait(false);
-        }
     }
 
-    private Project? GetProject(IVsHierarchy? hierarchy)
+    private Project? GetProject(Solution solution, IVsHierarchy? hierarchy)
     {
         if (hierarchy != null)
         {
             var projectMap = _workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
             var projectHierarchyItem = _vsHierarchyItemManager.GetHierarchyItem(hierarchy, VSConstants.VSITEMID_ROOT);
             if (projectMap.TryGetProjectId(projectHierarchyItem, targetFrameworkMoniker: null, out var projectId))
-            {
-                return _workspace.CurrentSolution.GetProject(projectId);
-            }
+                return solution.GetProject(projectId);
         }
 
         return null;
