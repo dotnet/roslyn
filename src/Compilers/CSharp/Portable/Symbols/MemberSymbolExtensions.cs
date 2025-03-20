@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return member.ContainingSymbol is TypeSymbol { IsExtension: true };
         }
 
-        internal static int GetMemberTotalArity(this Symbol member)
+        internal static int GetMemberArityIncludingExtension(this Symbol member)
         {
             if (member.GetIsNewExtensionMember())
             {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// For an extension member, we distribute the type arguments between the extension declaration and the member.
         /// Otherwise, we just construct the member with the type arguments.
         /// </summary>
-        internal static TMember ConstructWithAllTypeParameters<TMember>(this TMember member, ImmutableArray<TypeWithAnnotations> typeArguments) where TMember : Symbol
+        internal static TMember ConstructIncludingExtension<TMember>(this TMember member, ImmutableArray<TypeWithAnnotations> typeArguments) where TMember : Symbol
         {
             if (member is MethodSymbol method)
             {

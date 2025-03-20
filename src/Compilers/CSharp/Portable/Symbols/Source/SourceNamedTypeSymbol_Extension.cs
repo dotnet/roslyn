@@ -171,31 +171,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                bool success = checkConstraints(extension, typeArguments, compilation, conversions);
+                var result = extension.Construct(typeArguments);
+
+                var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
+                    NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
+
+                bool success = result.CheckConstraints(constraintArgs);
                 if (!success)
                 {
                     return null;
                 }
 
-                return extension.Construct(typeArguments);
-            }
-
-            static bool checkConstraints(NamedTypeSymbol symbol, ImmutableArray<TypeWithAnnotations> typeArgs, CSharpCompilation compilation,
-                TypeConversions conversions)
-            {
-                ImmutableArray<TypeParameterSymbol> typeParams = symbol.TypeParameters;
-                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-                var substitution = new TypeMap(typeParams, typeArgs);
-                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
-
-                bool success = symbol.CheckConstraints(
-                    new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded),
-                    substitution, typeParams, typeArgs, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
-                    ref useSiteDiagnosticsBuilder, ignoreTypeConstraintsDependentOnTypeParametersOpt: null);
-
-                diagnosticsBuilder.Free();
-
-                return success;
+                return result;
             }
         }
     }
