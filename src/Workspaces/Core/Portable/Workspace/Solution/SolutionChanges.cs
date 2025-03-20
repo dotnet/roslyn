@@ -86,16 +86,15 @@ public readonly struct SolutionChanges
 
     internal IEnumerable<DocumentId> GetChangedFrozenSourceGeneratedDocuments()
     {
-        Contract.ThrowIfNull(_newSolution.CompilationState.FrozenSourceGeneratedDocumentStates);
+        if (_newSolution.CompilationState.FrozenSourceGeneratedDocumentStates is null)
+            return [];
 
         using var _ = ArrayBuilder<SourceGeneratedDocumentState>.GetInstance(out var oldStateBuilder);
         foreach (var (id, _) in _newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
         {
             var oldState = _oldSolution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(id);
-            // We only get changes for frozen source generated documents, and we assume that any document that has been frozen
-            // must have been already generated first. We don't want to run generators on this path.
-            Contract.ThrowIfNull(oldState);
-            oldStateBuilder.Add(oldState);
+            if (oldState is not null)
+                oldStateBuilder.Add(oldState);
         }
 
         var oldStates = new TextDocumentStates<SourceGeneratedDocumentState>(oldStateBuilder);

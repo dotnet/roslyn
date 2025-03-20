@@ -64,12 +64,8 @@ public abstract partial class CodeAction
         var documentIds = solutionChanges
             .GetProjectChanges()
             .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(p.GetAddedDocuments()))
-            .Concat(solutionChanges.GetAddedProjects().SelectMany(p => p.DocumentIds));
-
-        if (changedSolution.CompilationState.FrozenSourceGeneratedDocumentStates is not null)
-        {
-            documentIds = documentIds.Concat(changedSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States.Select(s => s.Key));
-        }
+            .Concat(solutionChanges.GetAddedProjects().SelectMany(p => p.DocumentIds))
+            .Concat(solutionChanges.GetChangedFrozenSourceGeneratedDocuments());
 
         return documentIds.ToImmutableArray();
     }
