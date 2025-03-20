@@ -180,17 +180,17 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
 
         // Handle multi-tfm projects - we want to run code analysis for all tfm flavors of the project.
-        ImmutableArray<Project> otherProjectsForMultiTfmProject;
+        ImmutableArray<Project> projectsToAnalyze;
         if (project != null)
         {
-            otherProjectsForMultiTfmProject = [.. solution.Projects.Where(
+            projectsToAnalyze = [project, .. solution.Projects.Where(
                 p => p != project && p.FilePath == project.FilePath && p.State.NameAndFlavor.name == project.State.NameAndFlavor.name)];
-            if (!otherProjectsForMultiTfmProject.IsEmpty)
+            if (projectsToAnalyze.Length > 1)
                 projectOrSolutionName = project.State.NameAndFlavor.name;
         }
         else
         {
-            otherProjectsForMultiTfmProject = [];
+            projectsToAnalyze = [.. solution.Projects];
         }
 
         _threadingContext.JoinableTaskFactory.RunAsync(async () =>
@@ -200,18 +200,15 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                 using var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
 
                 // Add a message to VS status bar that we are running code analysis.
-                var totalProjectCount = project != null ? (1 + otherProjectsForMultiTfmProject.Length) : solution.ProjectIds.Count;
                 using var statusBarUpdater = new StatusBarUpdater(
                     this, await _statusbar.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true),
-                    projectOrSolutionName, totalProjectCount, cancellationToken);
-
-                await RunAnalysisAsync(statusBarUpdater, project?.Id, cancellationToken).ConfigureAwait(false);
+                    projectOrSolutionName, totalProjectCount: projectsToAnalyze.Length, cancellationToken);
 
                 await RoslynParallel.ForEachAsync(
-                    otherProjectsForMultiTfmProject,
+                    projectsToAnalyze,
                     cancellationToken,
-                    (otherProject, cancellationToken) =>
-                        RunAnalysisAsync(statusBarUpdater, otherProject.Id, cancellationToken)).ConfigureAwait(false);
+                    (project, cancellationToken) =>
+                        RunAnalysisAsync(statusBarUpdater, project.Id, cancellationToken)).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -222,7 +219,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         });
 
         async ValueTask RunAnalysisAsync(
-            StatusBarUpdater? statusBarUpdater, ProjectId? projectId, CancellationToken cancellationToken)
+            StatusBarUpdater statusBarUpdater, ProjectId? projectId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -230,7 +227,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             await TaskScheduler.Default;
             await _codeAnalysisService.RunAnalysisAsync(
                 solution, projectId,
-                statusBarUpdater != null ? _ => statusBarUpdater.OnAfterProjectAnalyzed() : _ => { },
+                _ => statusBarUpdater.OnAfterProjectAnalyzed(),
                 cancellationToken).ConfigureAwait(false);
         }
     }
