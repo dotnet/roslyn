@@ -62,13 +62,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.VisualBasic)
 
-            BindToOption(Automatically_reload_updated_analyzers_and_generators, WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferences,
-                         Function()
-                             ' If the option has not been set by the user, check if the option is enabled from
-                             ' experimentation. If so, default to that.
-                             Return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferencesFeatureFlag)
-                         End Function)
-
             BindToOption(Enable_file_logging_for_diagnostics, VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics)
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds)
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer, FeatureOnOffOptions.OfferRemoveUnusedReferences,

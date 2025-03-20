@@ -33,9 +33,5 @@ internal static class WorkspaceConfigurationOptionsStorage
 
     public static readonly Option2<bool?> ReloadChangedAnalyzerReferences = new(
         "dotnet_reload_changed_analyzer_references",
-        defaultValue: null,
-        isEditorConfigOption: true);
-
-    public static readonly Option2<bool> ReloadChangedAnalyzerReferencesFeatureFlag = new(
-        "dotnet_reload_changed_analyzer_references_feature_flag", true);
+        defaultValue: null);
 }

@@ -1841,9 +1841,6 @@ Additional information: {1}</value>
   <data name="Show_hints_for_collection_expressions" xml:space="preserve">
     <value>Show hints for collection expressions</value>
   </data>
-  <data name="Automatically_reload_updated_analyzers_and_generators" xml:space="preserve">
-    <value>Automatically reload updated analyzers and generators (requires restart)</value>
-  </data>
   <data name="Insert_Snippet" xml:space="preserve">
     <value>Insert Snippet</value>
   </data>
