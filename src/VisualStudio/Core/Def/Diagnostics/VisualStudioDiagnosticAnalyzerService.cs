@@ -199,7 +199,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                 using var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
 
                 // Add a message to VS status bar that we are running code analysis.
-                var statusBar = await _statusbar.GetValueOrNullAsync().ConfigureAwait(true);
+                var statusBar = await _statusbar.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
                 var totalProjectCount = project != null ? (1 + otherProjectsForMultiTfmProject.Length) : solution.ProjectIds.Count;
                 using var statusBarUpdater = statusBar != null
                     ? new StatusBarUpdater(this, statusBar, projectOrSolutionName, totalProjectCount, cancellationToken)
