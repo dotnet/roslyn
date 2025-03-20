@@ -74,9 +74,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Full_Solution_Tag As CompilerDiagnosticsScope =
             CompilerDiagnosticsScope.FullSolution
 
-        Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
-            ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
-
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             ServicesVSResources.Show_procedure_line_separators
 
