@@ -22507,7 +22507,6 @@ class CTest
             );
     }
 
-
     [Fact]
     public void NameConflict_29_WithStaticTypeTypeParameter()
     {
