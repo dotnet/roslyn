@@ -137,11 +137,6 @@
         <target state="translated">在焦点上自动打开“堆栈跟踪资源管理器”</target>
         <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
       </trans-unit>
-      <trans-unit id="Automatically_reload_updated_analyzers_and_generators">
-        <source>Automatically reload updated analyzers and generators (requires restart)</source>
-        <target state="translated">自动重新加载更新的分析器和生成器 (需要重启)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">避免会隐式忽略值的表达式语句</target>
@@ -1295,11 +1290,6 @@
       <trans-unit id="Run_background_code_analysis_for_colon">
         <source>Run background code analysis for:</source>
         <target state="translated">对以下项运行后台代码分析:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
-        <source>Run code analysis in separate process (requires restart)</source>
-        <target state="translated">在单独的进程中运行代码分析(需要重启)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">

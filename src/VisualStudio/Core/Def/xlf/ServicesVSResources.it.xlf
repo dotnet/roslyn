@@ -137,11 +137,6 @@
         <target state="translated">Aprire automaticamente Stack Trace Explorer sullo stato attivo</target>
         <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
       </trans-unit>
-      <trans-unit id="Automatically_reload_updated_analyzers_and_generators">
-        <source>Automatically reload updated analyzers and generators (requires restart)</source>
-        <target state="translated">Ricarica automaticamente analizzatori e generatori aggiornati (richiede il riavvio)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">Evita le istruzioni di espressione che ignorano il valore in modo implicito</target>
@@ -1295,11 +1290,6 @@
       <trans-unit id="Run_background_code_analysis_for_colon">
         <source>Run background code analysis for:</source>
         <target state="translated">Eseguire l'analisi del codice in background per:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
-        <source>Run code analysis in separate process (requires restart)</source>
-        <target state="translated">Esegui analisi codice in un processo separato (richiede il riavvio)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">

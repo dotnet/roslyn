@@ -234,13 +234,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = False
             Collapse_metadata_signature_files_on_open.IsEnabled = False
         End Sub
-
-        Private Sub RunCodeAnalysisInSeparateProcess_Checked(sender As Object, e As RoutedEventArgs)
-            Automatically_reload_updated_analyzers_and_generators.IsEnabled = True
-        End Sub
-
-        Private Sub RunCodeAnalysisInSeparateProcess_Unchecked(sender As Object, e As RoutedEventArgs)
-            Automatically_reload_updated_analyzers_and_generators.IsEnabled = False
-        End Sub
     End Class
 End Namespace

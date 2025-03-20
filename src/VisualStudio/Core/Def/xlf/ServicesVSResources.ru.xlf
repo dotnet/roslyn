@@ -137,11 +137,6 @@
         <target state="translated">Автоматически открывать обозреватель трассировки стека при фокусировке</target>
         <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
       </trans-unit>
-      <trans-unit id="Automatically_reload_updated_analyzers_and_generators">
-        <source>Automatically reload updated analyzers and generators (requires restart)</source>
-        <target state="translated">Автоматически перезагружать обновленные анализаторы и генераторы (требуется перезагрузка)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">Избегайте операторов-выражений, неявно игнорирующих значение.</target>
@@ -1295,11 +1290,6 @@
       <trans-unit id="Run_background_code_analysis_for_colon">
         <source>Run background code analysis for:</source>
         <target state="translated">Выполнить анализ кода в фоновом режиме для:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
-        <source>Run code analysis in separate process (requires restart)</source>
-        <target state="translated">Запуск анализа кода в отдельном процессе (требуется перезапуск)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">

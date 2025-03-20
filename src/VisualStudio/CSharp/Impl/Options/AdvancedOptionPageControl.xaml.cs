@@ -251,16 +251,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             UpdateInlineHintsOptions();
         }
 
-        private void RunCodeAnalysisInSeparateProcess_Checked(object sender, RoutedEventArgs e)
-        {
-            Automatically_reload_updated_analyzers_and_generators.IsEnabled = true;
-        }
-
-        private void RunCodeAnalysisInSeparateProcess_Unchecked(object sender, RoutedEventArgs e)
-        {
-            Automatically_reload_updated_analyzers_and_generators.IsEnabled = false;
-        }
-
         private void EnterOutliningMode_Checked(object sender, RoutedEventArgs e)
         {
             Collapse_regions_on_file_open.IsEnabled = true;

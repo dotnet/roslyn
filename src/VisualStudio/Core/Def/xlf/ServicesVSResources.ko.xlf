@@ -137,11 +137,6 @@
         <target state="translated">포커스에서 자동으로 스택 추적 탐색기 열기</target>
         <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
       </trans-unit>
-      <trans-unit id="Automatically_reload_updated_analyzers_and_generators">
-        <source>Automatically reload updated analyzers and generators (requires restart)</source>
-        <target state="translated">업데이트된 분석기 및 생성기를 자동으로 다시 로드(다시 시작해야 함)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">암시적으로 값을 무시하는 식 문을 사용하지 마세요.</target>
@@ -1295,11 +1290,6 @@
       <trans-unit id="Run_background_code_analysis_for_colon">
         <source>Run background code analysis for:</source>
         <target state="translated">다음을 위해 백그라운드 코드 분석을 실행합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
-        <source>Run code analysis in separate process (requires restart)</source>
-        <target state="translated">별도의 프로세스에서 코드 분석 실행(다시 시작해야 함)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
