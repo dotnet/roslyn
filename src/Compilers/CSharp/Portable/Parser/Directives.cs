@@ -117,13 +117,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal readonly struct DirectiveStack
     {
-        public static readonly DirectiveStack Empty = new DirectiveStack(ConsList<Directive>.Empty);
+        public static readonly DirectiveStack Empty = new DirectiveStack(ConsList<Directive>.Empty, seenAnyIfs: false);
 
         private readonly ConsList<Directive>? _directives;
+        private readonly bool _seenAnyIfs;
 
-        private DirectiveStack(ConsList<Directive>? directives)
+        private DirectiveStack(ConsList<Directive>? directives, bool seenAnyIfs)
         {
             _directives = directives;
+            _seenAnyIfs = seenAnyIfs;
         }
 
         public static void InterlockedInitialize(ref DirectiveStack location, DirectiveStack value)
@@ -144,6 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return _directives == ConsList<Directive>.Empty;
             }
         }
+
+        public bool SeenAnyIfs => _seenAnyIfs;
 
         public DefineState IsDefined(string id)
         {
@@ -235,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
 
                     RoslynDebug.AssertNotNull(_directives); // If 'prevIf' isn't null, then '_directives' wasn't null.
-                    return new DirectiveStack(CompleteIf(_directives, out _));
+                    return new DirectiveStack(CompleteIf(_directives, out _), seenAnyIfs: _seenAnyIfs);
                 case SyntaxKind.EndRegionDirectiveTrivia:
                     var prevRegion = GetPreviousRegion(_directives);
                     if (prevRegion == null || !prevRegion.Any())
@@ -244,9 +248,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
 
                     RoslynDebug.AssertNotNull(_directives); // If 'prevRegion' isn't null, then '_directives' wasn't null.
-                    return new DirectiveStack(CompleteRegion(_directives)); // remove region directives from stack but leave everything else
+                    return new DirectiveStack(CompleteRegion(_directives), seenAnyIfs: _seenAnyIfs); // remove region directives from stack but leave everything else
                 default:
-                    return new DirectiveStack(new ConsList<Directive>(directive, _directives ?? ConsList<Directive>.Empty));
+                    return new DirectiveStack(new ConsList<Directive>(directive, _directives ?? ConsList<Directive>.Empty),
+                        seenAnyIfs: _seenAnyIfs || directive.Kind is SyntaxKind.IfDirectiveTrivia);
             }
         }
 
