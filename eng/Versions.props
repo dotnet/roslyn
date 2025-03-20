@@ -5,8 +5,8 @@
     Roslyn version
   -->
   <PropertyGroup>
-    <MajorVersion>5</MajorVersion>
-    <MinorVersion>0</MinorVersion>
+    <MajorVersion>4</MajorVersion>
+    <MinorVersion>15</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
