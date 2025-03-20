@@ -395,7 +395,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
 
                 var staticExtensionsMembers = _context.SemanticModel
                     .LookupSymbols(position, container, includeReducedExtensionMethods: true)
-                    .WhereAsArray(s => s is { IsStatic: true, ContainingType.IsExtension: true } && !staticMembers.Contains(s));
+                    .WhereAsArray(static (s, staticMembers) => s is { IsStatic: true, ContainingType.IsExtension: true } && !staticMembers.Contains(s), staticMembers);
 
                 return [.. staticMembers, .. staticExtensionsMembers];
             }
