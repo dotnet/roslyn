@@ -8,12 +8,14 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
@@ -49,6 +51,8 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
     private readonly IVsHierarchyItemManager _vsHierarchyItemManager = vsHierarchyItemManager;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
     private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService = workspace.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
+
+    private readonly CancellationSeries _cancellationSeries = new(threadingContext.DisposalToken);
 
     private IServiceProvider? _serviceProvider;
 
@@ -162,13 +166,13 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
     private void OnRunCodeAnalysisForSelectedProject(object sender, EventArgs args)
     {
         if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
-        {
             RunAnalyzers(hierarchy);
-        }
     }
 
     public void RunAnalyzers(IVsHierarchy? hierarchy)
     {
+        var cancellationToken = _cancellationSeries.CreateNext();
+
         var project = GetProject(hierarchy);
         var solution = _workspace.CurrentSolution;
         var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
@@ -187,32 +191,41 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             otherProjectsForMultiTfmProject = [];
         }
 
-        // Force complete analyzer execution in background.
         _threadingContext.JoinableTaskFactory.RunAsync(async () =>
         {
-            using var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
+            try
+            {
+                using var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
 
-            // Add a message to VS status bar that we are running code analysis.
-            var statusBar = await _statusbar.GetValueOrNullAsync().ConfigureAwait(true);
-            var totalProjectCount = project != null ? (1 + otherProjectsForMultiTfmProject.Length) : solution.ProjectIds.Count;
-            using var statusBarUpdater = statusBar != null
-                ? new StatusBarUpdater(this, statusBar, projectOrSolutionName, totalProjectCount)
-                : null;
+                // Add a message to VS status bar that we are running code analysis.
+                var statusBar = await _statusbar.GetValueOrNullAsync().ConfigureAwait(true);
+                var totalProjectCount = project != null ? (1 + otherProjectsForMultiTfmProject.Length) : solution.ProjectIds.Count;
+                using var statusBarUpdater = statusBar != null
+                    ? new StatusBarUpdater(this, statusBar, projectOrSolutionName, totalProjectCount, cancellationToken)
+                    : null;
 
-            await RunAnalysisAsync(statusBarUpdater, project?.Id).ConfigureAwait(false);
+                await RunAnalysisAsync(statusBarUpdater, project?.Id, cancellationToken).ConfigureAwait(false);
 
-            foreach (var otherProject in otherProjectsForMultiTfmProject)
-                await RunAnalysisAsync(statusBarUpdater, otherProject.Id).ConfigureAwait(false);
+                foreach (var otherProject in otherProjectsForMultiTfmProject)
+                    await RunAnalysisAsync(statusBarUpdater, otherProject.Id, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+            }
         });
 
         async Task RunAnalysisAsync(
-            StatusBarUpdater? statusBarUpdater, ProjectId? projectId)
+            StatusBarUpdater? statusBarUpdater, ProjectId? projectId, CancellationToken cancellationToken)
         {
+            // Force complete analyzer execution in background.
             await TaskScheduler.Default;
             await _codeAnalysisService.RunAnalysisAsync(
                 solution, projectId,
                 statusBarUpdater != null ? _ => statusBarUpdater.OnAfterProjectAnalyzed() : _ => { },
-                CancellationToken.None).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -245,7 +258,8 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             VisualStudioDiagnosticAnalyzerService service,
             IVsStatusbar statusBar,
             string? projectOrSolutionName,
-            int totalProjectCount)
+            int totalProjectCount,
+            CancellationToken cancellationToken)
         {
             var threadingContext = service._threadingContext;
             threadingContext.ThrowIfNotOnUIThread();
@@ -289,7 +303,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                     statusBar.SetText(message);
                 },
                 service._listener,
-                threadingContext.DisposalToken);
+                cancellationToken);
         }
 
         public void OnAfterProjectAnalyzed()
