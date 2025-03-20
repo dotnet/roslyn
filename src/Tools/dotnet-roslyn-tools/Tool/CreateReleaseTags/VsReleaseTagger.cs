@@ -23,7 +23,11 @@ internal sealed partial class VsReleaseTagger
     private readonly ImmutableDictionary<string, string> _vsVersionMap = new Dictionary<string, string>
     {
         { "16.11.", "2019" },
-        { "17.", "2022" },
+        { "17.8.", "2022" },
+        { "17.10.", "2022" },
+        { "17.12.", "2022" },
+        { "17.13.", "2022" },
+        { "17.14.", "2022" },
     }.ToImmutableDictionary();
 
     public override async Task<ImmutableArray<VsReleaseInformation>> GetReleasesAsync(RemoteConnections connections)
@@ -272,7 +276,7 @@ internal sealed partial class VsReleaseTagger
     public override string GetTagName(VsReleaseInformation release)
     {
         // This is verified to have a value when we create the release information
-        var vsVersion = _vsVersionMap.First(pair => release.MainVersion.StartsWith($"{pair.Key}.")).Value;
+        var vsVersion = _vsVersionMap.First(pair => release.MainVersion.StartsWith(pair.Key)).Value;
         var tag = $"Visual-Studio-{vsVersion}-Version-{release.MainVersion}";
 
         return string.IsNullOrEmpty(release.PreviewVersion)
