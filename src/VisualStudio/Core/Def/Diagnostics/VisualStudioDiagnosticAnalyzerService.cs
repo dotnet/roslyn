@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -206,8 +207,11 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
 
                 await RunAnalysisAsync(statusBarUpdater, project?.Id, cancellationToken).ConfigureAwait(false);
 
-                foreach (var otherProject in otherProjectsForMultiTfmProject)
-                    await RunAnalysisAsync(statusBarUpdater, otherProject.Id, cancellationToken).ConfigureAwait(false);
+                await RoslynParallel.ForEachAsync(
+                    otherProjectsForMultiTfmProject,
+                    cancellationToken,
+                    (otherProject, cancellationToken) =>
+                        RunAnalysisAsync(statusBarUpdater, otherProject.Id, cancellationToken)).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -217,7 +221,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             }
         });
 
-        async Task RunAnalysisAsync(
+        async ValueTask RunAnalysisAsync(
             StatusBarUpdater? statusBarUpdater, ProjectId? projectId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
