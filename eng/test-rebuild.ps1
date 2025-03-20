@@ -73,7 +73,6 @@ try {
   # The assemblies are not marked with ReferenceAssemblyAttribute attribute.
   " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.dll" +
   " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.CSharp.dll" +
-  " --exclude net8.0\GeneratedRefAssemblies\System.Collections.Immutable.dll" +
 
   " --debugPath `"$ArtifactsDir/BuildValidator`"" +
   " --sourcePath `"$RepoRoot/`"" +
