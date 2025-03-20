@@ -4,10 +4,13 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <TargetFrameworks>$(NetVS);netstandard2.0</TargetFrameworks>
+    <TargetFramework>net472</TargetFramework>
+    <UseWpf>true</UseWpf>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!--Temporarily bypass ibcmerge due to an error
+      https://github.com/dotnet/roslyn/issues/57863 -->
+    <ApplyNgenOptimization></ApplyNgenOptimization>
     <DefineConstants>$(DefineConstants);EDITOR_FEATURES</DefineConstants>
-    <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
 
     <!-- NuGet -->
     <PackageId>Microsoft.CodeAnalysis.EditorFeatures.Common</PackageId>
@@ -115,28 +118,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="BrokeredServices\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="InlineRename\UI\Adornment\RenameFlyout.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="InlineRename\UI\Adornment\RenameUserInputTextBox.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="InlineRename\UI\Dashboard\RenameDashboard.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="InlineRename\UI\InlineRenameColors.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="InlineRename\UI\SmartRename\SmartRenameStatusControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="InlineRename\UI\SmartRename\SmartRenameUserInputComboBox.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="QuickInfo\OnTheFlyDocsView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
 </Project>

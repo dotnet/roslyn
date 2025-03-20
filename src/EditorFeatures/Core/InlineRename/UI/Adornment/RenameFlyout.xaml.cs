@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SubmitText
             => _viewModel.SmartRenameViewModel is not null
             ? _viewModel.SmartRenameViewModel.SubmitTextOverride
-            : EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
+            : EditorFeaturesResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
 
         private void TextView_ViewPortChanged(object sender, EventArgs e)
