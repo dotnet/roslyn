@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     out var disposeMethod,
                                                     out isExpanded);
 
-            if (disposeMethod?.IsExtensionMethod == true)
+            if (disposeMethod is not null && (disposeMethod.IsExtensionMethod || disposeMethod.GetIsNewExtensionMember()))
             {
                 // Extension methods should just be ignored, rather than rejected after-the-fact
                 // Tracked by https://github.com/dotnet/roslyn/issues/32767
@@ -4153,7 +4153,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bindingDiagnostics,
                     queryClause: null,
                     ignoreNormalFormIfHasValidParamsParameter: true,
-                    anyApplicableCandidates: out _);
+                    anyApplicableCandidates: out _,
+                    disallowExpandedNonArrayParams: false,
+                    acceptOnlyMethods: true);
 
                 analyzedArguments.Free();
 

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return;
         }
 
-        private static DeclarationModifiers GetDeclarationModifiers() => DeclarationModifiers.Public | DeclarationModifiers.Static;
+        private static DeclarationModifiers GetDeclarationModifiers() => DeclarationModifiers.Private | DeclarationModifiers.Static;
 
         internal override bool HasSpecialName => true; // PROTOTYPE: reconcile with spec
 

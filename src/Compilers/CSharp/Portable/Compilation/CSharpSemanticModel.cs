@@ -4691,7 +4691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constructedMethod = method.ConstructIncludingExtension(typeArguments);
                     Debug.Assert((object)constructedMethod != null);
 
-                    if (!checkConstraintsIncludingExtension(constructedMethod, typeArguments, compilation, method.ContainingAssembly.CorLibrary.TypeConversions))
+                    if (!checkConstraintsIncludingExtension(constructedMethod, compilation, method.ContainingAssembly.CorLibrary.TypeConversions))
                     {
                         return false;
                     }
@@ -4747,40 +4747,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             throw ExceptionUtilities.UnexpectedValue(member.Kind);
 
-            static bool checkConstraintsIncludingExtension(MethodSymbol symbol, ImmutableArray<TypeWithAnnotations> typeArgs, CSharpCompilation compilation, TypeConversions conversions)
+            static bool checkConstraintsIncludingExtension(MethodSymbol symbol, CSharpCompilation compilation, TypeConversions conversions)
             {
-                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
-
-                var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
+                var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
+                    NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
 
                 bool success = true;
 
                 if (symbol.GetIsNewExtensionMember())
                 {
                     NamedTypeSymbol extensionDeclaration = symbol.ContainingType;
-                    if (extensionDeclaration.Arity > 0)
-                    {
-                        var extensionTypeParameters = extensionDeclaration.OriginalDefinition.TypeParameters;
-                        var extensionTypeArguments = typeArgs[..extensionDeclaration.Arity];
-
-                        success = extensionDeclaration.CheckConstraints(
-                           constraintArgs, extensionDeclaration.TypeSubstitution, extensionTypeParameters, extensionTypeArguments, diagnosticsBuilder,
-                           nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder, ignoreTypeConstraintsDependentOnTypeParametersOpt: null);
-                    }
+                    success = extensionDeclaration.CheckConstraints(constraintArgs);
                 }
 
-                if (success && symbol.Arity > 0)
+                if (success)
                 {
-                    var memberTypeParameters = symbol.OriginalDefinition.TypeParameters;
-                    var memberTypeArguments = typeArgs[^symbol.Arity..];
-
-                    success = symbol.CheckConstraints(
-                        constraintArgs, symbol.TypeSubstitution, memberTypeParameters, memberTypeArguments, diagnosticsBuilder,
-                        nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder, ignoreTypeConstraintsDependentOnTypeParametersOpt: null);
+                    success = symbol.CheckConstraints(constraintArgs);
                 }
-
-                diagnosticsBuilder.Free();
 
                 return success;
             }

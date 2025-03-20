@@ -378,26 +378,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (!IsStatic && this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter)
+            {
+                if (!extensionParameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
+                {
+                    // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
+                    diagnostics.Add(code, GetFirstLocation(), this, extensionParameter.Type);
+                }
+            }
+
             diagnostics.Add(GetFirstLocation(), useSiteInfo);
         }
 
         protected void CheckFileTypeUsage(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
         {
-            if (ContainingType.HasFileLocalTypes())
+            NamedTypeSymbol containingType = ContainingType;
+
+            if (containingType is { IsExtension: true, ContainingType: { } enclosing })
+            {
+                containingType = enclosing;
+            }
+
+            if (containingType.HasFileLocalTypes())
             {
                 return;
             }
 
             if (returnType.Type.HasFileLocalTypes())
             {
-                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), returnType.Type, ContainingType);
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), returnType.Type, containingType);
             }
 
             foreach (var param in parameters)
             {
                 if (param.Type.HasFileLocalTypes())
                 {
-                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), param.Type, ContainingType);
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), param.Type, containingType);
                 }
             }
         }

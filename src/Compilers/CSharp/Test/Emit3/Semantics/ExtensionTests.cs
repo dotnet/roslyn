@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
@@ -122,7 +123,7 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object ''
             ) cil managed 
@@ -212,7 +213,7 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object ''
             ) cil managed 
@@ -292,7 +293,7 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object ''
             ) cil managed 
@@ -539,7 +540,7 @@ public static class Extensions
             01 00 01 00 00
         )
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object ''
             ) cil managed 
@@ -783,7 +784,7 @@ public static partial class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object ''
             ) cil managed 
@@ -1085,7 +1086,7 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -1191,7 +1192,7 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object ''
             ) cil managed 
@@ -1308,7 +1309,7 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -1477,7 +1478,7 @@ extends [netstandard]System.Object
         extends [netstandard]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object ''
             ) cil managed 
@@ -1616,7 +1617,7 @@ public static class Extensions
             01 00 04 49 74 65 6d 00 00
         )
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -3187,6 +3188,16 @@ public static class Extensions
     extension(C x)
     {
         public void M() {}
+        public int P { get => 0; set {}}
+        public int this[int i] { get => 0; set {}}
+
+        private void M1() {}
+        private int P1 { get => 0; set {}}
+        private int this[long i] { get => 0; set {}}
+
+        internal void M2() {}
+        internal int P2 { get => 0; set {}}
+        internal int this[byte i] { get => 0; set {}}
     }
 }
 
@@ -3195,9 +3206,17 @@ class C {}
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (3,14): error CS0051: Inconsistent accessibility: parameter type 'C' is less accessible than method 'Extensions.extension(C).<Extension>$(C)'
-            //     extension(C x)
-            Diagnostic(ErrorCode.ERR_BadVisParamType, "(").WithArguments("Extensions.extension(C).<Extension>$(C)", "C").WithLocation(3, 14)
+            // (5,21): error CS0051: Inconsistent accessibility: parameter type 'C' is less accessible than method 'Extensions.extension(C).M()'
+            //         public void M() {}
+            Diagnostic(ErrorCode.ERR_BadVisParamType, "M").WithArguments("Extensions.extension(C).M()", "C").WithLocation(5, 21),
+
+            // PROTOTYPE: Error wording, this isn't an indexer
+            // (6,20): error CS0055: Inconsistent accessibility: parameter type 'C' is less accessible than indexer 'Extensions.extension(C).P'
+            //         public int P { get => 0; set {}}
+            Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(C).P", "C").WithLocation(6, 20),
+            // (7,20): error CS0055: Inconsistent accessibility: parameter type 'C' is less accessible than indexer 'Extensions.extension(C).this[int]'
+            //         public int this[int i] { get => 0; set {}}
+            Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(C).this[int]", "C").WithLocation(7, 20)
             );
     }
 
@@ -3216,12 +3235,251 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
 
-        // PROTOTYPE: It looks like there is no way to extend private type. It is possible to do with legacy extensions.
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ReceiverParameter_InconsistentTypeAccessibility_03()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(C x)
+    {
+        public void M() {}
+        public int P { get => 0; set {}}
+        public int this[int i] { get => 0; set {}}
+
+        private void M1() {}
+        private int P1 { get => 0; set {}}
+        private int this[long i] { get => 0; set {}}
+
+        internal void M2() {}
+        internal int P2 { get => 0; set {}}
+        internal int this[byte i] { get => 0; set {}}
+    }
+
+    private class C {}
+}
+""";
+        var comp = CreateCompilation(src);
+
         comp.VerifyDiagnostics(
-            // (3,14): error CS0051: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than method 'Extensions.extension(Extensions.C).<Extension>$(Extensions.C)'
-            //     extension(C x)
-            Diagnostic(ErrorCode.ERR_BadVisParamType, "(").WithArguments("Extensions.extension(Extensions.C).<Extension>$(Extensions.C)", "Extensions.C").WithLocation(3, 14)
+            // (5,21): error CS0051: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than method 'Extensions.extension(Extensions.C).M()'
+            //         public void M() {}
+            Diagnostic(ErrorCode.ERR_BadVisParamType, "M").WithArguments("Extensions.extension(Extensions.C).M()", "Extensions.C").WithLocation(5, 21),
+
+            // PROTOTYPE: Error wording, this isn't an indexer
+
+            // (6,20): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer 'Extensions.extension(Extensions.C).P'
+            //         public int P { get => 0; set {}}
+            Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(Extensions.C).P", "Extensions.C").WithLocation(6, 20),
+            // (7,20): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer 'Extensions.extension(Extensions.C).this[int]'
+            //         public int this[int i] { get => 0; set {}}
+            Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(Extensions.C).this[int]", "Extensions.C").WithLocation(7, 20),
+            // (13,23): error CS0051: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than method 'Extensions.extension(Extensions.C).M2()'
+            //         internal void M2() {}
+            Diagnostic(ErrorCode.ERR_BadVisParamType, "M2").WithArguments("Extensions.extension(Extensions.C).M2()", "Extensions.C").WithLocation(13, 23),
+            // (14,22): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer 'Extensions.extension(Extensions.C).P2'
+            //         internal int P2 { get => 0; set {}}
+            Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P2").WithArguments("Extensions.extension(Extensions.C).P2", "Extensions.C").WithLocation(14, 22),
+            // (15,22): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer 'Extensions.extension(Extensions.C).this[byte]'
+            //         internal int this[byte i] { get => 0; set {}}
+            Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(Extensions.C).this[byte]", "Extensions.C").WithLocation(15, 22)
             );
+    }
+
+    [Fact]
+    public void InconsistentTypeAccessibility_01()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(int x)
+    {
+        public void M1(C c) {}
+        private void M2(C c) {}
+    }
+
+    extension(long x)
+    {
+        public static void M3(int x)
+        {
+            x.M2(new C());
+        }
+    }
+
+    public static void M4(int x)
+    {
+        x.M2(new C());
+    }
+
+    private class C {}
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (5,21): error CS0051: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than method 'Extensions.extension(int).M1(Extensions.C)'
+            //         public void M1(C c) {}
+            Diagnostic(ErrorCode.ERR_BadVisParamType, "M1").WithArguments("Extensions.extension(int).M1(Extensions.C)", "Extensions.C").WithLocation(5, 21)
+            );
+    }
+
+    [Fact]
+    public void InconsistentTypeAccessibility_02()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(int x)
+    {
+        public C M1 => null;
+        private C M2 => null;
+    }
+
+    extension(long x)
+    {
+        public static void M3(int x)
+        {
+            _ = x.M2;
+        }
+    }
+
+    public static void M4(int x)
+    {
+        _ = x.M2;
+    }
+
+    private class C {}
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (5,18): error CS0053: Inconsistent accessibility: property type 'Extensions.C' is less accessible than property 'Extensions.extension(int).M1'
+            //         public C M1 => null;
+            Diagnostic(ErrorCode.ERR_BadVisPropertyType, "M1").WithArguments("Extensions.extension(int).M1", "Extensions.C").WithLocation(5, 18)
+            );
+    }
+
+    [Fact]
+    public void Inaccessible_01()
+    {
+        var src = """
+static class Extensions
+{
+    extension(int x)
+    {
+        private void M2() {}
+    }
+
+    private static void M3(this int x) {}
+}
+
+class C
+{
+    void Test(int x)
+    {
+        x.M2();
+        x.M3();
+        Extensions.M2(x);
+        Extensions.M3(x);
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (15,11): error CS1061: 'int' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            //         x.M2();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("int", "M2").WithLocation(15, 11),
+            // (16,11): error CS1061: 'int' does not contain a definition for 'M3' and no accessible extension method 'M3' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            //         x.M3();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M3").WithArguments("int", "M3").WithLocation(16, 11),
+            // (17,20): error CS0122: 'Extensions.M2(int)' is inaccessible due to its protection level
+            //         Extensions.M2(x);
+            Diagnostic(ErrorCode.ERR_BadAccess, "M2").WithArguments("Extensions.M2(int)").WithLocation(17, 20),
+            // (18,20): error CS0122: 'Extensions.M3(int)' is inaccessible due to its protection level
+            //         Extensions.M3(x);
+            Diagnostic(ErrorCode.ERR_BadAccess, "M3").WithArguments("Extensions.M3(int)").WithLocation(18, 20)
+            );
+    }
+
+    [Fact]
+    public void ReceiverParameter_FileType_01()
+    {
+        var src = """
+file class C {}
+
+static class Extensions
+{
+    extension(C x)
+    {
+    }
+
+    private static void M3(this C x) {}
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (5,14): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'Extensions'.
+            //     extension(C x)
+            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "(").WithArguments("C", "Extensions").WithLocation(5, 14),
+            // (9,25): error CS9051: File-local type 'C' cannot be used in a member signature in non-file-local type 'Extensions'.
+            //     private static void M3(this C x) {}
+            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M3").WithArguments("C", "Extensions").WithLocation(9, 25)
+            );
+    }
+
+    [Fact]
+    public void ReceiverParameter_FileType_02()
+    {
+        var src = """
+file class C {}
+
+file static class Extensions
+{
+    extension(C x)
+    {
+        public void M1() {}
+        public int P => 0;
+        public int this[int i] => 0;
+    }
+
+    public static void M2(this C x) {}
+
+    private static void M3(this C x) {}
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void FileType_01()
+    {
+        var src = """
+file class C {}
+
+file static class Extensions
+{
+    extension(int x)
+    {
+        public void M1(C c) {}
+        public C P => null;
+        public C this[int x]  => null;
+        public int this[C x]  => 0;
+    }
+
+    public static void M2(this int x, C c) {}
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -3558,7 +3816,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -3606,6 +3864,15 @@ public static class Extensions
     } // end of method Extensions::M
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+
+        CompileAndVerify(
+            comp,
+            emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false),
+            symbolValidator: (m) =>
+            {
+                AssertEx.Equal("void Extensions.<>E__0.<Extension>$(System.Object o)", m.GlobalNamespace.GetMember("Extensions.<>E__0.<Extension>$").ToTestDisplayString());
+            }
+            ).VerifyDiagnostics();
     }
 
     [Fact]
@@ -3668,7 +3935,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -4037,7 +4304,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -4217,7 +4484,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -4405,7 +4672,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -4806,7 +5073,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -5106,7 +5373,7 @@ public class C<T>(string v)
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 class C`1<!T> o
             ) cil managed 
@@ -5347,7 +5614,7 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 class C`1<!T> o
             ) cil managed 
@@ -5622,7 +5889,7 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 class C`1<!T> o
             ) cil managed 
@@ -5881,7 +6148,7 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 class C`1<!T> o
             ) cil managed 
@@ -6270,7 +6537,7 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 class C`1<!T> o
             ) cil managed 
@@ -6587,7 +6854,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object _
             ) cil managed 
@@ -7068,7 +7335,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object _
             ) cil managed 
@@ -7246,7 +7513,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object _
             ) cil managed 
@@ -7432,7 +7699,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object _
             ) cil managed 
@@ -7797,7 +8064,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object _
             ) cil managed 
@@ -8087,7 +8354,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -8376,7 +8643,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object ''
             ) cil managed 
@@ -8587,7 +8854,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -8733,7 +9000,7 @@ class C1
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 !T o
             ) cil managed 
@@ -8877,7 +9144,7 @@ class C1
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 !T o
             ) cil managed 
@@ -9022,7 +9289,7 @@ class C1
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -9162,7 +9429,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 !T o
             ) cil managed 
@@ -9304,7 +9571,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -9445,7 +9712,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 !T o
             ) cil managed 
@@ -9624,7 +9891,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 !T o
             ) cil managed 
@@ -9787,7 +10054,7 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method public hidebysig specialname static 
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
             ) cil managed 
@@ -14601,9 +14868,10 @@ public class MyCollection : IEnumerable<int>
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (4,18): error CS0118: 'Add' is a property but is used like a method
+            // (4,18): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
             // MyCollection c = [42];
-            Diagnostic(ErrorCode.ERR_BadSKknown, "[42]").WithArguments("Add", "property", "method").WithLocation(4, 18));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[42]").WithArguments("MyCollection", "Add").WithLocation(4, 18)
+            );
     }
 
     [Fact]
@@ -18870,16 +19138,22 @@ public static class E2
     public void ExtensionMemberLookup_PatternBased_Deconstruct_DelegateTypeProperty()
     {
         var src = """
-var (x, y) = new C();
-System.Console.Write((x, y));
+var (x1, y1) = new C1();
 
-class C { }
+var (x2, y2) = new C2();
+
+class C1 { }
+
+class C2
+{
+    public D Deconstruct => (out int i, out int j) => { i = 42; j = 43; };
+}
 
 delegate void D(out int i, out int j);
 
 static class E
 {
-    extension(C c)
+    extension(C1 c)
     {
         public D Deconstruct => (out int i, out int j) => { i = 42; j = 43; };
     }
@@ -18887,14 +19161,39 @@ static class E
 """;
         var comp = CreateCompilation(src);
         // PROTOTYPE revisit pattern-based deconstruction
-        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
+            // var (x1, y1) = new C1();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x1").WithArguments("x1").WithLocation(1, 6),
+            // (1,10): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y1'.
+            // var (x1, y1) = new C1();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y1").WithArguments("y1").WithLocation(1, 10),
+
+            // PROTOTYPE: It looks like the following error is not reported for instance scenario. Noise?
+
+            // (1,16): error CS1061: 'C1' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C1' could be found (are you missing a using directive or an assembly reference?)
+            // var (x1, y1) = new C1();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C1()").WithArguments("C1", "Deconstruct").WithLocation(1, 16),
+
+            // (1,16): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C1', with 2 out parameters and a void return type.
+            // var (x1, y1) = new C1();
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(1, 16),
+            // (3,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x2'.
+            // var (x2, y2) = new C2();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x2").WithArguments("x2").WithLocation(3, 6),
+            // (3,10): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y2'.
+            // var (x2, y2) = new C2();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y2").WithArguments("y2").WithLocation(3, 10),
+            // (3,16): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C2', with 2 out parameters and a void return type.
+            // var (x2, y2) = new C2();
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C2()").WithArguments("C2", "2").WithLocation(3, 16)
+            );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
 
-        Assert.Equal("void D.Invoke(out System.Int32 i, out System.Int32 j)",
-            model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
+        Assert.Null(model.GetDeconstructionInfo(deconstruction).Method);
     }
 
     [Fact(Skip = "PROTOTYPE Asserts in BindDynamicInvocation")]
@@ -18973,14 +19272,17 @@ static class E
 using System.Threading.Tasks;
 
 /*<bind>*/
-await using var x = new C();
+await using var x1 = new C1();
 /*</bind>*/
 
-class C { }
+await using var x2 = new C2();
+
+class C1 { }
+class C2 { }
 
 static class E
 {
-    extension(C c)
+    extension(C1 c)
     {
         public async Task DisposeAsync()
         {
@@ -18988,31 +19290,100 @@ static class E
             await Task.Yield();
         }
     }
+
+    public static async Task DisposeAsync(this C2 c)
+    {
+        System.Console.Write("RAN");
+        await Task.Yield();
+    }
 }
 """;
         var comp = CreateCompilation(src);
         // PROTOTYPE confirm when spec'ing pattern-based disposal
-        CompileAndVerify(comp, expectedOutput: "RAN").VerifyDiagnostics();
+
+        var expectedDiagnostics = new[] {
+            // (4,1): error CS8410: 'C1': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            // await using var x1 = new C1();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x1 = new C1();").WithArguments("C1").WithLocation(4, 1),
+            // (7,1): error CS8410: 'C2': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            // await using var x2 = new C2();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x2 = new C2();").WithArguments("C2").WithLocation(7, 1)
+            };
+
+        comp.VerifyDiagnostics(expectedDiagnostics);
 
         string expectedOperationTree = """
-IUsingDeclarationOperation(IsAsynchronous: True, DisposeMethod: System.Threading.Tasks.Task E.<>E__0.DisposeAsync()) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
-DeclarationGroup:
-  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
-    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var x = new C()')
-      Declarators:
-          IVariableDeclaratorOperation (Symbol: C x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = new C()')
-            Initializer:
-              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                  Arguments(0)
-                  Initializer:
-                    null
-      Initializer:
-        null
+IUsingDeclarationOperation(IsAsynchronous: True) (OperationKind.UsingDeclaration, Type: null, IsInvalid) (Syntax: 'await using ... = new C1();')
+  DeclarationGroup:
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid, IsImplicit) (Syntax: 'await using ... = new C1();')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var x1 = new C1()')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: C1 x1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x1 = new C1()')
+              Initializer:
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new C1()')
+                  IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'new C1()')
+                    Arguments(0)
+                    Initializer:
+                      null
+        Initializer:
+          null
 """;
-        var expectedDiagnostics = DiagnosticDescription.None;
 
         VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(src, expectedOperationTree, expectedDiagnostics);
+    }
+
+    [Fact]
+    public void TestPatternBasedDisposal_ExtensionMethod()
+    {
+        string source = @"
+public class C
+{
+    public static async System.Threading.Tasks.Task<int> Main()
+    {
+        await using (var x = new C())
+        {
+        }
+
+        return 1;
+    }
+}
+public static class Extensions
+{
+    extension (C c)
+    {
+        public System.Threading.Tasks.ValueTask DisposeAsync()
+            => throw null;
+    }
+}
+";
+        // extension methods do not contribute to pattern-based disposal
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // 0.cs(6,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22)
+            );
+    }
+
+    [Fact]
+    public void PatternBased_Dispose_Async_DelegateTypeProperty()
+    {
+        var src = """
+using System.Threading.Tasks;
+
+await using var x = new C();
+
+class C
+{
+    public System.Func<Task> DisposeAsync => async () => { System.Console.Write("ran2"); await Task.Yield(); };
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,1): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            // await using var x = new C();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new C();").WithArguments("C").WithLocation(3, 1)
+            );
     }
 
     [Fact]
@@ -19035,8 +19406,11 @@ static class E
 """;
         var comp = CreateCompilation(src);
         // PROTOTYPE(instance) confirm when spec'ing pattern-based disposal
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone (produces unverifiable IL)
+        comp.VerifyEmitDiagnostics(
+            // (3,1): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            // await using var x = new C();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new C();").WithArguments("C").WithLocation(3, 1)
+            );
     }
 
     [Fact]
@@ -19068,7 +19442,11 @@ static class E
 """;
         // PROTOTYPE confirm when spec'ing pattern-based disposal
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: "RAN").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (4,1): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            // await using var x = new C();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new C();").WithArguments("C").WithLocation(4, 1)
+            );
 
         // PROTOTYPE verify IOperation
     }
@@ -19077,20 +19455,34 @@ static class E
     public void ExtensionMemberLookup_PatternBased_Dispose_RefStruct()
     {
         var src = """
-using var x = new S();
+using var x1 = new S1();
+using var x2 = new S2();
 
-ref struct S { }
+ref struct S1 { }
+
+ref struct S2
+{
+}
 
 static class E
 {
-    extension(S s)
+    extension(S1 s)
     {
         public void Dispose() { }
     }
+
+    public static void Dispose(this S2 s) { }
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,1): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
+            // using var x1 = new S1();
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x1 = new S1();").WithArguments("S1").WithLocation(1, 1),
+            // (2,1): error CS1674: 'S2': type used in a using statement must implement 'System.IDisposable'.
+            // using var x2 = new S2();
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x2 = new S2();").WithArguments("S2").WithLocation(2, 1)
+            );
     }
 
     [Fact]
@@ -19132,20 +19524,30 @@ unsafe class C
 {
     public static void Main()
     {
-        fixed (int* p = new Fixable())
+        fixed (int* p = new Fixable1())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+
+        fixed (int* p = new Fixable2())
         {
             System.Console.WriteLine(p[1]);
         }
     }
 }
 
-class Fixable { }
+class Fixable1 { }
+
+class Fixable2
+{
+    public MyDelegate GetPinnableReference => throw null;
+}
 
 delegate ref int MyDelegate();
 
 static class E
 {
-    extension(Fixable f)
+    extension(Fixable1 f)
     {
         public MyDelegate GetPinnableReference => throw null;
     }
@@ -19153,8 +19555,14 @@ static class E
 ";
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
         // PROTOTYPE confirm when spec'ing pattern-based fixed
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
+        comp.VerifyEmitDiagnostics(
+            // (6,25): error CS8385: The given expression cannot be used in a fixed statement
+            //         fixed (int* p = new Fixable1())
+            Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable1()").WithLocation(6, 25),
+            // (11,25): error CS8385: The given expression cannot be used in a fixed statement
+            //         fixed (int* p = new Fixable2())
+            Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable2()").WithLocation(11, 25)
+            );
     }
 
     [Fact]
@@ -22059,6 +22467,94 @@ static class Extensions
     }
 
     [Fact]
+    public void SignatureConflict_18()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(object receiver)
+    {
+        static public void M1(int x) {}
+    }
+
+    public static int M1 => 4;
+
+    extension(object receiver)
+    {
+        static public void M2(int x) {}
+    }
+
+    public static int M2 = 4;
+
+    extension(object receiver)
+    {
+        static public void M3(int x) {}
+    }
+
+#pragma warning disable CS0067 // The event 'Extensions.M3' is never used
+    public static event System.Action M3;
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (5,28): error CS0102: The type 'Extensions' already contains a definition for 'M1'
+            //         static public void M1(int x) {}
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M1").WithArguments("Extensions", "M1").WithLocation(5, 28),
+            // (12,28): error CS0102: The type 'Extensions' already contains a definition for 'M2'
+            //         static public void M2(int x) {}
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M2").WithArguments("Extensions", "M2").WithLocation(12, 28),
+            // (19,28): error CS0102: The type 'Extensions' already contains a definition for 'M3'
+            //         static public void M3(int x) {}
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M3").WithArguments("Extensions", "M3").WithLocation(19, 28)
+            );
+    }
+
+    [Fact]
+    public void SignatureConflict_19()
+    {
+        var src = """
+public static class Extensions
+{
+    public static int M1 => 4;
+
+    extension(object receiver)
+    {
+        static public void M1(int x) {}
+    }
+
+    public static int M2 = 4;
+
+    extension(object receiver)
+    {
+        static public void M2(int x) {}
+    }
+
+#pragma warning disable CS0067 // The event 'Extensions.M3' is never used
+    public static event System.Action M3;
+
+    extension(object receiver)
+    {
+        static public void M3(int x) {}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (7,28): error CS0102: The type 'Extensions' already contains a definition for 'M1'
+            //         static public void M1(int x) {}
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M1").WithArguments("Extensions", "M1").WithLocation(7, 28),
+            // (14,28): error CS0102: The type 'Extensions' already contains a definition for 'M2'
+            //         static public void M2(int x) {}
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M2").WithArguments("Extensions", "M2").WithLocation(14, 28),
+            // (22,28): error CS0102: The type 'Extensions' already contains a definition for 'M3'
+            //         static public void M3(int x) {}
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M3").WithArguments("Extensions", "M3").WithLocation(22, 28)
+            );
+    }
+
+    [Fact]
     public void MethodInvocation_01()
     {
         var source = """
@@ -24702,7 +25198,7 @@ static class E
         extends System.Object
     {
         // Methods
-        .method public hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed 
+        .method private hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed 
         {
             .param [1]
             .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
@@ -24772,7 +25268,7 @@ i.M(2);
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends System.Object
     {
-        .method public hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed 
+        .method private hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed 
         {
             .param [1]
             .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
@@ -25900,6 +26396,7 @@ class D
         var model = comp.GetSemanticModel(tree);
         var genericName = GetSyntax<GenericNameSyntax>(tree, "M<int>");
         Assert.Equal("void C<System.Int32>.M<System.Int32>(System.Int32 x)", model.GetSymbolInfo(genericName).Symbol.ToTestDisplayString());
+        Assert.Equal(["void C<System.Int32>.M<System.Int32>(System.Int32 x)"], model.GetMemberGroup(genericName).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -25929,6 +26426,7 @@ class D
         var model = comp.GetSemanticModel(tree);
         var genericName = GetSyntax<GenericNameSyntax>(tree, "M<int>");
         Assert.Null(model.GetSymbolInfo(genericName).Symbol);
+        Assert.Equal([], model.GetMemberGroup(genericName).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -25958,5 +26456,148 @@ class D
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C<int>.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["void C<System.Int32>.M<T2>(T2 x)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetSymbolInfo_04()
+    {
+        var src = """
+class C
+{
+    private static void M<T>()
+    {
+        M<T>();
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var genericName = GetSyntax<InvocationExpressionSyntax>(tree, "M<T>()").Expression;
+        Assert.Equal("void C.M<T>()", model.GetSymbolInfo(genericName).Symbol.ToTestDisplayString());
+        Assert.Equal(["void C.M<T>()"], model.GetMemberGroup(genericName).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetSymbolInfo_05()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        static void M()
+        {
+            T.M<T>();
+            T.M();
+            E.M<T>();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //             T.M<T>();
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(7, 13),
+            // (8,13): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //             T.M();
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(8, 13));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var expr = GetSyntax<InvocationExpressionSyntax>(tree, "T.M<T>()").Expression;
+        Assert.Null(model.GetSymbolInfo(expr).Symbol);
+        Assert.Equal([], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "T.M()").Expression;
+        Assert.Null(model.GetSymbolInfo(expr).Symbol);
+        Assert.Equal([], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "E.M<T>()").Expression;
+        Assert.Equal("void E.M<T>()", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.M<T>()"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetSymbolInfo_06()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        void M()
+        {
+            t.M<T>();
+            t.M();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M<T>()").Expression;
+        Assert.Equal("void E.<>E__0<T>.M()", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0<T>.M()"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M()").Expression;
+        Assert.Equal("void E.<>E__0<T>.M()", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0<T>.M()"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void GetSymbolInfo_07()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(T t)
+    {
+        void M<U>(U u)
+        {
+            t.M<T, U>(u);
+            t.M(u);
+
+            t.M(42);
+            42.M(u);
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+
+        var extensionParameterSyntax = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().First();
+        IParameterSymbol extensionParameter = model.GetDeclaredSymbol(extensionParameterSyntax);
+        Assert.Equal("T t", extensionParameter.ToTestDisplayString());
+        var t = extensionParameter.Type;
+
+        var expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M<T, U>(u)").Expression;
+        Assert.Equal("void E.<>E__0<T>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0<T>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        AssertEqualAndNoDuplicates(["void E.<>E__0<T>.M<U>(U u)"], model.LookupSymbols(position: expr.SpanStart, t, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M(u)").Expression;
+        Assert.Equal("void E.<>E__0<T>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0<T>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "t.M(42)").Expression;
+        Assert.Equal("void E.<>E__0<T>.M<System.Int32>(System.Int32 u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0<T>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
+
+        expr = GetSyntax<InvocationExpressionSyntax>(tree, "42.M(u)").Expression;
+        Assert.Equal("void E.<>E__0<System.Int32>.M<U>(U u)", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString());
+        Assert.Equal(["void E.<>E__0<System.Int32>.M<U>(U u)"], model.GetMemberGroup(expr).ToTestDisplayStrings());
     }
 }
