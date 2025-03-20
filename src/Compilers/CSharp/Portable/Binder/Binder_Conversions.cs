@@ -1467,7 +1467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!typeParameters.IsEmpty)
                     {
-                        if (resolution.IsExtensionMethodGroup)
+                        if (resolution.IsExtensionMethodGroup) // PROTOTYPE we need to handle new extension methods
                         {
                             // We need to validate an ability to infer type arguments as well as check conversion to 'this' parameter.
                             // Overload resolution doesn't check the conversion when 'this' type refers to a type parameter

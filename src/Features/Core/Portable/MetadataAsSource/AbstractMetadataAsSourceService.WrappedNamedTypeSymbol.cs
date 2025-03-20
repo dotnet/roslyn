@@ -146,6 +146,10 @@ internal abstract partial class AbstractMetadataAsSourceService
 
         public bool IsExtension => _symbol.IsExtension;
 
+        // PROTOTYPE this may need an implementation
+        public IParameterSymbol ExtensionParameter
+            => throw new NotImplementedException();
+
         public bool IsFileLocal => _symbol.IsFileLocal;
 
         public INamedTypeSymbol NativeIntegerUnderlyingType => _symbol.NativeIntegerUnderlyingType;
