@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -17,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
@@ -177,20 +177,24 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
 
         var project = GetProject(hierarchy);
         var solution = _workspace.CurrentSolution;
-        var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
 
         // Handle multi-tfm projects - we want to run code analysis for all tfm flavors of the project.
+        string progressName;
         ImmutableArray<Project> projectsToAnalyze;
         if (project != null)
         {
-            projectsToAnalyze = [project, .. solution.Projects.Where(
-                p => p != project && p.FilePath == project.FilePath && p.State.NameAndFlavor.name == project.State.NameAndFlavor.name)];
-            if (projectsToAnalyze.Length > 1)
-                projectOrSolutionName = project.State.NameAndFlavor.name;
+            projectsToAnalyze = solution.Projects.WhereAsArray(
+                static (otherProject, project) => otherProject.FilePath == project.FilePath && otherProject.State.NameAndFlavor.name == project.State.NameAndFlavor.name,
+                project);
+
+            progressName = projectsToAnalyze.Length == 1
+                ? project.Name
+                : project.State.NameAndFlavor.name ?? project.Name;
         }
         else
         {
             projectsToAnalyze = [.. solution.Projects];
+            progressName = PathUtilities.GetFileName(solution.FilePath) ?? FeaturesResources.Solution;
         }
 
         _threadingContext.JoinableTaskFactory.RunAsync(async () =>
@@ -202,7 +206,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                 // Add a message to VS status bar that we are running code analysis.
                 using var statusBarUpdater = new StatusBarUpdater(
                     this, await _statusbar.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true),
-                    projectOrSolutionName, totalProjectCount: projectsToAnalyze.Length, cancellationToken);
+                    progressName, totalProjectCount: projectsToAnalyze.Length, cancellationToken);
 
                 await RoslynParallel.ForEachAsync(
                     projectsToAnalyze,
@@ -260,21 +264,21 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         public StatusBarUpdater(
             VisualStudioDiagnosticAnalyzerService service,
             IVsStatusbar? statusBar,
-            string? projectOrSolutionName,
+            string progressName,
             int totalProjectCount,
             CancellationToken cancellationToken)
         {
             var threadingContext = service._threadingContext;
             threadingContext.ThrowIfNotOnUIThread();
 
-            _statusMessageWhileRunning = projectOrSolutionName != null
-                ? string.Format(ServicesVSResources.Running_code_analysis_for_0, projectOrSolutionName)
+            _statusMessageWhileRunning = progressName != null
+                ? string.Format(ServicesVSResources.Running_code_analysis_for_0, progressName)
                 : ServicesVSResources.Running_code_analysis_for_Solution;
-            _statusMessageOnCompleted = projectOrSolutionName != null
-                ? string.Format(ServicesVSResources.Code_analysis_completed_for_0, projectOrSolutionName)
+            _statusMessageOnCompleted = progressName != null
+                ? string.Format(ServicesVSResources.Code_analysis_completed_for_0, progressName)
                 : ServicesVSResources.Code_analysis_completed_for_Solution;
-            _statusMessageOnTerminated = projectOrSolutionName != null
-                ? string.Format(ServicesVSResources.Code_analysis_terminated_before_completion_for_0, projectOrSolutionName)
+            _statusMessageOnTerminated = progressName != null
+                ? string.Format(ServicesVSResources.Code_analysis_terminated_before_completion_for_0, progressName)
                 : ServicesVSResources.Code_analysis_terminated_before_completion_for_Solution;
 
             // Set the initial status bar progress and text.
