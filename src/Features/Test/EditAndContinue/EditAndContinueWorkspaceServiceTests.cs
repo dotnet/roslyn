@@ -153,9 +153,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EnterBreakState(debuggingSession);
 
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"P.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFileB.Path)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"P.csproj: (0,0)-(0,0): Error ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFileB.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
     }
@@ -595,9 +595,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // an error occurred so we need to call update to determine whether we have changes to apply or not:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Warning ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
 
@@ -2312,8 +2312,8 @@ class G
 
         // since the document is out-of-sync we need to call update to determine whether we have changes to apply or not:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
-        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
+        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Error ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         // undo:
         solution = solution.WithDocumentText(documentId, CreateText(source1));
