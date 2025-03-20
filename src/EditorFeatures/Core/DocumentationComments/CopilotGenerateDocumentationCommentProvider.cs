@@ -64,32 +64,24 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             // Do not do IntelliCode line completions if we're about to generate a documentation comment
             // so that won't have interfering grey text.
-            var intellicodeLineCompletionsDisposable = await _suggestionManager!.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
-            var suggestion = new DocumentationCommentSuggestion(this, _suggestionManager, intellicodeLineCompletionsDisposable);
-
-            var suggestionSession = await suggestion.GetSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
-
-            if (suggestionSession is null)
+            var intelliCodeLineCompletionsDisposable = await _suggestionManager!.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
+            var suggestion = new DocumentationCommentSuggestion(this, _suggestionManager, intelliCodeLineCompletionsDisposable);
+            var suggestionSessionStarted = await suggestion.StartSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
+            if (!suggestionSessionStarted)
             {
-                await intellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
                 return;
             }
 
             var proposalEdits = await GetProposedEditsAsync(snippetProposal, _copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
 
             var proposal = Proposal.TryCreateProposal(null, proposalEdits, oldCaret, flags: ProposalFlags.ShowCommitHighlight);
-
             if (proposal is null)
             {
-                await intellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
-                await suggestion.RunWithEnqueueActionAsync(
-                    "DismissSuggestionSession",
-                    async () => await suggestionSession.DismissAsync(ReasonForDismiss.DismissedDueToInvalidProposal, cancellationToken).ConfigureAwait(false),
-                    cancellationToken).ConfigureAwait(false);
+                await suggestion.DismissSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
                 return;
             }
 
-            await suggestion.TryDisplaySuggestionAsync(proposal, suggestionSession, cancellationToken).ConfigureAwait(false);
+            await suggestion.TryDisplayDocumentationSuggestionAsync(proposal, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

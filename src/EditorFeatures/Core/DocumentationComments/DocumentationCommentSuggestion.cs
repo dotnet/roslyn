@@ -7,7 +7,6 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Copilot;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
@@ -17,11 +16,11 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal class DocumentationCommentSuggestion(CopilotGenerateDocumentationCommentProvider providerInstance,
-        SuggestionManagerBase suggestionManager, VisualStudio.Threading.IAsyncDisposable? intellicodeLineCompletionsDisposable) : SuggestionBase
+        SuggestionManagerBase suggestionManager, VisualStudio.Threading.IAsyncDisposable? intelliCodeLineCompletionsDisposable) : SuggestionBase
     {
         public SuggestionManagerBase SuggestionManager { get; } = suggestionManager;
 
-        public VisualStudio.Threading.IAsyncDisposable? IntellicodeLineCompletionsDisposable { get; set; } = intellicodeLineCompletionsDisposable;
+        public VisualStudio.Threading.IAsyncDisposable? IntelliCodeLineCompletionsDisposable { get; set; } = intelliCodeLineCompletionsDisposable;
 
         public override TipStyle TipStyle => TipStyle.AlwaysShowTip | CopilotConstants.ShowThinkingStateTipStyle;
 
@@ -66,35 +65,38 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return Task.CompletedTask;
         }
 
-        public async Task<SuggestionSessionBase?> GetSuggestionSessionAsync(CancellationToken cancellationToken)
+        public async Task<bool> StartSuggestionSessionAsync(CancellationToken cancellationToken)
         {
-            SuggestionSessionBase? suggestionSession = null;
-
             await RunWithEnqueueActionAsync(
                 "StartWork",
-                async () => suggestionSession = await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false),
+                async () => _suggestionSession = await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false),
             cancellationToken).ConfigureAwait(false);
 
-            return suggestionSession;
+            if (_suggestionSession is null)
+            {
+                await DisposeAsync().ConfigureAwait(false);
+                return false;
+            }
 
+            return true;
         }
 
-        public async Task TryDisplaySuggestionAsync(ProposalBase proposal, SuggestionSessionBase suggestionSession, CancellationToken cancellationToken)
+        public async Task TryDisplayDocumentationSuggestionAsync(ProposalBase proposal, CancellationToken cancellationToken)
         {
-            var success = await TryDisplayProposalAsync(suggestionSession, proposal, cancellationToken).ConfigureAwait(false);
+            var success = await TryDisplayProposalAsync(proposal, cancellationToken).ConfigureAwait(false);
             if (success)
             {
                 Logger.Log(FunctionId.Copilot_Generate_Documentation_Displayed, logLevel: LogLevel.Information);
             }
         }
 
-        private async Task<bool> TryDisplayProposalAsync(SuggestionSessionBase session, ProposalBase proposal, CancellationToken cancellationToken)
+        private async Task<bool> TryDisplayProposalAsync(ProposalBase proposal, CancellationToken cancellationToken)
         {
             try
             {
                 await RunWithEnqueueActionAsync(
                     "DisplayProposal",
-                    async () => await session.DisplayProposalAsync(proposal, cancellationToken).ConfigureAwait(false),
+                    async () => await _suggestionSession!.DisplayProposalAsync(proposal, cancellationToken).ConfigureAwait(false),
                     cancellationToken).ConfigureAwait(false);
                 return true;
             }
@@ -104,6 +106,15 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             return false;
+        }
+
+        public async Task DismissSuggestionSessionAsync(CancellationToken cancellationToken)
+        {
+            await DisposeAsync().ConfigureAwait(false);
+            await RunWithEnqueueActionAsync(
+                "DismissSuggestionSession",
+                async () => await _suggestionSession!.DismissAsync(ReasonForDismiss.DismissedDueToInvalidProposal, cancellationToken).ConfigureAwait(false),
+                cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -150,10 +161,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         private async Task DisposeAsync()
         {
-            if (IntellicodeLineCompletionsDisposable != null)
+            if (IntelliCodeLineCompletionsDisposable != null)
             {
-                await IntellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
-                IntellicodeLineCompletionsDisposable = null;
+                await IntelliCodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
+                IntelliCodeLineCompletionsDisposable = null;
             }
         }
     }
