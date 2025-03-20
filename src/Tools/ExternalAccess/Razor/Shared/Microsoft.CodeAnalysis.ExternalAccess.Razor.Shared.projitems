@@ -6,7 +6,7 @@
     <SharedGUID>4853a78a-4ec4-4d86-9f02-d0ddeae85520</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Microsoft.CodeAnalysis.ExtnernalAccess.Razor.Shared</Import_RootNamespace>
+    <Import_RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />

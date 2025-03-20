@@ -59,6 +59,6 @@
     <PublicAPI Include="InternalAPI.Unshipped.txt" />
   </ItemGroup>
 
-  <Import Project="..\Shared\Microsoft.CodeAnalysis.ExtnernalAccess.Razor.Shared.projitems" Label="Shared" />
+  <Import Project="..\Shared\Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.projitems" Label="Shared" />
 
 </Project>
