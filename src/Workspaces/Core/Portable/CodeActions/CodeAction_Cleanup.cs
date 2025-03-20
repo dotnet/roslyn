@@ -94,7 +94,7 @@ public abstract partial class CodeAction
             using var _ = ArrayBuilder<(DocumentId documentId, CodeCleanupOptions options)>.GetInstance(documentIds.Length, out var documentIdsAndOptions);
             foreach (var documentId in documentIds)
             {
-                var document = changedSolution.GetRequiredDocument(documentId, includeAlreadyGeneratedSourceGeneratedDocuments: true);
+                var document = await changedSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
                 // Only care about documents that support syntax.  Non-C#/VB files can't be cleaned.
                 if (document.SupportsSyntaxTree)
@@ -119,7 +119,7 @@ public abstract partial class CodeAction
             CodeAnalysisProgress.None,
             cancellationToken).ConfigureAwait(false);
 
-        return cleanedSolution.GetRequiredDocument(document.Id, includeAlreadyGeneratedSourceGeneratedDocuments: true);
+        return await cleanedSolution.GetRequiredDocumentAsync(document.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<Solution> RunAllCleanupPassesInOrderAsync(
@@ -157,7 +157,7 @@ public abstract partial class CodeAction
                     var (documentId, options) = documentIdAndOptions;
 
                     // Fetch the current state of the document from this fork of the solution.
-                    var document = solution.GetRequiredDocument(documentId, includeAlreadyGeneratedSourceGeneratedDocuments: true);
+                    var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfFalse(document.SupportsSyntaxTree, "GetDocumentIdsAndOptionsAsync should only be returning documents that support syntax");
 
                     // Now, perform the requested cleanup pass on it.

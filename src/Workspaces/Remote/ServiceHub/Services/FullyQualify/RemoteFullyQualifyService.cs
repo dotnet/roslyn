@@ -27,7 +27,7 @@ internal sealed class RemoteFullyQualifyService : BrokeredServiceBase, IRemoteFu
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
-            var document = solution.GetRequiredDocument(documentId, includeAlreadyGeneratedSourceGeneratedDocuments: true);
+            var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
             var service = document.GetRequiredLanguageService<IFullyQualifyService>();
 

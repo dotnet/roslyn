@@ -391,7 +391,14 @@ public class Document : TextDocument
     {
         var solution = this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity);
 
-        return solution.GetRequiredDocument(Id, includeAlreadyGeneratedSourceGeneratedDocuments: true);
+        if (Id.IsSourceGenerated)
+        {
+            var document = solution.GetRequiredProject(Id.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(Id);
+            Contract.ThrowIfNull(document, "We just modified the text of the generated document, so it should be available synchronously");
+            return document;
+        }
+
+        return solution.GetRequiredDocument(Id);
     }
 
     /// <summary>
@@ -401,7 +408,14 @@ public class Document : TextDocument
     {
         var solution = this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity);
 
-        return solution.GetRequiredDocument(Id, includeAlreadyGeneratedSourceGeneratedDocuments: true);
+        if (Id.IsSourceGenerated)
+        {
+            var document = solution.GetRequiredProject(Id.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(Id);
+            Contract.ThrowIfNull(document, "We just modified the tree of the generated document, so it should be available synchronously");
+            return document;
+        }
+
+        return solution.GetRequiredDocument(Id);
     }
 
     /// <summary>
