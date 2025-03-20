@@ -270,6 +270,8 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                 DelayTimeSpan.Medium,
                 async cancellationToken =>
                 {
+                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                     var analyzedProjectCount = _completedProjects;
                     var disposed = _disposed;
 
@@ -278,7 +280,6 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                         analyzedProjectCount == totalProjectCount ? _statusMessageOnCompleted :
                         disposed ? _statusMessageOnTerminated : _statusMessageWhileRunning;
 
-                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     statusBar.Progress(
                         ref statusBarCookie,
                         fInProgress: inProgress ? 1 : 0,
