@@ -57,6 +57,7 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         AnalysisService = externalCopilotService;
         GenerateDocumentationService = externalCSharpCopilotGenerateDocumentationService;
         OnTheFlyDocsService = externalCSharpOnTheFlyDocsService;
+        GenerateImplementationService = externalCSharpCopilotGenerateImplementationService;
     }
 
     protected override Task<ImmutableArray<Diagnostic>> AnalyzeDocumentCoreAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
