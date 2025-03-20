@@ -10,10 +10,11 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 
-[Method(Methods.TextDocumentSemanticTokensRangeName)]
-internal sealed class SemanticTokensRangeHandler(
+[Method(Methods.TextDocumentSemanticTokensFullName)]
+internal sealed class SemanticTokensFullHandler(
     IGlobalOptionService globalOptions,
-    SemanticTokensRefreshQueue semanticTokensRefreshQueue) : ILspServiceDocumentRequestHandler<SemanticTokensRangeParams, LSP.SemanticTokens>
+    SemanticTokensRefreshQueue semanticTokensRefreshQueue)
+    : ILspServiceDocumentRequestHandler<SemanticTokensFullParams, LSP.SemanticTokens>
 {
     private readonly IGlobalOptionService _globalOptions = globalOptions;
     private readonly SemanticTokensRefreshQueue _semanticTokenRefreshQueue = semanticTokensRefreshQueue;
@@ -21,21 +22,22 @@ internal sealed class SemanticTokensRangeHandler(
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(SemanticTokensRangeParams request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.SemanticTokensFullParams request)
     {
         Contract.ThrowIfNull(request.TextDocument);
         return request.TextDocument;
     }
 
     public async Task<LSP.SemanticTokens> HandleRequestAsync(
-        SemanticTokensRangeParams request,
+        SemanticTokensFullParams request,
         RequestContext context,
         CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
+        Contract.ThrowIfNull(request.TextDocument);
 
+        // Passing an null array of ranges will cause the helper to return tokens for the entire document.
         var tokensData = await SemanticTokensHelpers.HandleRequestHelperAsync(
-            _globalOptions, _semanticTokenRefreshQueue, [request.Range], context, cancellationToken).ConfigureAwait(false);
+            _globalOptions, _semanticTokenRefreshQueue, ranges: null, context, cancellationToken).ConfigureAwait(false);
         return new LSP.SemanticTokens { Data = tokensData };
     }
 }
