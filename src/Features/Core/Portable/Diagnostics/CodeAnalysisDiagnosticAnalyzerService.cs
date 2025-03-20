@@ -89,7 +89,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         public bool HasProjectBeenAnalyzed(ProjectId projectId)
             => _analyzedProjectToDiagnostics.ContainsKey(projectId);
 
-        public async ValueTask RunAnalysisAsync(Solution solution, ProjectId? projectId, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken)
+        public async ValueTask RunAnalysisAsync(Solution solution, ProjectId projectId, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -97,21 +97,10 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
             await Task.Yield().ConfigureAwait(false);
             Contract.ThrowIfFalse(solution.Workspace == _workspace);
 
-            if (projectId != null)
+            var project = solution.GetProject(projectId);
+            if (project != null)
             {
-                var project = solution.GetProject(projectId);
-                if (project != null)
-                {
-                    await AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken).ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                // We run analysis for all the projects concurrently as this is a user invoked operation.
-                await RoslynParallel.ForEachAsync(
-                    source: solution.Projects,
-                    cancellationToken,
-                    (project, cancellationToken) => AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken)).ConfigureAwait(false);
+                await AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken).ConfigureAwait(false);
             }
         }
 

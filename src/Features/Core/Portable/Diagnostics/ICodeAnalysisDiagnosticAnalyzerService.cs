@@ -18,10 +18,9 @@ internal interface ICodeAnalysisDiagnosticAnalyzerService : IWorkspaceService
     void Clear();
 
     /// <summary>
-    /// Runs all the applicable analyzers on the given project or entire solution if <paramref name="projectId"/> is
-    /// null.
+    /// Runs all the applicable analyzers on the given project.
     /// </summary>
-    ValueTask RunAnalysisAsync(Solution solution, ProjectId? projectId, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken);
+    ValueTask RunAnalysisAsync(Solution solution, ProjectId projectId, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken);
 
     /// <summary>
     /// Returns true if <see cref="RunAnalysisAsync(Solution, ProjectId?, Action{Project}, CancellationToken)"/> was
@@ -34,7 +33,7 @@ internal interface ICodeAnalysisDiagnosticAnalyzerService : IWorkspaceService
 
     /// <summary>
     /// Returns analyzer diagnostics reported on the given <paramref name="documentId"/>> from the last <see
-    /// cref="RunAnalysisAsync(Solution, ProjectId?, Action{Project}, CancellationToken)"/> invocation on the containing
+    /// cref="RunAnalysisAsync(Solution, ProjectId, Action{Project}, CancellationToken)"/> invocation on the containing
     /// project or solution. The caller is expected to check <see cref="HasProjectBeenAnalyzed(ProjectId)"/> prior to
     /// calling this method.
     /// </summary>
