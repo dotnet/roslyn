@@ -4683,92 +4683,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol receiverType,
             CSharpCompilation compilation)
         {
-            if (member is MethodSymbol method)
+            Symbol? substitutedMember = member.GetReducedAndFilteredSymbol(typeArguments, receiverType, compilation, checkFullyInferred: false);
+            if (substitutedMember is null)
             {
-                MethodSymbol constructedMethod;
-                if (!typeArguments.IsDefaultOrEmpty && method.GetMemberArityIncludingExtension() == typeArguments.Length)
-                {
-                    constructedMethod = method.ConstructIncludingExtension(typeArguments);
-                    Debug.Assert((object)constructedMethod != null);
-
-                    if (!checkConstraintsIncludingExtension(constructedMethod, compilation, method.ContainingAssembly.CorLibrary.TypeConversions))
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    constructedMethod = method;
-                }
-
-                if ((object)receiverType != null)
-                {
-                    if (method.IsExtensionMethod)
-                    {
-                        constructedMethod = constructedMethod.ReduceExtensionMethod(receiverType, compilation);
-                    }
-                    else
-                    {
-                        Debug.Assert(method.GetIsNewExtensionMember());
-                        constructedMethod = (MethodSymbol)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, constructedMethod, receiverType)!;
-                    }
-
-                    if ((object)constructedMethod == null)
-                    {
-                        return false;
-                    }
-                }
-
-                // Don't add exact duplicates.
-                if (filteredMembers.Contains(constructedMethod))
-                {
-                    return false;
-                }
-
-                members.Add(member);
-                filteredMembers.Add(constructedMethod);
-                return true;
-            }
-            else if (member is PropertySymbol property)
-            {
-                Debug.Assert(receiverType is not null);
-                Debug.Assert(property.GetIsNewExtensionMember());
-                var constructedProperty = (PropertySymbol)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, property, receiverType)!;
-
-                if (constructedProperty is null)
-                {
-                    return false;
-                }
-
-                members.Add(member);
-                filteredMembers.Add(constructedProperty);
-                return true;
+                return false;
             }
 
-            throw ExceptionUtilities.UnexpectedValue(member.Kind);
-
-            static bool checkConstraintsIncludingExtension(MethodSymbol symbol, CSharpCompilation compilation, TypeConversions conversions)
+            // Don't add exact duplicates.
+            if (filteredMembers.Contains(substitutedMember))
             {
-                var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
-                    NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
-
-                bool success = true;
-
-                if (symbol.GetIsNewExtensionMember())
-                {
-                    NamedTypeSymbol extensionDeclaration = symbol.ContainingType;
-                    success = extensionDeclaration.CheckConstraints(constraintArgs);
-                }
-
-                if (success)
-                {
-                    success = symbol.CheckConstraints(constraintArgs);
-                }
-
-                return success;
+                return false;
             }
-#nullable disable
+
+            members.Add(member);
+            filteredMembers.Add(substitutedMember);
+            return true;
         }
+#nullable disable
 
         private static void MergeReducedAndFilteredSymbol(
             ArrayBuilder<Symbol> members,
