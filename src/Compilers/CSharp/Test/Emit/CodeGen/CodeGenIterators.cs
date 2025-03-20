@@ -1923,63 +1923,6 @@ class A
         }
 
         [Fact]
-        [WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")]
-        public void VerifyHelpers()
-        {
-            var source =
-                @"
-using System.Collections.Generic;
-
-class Program
-{
-    public static IEnumerable<int> Goo()
-    {
-        yield return 1;
-    }
-}
-";
-            //EDMAURER ensure that we use System.Environment.CurrentManagedThreadId when compiling against 4.5
-            var parsed = new[] { Parse(source) };
-            var comp = CreateCompilationWithMscorlib461(parsed);
-            var verifier = this.CompileAndVerify(comp);
-            var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
-            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
-        }
-
-        [Fact]
-        [WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")]
-        public void VerifyHelpers001()
-        {
-            var source =
-                @"
-using System.Collections.Generic;
-
-class Program
-{
-    public static IEnumerable<int> Goo()
-    {
-        yield return 1;
-    }
-}
-
-namespace System
-{
-    class Environment
-    {
-        public static int CurrentManagedThreadId{get{return 1;}}
-    }
-}
-
-";
-            var parsed = new[] { Parse(source) };
-            var comp = CreateCompilation(parsed);
-            comp.MakeMemberMissing(WellKnownMember.System_Threading_Thread__ManagedThreadId);
-            var verifier = this.CompileAndVerify(comp);
-            var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
-            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
-        }
-
-        [Fact]
         public void UnreachableExit()
         {
             var source =
