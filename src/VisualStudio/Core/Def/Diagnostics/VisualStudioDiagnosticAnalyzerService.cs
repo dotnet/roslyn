@@ -199,11 +199,10 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                 using var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
 
                 // Add a message to VS status bar that we are running code analysis.
-                var statusBar = await _statusbar.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
                 var totalProjectCount = project != null ? (1 + otherProjectsForMultiTfmProject.Length) : solution.ProjectIds.Count;
-                using var statusBarUpdater = statusBar != null
-                    ? new StatusBarUpdater(this, statusBar, projectOrSolutionName, totalProjectCount, cancellationToken)
-                    : null;
+                using var statusBarUpdater = new StatusBarUpdater(
+                    this, await _statusbar.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true),
+                    projectOrSolutionName, totalProjectCount, cancellationToken);
 
                 await RunAnalysisAsync(statusBarUpdater, project?.Id, cancellationToken).ConfigureAwait(false);
 
@@ -221,6 +220,8 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         async Task RunAnalysisAsync(
             StatusBarUpdater? statusBarUpdater, ProjectId? projectId, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Force complete analyzer execution in background.
             await TaskScheduler.Default;
             await _codeAnalysisService.RunAnalysisAsync(
@@ -257,7 +258,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
 
         public StatusBarUpdater(
             VisualStudioDiagnosticAnalyzerService service,
-            IVsStatusbar statusBar,
+            IVsStatusbar? statusBar,
             string? projectOrSolutionName,
             int totalProjectCount,
             CancellationToken cancellationToken)
@@ -278,8 +279,8 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             // Set the initial status bar progress and text.
 
             uint statusBarCookie = 0;
-            statusBar.Progress(ref statusBarCookie, fInProgress: 1, _statusMessageWhileRunning, nComplete: 0, nTotal: (uint)totalProjectCount);
-            statusBar.SetText(_statusMessageWhileRunning);
+            statusBar?.Progress(ref statusBarCookie, fInProgress: 1, _statusMessageWhileRunning, nComplete: 0, nTotal: (uint)totalProjectCount);
+            statusBar?.SetText(_statusMessageWhileRunning);
 
             _progressTracker = new(
                 DelayTimeSpan.Medium,
@@ -295,13 +296,13 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                         analyzedProjectCount == totalProjectCount ? _statusMessageOnCompleted :
                         disposed ? _statusMessageOnTerminated : _statusMessageWhileRunning;
 
-                    statusBar.Progress(
+                    statusBar?.Progress(
                         ref statusBarCookie,
                         fInProgress: inProgress ? 1 : 0,
                         message,
                         (uint)analyzedProjectCount,
                         (uint)totalProjectCount);
-                    statusBar.SetText(message);
+                    statusBar?.SetText(message);
                 },
                 service._listener,
                 cancellationToken);
