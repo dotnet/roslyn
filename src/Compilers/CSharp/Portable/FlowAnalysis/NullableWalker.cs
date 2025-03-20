@@ -181,6 +181,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _useConstructorExitWarnings;
 
         /// <summary>
+        /// Non-null if we are performing the 'null-resilience' analysis of a getter which uses the 'field' keyword.
+        /// In this case, the inferred nullable annotation of the backing field must not be used, as we are currently in the process of inferring it.
+        /// </summary>
+        private readonly (SynthesizedBackingFieldSymbol field, NullableAnnotation assumedAnnotation)? _getterNullResilienceData;
+
+        /// <summary>
         /// If true, the parameter types and nullability from _delegateInvokeMethod is used for
         /// initial parameter state. If false, the signature of CurrentSymbol is used instead.
         /// </summary>
@@ -448,6 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             Symbol? symbol,
             bool useConstructorExitWarnings,
+            (SynthesizedBackingFieldSymbol field, NullableAnnotation assumedAnnotation)? getterNullResilienceData,
             bool useDelegateInvokeParameterTypes,
             bool useDelegateInvokeReturnType,
             MethodSymbol? delegateInvokeMethodOpt,
@@ -470,6 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _binder = binder;
             _conversions = (Conversions)conversions.WithNullability(true);
             _useConstructorExitWarnings = useConstructorExitWarnings;
+            _getterNullResilienceData = getterNullResilienceData;
             _useDelegateInvokeParameterTypes = useDelegateInvokeParameterTypes;
             _useDelegateInvokeReturnType = useDelegateInvokeReturnType;
             _delegateInvokeMethod = delegateInvokeMethodOpt;
@@ -724,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (member)
                 {
                     case FieldSymbol f:
-                        symbolType = f.TypeWithAnnotations;
+                        symbolType = GetTypeOrReturnTypeWithAnnotations(f);
                         field = f;
                         symbol = (Symbol?)(f.AssociatedSymbol as PropertySymbol) ?? f;
                         break;
@@ -836,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var memberSlot = GetSlotForMemberPostCondition(memberToInitialize);
                             if (memberSlot > 0)
                             {
-                                var type = memberToInitialize.GetTypeOrReturnType();
+                                var type = GetTypeOrReturnTypeWithAnnotations(memberToInitialize);
                                 if (!type.NullableAnnotation.IsOblivious())
                                 {
                                     SetState(ref this.State, memberSlot, type.Type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull);
@@ -1450,6 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversions,
                 diagnostics,
                 useConstructorExitWarnings,
+                getterNullResilienceData: null,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1586,6 +1595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.Conversions,
                 diagnostics,
                 useConstructorExitWarnings: true,
+                getterNullResilienceData: null,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1637,6 +1647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.Compilation,
                 symbol,
                 useConstructorExitWarnings: false,
+                getterNullResilienceData: null,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1704,7 +1715,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             BoundNode node,
             SyntaxNode syntax,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            (SourcePropertyAccessorSymbol getter, SynthesizedBackingFieldSymbol field, NullableAnnotation assumedNullableAnnotation)? getterNullResilienceData = null)
         {
             bool requiresAnalysis = true;
             var compilation = binder.Compilation;
@@ -1720,12 +1732,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Analyze(
                 compilation,
-                symbol: null,
+                symbol: getterNullResilienceData?.getter,
                 node,
                 binder,
                 binder.Conversions,
                 diagnostics,
                 useConstructorExitWarnings: false,
+                getterNullResilienceData is var (_, field, annotation) ? (field, annotation) : null,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1755,6 +1768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 symbol,
                 useConstructorExitWarnings: false,
+                getterNullResilienceData: null,
                 useDelegateInvokeParameterTypes: useDelegateInvokeParameterTypes,
                 useDelegateInvokeReturnType: useDelegateInvokeReturnType,
                 delegateInvokeMethodOpt: delegateInvokeMethodOpt,
@@ -1785,6 +1799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversions conversions,
             DiagnosticBag diagnostics,
             bool useConstructorExitWarnings,
+            (SynthesizedBackingFieldSymbol field, NullableAnnotation assumedAnnotation)? getterNullResilienceData,
             bool useDelegateInvokeParameterTypes,
             bool useDelegateInvokeReturnType,
             MethodSymbol? delegateInvokeMethodOpt,
@@ -1798,9 +1813,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool requiresAnalysis = true)
         {
             Debug.Assert(diagnostics != null);
+            Debug.Assert(getterNullResilienceData is null || symbol is SourcePropertyAccessorSymbol { MethodKind: MethodKind.PropertyGet });
+            Debug.Assert(getterNullResilienceData is null || !useConstructorExitWarnings);
+
             var walker = new NullableWalker(compilation,
                                             symbol,
                                             useConstructorExitWarnings,
+                                            getterNullResilienceData,
                                             useDelegateInvokeParameterTypes,
                                             useDelegateInvokeReturnType,
                                             delegateInvokeMethodOpt,
@@ -2690,7 +2709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!IsSlotMember(targetContainerSlot, member))
                 return;
 
-            TypeWithAnnotations fieldOrPropertyType = member.GetTypeOrReturnType();
+            TypeWithAnnotations fieldOrPropertyType = GetTypeOrReturnTypeWithAnnotations(member);
 
             if (fieldOrPropertyType.Type.IsReferenceType ||
                 fieldOrPropertyType.TypeKind == TypeKind.TypeParameter ||
@@ -2738,7 +2757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol NominalSlotType(int slot)
         {
-            return _variables[slot].Symbol.GetTypeOrReturnType().Type;
+            return GetTypeOrReturnType(_variables[slot].Symbol);
         }
 
         /// <summary>
@@ -2773,7 +2792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetSlot > 0);
 
 #if DEBUG
-            var actualType = _variables[targetSlot].Symbol.GetTypeOrReturnType().Type;
+            var actualType = GetTypeOrReturnType(_variables[targetSlot].Symbol);
             Debug.Assert(actualType is { });
 
             if (!actualType.ContainsErrorType() &&
@@ -2793,13 +2812,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var symbol = AsMemberOfType(targetType, variable.Symbol);
                 SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(symbol));
-                InheritDefaultState(symbol.GetTypeOrReturnType().Type, slot);
+                InheritDefaultState(GetTypeOrReturnType(symbol), slot);
             }
             members.Free();
         }
 
+        private static TypeSymbol GetTypeOrReturnType(Symbol symbol) => symbol.GetTypeOrReturnType().Type;
+
+        /// <summary>Gets the TypeWithAnnotations of a symbol, possibly using the inferred nullable annotation for backing fields.</summary>
+        private TypeWithAnnotations GetTypeOrReturnTypeWithAnnotations(Symbol symbol)
+        {
+            var typeWithAnnotations = symbol.GetTypeOrReturnType();
+            if (symbol is SynthesizedBackingFieldSymbol { InfersNullableAnnotation: true } backingField)
+            {
+                NullableAnnotation nullableAnnotation;
+                if (_getterNullResilienceData is var (analyzedField, assumedNullableAnnotation))
+                {
+                    // If we find a usage of a different backing field, than the one we are currently doing a null resilience analysis on,
+                    // we should not proceed, in order to avoid cycles across inference of multiple fields.
+                    if ((object)analyzedField != backingField)
+                        throw ExceptionUtilities.UnexpectedValue(backingField);
+
+                    // Currently in the process of inferring the nullable annotation for 'backingField'.
+                    // Therefore don't try to access the inferred nullable annotation, use a temporary assumedNullableAnnotation instead.
+                    nullableAnnotation = assumedNullableAnnotation;
+                }
+                else
+                {
+                    nullableAnnotation = backingField.GetInferredNullableAnnotation();
+                }
+
+                typeWithAnnotations = TypeWithAnnotations.Create(typeWithAnnotations.Type, nullableAnnotation);
+            }
+
+            return typeWithAnnotations;
+        }
+
         private NullableFlowState GetDefaultState(Symbol symbol)
-            => ApplyUnconditionalAnnotations(symbol.GetTypeOrReturnType().ToTypeWithState(), GetRValueAnnotations(symbol)).State;
+        {
+            return ApplyUnconditionalAnnotations(GetTypeOrReturnTypeWithAnnotations(symbol).ToTypeWithState(), GetRValueAnnotations(symbol)).State;
+        }
 
         private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, int skipSlot)
         {
@@ -4259,7 +4311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (symbol != null)
                 {
-                    Debug.Assert(TypeSymbol.Equals(objectInitializer.Type, symbol.GetTypeOrReturnType().Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+                    Debug.Assert(TypeSymbol.Equals(objectInitializer.Type, GetTypeOrReturnType(symbol), TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                     symbol = AsMemberOfType(containingType, symbol);
                 }
 
@@ -4276,7 +4328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int slot = getOrCreateSlot(containingSlot, symbol);
                 Debug.Assert(!delayCompletionForType || slot == -1);
 
-                Action<int, TypeSymbol>? nestedCompletion = VisitObjectCreationInitializer(slot, symbol.GetTypeOrReturnType().Type, initializer, delayCompletionForType);
+                Action<int, TypeSymbol>? nestedCompletion = VisitObjectCreationInitializer(slot, GetTypeOrReturnType(symbol), initializer, delayCompletionForType);
 
                 return completeNestedInitializerAnalysis(symbol, initializer, slot, nestedCompletion, delayCompletionForType);
             }
@@ -4309,7 +4361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     int slot = getOrCreateSlot(containingSlot, symbol);
                     completeNestedInitializerAnalysis(symbol, initializer, slot, nestedCompletion: null, delayCompletionForType: false);
-                    nestedCompletion?.Invoke(slot, symbol.GetTypeOrReturnType().Type);
+                    nestedCompletion?.Invoke(slot, GetTypeOrReturnType(symbol));
                 };
             }
 
@@ -4322,9 +4374,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TakeIncrementalSnapshot(node.Right);
                 }
 
-                Debug.Assert(symbol.GetTypeOrReturnType().HasType);
+                Debug.Assert(GetTypeOrReturnTypeWithAnnotations(symbol).HasType);
 
-                var type = ApplyLValueAnnotations(symbol.GetTypeOrReturnType(), GetObjectInitializerMemberLValueAnnotations(symbol));
+                var type = ApplyLValueAnnotations(GetTypeOrReturnTypeWithAnnotations(symbol), GetObjectInitializerMemberLValueAnnotations(symbol));
 
                 (TypeWithState resultType, conversionCompletion) =
                     conversionCompletion is not null ?
@@ -4771,6 +4823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var walker = new NullableWalker(binder.Compilation,
                                             symbol: null,
                                             useConstructorExitWarnings: false,
+                                            getterNullResilienceData: null,
                                             useDelegateInvokeParameterTypes: false,
                                             useDelegateInvokeReturnType: false,
                                             delegateInvokeMethodOpt: null,
@@ -5550,7 +5603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (childSlot > 0)
                     {
                         SetState(ref state, childSlot, NullableFlowState.NotNull);
-                        MarkDependentSlotsNotNull(childSlot, member.GetTypeOrReturnType().Type, ref state, depth - 1);
+                        MarkDependentSlotsNotNull(childSlot, GetTypeOrReturnType(member), ref state, depth - 1);
                     }
                 }
             }
@@ -6661,7 +6714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var annotations = parameter.FlowAnalysisAnnotations;
 
             // Conditional annotations are ignored on parameters of non-boolean members.
-            if (parameter.ContainingSymbol.GetTypeOrReturnType().Type.SpecialType != SpecialType.System_Boolean)
+            if (GetTypeOrReturnType(parameter.ContainingSymbol).SpecialType != SpecialType.System_Boolean)
             {
                 // NotNull = NotNullWhenTrue + NotNullWhenFalse
                 bool hasNotNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNullWhenTrue;
@@ -8585,7 +8638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int targetSlot = GetNullableOfTValueSlot(containingType, containingSlot, out Symbol? symbol);
             if (targetSlot > 0)
             {
-                TrackNullableStateForAssignment(value, symbol!.GetTypeOrReturnType(), targetSlot, valueType, valueSlot);
+                TrackNullableStateForAssignment(value, GetTypeOrReturnTypeWithAnnotations(symbol!), targetSlot, valueType, valueSlot);
             }
         }
 
@@ -10010,9 +10063,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we may enter a conditional state for error scenarios on the LHS.
             Unsplit();
 
-            FlowAnalysisAnnotations leftAnnotations = GetLValueAnnotations(left);
-            TypeWithAnnotations declaredType = LvalueResultType;
-            TypeWithAnnotations leftLValueType = ApplyLValueAnnotations(declaredType, leftAnnotations);
+            // When a getter-only prop is assigned in a constructor, it is bound as
+            // an assignment of the property even though it is really an assignment of the backing field.
+            // When such a property also uses the field keyword, we want the field's annotations+attributes
+            // to decide the validity of the assignment and the ones on the property itself to be ignored.
+            TypeWithAnnotations leftLValueType;
+            FlowAnalysisAnnotations leftAnnotations;
+            if (left is BoundPropertyAccess { PropertySymbol: SourcePropertySymbolBase { SetMethod: null, UsesFieldKeyword: true } property })
+            {
+                var field = property.BackingField;
+                leftAnnotations = field.FlowAnalysisAnnotations;
+                leftLValueType = ApplyLValueAnnotations(GetTypeOrReturnTypeWithAnnotations(field), leftAnnotations);
+            }
+            else
+            {
+                leftAnnotations = GetLValueAnnotations(left);
+                leftLValueType = ApplyLValueAnnotations(LvalueResultType, leftAnnotations);
+            }
 
             if (left.Kind == BoundKind.EventAccess && ((BoundEventAccess)left).EventSymbol.IsWindowsRuntimeEvent)
             {
@@ -10841,7 +10908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = CheckPossibleNullReceiver(receiverOpt, checkNullableValueType: !skipReceiverNullCheck);
             }
 
-            var type = member.GetTypeOrReturnType();
+            var type = GetTypeOrReturnTypeWithAnnotations(member);
             var memberAnnotations = GetRValueAnnotations(member);
             var resultType = ApplyUnconditionalAnnotations(type.ToTypeWithState(), memberAnnotations);
 

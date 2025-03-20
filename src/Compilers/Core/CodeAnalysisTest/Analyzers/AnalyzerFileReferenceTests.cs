@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var result = compiler.Run(writer);
             Assert.Equal(0, result);
             AssertEx.Equal($"""
-                warning CS9057: The analyzer assembly '{_testFixture.AnalyzerWithLaterFakeCompilerDependency}' references version '100.0.0.0' of the compiler, which is newer than the currently running version '{typeof(DefaultAnalyzerAssemblyLoader).Assembly.GetName().Version}'.
+                warning CS9057: Analyzer assembly '{_testFixture.AnalyzerWithLaterFakeCompilerDependency}' cannot be used because it references version '100.0.0.0' of the compiler, which is newer than the currently running version '{typeof(DefaultAnalyzerAssemblyLoader).Assembly.GetName().Version}'.
                 in.cs(1,5): warning CS0219: The variable 'x' is assigned but its value is never used
 
                 """, writer.ToString());

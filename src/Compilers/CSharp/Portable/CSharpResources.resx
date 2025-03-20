@@ -6900,10 +6900,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
   </data>
   <data name="WRN_AnalyzerReferencesNewerCompiler" xml:space="preserve">
-    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+    <value>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
   </data>
   <data name="WRN_AnalyzerReferencesNewerCompiler_Title" xml:space="preserve">
-    <value>The analyzer assembly references a newer version of the compiler than the currently running version.</value>
+    <value>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</value>
   </data>
   <data name="ERR_BadFieldTypeInRecord" xml:space="preserve">
     <value>The type '{0}' may not be used for a field of a record.</value>
@@ -8014,11 +8014,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</value>
   </data>
   <data name="WRN_UninitializedNonNullableBackingField" xml:space="preserve">
-    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</value>
+    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</value>
     <comment>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</comment>
   </data>
   <data name="WRN_UninitializedNonNullableBackingField_Title" xml:space="preserve">
-    <value>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</value>
+    <value>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</value>
   </data>
   <data name="IDS_FeatureFirstClassSpan" xml:space="preserve">
     <value>first-class Span types</value>

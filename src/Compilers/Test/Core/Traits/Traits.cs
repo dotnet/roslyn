@@ -238,6 +238,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string ConvertAutoPropertyToFullProperty = nameof(ConvertAutoPropertyToFullProperty);
             public const string ConvertCast = nameof(ConvertCast);
             public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
+            public const string CopilotImplementNotImplementedException = nameof(CopilotImplementNotImplementedException);
             public const string DebuggingBreakpoints = "Debugging.Breakpoints";
             public const string DebuggingDataTips = "Debugging.DataTips";
             public const string DebuggingEditAndContinue = "Debugging.EditAndContinue";
@@ -289,6 +290,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string NetCore = nameof(NetCore);
             public const string NormalizeModifiersOrOperators = nameof(NormalizeModifiersOrOperators);
             public const string ObjectBrowser = nameof(ObjectBrowser);
+            public const string OnTheFlyDocs = nameof(OnTheFlyDocs);
             public const string Options = nameof(Options);
             public const string Organizing = nameof(Organizing);
             public const string Outlining = nameof(Outlining);
