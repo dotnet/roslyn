@@ -88,14 +88,9 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         if (projectsWithHierarchy.Count() <= 1)
         {
             var project = projectsWithHierarchy.FirstOrDefault();
-            if (project == null)
-            {
-                return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache));
-            }
-            else
-            {
-                return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, project));
-            }
+            return project == null
+                ? Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache))
+                : Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, project));
         }
         else
         {
