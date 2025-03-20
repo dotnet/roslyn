@@ -210,13 +210,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var methodOwner = owner as MethodSymbol;
                 var typeParameters = (object?)methodOwner != null ?
                     methodOwner.TypeParameters :
-                    default(ImmutableArray<TypeParameterSymbol>);
+                    [];
+
+                ImmutableArray<ParameterSymbol> parametersForNameConflict = parameters.Cast<TParameterSymbol, ParameterSymbol>();
+
+                if (owner.GetIsNewExtensionMember())
+                {
+                    typeParameters = owner.ContainingType.TypeParameters.Concat(typeParameters);
+
+                    if (owner.ContainingType.ExtensionParameter is { Name: not "" } receiver)
+                    {
+                        parametersForNameConflict = parametersForNameConflict.Insert(0, receiver);
+                    }
+                }
 
                 Debug.Assert(methodOwner?.MethodKind != MethodKind.LambdaMethod);
                 bool allowShadowingNames = withTypeParametersBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
                     methodOwner?.MethodKind == MethodKind.LocalFunction;
 
-                withTypeParametersBinder.ValidateParameterNameConflicts(typeParameters, parameters.Cast<TParameterSymbol, ParameterSymbol>(), allowShadowingNames, diagnostics);
+                withTypeParametersBinder.ValidateParameterNameConflicts(typeParameters, parametersForNameConflict, allowShadowingNames, diagnostics);
             }
 
             return parameters;

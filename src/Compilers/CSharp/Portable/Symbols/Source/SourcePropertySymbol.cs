@@ -683,6 +683,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (SetMethod is { } setter && this.GetIsNewExtensionMember())
+            {
+                if (ContainingType.TypeParameters.Any(static tp => tp.Name == ParameterSymbol.ValueParameterName))
+                {
+                    diagnostics.Add(ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter, setter.GetFirstLocationOrNone());
+                }
+
+                if (ContainingType.ExtensionParameter is { Name: ParameterSymbol.ValueParameterName })
+                {
+                    diagnostics.Add(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, setter.GetFirstLocationOrNone());
+                }
+            }
+
             if (!IsStatic && this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter &&
                 !this.IsNoMoreVisibleThan(extensionParameter.Type, ref useSiteInfo))
             {

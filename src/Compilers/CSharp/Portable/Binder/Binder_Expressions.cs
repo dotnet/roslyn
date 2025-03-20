@@ -2116,6 +2116,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Error(diagnostics, ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, node, parameter);
                         }
+                        else if (parameter.ContainingSymbol is NamedTypeSymbol { IsExtension: true } &&
+                                (InParameterDefaultValue || InAttributeArgument ||
+                                 this.ContainingMember() is not { Kind: not SymbolKind.NamedType, IsStatic: false } || // We are not in an instance member
+                                 (object)this.ContainingMember().ContainingSymbol != parameter.ContainingSymbol) &&
+                                !IsInsideNameof)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_InvalidExtensionParameterReference, node, parameter);
+                        }
                         else
                         {
                             // Records never capture parameters within the type

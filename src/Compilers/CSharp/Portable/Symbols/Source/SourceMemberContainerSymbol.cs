@@ -2242,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         // Also check for collisions with type parameters, which aren't in the member map.
                         // NOTE: Accessors have normal names and are handled in CheckTypeParameterNameConflicts.
-                        if (typeParameterNames != null)
+                        if (typeParameterNames != null && !IsExtension)
                         {
                             string indexerName = indexer.MetadataName;
                             if (typeParameterNames.Contains(indexerName))
@@ -2319,9 +2319,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckTypeParameterNameConflicts(BindingDiagnosticBag diagnostics)
         {
-            if (this.TypeKind == TypeKind.Delegate)
+            if (this.TypeKind is TypeKind.Delegate or TypeKind.Extension)
             {
-                // Delegates do not have conflicts between their type parameter
+                // Delegates and extensions do not have conflicts between their type parameter
                 // names and their methods; it is legal (though odd) to say
                 // delegate void D<Invoke>(Invoke x);
 
@@ -3625,19 +3625,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddSynthesizedExtensionMarker(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers)
         {
-            var syntax = (ExtensionDeclarationSyntax)this.GetNonNullSyntaxNode();
-            var parameterList = syntax.ParameterList;
-            Debug.Assert(parameterList is not null);
-
-            if (parameterList is null)
+            var marker = CreateSynthesizedExtensionMarker();
+            if (marker is not null)
             {
-                return;
+                builder.AddNonTypeMember(this, marker, declaredMembersAndInitializers);
             }
+        }
 
-            int count = parameterList.Parameters.Count;
-            Debug.Assert(count > 0);
-
-            builder.AddNonTypeMember(this, new SynthesizedExtensionMarker(this, parameterList), declaredMembersAndInitializers);
+        protected virtual MethodSymbol? CreateSynthesizedExtensionMarker()
+        {
+            throw ExceptionUtilities.Unreachable();
         }
 
         private void AddDeclaredNontypeMembers(DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
