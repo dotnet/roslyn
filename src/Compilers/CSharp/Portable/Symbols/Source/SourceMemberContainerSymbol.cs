@@ -2211,7 +2211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckIndexerNameConflicts(BindingDiagnosticBag diagnostics, Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName)
         {
             PooledHashSet<string>? typeParameterNames = null;
-            if (this.Arity > 0)
+            if (this.Arity > 0 && !IsExtension)
             {
                 typeParameterNames = PooledHashSet<string>.GetInstance();
                 foreach (TypeParameterSymbol typeParameter in this.TypeParameters)
@@ -2242,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         // Also check for collisions with type parameters, which aren't in the member map.
                         // NOTE: Accessors have normal names and are handled in CheckTypeParameterNameConflicts.
-                        if (typeParameterNames != null && !IsExtension)
+                        if (typeParameterNames != null)
                         {
                             string indexerName = indexer.MetadataName;
                             if (typeParameterNames.Contains(indexerName))
