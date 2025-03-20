@@ -998,7 +998,6 @@ internal sealed partial class SolutionCompilationState
             ? GetOrdinaryAndSourceGeneratedDocuments(out sourceGeneratedUpdates)
             : syntaxRoots;
 
-
         var state = UpdateDocumentsInMultipleProjects<DocumentState, SyntaxNode, PreservationMode>(
             ordinaryDocuments,
             arg: mode,
