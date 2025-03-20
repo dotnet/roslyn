@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     // Now, we're going to do a bunch of async operations.  So create a wait
                     // indicator so the user knows something is happening, and also so they cancel.
                     var uiThreadOperationExecutor = GetUIThreadOperationExecutor();
-                    using var context = uiThreadOperationExecutor.BeginExecute(title, EditorFeaturesWpfResources.Building_Project, allowCancellation: true, showProgress: false);
+                    using var context = uiThreadOperationExecutor.BeginExecute(title, EditorFeaturesResources.Building_Project, allowCancellation: true, showProgress: false);
 
                     // We want to come back onto the calling context to dismiss the wait indicator and to notify about
                     // execution completion.
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
 
             // Then reset the REPL
-            using var scope = uiThreadOperationContext.AddScope(allowCancellation: true, EditorFeaturesWpfResources.Resetting_Interactive);
+            using var scope = uiThreadOperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Resetting_Interactive);
             evaluator.ResetOptions = new InteractiveEvaluatorResetOptions(platform);
             await interactiveWindow.Operations.ResetAsync(initialize: true).ConfigureAwait(true);
 

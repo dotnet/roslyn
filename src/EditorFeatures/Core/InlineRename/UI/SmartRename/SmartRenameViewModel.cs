@@ -138,15 +138,15 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public string GetSuggestionsTooltip
         => SupportsAutomaticSuggestions
-            ? EditorFeaturesWpfResources.Toggle_AI_suggestions
-            : EditorFeaturesWpfResources.Get_AI_suggestions;
+            ? EditorFeaturesResources.Toggle_AI_suggestions
+            : EditorFeaturesResources.Get_AI_suggestions;
 
     public string SubmitTextOverride
         => SupportsAutomaticSuggestions
-            ? EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview
-            : EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion;
+            ? EditorFeaturesResources.Enter_to_rename_shift_enter_to_preview
+            : EditorFeaturesResources.Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion;
 
-    public static string GeneratingSuggestionsLabel => EditorFeaturesWpfResources.Generating_suggestions;
+    public static string GeneratingSuggestionsLabel => EditorFeaturesResources.Generating_suggestions;
 
     public SmartRenameViewModel(
         IGlobalOptionService globalOptionService,
