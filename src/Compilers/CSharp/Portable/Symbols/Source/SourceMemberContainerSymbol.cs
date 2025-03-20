@@ -1711,6 +1711,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 member = implementation; // This is a workaround for https://github.com/dotnet/roslyn/issues/76870, remove once the issue is addressed.
             }
+            else if (member is SynthesizedExtensionMarker)
+            {
+                return;
+            }
 
             var membersAndInitializers = Volatile.Read(ref _lazyMembersAndInitializers);
 
