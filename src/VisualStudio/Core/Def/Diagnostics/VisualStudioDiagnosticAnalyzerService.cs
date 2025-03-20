@@ -270,24 +270,22 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                 DelayTimeSpan.Medium,
                 async cancellationToken =>
                 {
-                    await threadingContext.JoinableTaskFactory.RunAsync(async () =>
-                    {
-                        var analyzedProjectCount = _completedProjects;
-                        var disposed = _disposed;
+                    var analyzedProjectCount = _completedProjects;
+                    var disposed = _disposed;
 
-                        var inProgress = analyzedProjectCount < totalProjectCount && !disposed;
-                        var message =
-                            analyzedProjectCount == totalProjectCount ? _statusMessageOnCompleted :
-                            disposed ? _statusMessageOnTerminated : _statusMessageWhileRunning;
+                    var inProgress = analyzedProjectCount < totalProjectCount && !disposed;
+                    var message =
+                        analyzedProjectCount == totalProjectCount ? _statusMessageOnCompleted :
+                        disposed ? _statusMessageOnTerminated : _statusMessageWhileRunning;
 
-                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        statusBar.Progress(
-                            ref statusBarCookie,
-                            fInProgress: inProgress ? 1 : 0,
-                            message,
-                            (uint)analyzedProjectCount, (uint)totalProjectCount);
-                        statusBar.SetText(message);
-                    });
+                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    statusBar.Progress(
+                        ref statusBarCookie,
+                        fInProgress: inProgress ? 1 : 0,
+                        message,
+                        (uint)analyzedProjectCount,
+                        (uint)totalProjectCount);
+                    statusBar.SetText(message);
                 },
                 service._listener,
                 threadingContext.DisposalToken);
