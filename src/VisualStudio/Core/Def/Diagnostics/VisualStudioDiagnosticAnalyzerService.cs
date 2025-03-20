@@ -171,6 +171,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
 
     public void RunAnalyzers(IVsHierarchy? hierarchy)
     {
+        // If a new command comes in to run analyzers again, cancel any existing operation in progress and start a new one.
         var cancellationToken = _cancellationSeries.CreateNext();
 
         var project = GetProject(hierarchy);
