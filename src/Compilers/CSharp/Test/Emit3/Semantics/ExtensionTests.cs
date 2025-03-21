@@ -23015,7 +23015,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_01()
+    public void MemberNameAndSignatureConflict_01()
     {
         var src = """
 static class Extensions
@@ -23110,18 +23110,18 @@ static class Extensions
             // (10,21): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
             //         public void M1() {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(10, 21),
-
-            // PROTOTYPE: The error might be somewhat confusing in this scenario because there are no parameters and we complain about ref-ness of the receiver.
-
-            // (30,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'in'
+            // (20,21): error CS0111: Type 'Extensions' already defines a member called 'M2' with the same parameter types
+            //         public void M2() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "Extensions").WithLocation(20, 21),
+            // (30,21): error CS0111: Type 'Extensions' already defines a member called 'M3' with the same parameter types
             //         public void M3() {}
-            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M3").WithArguments("Extensions", "method", "ref", "in").WithLocation(30, 21),
-            // (40,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'ref readonly'
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M3").WithArguments("M3", "Extensions").WithLocation(30, 21),
+            // (40,21): error CS0111: Type 'Extensions' already defines a member called 'M4' with the same parameter types
             //         public void M4() {}
-            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M4").WithArguments("Extensions", "method", "ref", "ref readonly").WithLocation(40, 21),
-            // (50,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref readonly'
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M4").WithArguments("M4", "Extensions").WithLocation(40, 21),
+            // (50,21): error CS0111: Type 'Extensions' already defines a member called 'M5' with the same parameter types
             //         public void M5() {}
-            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M5").WithArguments("Extensions", "method", "in", "ref readonly").WithLocation(50, 21),
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M5").WithArguments("M5", "Extensions").WithLocation(50, 21),
             // (59,24): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'in'
             //     static public void M7(this ref int receiver) {}
             Diagnostic(ErrorCode.ERR_OverloadRefKind, "M7").WithArguments("Extensions", "method", "ref", "in").WithLocation(59, 24),
@@ -23131,9 +23131,9 @@ static class Extensions
             // (67,24): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref readonly'
             //     static public void M9(this in int receiver) {}
             Diagnostic(ErrorCode.ERR_OverloadRefKind, "M9").WithArguments("Extensions", "method", "in", "ref readonly").WithLocation(67, 24),
-            // (72,21): error CS0111: Type 'Extensions.extension(object)' already defines a member called 'M10' with the same parameter types
+            // (72,21): error CS0111: Type 'Extensions' already defines a member called 'M10' with the same parameter types
             //         public void M10() {}
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M10").WithArguments("M10", "Extensions.extension(object)").WithLocation(72, 21),
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M10").WithArguments("M10", "Extensions").WithLocation(72, 21),
             // (82,21): error CS0111: Type 'Extensions' already defines a member called 'M13' with the same parameter types
             //         public void M13() {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M13").WithArguments("M13", "Extensions").WithLocation(82, 21)
@@ -23144,51 +23144,12 @@ static class Extensions
 {
     static void Main()
     {
-        1.M2();
-    }
-
-    extension(int receiver)
-    {
-        public void M2() {}
-    }
-
-    extension(ref int receiver)
-    {
-        public void M2() {}
-    }
-}
-""");
-
-        comp.VerifyDiagnostics(
-            // (5,11): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions.extension(int).M2()' and 'Extensions.extension(ref int).M2()'
-            //         1.M2();
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("Extensions.extension(int).M2()", "Extensions.extension(ref int).M2()").WithLocation(5, 11)
-            );
-
-        comp = CreateCompilation("""
-static class Extensions
-{
-    static void Main()
-    {
         int i = 0;
-        M2(i);
-        M2(ref i);
-
         i.M11();
         "".M11();
 
         ((long)i).M12(i);
         ((long)i).M12(ref i);
-    }
-
-    extension(int receiver)
-    {
-        public void M2() {}
-    }
-
-    extension(ref int receiver)
-    {
-        public void M2() {}
     }
 
     extension(int receiver)
@@ -23217,7 +23178,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_02()
+    public void MemberNameAndSignatureConflict_02()
     {
         var src = """
 static class Extensions
@@ -23346,9 +23307,9 @@ static class Extensions
             // (40,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
             //         static public void M4(in int x) {}
             Diagnostic(ErrorCode.ERR_OverloadRefKind, "M4").WithArguments("Extensions", "method", "in", "ref").WithLocation(40, 28),
-            // (46,28): error CS0111: Type 'Extensions.extension(object)' already defines a member called 'M5' with the same parameter types
+            // (46,28): error CS0111: Type 'Extensions' already defines a member called 'M5' with the same parameter types
             //         static public void M5() {}
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M5").WithArguments("M5", "Extensions.extension(object)").WithLocation(46, 28),
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M5").WithArguments("M5", "Extensions").WithLocation(46, 28),
 
             // PROTOTYPE: It feels unfortunate that we generate conflicting signatures, the methods extend different types (refer to M6 and M7 cases)
 
@@ -23422,7 +23383,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_03()
+    public void MemberNameAndSignatureConflict_03()
     {
         var src = """
 static class Extensions
@@ -23441,14 +23402,14 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (10,26): error CS0111: Type 'Extensions' already defines a member called 'get_P1' with the same parameter types
+            // (10,20): error CS0102: The type 'Extensions' already contains a definition for 'P1'
             //         public int P1 => 4;
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "4").WithArguments("get_P1", "Extensions").WithLocation(10, 26)
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("Extensions", "P1").WithLocation(10, 20)
             );
     }
 
     [Fact]
-    public void SignatureConflict_04()
+    public void MemberNameAndSignatureConflict_04()
     {
         var src = """
 static class Extensions
@@ -23467,14 +23428,14 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (10,33): error CS0111: Type 'Extensions' already defines a member called 'get_P1' with the same parameter types
+            // (10,27): error CS0102: The type 'Extensions' already contains a definition for 'P1'
             //         static public int P1 => 4;
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "4").WithArguments("get_P1", "Extensions").WithLocation(10, 33)
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("Extensions", "P1").WithLocation(10, 27)
             );
     }
 
     [Fact]
-    public void SignatureConflict_05()
+    public void MemberNameAndSignatureConflict_05()
     {
         var src = """
 static class Extensions
@@ -23491,24 +23452,117 @@ static class Extensions
         public int P2 => 4;
     }
 }
+
+static class Extensions2
+{
+    extension(object receiver)
+    {
+        public int P3 => 1;
+        public int get_P4() => 2;
+        public int get_P3() => 3;
+        public int P4 => 4;
+    }
+}
+
+static class Extensions3
+{
+    extension(object receiver)
+    {
+        public int P1 => 1;
+        public int set_P2(int x) => 2;
+    }
+
+    extension(object receiver)
+    {
+        public int set_P1(int y) => 3;
+        public int P2 => 4;
+    }
+}
+
+static class Extensions4
+{
+    extension(object receiver)
+    {
+        public int P3 => 1;
+        public int set_P4(int z) => 2;
+        public int set_P3(int z) => 3;
+        public int P4 => 4;
+    }
+}
+
+static class Extensions5
+{
+    extension(object receiver)
+    {
+        public int this[int x] => 1;
+        public int get_Item(long y) => 2;
+    }
+
+    extension(object receiver)
+    {
+        public int get_Item(int a) => 3;
+        public int this[long b] => 4;
+    }
+}
+
+static class Extensions6
+{
+    extension(object receiver)
+    {
+        [System.Runtime.CompilerServices.IndexerName("Indexer")]
+        public int this[int x] => 1;
+    }
+
+    extension(object receiver)
+    {
+        public int get_Indexer(int a) => 3;
+    }
+}
 """;
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (11,20): error CS0111: Type 'Extensions' already defines a member called 'get_P1' with the same parameter types
-            //         public int get_P1() => 3;
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "get_P1").WithArguments("get_P1", "Extensions").WithLocation(11, 20),
-            // (12,26): error CS0111: Type 'Extensions' already defines a member called 'get_P2' with the same parameter types
+            // (5,26): error CS0082: Type 'Extensions' already reserves a member called 'get_P1' with the same parameter types
+            //         public int P1 => 1;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "1").WithArguments("get_P1", "Extensions").WithLocation(5, 26),
+            // (12,26): error CS0082: Type 'Extensions' already reserves a member called 'get_P2' with the same parameter types
             //         public int P2 => 4;
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "4").WithArguments("get_P2", "Extensions").WithLocation(12, 26)
+            Diagnostic(ErrorCode.ERR_MemberReserved, "4").WithArguments("get_P2", "Extensions").WithLocation(12, 26),
+            // (20,26): error CS0082: Type 'Extensions2' already reserves a member called 'get_P3' with the same parameter types
+            //         public int P3 => 1;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "1").WithArguments("get_P3", "Extensions2").WithLocation(20, 26),
+            // (23,26): error CS0082: Type 'Extensions2' already reserves a member called 'get_P4' with the same parameter types
+            //         public int P4 => 4;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "4").WithArguments("get_P4", "Extensions2").WithLocation(23, 26),
+            // (31,20): error CS0082: Type 'Extensions3' already reserves a member called 'set_P1' with the same parameter types
+            //         public int P1 => 1;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "P1").WithArguments("set_P1", "Extensions3").WithLocation(31, 20),
+            // (38,20): error CS0082: Type 'Extensions3' already reserves a member called 'set_P2' with the same parameter types
+            //         public int P2 => 4;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "P2").WithArguments("set_P2", "Extensions3").WithLocation(38, 20),
+            // (46,20): error CS0082: Type 'Extensions4' already reserves a member called 'set_P3' with the same parameter types
+            //         public int P3 => 1;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "P3").WithArguments("set_P3", "Extensions4").WithLocation(46, 20),
+            // (49,20): error CS0082: Type 'Extensions4' already reserves a member called 'set_P4' with the same parameter types
+            //         public int P4 => 4;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "P4").WithArguments("set_P4", "Extensions4").WithLocation(49, 20),
+            // (57,35): error CS0082: Type 'Extensions5' already reserves a member called 'get_Item' with the same parameter types
+            //         public int this[int x] => 1;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "1").WithArguments("get_Item", "Extensions5").WithLocation(57, 35),
+            // (64,36): error CS0082: Type 'Extensions5' already reserves a member called 'get_Item' with the same parameter types
+            //         public int this[long b] => 4;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "4").WithArguments("get_Item", "Extensions5").WithLocation(64, 36),
+            // (73,35): error CS0082: Type 'Extensions6' already reserves a member called 'get_Indexer' with the same parameter types
+            //         public int this[int x] => 1;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "1").WithArguments("get_Indexer", "Extensions6").WithLocation(73, 35)
             );
     }
 
     [Fact]
-    public void SignatureConflict_06()
+    public void MemberNameAndSignatureConflict_06()
     {
         var src = """
-static class Extensions
+static class Extensions1
 {
     extension(object receiver)
     {
@@ -23520,15 +23574,34 @@ static class Extensions
         public int P1 {set{}}
     }
 }
+
+static class Extensions2
+{
+    extension(object receiver1)
+    {
+        public int this[int x] => 1;
+    }
+
+    extension(object receiver2)
+    {
+        public int this[int y] {set{}}
+    }
+}
 """;
         var comp = CreateCompilation(src);
 
-        // PROTOTYPE: Should be complain about a conflict like this?
-        CompileAndVerify(comp).VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (10,20): error CS0102: The type 'Extensions1' already contains a definition for 'P1'
+            //         public int P1 {set{}}
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("Extensions1", "P1").WithLocation(10, 20),
+            // (23,20): error CS0111: Type 'Extensions2' already defines a member called 'this' with the same parameter types
+            //         public int this[int y] {set{}}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Extensions2").WithLocation(23, 20)
+            );
     }
 
     [Fact]
-    public void SignatureConflict_07()
+    public void MemberNameAndSignatureConflict_07()
     {
         var src = """
 static class Extensions
@@ -23554,7 +23627,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_08()
+    public void MemberNameAndSignatureConflict_08()
     {
         var src = """
 static class Extensions
@@ -23683,7 +23756,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_09()
+    public void MemberNameAndSignatureConflict_09()
     {
         var src = """
 static class Extensions
@@ -23780,7 +23853,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_10()
+    public void MemberNameAndSignatureConflict_10()
     {
         var src = """
 static class Extensions
@@ -23906,7 +23979,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_11()
+    public void MemberNameAndSignatureConflict_11()
     {
         var src = """
 static class Extensions
@@ -23995,7 +24068,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_12()
+    public void MemberNameAndSignatureConflict_12()
     {
         var src = """
 static class Extensions
@@ -24028,7 +24101,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_13()
+    public void MemberNameAndSignatureConflict_13()
     {
         var src = """
 static class Extensions
@@ -24061,7 +24134,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_14()
+    public void MemberNameAndSignatureConflict_14()
     {
         var src = """
 static class Extensions
@@ -24094,7 +24167,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_15()
+    public void MemberNameAndSignatureConflict_15()
     {
         var src = """
 static class Extensions
@@ -24113,7 +24186,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_16()
+    public void MemberNameAndSignatureConflict_16()
     {
         var src = """
 static class Extensions
@@ -24145,7 +24218,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_17()
+    public void MemberNameAndSignatureConflict_17()
     {
         var src = """
 static class Extensions
@@ -24177,7 +24250,7 @@ static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_18()
+    public void MemberNameAndSignatureConflict_18()
     {
         var src = """
 public static class Extensions
@@ -24221,7 +24294,7 @@ public static class Extensions
     }
 
     [Fact]
-    public void SignatureConflict_19()
+    public void MemberNameAndSignatureConflict_19()
     {
         var src = """
 public static class Extensions
@@ -24261,6 +24334,541 @@ public static class Extensions
             // (22,28): error CS0102: The type 'Extensions' already contains a definition for 'M3'
             //         static public void M3(int x) {}
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M3").WithArguments("Extensions", "M3").WithLocation(22, 28)
+            );
+    }
+
+    [Fact]
+    public void MemberNameAndSignatureConflict_20_ReceiverType_TupleNameDifference()
+    {
+        var src = """
+public static class Extensions
+{
+    extension((int a, int b) receiver)
+    {
+        void M1() {}
+    }
+
+    extension((int c, int d))
+    {
+        static void M1() {}
+    }
+
+    extension(int receiver)
+    {
+        void M1() {}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (10,21): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
+            //         static void M1() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(10, 21)
+            );
+    }
+
+    [Fact]
+    public void MemberNameAndSignatureConflict_21_ReceiverType_NativeIntDifference()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(System.IntPtr receiver)
+    {
+        void M1() {}
+    }
+
+    extension(nint)
+    {
+        static void M1() {}
+    }
+
+    extension(int receiver)
+    {
+        void M1() {}
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        comp.VerifyDiagnostics(
+            // (10,21): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
+            //         static void M1() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(10, 21)
+            );
+    }
+
+    [Fact]
+    public void MemberNameAndSignatureConflict_22_ReceiverType_NullabilityDifference()
+    {
+        var src = """
+#nullable enable
+
+public static class Extensions
+{
+    extension(string[])
+    {
+        static void M1() {}
+    }
+
+    extension(string?[] receiver)
+    {
+        void M1() {}
+    }
+
+    extension(int receiver)
+    {
+        void M1() {}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (12,14): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
+            //         void M1() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(12, 14)
+            );
+    }
+
+    [Fact]
+    public void MemberNameAndSignatureConflict_23_Receiver_TypeDifference()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(int receiver)
+    {
+        void M1() {}
+    }
+
+    extension(long)
+    {
+        static void M1() {}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void MemberNameAndSignatureConflict_24_Genericity(bool insertAtTheBeginning)
+    {
+        var insert = """
+    extension<S>(S[])
+    {
+        static void M1(int z) {}
+    }
+""";
+
+        var src = @"
+public static class Extensions
+{
+" + (insertAtTheBeginning ? insert : "") + @"
+
+    extension<T>(T[]) where T : class
+    {
+        static void M1(T x) {}
+    }
+
+" + (!insertAtTheBeginning ? insert : "") + @"
+
+    extension<U>(U[] receiver) where U : struct
+    {
+#line 17
+        void M1(U y) {}
+        void M2(U y) {}
+        static void M2(U x) {}
+    }
+
+    extension(int[] receiver)
+    {
+        void M1(int a) {}
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (17,14): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
+            //         void M1(U y) {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(17, 14),
+            // (19,21): error CS0111: Type 'Extensions' already defines a member called 'M2' with the same parameter types
+            //         static void M2(U x) {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "Extensions").WithLocation(19, 21)
+            );
+    }
+
+    [Fact]
+    public void MemberNameAndSignatureConflict_25_Genericity_DifferentArity()
+    {
+        var src = """
+public static class Extensions1
+{
+    extension<T1>(T1)
+    {
+        static void M1(T1 x) {}
+    }
+
+    extension<T1, U1>(T1)
+    {
+        static void M1(T1 x) {}
+    }
+}
+
+public static class Extensions2
+{
+    extension<T2, U2>(T2)
+    {
+        static void M1(T2 x) {}
+    }
+
+    extension<T2>(T2)
+    {
+        static void M1(T2 x) {}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void MemberNameAndSignatureConflict_26_Genericity()
+    {
+        var src = """
+public static class Extensions1
+{
+    extension<T, S>(C<T, S>)
+    {
+        static void M1() {}
+    }
+
+    extension<T, S>(C<S, T>)
+    {
+        static void M1() {}
+    }
+}
+
+class C<T, S> {}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (10,21): error CS0111: Type 'Extensions1' already defines a member called 'M1' with the same parameter types
+            //         static void M1() {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions1").WithLocation(10, 21)
+            );
+    }
+
+    [Fact]
+    public void MemberNameAndSignatureConflict_27_Genericity()
+    {
+        var src = """
+public static class Extensions1
+{
+    extension<T, S>(C<T, S>)
+    {
+        void M1() {}
+    }
+
+    extension<T, S>(C<S, T>)
+    {
+        void M1() {}
+    }
+}
+
+class C<T, S> {}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void MemberNameAndSignatureConflict_28_Genericity(bool insertAtTheBeginning)
+    {
+        var insert = """
+    extension<S>(S[])
+    {
+        static void M1(ref int z) {}
+    }
+""";
+
+        var src = @"
+public static class Extensions
+{
+" + (insertAtTheBeginning ? insert : "") + @"
+
+    extension<T>(T[])
+    {
+        static void M1(ref T x) {}
+    }
+
+" + (!insertAtTheBeginning ? insert : "") + @"
+
+    extension<U>(U[] receiver)
+    {
+#line 17
+        void M1(in U y) {}
+        void M2(ref U y) {}
+        static void M2(in U x) {}
+    }
+
+    extension(int[] receiver)
+    {
+        void M1(ref int a) {}
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (17,14): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
+            //         void M1(in U y) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M1").WithArguments("Extensions", "method", "in", "ref").WithLocation(17, 14),
+            // (19,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
+            //         static void M2(in U x) {}
+            Diagnostic(ErrorCode.ERR_OverloadRefKind, "M2").WithArguments("Extensions", "method", "in", "ref").WithLocation(19, 21)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void MemberNameAndSignatureConflict_29_Indexers(bool insertAtTheBeginning)
+    {
+        var insert = """
+    extension<S>(S[])
+    {
+        static void M1(int z) {}
+    }
+""";
+
+        var src = @"
+public static class Extensions
+{
+" + (insertAtTheBeginning ? insert : "") + @"
+
+    extension<T>(T[])
+    {
+#line 8
+        int this[T x] => default;
+    }
+
+" + (!insertAtTheBeginning ? insert : "") + @"
+
+    extension<U>(U[] receiver)
+    {
+        void Item(U x) {}
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (8,13): error CS0102: The type 'Extensions' already contains a definition for 'Item'
+            //         int this[T x] => default;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("Extensions", "Item").WithLocation(8, 13)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void MemberNameAndSignatureConflict_30_Indexers(bool insertAtTheBeginning)
+    {
+        var insert = """
+    extension<S>(S[])
+    {
+        static void M1(int z) {}
+    }
+""";
+
+        var src = @"
+public static class Extensions
+{
+" + (insertAtTheBeginning ? insert : "") + @"
+
+    extension<T>(T[])
+    {
+        int this[T x] => default;
+    }
+
+" + (!insertAtTheBeginning ? insert : "") + @"
+
+    extension<U>(U[] receiver)
+    {
+#line 18
+        int this[U x] { set{}}
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (18,13): error CS0111: Type 'Extensions' already defines a member called 'this' with the same parameter types
+            //         int this[U x] { set{}}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Extensions").WithLocation(18, 13)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void MemberNameAndSignatureConflict_31_Indexers(bool insertAtTheBeginning)
+    {
+        var insert = """
+    extension<S>(S[])
+    {
+        static void M1(int z) {}
+    }
+""";
+
+        var src = @"
+public static class Extensions
+{
+" + (insertAtTheBeginning ? insert : "") + @"
+
+    extension<T>(T[])
+    {
+        int this[T x] => default;
+    }
+
+" + (!insertAtTheBeginning ? insert : "") + @"
+
+    extension<U>(U[] receiver)
+    {
+#line 18
+        [System.Runtime.CompilerServices.IndexerName(""NotItem"")]
+        int this[int x] { set{}}
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        // PROTOTYPE: The "within a type" part of the message might be somewhat misleading
+        comp.VerifyDiagnostics(
+            // (19,13): error CS0668: Two indexers have different names; the IndexerName attribute must be used with the same name on every indexer within a type
+            //         int this[int x] { set{}}
+            Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this").WithLocation(19, 13)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void MemberNameAndSignatureConflict_32_Properties(bool insertAtTheBeginning)
+    {
+        var insert = """
+    extension<S>(S[])
+    {
+        static void M1(int z) {}
+    }
+""";
+
+        var src = @"
+public static class Extensions
+{
+" + (insertAtTheBeginning ? insert : "") + @"
+
+    extension<T>(T[])
+    {
+        T P => default;
+    }
+
+" + (!insertAtTheBeginning ? insert : "") + @"
+
+    extension<U>(U[] receiver)
+    {
+#line 18
+        void P(U x) {}
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (18,14): error CS0102: The type 'Extensions' already contains a definition for 'P'
+            //         void P(U x) {}
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("Extensions", "P").WithLocation(18, 14)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void MemberNameAndSignatureConflict_33_Properties(bool insertAtTheBeginning)
+    {
+        var insert = """
+    extension<S>(S[])
+    {
+        static void M1(int z) {}
+    }
+""";
+
+        var src = @"
+public static class Extensions
+{
+" + (insertAtTheBeginning ? insert : "") + @"
+
+    extension<T>(T[])
+    {
+#line 8
+        T P => default;
+    }
+
+" + (!insertAtTheBeginning ? insert : "") + @"
+
+    extension<U>(U[] receiver)
+    {
+        static void set_P(U x) {}
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (8,11): error CS0082: Type 'Extensions' already reserves a member called 'set_P' with the same parameter types
+            //         T P => default;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "P").WithArguments("set_P", "Extensions").WithLocation(8, 11)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void MemberNameAndSignatureConflict_34_Properties(bool insertAtTheBeginning)
+    {
+        var insert = """
+    extension<S>(S[])
+    {
+        static void M1(int z) {}
+    }
+""";
+
+        var src = @"
+public static class Extensions
+{
+" + (insertAtTheBeginning ? insert : "") + @"
+
+    extension<T>(T[])
+    {
+#line 8
+        T P => default;
+    }
+
+" + (!insertAtTheBeginning ? insert : "") + @"
+
+    extension<U>(U[] receiver)
+    {
+        U[] get_P => null;
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (8,16): error CS0102: The type 'Extensions' already contains a definition for 'get_P'
+            //         T P => default;
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "default").WithArguments("Extensions", "get_P").WithLocation(8, 16)
             );
     }
 
@@ -26213,12 +26821,15 @@ static class E
         var src = """
 System.Console.Write(42.P);
 
-static class E
+static class E1
 {
     extension(int i)
     {
         public int P => 42;
     }
+}
+static class E2
+{
     extension(in int i)
     {
         public int P => throw null;
@@ -26232,7 +26843,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "42.P");
-        Assert.Equal("System.Int32 E.<>E__0.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal("System.Int32 E1.<>E__0.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -27492,14 +28103,16 @@ public static class E
     public void LookupSymbols_StaticAndInstance()
     {
         var src = """
-
-public static class E
+public static class E1
 {
     extension(object)
     {
         public static void M() => throw null;
         public static int Property => throw null;
     }
+}
+public static class E2
+{
     extension(object)
     {
         public void M() => throw null;
@@ -27515,17 +28128,17 @@ public static class E
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertEqualAndNoDuplicates(["void E.<>E__0.M()", "void E.<>E__1.M()"],
+        AssertEqualAndNoDuplicates(["void E1.<>E__0.M()", "void E2.<>E__0.M()"],
             model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.Property { get; }", "System.Int32 E.<>E__1.Property { get; }"],
+        AssertEqualAndNoDuplicates(["System.Int32 E1.<>E__0.Property { get; }", "System.Int32 E2.<>E__0.Property { get; }"],
             model.LookupSymbols(position: 0, o, name: "Property", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         AssertEqualAndNoDuplicates([
-            "void E.<>E__0.M()",
-            "System.Int32 E.<>E__0.Property { get; }",
-            "void E.<>E__1.M()",
-            "System.Int32 E.<>E__1.Property { get; }",
+            "void E1.<>E__0.M()",
+            "System.Int32 E1.<>E__0.Property { get; }",
+            "void E2.<>E__0.M()",
+            "System.Int32 E2.<>E__0.Property { get; }",
             .. _objectMembers], model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
@@ -27533,13 +28146,15 @@ public static class E
     public void LookupSymbols_MethodAndProperty()
     {
         var src = """
-
-public static class E
+public static class E1
 {
     extension(object)
     {
         public static void MP() => throw null;
     }
+}
+public static class E2
+{
     extension(object)
     {
         public int MP => throw null;
@@ -27554,10 +28169,10 @@ public static class E
         var model = comp.GetSemanticModel(tree);
 
         var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
-        AssertEqualAndNoDuplicates(["void E.<>E__0.MP()", "System.Int32 E.<>E__1.MP { get; }"],
+        AssertEqualAndNoDuplicates(["void E1.<>E__0.MP()", "System.Int32 E2.<>E__0.MP { get; }"],
             model.LookupSymbols(position: 0, o, name: "MP", includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
-        AssertEqualAndNoDuplicates(["void E.<>E__0.MP()", "System.Int32 E.<>E__1.MP { get; }", .. _objectMembers],
+        AssertEqualAndNoDuplicates(["void E1.<>E__0.MP()", "System.Int32 E2.<>E__0.MP { get; }", .. _objectMembers],
             model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
     }
 
@@ -28085,13 +28700,16 @@ static class E2
 int i = object.P;
 System.Console.Write(i);
 
-static class E
+static class E1
 {
     extension<T>(T) where T : struct
     {
         public static void P() { }
     }
+}
 
+static class E2
+{
     extension<T>(T) where T : class
     {
         public static int P => 42;
@@ -28104,7 +28722,7 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
-        Assert.Equal("System.Int32 E.<>E__1<System.Object>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal("System.Int32 E2.<>E__0<System.Object>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
     }
