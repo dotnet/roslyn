@@ -46,8 +46,6 @@ internal partial class InlineRenameInProcess
 
     public async Task VerifyStringInFlyout(string expected, CancellationToken cancellationToken)
     {
-        var optionService = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-
         var vsTextManager = await GetRequiredGlobalServiceAsync<SVsTextManager, IVsTextManager>(cancellationToken);
         var vsTextView = await vsTextManager.GetActiveViewAsync(JoinableTaskFactory, cancellationToken);
         var testViewHost = await vsTextView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);

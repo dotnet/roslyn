@@ -376,7 +376,7 @@ class C
         await TestServices.EditorVerifier.CurrentLineTextAsync("        var v = @$\"$$", assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
-    [IdeTheory, CombinatorialData]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/63576"), CombinatorialData]
     public async Task AngleBracket_PossibleGenerics_InsertionAndCompletion(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync(@"
@@ -384,10 +384,6 @@ class C {
     //field
     $$
 }", HangMitigatingCancellationToken);
-
-        // Disable new rename UI for now, it's causing these tests to fail.
-        // https://github.com/dotnet/roslyn/issues/63576
-        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
 
         await TestServices.Workspace.SetTriggerCompletionInArgumentListsAsync(LanguageNames.CSharp, showCompletionInArgumentLists, HangMitigatingCancellationToken);
 
