@@ -340,7 +340,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_preview_inline_rename_changes", new RoamingProfileStorage("TextEditor.Specific.PreviewRename")},
         {"dotnet_collapse_suggestions_in_inline_rename_ui", new RoamingProfileStorage("TextEditor.CollapseRenameSuggestionsUI")},
         {"dotnet_commit_rename_asynchronously", new RoamingProfileStorage("TextEditor.Specific.CommitRenameAsynchronously")},
-        {"dotnet_commit_rename_asynchronously_feature_flag", new FeatureFlagStorage("Roslyn.CommitRenameAsynchronously")},
         {"dotnet_rename_get_suggestions_automatically", new FeatureFlagStorage(@"Editor.AutoSmartRenameSuggestions")},
         // Option is deprecated, don't use the same RoamingProfileStorage key
         // {"dotnet_rename_asynchronously", new RoamingProfileStorage("TextEditor.Specific.RenameAsynchronously")},
@@ -400,7 +399,6 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_split_string_literal_on_return", new RoamingProfileStorage("TextEditor.CSharp.Specific.SplitStringLiterals")},
         {"visual_studio_open_stack_trace_explorer_on_focus", new RoamingProfileStorage("StackTraceExplorer.Options.OpenOnFocus")},
         {"visual_studio_enable_document_outline", new RoamingProfileStorage(@"DocumentOutline.Enable")},
-        {"visual_studio_disable_document_outline_feature_flag", new FeatureFlagStorage(@"DocumentOutline.DisableFeature")},
         {"visual_studio_document_outline_sort_order", new RoamingProfileStorage(@"DocumentOutline.SortOrder")},
         {"visual_studio_enable_symbol_search", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
         {"dotnet_unsupported_search_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
@@ -421,7 +419,6 @@ internal abstract class VisualStudioOptionStorage
         {"visual_studio_navigate_to_object_browser", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NavigateToObjectBrowser")},
         {"dotnet_validate_compilation_tracker_states", new FeatureFlagStorage(@"Roslyn.ValidateCompilationTrackerStates")},
         {"dotnet_enable_diagnostics_in_source_generated_files", new RoamingProfileStorage("TextEditor.Roslyn.Specific.EnableDiagnosticsInSourceGeneratedFilesExperiment")},
-        {"dotnet_enable_diagnostics_in_source_generated_files_feature_flag", new FeatureFlagStorage(@"Roslyn.EnableDiagnosticsInSourceGeneratedFiles")},
         {"dotnet_source_generator_execution", new RoamingProfileStorage("TextEditor.Roslyn.Specific.SourceGeneratorExecution")},
         {"dotnet_reload_changed_analyzer_references", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "DotnetReloadChangedAnalyzerReferences")},
         {"xaml_enable_lsp_intellisense", new FeatureFlagStorage(@"Xaml.EnableLspIntelliSense")},
