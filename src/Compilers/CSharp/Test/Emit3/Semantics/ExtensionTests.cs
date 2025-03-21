@@ -25022,6 +25022,7 @@ static class E
 
     public partial class RegionAnalysisTests : FlowTestBase
     {
+        // PROTOTYPE consider removing `this` from the region analysis tests
         [Fact]
         public void RegionAnalysis_01()
         {
