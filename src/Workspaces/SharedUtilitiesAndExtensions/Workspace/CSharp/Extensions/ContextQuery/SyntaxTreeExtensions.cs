@@ -760,7 +760,7 @@ internal static partial class SyntaxTreeExtensions
                 context: null,
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
                 validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                canBePartial: true,
                 cancellationToken: cancellationToken) ||
             syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
     }

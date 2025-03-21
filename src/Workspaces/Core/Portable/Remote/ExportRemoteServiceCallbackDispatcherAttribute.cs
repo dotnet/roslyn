@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 

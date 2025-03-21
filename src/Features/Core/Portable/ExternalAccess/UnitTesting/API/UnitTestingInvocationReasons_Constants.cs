@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
 internal readonly partial struct UnitTestingInvocationReasons

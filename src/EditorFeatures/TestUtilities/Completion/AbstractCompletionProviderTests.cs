@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -636,7 +637,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
+            MarkupTestFile.GetPositionAndSpan(expectedCodeAfterCommit, out var actualExpectedCode, out var expectedCaretPosition, out TextSpan? expectedSelectionSpan);
 
             var options = GetCompletionOptions();
 
@@ -661,10 +662,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var textBuffer = workspaceFixture.Target.CurrentDocument.GetTextBuffer();
 
             var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
+            var selectionSpan = commit.NewSelection ?? textView.Selection.StreamSelectionSpan.SnapshotSpan.Span.ToTextSpan();
             var caretPosition = commit.NewPosition ?? textView.Caret.Position.BufferPosition.Position;
 
             AssertEx.EqualOrDiff(actualExpectedCode, actualCodeAfterCommit);
-            Assert.Equal(expectedCaretPosition, caretPosition);
+
+            if (expectedSelectionSpan != null)
+                Assert.Equal(expectedSelectionSpan, selectionSpan);
+            else if (expectedCaretPosition != null)
+                Assert.Equal(expectedCaretPosition, caretPosition);
         }
 
         private void VerifyCustomCommitWorker(
