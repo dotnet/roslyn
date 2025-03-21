@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Design;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +19,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
@@ -32,7 +30,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
-using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService;
 using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
@@ -54,7 +51,6 @@ internal sealed class RoslynPackage : AbstractPackage
     private static RoslynPackage? s_lazyInstance;
 
     private RuleSetEventHandler? _ruleSetEventHandler;
-    private ColorSchemeApplier? _colorSchemeApplier;
     private SolutionEventMonitor? _solutionEventMonitor;
 
     internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
@@ -85,13 +81,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
     private async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
     {
-        _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
-        _colorSchemeApplier.RegisterInitializationWork(packageInitializationTasks);
-
-        // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
-        var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
-        Assumes.Present(globalNotificationService);
-
         await ProfferServiceBrokerServicesAsync().ConfigureAwait(true);
 
         var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
@@ -100,15 +89,7 @@ internal sealed class RoslynPackage : AbstractPackage
             isMainThreadTask: true,
             task: (packageInitializationTasks, cancellationToken) =>
             {
-                _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
-                TrackBulkFileOperations(globalNotificationService);
-
                 RegisterEditorFactory(settingsEditorFactory);
-
-                // Misc workspace has to be up and running by the time our package is usable so that it can track running
-                // doc events and appropriately map files to/from it and other relevant workspaces (like the
-                // metadata-as-source workspace).
-                var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
                 return Task.CompletedTask;
             });
@@ -125,6 +106,16 @@ internal sealed class RoslynPackage : AbstractPackage
 
         Task OnAfterPackageLoadedBackgroundThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
         {
+            var colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
+            colorSchemeApplier.RegisterInitializationWork(afterPackageLoadedTasks);
+
+            // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
+            var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
+            Assumes.Present(globalNotificationService);
+
+            _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
+            TrackBulkFileOperations(globalNotificationService);
+
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();
 

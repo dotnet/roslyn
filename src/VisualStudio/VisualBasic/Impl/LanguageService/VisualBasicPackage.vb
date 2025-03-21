@@ -69,7 +69,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
             packageInitializationTasks.AddTask(
                 isMainThreadTask:=False,
-                task:=Function(packageInitializationTasks2, cancellationToken) As Task
+                task:=Function() As Task
                           Try
                               RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
 
