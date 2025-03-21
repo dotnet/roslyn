@@ -3705,6 +3705,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
+        [Fact]
+        public void IgnoredDirectives()
+        {
+            TestNormalizeDeclaration("""
+                    #:a
+                 #: b c
+                {
+                   #:d
+                }
+                #:e
+                """, """
+                #:a
+                #:b c
+                {
+                #:d
+                }
+                #:e
+
+                """);
+        }
+
         [Fact, WorkItem(542887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542887")]
         public void TestFormattingForBlockSyntax()
         {

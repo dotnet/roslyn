@@ -109,6 +109,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         var root = SyntaxFactory.ParseCompilationUnit(source, options: TestOptions.Regular.WithFeature(FeatureName));
         var trivia = root.EndOfFileToken.GetLeadingTrivia().Single();
         Assert.Equal(SyntaxKind.IgnoredDirectiveTrivia, trivia.Kind());
+        Assert.True(SyntaxFacts.IsPreprocessorDirective(trivia.Kind()));
+        Assert.True(SyntaxFacts.IsTrivia(trivia.Kind()));
         var structure = (IgnoredDirectiveTriviaSyntax)trivia.GetStructure()!;
         Assert.Equal(":", structure.DirectiveNameToken.ToFullString());
         var messageTrivia = structure.EndOfDirectiveToken.GetLeadingTrivia().Single();
@@ -128,6 +130,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         var root = SyntaxFactory.ParseCompilationUnit(source, options: TestOptions.Regular.WithFeature(FeatureName));
         var trivia = root.EndOfFileToken.GetLeadingTrivia().Last();
         Assert.Equal(SyntaxKind.IgnoredDirectiveTrivia, trivia.Kind());
+        Assert.True(SyntaxFacts.IsPreprocessorDirective(trivia.Kind()));
+        Assert.True(SyntaxFacts.IsTrivia(trivia.Kind()));
         var structure = (IgnoredDirectiveTriviaSyntax)trivia.GetStructure()!;
         Assert.Equal(":", structure.DirectiveNameToken.ToFullString());
         var messageTrivia = structure.EndOfDirectiveToken.GetLeadingTrivia().Single();
