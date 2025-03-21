@@ -241,9 +241,10 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
 
     private sealed class StatusBarUpdater : IDisposable
     {
+        private readonly AsyncBatchingWorkQueue _progressTracker;
+
         private bool _disposed;
         private int _completedProjects;
-        private readonly AsyncBatchingWorkQueue _progressTracker;
 
         public StatusBarUpdater(
             VisualStudioDiagnosticAnalyzerService service,
@@ -262,33 +263,38 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             // Set the initial status bar progress and text.
 
             uint statusBarCookie = 0;
-            statusBar?.Progress(ref statusBarCookie, fInProgress: 1, statusMessageWhileRunning, (uint)_completedProjects, nTotal: (uint)totalProjectCount);
-            statusBar?.SetText(statusMessageWhileRunning);
+            UpdateStatusBar();
 
             _progressTracker = new(
                 DelayTimeSpan.Medium,
                 async cancellationToken =>
                 {
                     await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                    var analyzedProjectCount = _completedProjects;
-                    var disposed = _disposed;
-
-                    var inProgress = analyzedProjectCount < totalProjectCount && !disposed;
-                    var message =
-                        analyzedProjectCount == totalProjectCount ? statusMessageOnCompleted :
-                        disposed ? statusMessageOnTerminated : statusMessageWhileRunning;
-
-                    statusBar?.Progress(
-                        ref statusBarCookie,
-                        fInProgress: inProgress ? 1 : 0,
-                        message,
-                        (uint)analyzedProjectCount,
-                        (uint)totalProjectCount);
-                    statusBar?.SetText(message);
+                    UpdateStatusBar();
                 },
                 service._listener,
                 cancellationToken);
+
+            return;
+
+            void UpdateStatusBar()
+            {
+                var analyzedProjectCount = _completedProjects;
+                var disposed = _disposed;
+
+                var inProgress = analyzedProjectCount < totalProjectCount && !disposed;
+                var message =
+                    analyzedProjectCount == totalProjectCount ? statusMessageOnCompleted :
+                    disposed ? statusMessageOnTerminated : statusMessageWhileRunning;
+
+                statusBar?.Progress(
+                    ref statusBarCookie,
+                    fInProgress: inProgress ? 1 : 0,
+                    message,
+                    (uint)analyzedProjectCount,
+                    (uint)totalProjectCount);
+                statusBar?.SetText(message);
+            }
         }
 
         public void OnAfterProjectAnalyzed()
