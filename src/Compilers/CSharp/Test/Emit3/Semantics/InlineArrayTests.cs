@@ -23498,8 +23498,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (8,12): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         nx?[2] = 3; // 1
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[2]").WithLocation(8, 12)
-                );
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[2]").WithLocation(8, 12));
         }
     }
 }
