@@ -2721,8 +2721,8 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                 }
 
                                 // If a partial method/property/indexer definition is deleted (and not moved to another partial type declaration, which is handled above)
-                                // so must be the implementation. An edit will be issued for the implementation change.
-                                if (newSymbol?.IsPartialDefinition() == true)
+                                // so must be the implementation (if it exists). An edit will be issued for the implementation change.
+                                if (oldSymbol.IsPartialDefinition())
                                 {
                                     continue;
                                 }
