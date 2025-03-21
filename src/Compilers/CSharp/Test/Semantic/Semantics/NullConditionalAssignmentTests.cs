@@ -2714,20 +2714,176 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "c?.F").WithLocation(7, 11));
         }
 
-        [Fact(Skip = "TODO2")]
+        [Fact]
         public void ControlFlowGraph_01()
         {
+            // Verify that conditional accesses and expressions are rewritten in CFG.
             var source = """
-                // TODO2: sample with a?.b = c
+                class C
+                {
+                    public string F;
+
+                    static void M(C? c, bool b)
+                    {
+                        c?.F = b ? "1" : "2";
+                    }
+                }
                 """;
             var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single();
-            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node, model);
+            var methodDecl = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(methodDecl.Body, model);
             ControlFlowGraphVerifier.VerifyGraph(comp, """
-// TODO2: CFG goes here
-""",
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1} {R2}
+                .locals {R1}
+                {
+                    CaptureIds: [1] [2]
+                    .locals {R2}
+                    {
+                        CaptureIds: [0]
+                        Block[B1] - Block
+                            Predecessors: [B0]
+                            Statements (1)
+                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+                                    Value:
+                                    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+                            Jump if True (Regular) to Block[B7]
+                                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c')
+                                    Operand:
+                                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
+                                Leaving: {R2} {R1}
+                            Next (Regular) Block[B2]
+                        Block[B2] - Block
+                            Predecessors: [B1]
+                            Statements (1)
+                                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.F')
+                                    Value:
+                                    IFieldReferenceOperation: System.String C.F (OperationKind.FieldReference, Type: System.String) (Syntax: '.F')
+                                        Instance Receiver:
+                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
+                            Next (Regular) Block[B3]
+                                Leaving: {R2}
+                    }
+                    Block[B3] - Block
+                        Predecessors: [B2]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B5]
+                            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                        Next (Regular) Block[B4]
+                    Block[B4] - Block
+                        Predecessors: [B3]
+                        Statements (1)
+                            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '"1"')
+                                Value:
+                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "1") (Syntax: '"1"')
+                        Next (Regular) Block[B6]
+                    Block[B5] - Block
+                        Predecessors: [B3]
+                        Statements (1)
+                            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '"2"')
+                                Value:
+                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "2") (Syntax: '"2"')
+                        Next (Regular) Block[B6]
+                    Block[B6] - Block
+                        Predecessors: [B4] [B5]
+                        Statements (1)
+                            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c?.F = b ? "1" : "2";')
+                                Expression:
+                                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: '.F = b ? "1" : "2"')
+                                    Left:
+                                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: '.F')
+                                    Right:
+                                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b ? "1" : "2"')
+                        Next (Regular) Block[B7]
+                            Leaving: {R1}
+                }
+                Block[B7] - Exit
+                    Predecessors: [B1] [B6]
+                    Statements (0)
+                """,
+                graph, symbol);
+        }
+
+        [Fact]
+        public void ControlFlowGraph_02()
+        {
+            // Verify that conditional accesses and expressions are rewritten in CFG.
+            var source = """
+                class C
+                {
+                    public string F;
+
+                    static void M(bool b, C? c1, C? c2)
+                    {
+                        (b ? c1 : c2)?.F = "a";
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var methodDecl = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(methodDecl.Body, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    CaptureIds: [0]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B3]
+                            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                        Next (Regular) Block[B2]
+                    Block[B2] - Block
+                        Predecessors: [B1]
+                        Statements (1)
+                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+                                Value:
+                                IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+                        Next (Regular) Block[B4]
+                    Block[B3] - Block
+                        Predecessors: [B1]
+                        Statements (1)
+                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+                                Value:
+                                IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
+                        Next (Regular) Block[B4]
+                    Block[B4] - Block
+                        Predecessors: [B2] [B3]
+                        Statements (0)
+                        Jump if True (Regular) to Block[B6]
+                            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'b ? c1 : c2')
+                                Operand:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'b ? c1 : c2')
+                            Leaving: {R1}
+                        Next (Regular) Block[B5]
+                    Block[B5] - Block
+                        Predecessors: [B4]
+                        Statements (1)
+                            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(b ? c1 : c2)?.F = "a";')
+                                Expression:
+                                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: '.F = "a"')
+                                    Left:
+                                    IFieldReferenceOperation: System.String C.F (OperationKind.FieldReference, Type: System.String) (Syntax: '.F')
+                                        Instance Receiver:
+                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'b ? c1 : c2')
+                                    Right:
+                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "a") (Syntax: '"a"')
+                        Next (Regular) Block[B6]
+                            Leaving: {R1}
+                }
+                Block[B6] - Exit
+                    Predecessors: [B4] [B5]
+                    Statements (0)
+                """,
                 graph, symbol);
         }
     }
