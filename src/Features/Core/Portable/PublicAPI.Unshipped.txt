@@ -1,1 +1,3 @@
-
+Microsoft.CodeAnalysis.CustomMessageHandler.ICustomMessageHandlerService
+Microsoft.CodeAnalysis.CustomMessageHandler.ICustomMessageHandlerService.HandleCustomMessageAsync(Microsoft.CodeAnalysis.Solution solution, string assemblyFolderPath, string assemblyFileName, string typeFullName, string jsonMessage, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<string>
+Microsoft.CodeAnalysis.CustomMessageHandler.ICustomMessageHandlerService.UnloadCustomMessageHandlersAsync(string assemblyFolderPath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
