@@ -12,7 +12,7 @@ internal static class WorkspaceConfigurationOptionsStorage
         => new(
             SourceGeneratorExecution: globalOptions.GetOption(SourceGeneratorExecution),
             ReloadChangedAnalyzerReferences:
-                globalOptions.GetOption(ReloadChangedAnalyzerReferences) ?? globalOptions.GetOption(ReloadChangedAnalyzerReferencesFeatureFlag),
+                globalOptions.GetOption(ReloadChangedAnalyzerReferences),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
 
     public static readonly Option2<bool> ValidateCompilationTrackerStates = new(
@@ -26,11 +26,7 @@ internal static class WorkspaceConfigurationOptionsStorage
             s => SourceGeneratorExecutionPreferenceUtilities.Parse(s, SourceGeneratorExecutionPreference.Balanced),
             SourceGeneratorExecutionPreferenceUtilities.GetEditorConfigString));
 
-    public static readonly Option2<bool?> ReloadChangedAnalyzerReferences = new(
+    public static readonly Option2<bool> ReloadChangedAnalyzerReferences = new(
         "dotnet_reload_changed_analyzer_references",
-        defaultValue: null,
-        isEditorConfigOption: true);
-
-    public static readonly Option2<bool> ReloadChangedAnalyzerReferencesFeatureFlag = new(
-        "dotnet_reload_changed_analyzer_references_feature_flag", true);
+        defaultValue: true);
 }

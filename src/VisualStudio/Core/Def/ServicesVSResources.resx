@@ -1579,9 +1579,6 @@ Additional information: {1}</value>
     <value>No namespaces needed updating.</value>
     <comment>"Namespaces" is the programming language concept</comment>
   </data>
-  <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
-    <value>Run code analysis in separate process (requires restart)</value>
-  </data>
   <data name="Quick_Actions" xml:space="preserve">
     <value>Quick Actions</value>
   </data>
@@ -1818,9 +1815,6 @@ Additional information: {1}</value>
   </data>
   <data name="Show_hints_for_collection_expressions" xml:space="preserve">
     <value>Show hints for collection expressions</value>
-  </data>
-  <data name="Automatically_reload_updated_analyzers_and_generators" xml:space="preserve">
-    <value>Automatically reload updated analyzers and generators (requires restart)</value>
   </data>
   <data name="Insert_Snippet" xml:space="preserve">
     <value>Insert Snippet</value>
