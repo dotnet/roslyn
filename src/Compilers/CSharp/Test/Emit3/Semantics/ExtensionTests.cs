@@ -2643,6 +2643,7 @@ public static class Extensions
     extension(out int i)
     {
         void M2() { }
+        static void M3() { }
     }
     static void M(this out int i) { }
 }
@@ -2655,12 +2656,12 @@ public static class Extensions
             // (5,14): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
             //         void M2() { }
             Diagnostic(ErrorCode.ERR_ParamUnassigned, "M2").WithArguments("i").WithLocation(5, 14),
-            // (7,17): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+            // (8,17): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
             //     static void M(this out int i) { }
-            Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("i").WithLocation(7, 17),
-            // (7,24): error CS8328:  The parameter modifier 'out' cannot be used with 'this'
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("i").WithLocation(8, 17),
+            // (8,24): error CS8328:  The parameter modifier 'out' cannot be used with 'this'
             //     static void M(this out int i) { }
-            Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(7, 24));
+            Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(8, 24));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
