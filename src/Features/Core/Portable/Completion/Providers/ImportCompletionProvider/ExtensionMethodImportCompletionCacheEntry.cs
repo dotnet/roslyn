@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal readonly struct ExtensionMethodImportCompletionCacheEntry
+internal sealed class ExtensionMethodImportCompletionCacheEntry
 {
     public Checksum Checksum { get; }
     public string Language { get; }
@@ -16,7 +16,7 @@ internal readonly struct ExtensionMethodImportCompletionCacheEntry
     /// <summary>
     /// Mapping from the name of receiver type to extension method symbol infos.
     /// </summary>
-    public readonly MultiDictionary<string, DeclaredSymbolInfo> ReceiverTypeNameToExtensionMethodMap { get; }
+    public MultiDictionary<string, DeclaredSymbolInfo> ReceiverTypeNameToExtensionMethodMap { get; }
 
     public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
 

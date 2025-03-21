@@ -12,7 +12,7 @@ using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal readonly struct TypeImportCompletionCacheEntry
+internal sealed class TypeImportCompletionCacheEntry
 {
     public SymbolKey AssemblySymbolKey { get; }
 
