@@ -11,9 +11,13 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 internal abstract class AbstractLspLogger : ILspLogger
 {
-    public abstract void LogDebug(string message, params object[] @params);
+    [Obsolete($"Use {nameof(CreateContext)} instead.")]
     public abstract void LogStartContext(string message, params object[] @params);
+    [Obsolete($"Use {nameof(CreateContext)} instead.")]
     public abstract void LogEndContext(string message, params object[] @params);
+    public abstract IDisposable? CreateContext(string context);
+
+    public abstract void LogDebug(string message, params object[] @params);
     public abstract void LogInformation(string message, params object[] @params);
     public abstract void LogWarning(string message, params object[] @params);
     public abstract void LogError(string message, params object[] @params);
