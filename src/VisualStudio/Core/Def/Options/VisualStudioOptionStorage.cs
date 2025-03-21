@@ -424,7 +424,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_diagnostics_in_source_generated_files", new RoamingProfileStorage("TextEditor.Roslyn.Specific.EnableDiagnosticsInSourceGeneratedFilesExperiment")},
         {"dotnet_enable_diagnostics_in_source_generated_files_feature_flag", new FeatureFlagStorage(@"Roslyn.EnableDiagnosticsInSourceGeneratedFiles")},
         {"dotnet_source_generator_execution", new RoamingProfileStorage("TextEditor.Roslyn.Specific.SourceGeneratorExecution")},
-        {"dotnet_reload_changed_analyzer_references", new RoamingProfileStorage("TextEditor.Roslyn.Specific.DotnetReloadChangedAnalyzerReferences")},
+        {"dotnet_reload_changed_analyzer_references", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "DotnetReloadChangedAnalyzerReferences")},
         {"xaml_enable_lsp_intellisense", new FeatureFlagStorage(@"Xaml.EnableLspIntelliSense")},
     };
 }
