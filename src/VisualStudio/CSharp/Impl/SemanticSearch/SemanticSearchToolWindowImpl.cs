@@ -604,15 +604,20 @@ internal sealed class SemanticSearchToolWindowImpl(
                         resultsObserver,
                         this,
                         cancellationToken).ConfigureAwait(false);
+
+                    foreach (var error in result.compilationErrors)
+                    {
+                        await presenterContext.OnDefinitionFoundAsync(new SearchCompilationFailureDefinitionItem(error, queryDocument), cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
-                result = new ExecuteQueryResult(e.Message);
+                result = new ExecuteQueryResult(compilationErrors: [], e.Message);
             }
             catch (OperationCanceledException)
             {
-                result = new ExecuteQueryResult(ServicesVSResources.Search_cancelled);
+                result = new ExecuteQueryResult(compilationErrors: [], ServicesVSResources.Search_cancelled);
                 canceled = true;
             }
             finally
@@ -729,14 +734,6 @@ internal sealed class SemanticSearchToolWindowImpl(
         public ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
             => presenterContext.OnDefinitionFoundAsync(
                 new SearchExceptionDefinitionItem(exception.Message, exception.TypeName, exception.StackTrace, new DocumentSpan(queryDocument, exception.Span)), cancellationToken);
-
-        public async ValueTask OnCompilationFailureAsync(ImmutableArray<QueryCompilationError> errors, CancellationToken cancellationToken)
-        {
-            foreach (var error in errors)
-            {
-                await presenterContext.OnDefinitionFoundAsync(new SearchCompilationFailureDefinitionItem(error, queryDocument), cancellationToken).ConfigureAwait(false);
-            }
-        }
     }
 
     private sealed class CommandFilter : IOleCommandTarget
