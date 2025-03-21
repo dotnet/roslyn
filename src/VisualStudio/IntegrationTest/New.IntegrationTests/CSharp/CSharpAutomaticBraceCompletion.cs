@@ -24,7 +24,7 @@ public class CSharpAutomaticBraceCompletion : AbstractEditorTest
     {
     }
 
-    [IdeTheory, CombinatorialData]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/63576"), CombinatorialData]
     public async Task Braces_InsertionAndTabCompleting(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync(@"
