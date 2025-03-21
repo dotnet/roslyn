@@ -231,7 +231,10 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
 
     private sealed class StatusBarUpdater : IDisposable
     {
-        private readonly AsyncBatchingWorkQueue _progressTracker;
+        /// <summary>
+        /// Queue to batch up work.  Only created if we have an actual status bar in VS to push the progress updates to.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue? _progressTracker;
 
         private bool _disposed;
         private int _completedProjects;
@@ -244,7 +247,6 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             CancellationToken cancellationToken)
         {
             var threadingContext = service._threadingContext;
-            threadingContext.ThrowIfNotOnUIThread();
 
             var statusMessageWhileRunning = string.Format(ServicesVSResources.Running_code_analysis_for_0, progressName);
             var statusMessageOnCompleted = string.Format(ServicesVSResources.Code_analysis_completed_for_0, progressName);
@@ -253,22 +255,27 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             // Set the initial status bar progress and text.
 
             uint statusBarCookie = 0;
-            UpdateStatusBar();
+            if (statusBar != null)
+            {
+                UpdateStatusBar();
 
-            _progressTracker = new(
-                DelayTimeSpan.Medium,
-                async cancellationToken =>
-                {
-                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    UpdateStatusBar();
-                },
-                service._listener,
-                cancellationToken);
+                _progressTracker = new(
+                    DelayTimeSpan.Medium,
+                    async cancellationToken =>
+                    {
+                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        UpdateStatusBar();
+                    },
+                    service._listener,
+                    cancellationToken);
+            }
 
             return;
 
             void UpdateStatusBar()
             {
+                threadingContext.ThrowIfNotOnUIThread();
+
                 var analyzedProjectCount = _completedProjects;
                 var disposed = _disposed;
 
@@ -277,26 +284,26 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                     analyzedProjectCount == totalProjectCount ? statusMessageOnCompleted :
                     disposed ? statusMessageOnTerminated : statusMessageWhileRunning;
 
-                statusBar?.Progress(
+                statusBar.Progress(
                     ref statusBarCookie,
                     fInProgress: inProgress ? 1 : 0,
                     message,
                     (uint)analyzedProjectCount,
                     (uint)totalProjectCount);
-                statusBar?.SetText(message);
+                statusBar.SetText(message);
             }
         }
 
         public void OnAfterProjectAnalyzed()
         {
             Interlocked.Increment(ref _completedProjects);
-            _progressTracker.AddWork();
+            _progressTracker?.AddWork();
         }
 
         public void Dispose()
         {
             _disposed = true;
-            _progressTracker.AddWork();
+            _progressTracker?.AddWork();
         }
     }
 }
