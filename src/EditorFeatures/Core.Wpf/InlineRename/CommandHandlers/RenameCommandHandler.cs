@@ -38,9 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
         : AbstractRenameCommandHandler(threadingContext, renameService, globalOptionService, asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename))
     {
-        protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
-            => GetAdornment(textView) is RenameFlyout;
-
         protected override void SetFocusToTextView(ITextView textView)
         {
             (textView as IWpfTextView)?.VisualElement.Focus();
