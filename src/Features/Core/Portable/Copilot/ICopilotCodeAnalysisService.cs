@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
@@ -98,8 +97,8 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// Implements methods or properties containing <see cref="System.NotImplementedException"/> throws in the given <paramref name="document"/>.
     /// </summary>
     /// <returns>A dictionary mapping the original syntax nodes to their implementation details.</returns>
-    Task<ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
+    Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
         Document document,
-        ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+        ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
         CancellationToken cancellationToken);
 }
