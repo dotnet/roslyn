@@ -1187,11 +1187,6 @@
         <target state="translated">Odebrat nepotřebné direktivy using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously (experimental)</source>
-        <target state="translated">Asynchronní přejmenování (experimentální)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="translated">Nahlásit neplatné řetězce JSON</target>

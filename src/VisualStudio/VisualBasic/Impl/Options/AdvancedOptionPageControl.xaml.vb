@@ -74,7 +74,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Balanced_Run_generators_after_saving_or_building, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced)
 
             ' Rename
-            BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.CommitRenameAsynchronously)
             BindToOption(Rename_UI_setting, InlineRenameUIOptionsStorage.UseInlineAdornment, label:=Rename_UI_setting_label)
 
             ' Import directives

@@ -340,9 +340,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Rename As String =
             EditorFeaturesResources.Rename
 
-        Public ReadOnly Property Option_Rename_asynchronously_experimental As String =
-            ServicesVSResources.Rename_asynchronously_experimental
-
         Public ReadOnly Property Where_should_the_rename_UI_be_shown As String =
             ServicesVSResources.Where_should_the_rename_UI_be_shown
 

@@ -1187,11 +1187,6 @@
         <target state="translated">Supprimer les Usings inutiles</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously (experimental)</source>
-        <target state="translated">Renommer de façon asynchrone (expérimentale)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="translated">Signaler les chaînes JSON non valides</target>

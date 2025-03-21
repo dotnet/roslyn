@@ -1696,9 +1696,6 @@ Additional information: {1}</value>
   <data name="Document_Outline_Search" xml:space="preserve">
     <value>Search Document Outline</value>
   </data>
-  <data name="Rename_asynchronously_experimental" xml:space="preserve">
-    <value>Rename asynchronously (experimental)</value>
-  </data>
   <data name="Fix_analyzer_warnings_and_errors" xml:space="preserve">
     <value>Fix analyzer warnings and errors</value>
   </data>

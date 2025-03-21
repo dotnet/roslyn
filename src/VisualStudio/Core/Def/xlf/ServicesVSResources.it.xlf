@@ -1187,11 +1187,6 @@
         <target state="translated">Rimuovi istruzioni using non necessarie</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously (experimental)</source>
-        <target state="translated">Rinomina in modo asincrono (sperimentale)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="translated">Segnala stringhe JSON non valide</target>

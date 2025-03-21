@@ -1187,11 +1187,6 @@
         <target state="translated">删除不必要的 Using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously (experimental)</source>
-        <target state="translated">异步重命名(试验)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="translated">报告无效的 JSON 字符串</target>

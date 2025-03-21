@@ -1187,11 +1187,6 @@
         <target state="translated">Nicht benötigte Using-Direktiven entfernen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously (experimental)</source>
-        <target state="translated">Asynchron umbenennen (experimentell)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="translated">Ungültige JSON-Zeichenfolgen melden</target>

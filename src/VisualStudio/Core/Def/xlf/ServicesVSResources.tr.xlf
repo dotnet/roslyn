@@ -1187,11 +1187,6 @@
         <target state="translated">Gereksiz Kullanımları Kaldır</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously (experimental)</source>
-        <target state="translated">Zaman uyumsuz olarak yeniden adlandırın (deneysel)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="translated">Geçersiz JSON dizelerini bildir</target>
