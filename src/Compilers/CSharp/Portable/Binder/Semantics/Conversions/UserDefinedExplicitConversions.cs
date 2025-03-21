@@ -222,28 +222,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isExplicit ? (isChecked ? WellKnownMemberNames.CheckedExplicitConversionName : WellKnownMemberNames.ExplicitConversionName) : WellKnownMemberNames.ImplicitConversionName,
                 operators);
 
+            var candidates = ArrayBuilder<MethodSymbol>.GetInstance(operators.Count);
+            candidates.AddRange(operators);
+
             if (isExplicit && isChecked)
             {
+                var operators2 = ArrayBuilder<MethodSymbol>.GetInstance();
+                declaringType.AddOperators(WellKnownMemberNames.ExplicitConversionName, operators2);
+
                 // Add regular operators as well.
                 if (operators.IsEmpty)
                 {
-                    declaringType.AddOperators(WellKnownMemberNames.ExplicitConversionName, operators);
+                    candidates.AddRange(operators2);
                 }
                 else
                 {
-                    var originalOperatorCount = operators.Count;
-
-                    var operators2 = ArrayBuilder<MethodSymbol>.GetInstance();
-                    declaringType.AddOperators(WellKnownMemberNames.ExplicitConversionName, operators2);
-
                     foreach (MethodSymbol op2 in operators2)
                     {
                         // Drop operators that have a match among the checked ones.
                         bool add = true;
 
-                        for (var i = 0; i < originalOperatorCount; i++)
+                        foreach (MethodSymbol op in operators)
                         {
-                            if (SourceMemberContainerTypeSymbol.DoOperatorsPair(operators[i], op2))
+                            if (SourceMemberContainerTypeSymbol.DoOperatorsPair(op, op2))
                             {
                                 add = false;
                                 break;
@@ -252,15 +253,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (add)
                         {
-                            operators.Add(op2);
+                            candidates.Add(op2);
                         }
                     }
-
-                    operators2.Free();
                 }
+
+                operators2.Free();
             }
 
-            foreach (MethodSymbol op in operators)
+            foreach (MethodSymbol op in candidates)
             {
                 // We might have a bad operator and be in an error recovery situation. Ignore it.
                 if (op.ReturnsVoid || op.ParameterCount != 1 || op.ReturnType.TypeKind == TypeKind.Error)
@@ -364,6 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             operators.Free();
+            candidates.Free();
         }
 
         private TypeSymbol MostSpecificSourceTypeForExplicitUserDefinedConversion(
