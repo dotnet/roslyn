@@ -80,9 +80,6 @@
                                      Content="{x:Static local:AdvancedOptionPageStrings.Option_Balanced_Run_generators_after_saving_or_building}" />
                         </StackPanel>
                     </StackPanel>
-
-                    <CheckBox x:Name="Analyze_source_generated_files"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
                 </StackPanel>
             </GroupBox>
 

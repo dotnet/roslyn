@@ -27,7 +27,6 @@ public class OptionSerializerTests
             CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
             InheritanceMarginOptionsStorage.ShowInheritanceMargin,
-            SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             CompletionOptionsStorage.ShowNewSnippetExperienceUserOption,
             CompletionOptionsStorage.TriggerOnDeletion,

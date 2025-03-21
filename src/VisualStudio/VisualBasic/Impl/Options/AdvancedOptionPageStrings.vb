@@ -8,20 +8,14 @@ Imports Microsoft.CodeAnalysis.SolutionCrawler
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
-        Public ReadOnly Property Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers As String
-            Get
-                Return BasicVSResources.Automatic_insertion_of_Interface_and_MustOverride_members
-            End Get
-        End Property
+        Public ReadOnly Property Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers As String =
+            BasicVSResources.Automatic_insertion_of_Interface_and_MustOverride_members
 
         Public ReadOnly Property Option_Analysis As String =
             ServicesVSResources.Analysis
 
         Public ReadOnly Property Option_Run_background_code_analysis_for As String =
             ServicesVSResources.Run_background_code_analysis_for_colon
-
-        Public ReadOnly Property Option_analyze_source_generated_files As String =
-             ServicesVSResources.Analyze_source_generated_files
 
         Public ReadOnly Property Option_Background_Analysis_Scope_None As String =
             WorkspacesResources.None

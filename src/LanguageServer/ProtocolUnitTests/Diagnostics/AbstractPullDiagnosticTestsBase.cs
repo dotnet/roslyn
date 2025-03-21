@@ -330,8 +330,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             bool useVSDiagnostics,
             WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer,
             string[]? sourceGeneratedMarkups = null,
-            IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null,
-            bool enableDiagnosticsInSourceGeneratedFiles = true)
+            IEnumerable<DiagnosticAnalyzer>? additionalAnalyzers = null)
         {
             // If no explicit compiler diagnostics scope has been provided, match it with the provided analyzer diagnostics scope
             compilerDiagnosticsScope ??= analyzerDiagnosticsScope switch
@@ -354,7 +353,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                     globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp, compilerDiagnosticsScope.Value);
                     globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic, compilerDiagnosticsScope.Value);
                     globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, InternalLanguageNames.TypeScript, compilerDiagnosticsScope.Value);
-                    globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, enableDiagnosticsInSourceGeneratedFiles);
                 },
                 ServerKind = serverKind,
                 SourceGeneratedMarkups = sourceGeneratedMarkups ?? [],

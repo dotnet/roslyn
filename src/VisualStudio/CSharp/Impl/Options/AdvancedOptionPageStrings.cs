@@ -76,9 +76,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Always_use_default_symbol_servers_for_navigation
             => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
 
-        public static string Option_analyze_source_generated_files
-            => ServicesVSResources.Analyze_source_generated_files;
-
         public static string Option_Inline_Hints
             => EditorFeaturesResources.Inline_Hints;
 
