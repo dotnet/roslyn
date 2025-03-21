@@ -2606,10 +2606,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77741")]
         public void NullableAnalysis_02()
         {
-            // PROTOTYPE(nca): missing a warning on last F.ToString()
-            // This is likely related to a nullable placeholder getting a slot and then the 'F' getting its own slot. Needs more debugging.
+            // Problem: the conditional receiver and its field are getting their own slots.
+            // But, when the assignment '.F = null' is processed, we do look up the slot for 'c' thru 'NullableWalker._lastConditionalAccessSlot'.
+            // Thus the state for 'c.F' gets updated to maybe-null, but the state for '<placeholder>.F' remains not-null.
+            // When we get a slot for RHS of next 'c?.F' expression, we get the slot for '<placeholder>.F', and see the .F as having not-null state.
+            // Thus, the expected warning is missing.
+            // We may want to solve this by ensuring we don't create a slot for the placeholder, and that getting a slot for the placeholder always gives the slot for the original receiver instead.
             var source = """
                 #nullable enable
 
@@ -2628,6 +2633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             var comp = CreateCompilation(source);
+            // Expected warning is missing here. https://github.com/dotnet/roslyn/issues/77741
             comp.VerifyEmitDiagnostics();
         }
 
