@@ -399,7 +399,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_split_comments", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SplitComments")},
         {"csharp_split_string_literal_on_return", new RoamingProfileStorage("TextEditor.CSharp.Specific.SplitStringLiterals")},
         {"visual_studio_open_stack_trace_explorer_on_focus", new RoamingProfileStorage("StackTraceExplorer.Options.OpenOnFocus")},
-        {"visual_studio_enable_document_outline", new RoamingProfileStorage(@"DocumentOutline.Enable")},
         {"visual_studio_document_outline_sort_order", new RoamingProfileStorage(@"DocumentOutline.SortOrder")},
         {"visual_studio_enable_symbol_search", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
         {"dotnet_unsupported_search_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},

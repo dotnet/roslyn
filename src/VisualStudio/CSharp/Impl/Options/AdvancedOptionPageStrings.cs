@@ -382,12 +382,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_UI_as_dashboard_in_top_right
             => ServicesVSResources.Show_UI_as_dashboard_in_top_right;
 
-        public static string Document_Outline
-            => ServicesVSResources.Document_Outline;
-
-        public static string Option_Enable_document_outline_experimental_requires_restart
-            => ServicesVSResources.Enable_document_outline_experimental_requires_restart;
-
         public static string Option_Source_Generators
             => ServicesVSResources.Source_Generators;
 

@@ -172,9 +172,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             // Stack Trace Explorer
             BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsStorage.OpenOnFocus);
-
-            // Document Outline
-            BindToOption(EnableDocumentOutline, DocumentOutlineOptionsStorage.EnableDocumentOutline);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,

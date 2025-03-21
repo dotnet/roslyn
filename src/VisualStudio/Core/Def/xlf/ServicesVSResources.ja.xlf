@@ -87,11 +87,6 @@
         <target state="translated">ナビゲーションに常に既定のシンボル サーバーを使用する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Analyze_source_generated_files">
-        <source>Analyze source generated files</source>
-        <target state="translated">ソース生成ファイルの分析</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">アナライザーの既定値</target>
@@ -365,11 +360,6 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">要素が有効ではありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_document_outline_experimental_requires_restart">
-        <source>Enable document outline (experimental, requires restart)</source>
-        <target state="translated">ドキュメント アウトラインを有効にする (試験段階、再起動が必要)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">

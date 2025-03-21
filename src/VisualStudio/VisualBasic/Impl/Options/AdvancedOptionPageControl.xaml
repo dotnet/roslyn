@@ -347,14 +347,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Include_global_imports}"/>
                 </StackPanel>
             </GroupBox>
-
-            <GroupBox x:Uid="DocumentOutlineGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Document_Outline}">
-                <StackPanel>
-                    <CheckBox x:Uid="EnableDocumentOutline"
-                              x:Name="EnableDocumentOutline"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_document_outline_experimental_requires_restart}" />
-                </StackPanel>
-            </GroupBox>
         </StackPanel>
     </ScrollViewer>
 </options:AbstractOptionPageControl>
