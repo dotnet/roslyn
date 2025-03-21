@@ -93,8 +93,6 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Force execution on background thread.
-            await Task.Yield().ConfigureAwait(false);
             Contract.ThrowIfFalse(project.Solution.Workspace == _workspace);
 
             // Execute force analysis for the project.

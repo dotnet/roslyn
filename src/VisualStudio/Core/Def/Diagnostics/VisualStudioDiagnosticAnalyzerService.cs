@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -203,6 +204,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                     cancellationToken,
                     async (project, cancellationToken) =>
                     {
+                        await TaskScheduler.Default;
                         await _codeAnalysisService.RunAnalysisAsync(project, cancellationToken).ConfigureAwait(false);
                         statusBarUpdater.OnAfterProjectAnalyzed();
                     }).ConfigureAwait(false);
