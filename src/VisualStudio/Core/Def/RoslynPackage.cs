@@ -51,45 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup;
 [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
 internal sealed class RoslynPackage : AbstractPackage
 {
-    // The randomly-generated key name is used for serializing the Background Analysis Scope preference to the .SUO
-    // file. It doesn't have any semantic meaning, but is intended to not conflict with any other extension that
-    // might be saving an "AnalysisScope" named stream to the same file.
-    // note: must be <= 31 characters long
-    private const string BackgroundAnalysisScopeOptionKey = "AnalysisScope-DCE33A29A768";
-    private const byte BackgroundAnalysisScopeOptionVersion = 1;
-
     private static RoslynPackage? s_lazyInstance;
 
     private RuleSetEventHandler? _ruleSetEventHandler;
     private ColorSchemeApplier? _colorSchemeApplier;
     private SolutionEventMonitor? _solutionEventMonitor;
-
-    private BackgroundAnalysisScope? _analysisScope;
-
-    public RoslynPackage()
-    {
-        // We need to register an option in order for OnLoadOptions/OnSaveOptions to be called
-        AddOptionKey(BackgroundAnalysisScopeOptionKey);
-    }
-
-    public BackgroundAnalysisScope? AnalysisScope
-    {
-        get
-        {
-            return _analysisScope;
-        }
-
-        set
-        {
-            if (_analysisScope == value)
-                return;
-
-            _analysisScope = value;
-            AnalysisScopeChanged?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
-    public event EventHandler? AnalysisScopeChanged;
 
     internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
@@ -108,36 +74,6 @@ internal sealed class RoslynPackage : AbstractPackage
         }
 
         return s_lazyInstance;
-    }
-
-    protected override void OnLoadOptions(string key, Stream stream)
-    {
-        if (key == BackgroundAnalysisScopeOptionKey)
-        {
-            if (stream.ReadByte() == BackgroundAnalysisScopeOptionVersion)
-            {
-                var hasValue = stream.ReadByte() == 1;
-                AnalysisScope = hasValue ? (BackgroundAnalysisScope)stream.ReadByte() : null;
-            }
-            else
-            {
-                AnalysisScope = null;
-            }
-        }
-
-        base.OnLoadOptions(key, stream);
-    }
-
-    protected override void OnSaveOptions(string key, Stream stream)
-    {
-        if (key == BackgroundAnalysisScopeOptionKey)
-        {
-            stream.WriteByte(BackgroundAnalysisScopeOptionVersion);
-            stream.WriteByte(AnalysisScope.HasValue ? (byte)1 : (byte)0);
-            stream.WriteByte((byte)AnalysisScope.GetValueOrDefault());
-        }
-
-        base.OnSaveOptions(key, stream);
     }
 
     protected override void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
@@ -231,14 +167,7 @@ internal sealed class RoslynPackage : AbstractPackage
         var persisterProviders = componentModel.GetExtensions<IOptionPersisterProvider>().ToImmutableArray();
 
         foreach (var provider in persisterProviders)
-        {
-            var persister = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
-
-            // Initialize the PackageSettingsPersister to allow it to listen to analysis scope changed
-            // events from this package.
-            if (persister is PackageSettingsPersister packageSettingsPersister)
-                packageSettingsPersister.Initialize(this);
-        }
+            await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
     }
 
     protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
