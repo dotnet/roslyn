@@ -25,6 +25,13 @@
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="Microsoft.DiaSymReader" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="Microsoft.Extensions.Logging" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="Microsoft.Extensions.Options" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Buffers" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.CodeDom" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
@@ -42,12 +49,18 @@
     <PackageReference Include="System.Composition.TypedParts" IncludeInVsix="true" PkgDefEntry="BindingRedirect" VersionOverride="$(SystemCompositionVersion)" />
     
     <PackageReference Include="System.Drawing.Common" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="System.Diagnostics.EventLog" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="System.IO.Hashing" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.IO.Pipelines" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Memory" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Reflection.Metadata" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Resources.Extensions" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="System.Security.Permissions" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Text.Encoding.CodePages" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="System.Text.Encodings.Web" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Text.Json" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Threading.Channels" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
