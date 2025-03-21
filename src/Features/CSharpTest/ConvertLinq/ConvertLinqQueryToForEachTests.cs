@@ -2686,7 +2686,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
         await TestInRegularAndScriptAsync(source, output);
     }
 
-    [Fact(Skip = "PROTOTYPE(nca): test break is likely caused by parsing change")]
+    [Fact]
     public async Task NullablePropertyAssignmentInInvocation()
     {
         var source = """
