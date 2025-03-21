@@ -207,14 +207,8 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                     cancellationToken,
                     async (project, cancellationToken) =>
                     {
-                        try
-                        {
-                            await _codeAnalysisService.RunAnalysisAsync(project, cancellationToken).ConfigureAwait(false);
-                        }
-                        finally
-                        {
-                            statusBarUpdater.OnAfterProjectAnalyzed();
-                        }
+                        await _codeAnalysisService.RunAnalysisAsync(project, cancellationToken).ConfigureAwait(false);
+                        statusBarUpdater.OnAfterProjectAnalyzed();
                     }).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
