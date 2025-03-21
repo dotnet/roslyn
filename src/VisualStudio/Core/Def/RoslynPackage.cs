@@ -47,8 +47,6 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.Setup;
 
 [Guid(Guids.RoslynPackageIdString)]
-
-// The option page configuration is duplicated in PackageRegistration.pkgdef
 [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
 [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
 internal sealed class RoslynPackage : AbstractPackage
@@ -142,48 +140,65 @@ internal sealed class RoslynPackage : AbstractPackage
         base.OnSaveOptions(key, stream);
     }
 
-    protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+    protected override void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+        base.RegisterInitializationWork(packageRegistrationTasks);
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
+    }
 
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // Ensure the options persisters are loaded since we have to fetch options from the shell
-        LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();
-
-        await InitializeColorsAsync(cancellationToken).ConfigureAwait(true);
-
-        // load some services that have to be loaded in UI thread
-        LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
+    private Task PackageInitializationBackgroundThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
+    {
+        _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
+        _colorSchemeApplier.RegisterInitializationWork(packageRegistrationTasks);
 
         // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
         var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
         Assumes.Present(globalNotificationService);
 
-        _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
-        TrackBulkFileOperations(globalNotificationService);
-
         var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
-        RegisterEditorFactory(settingsEditorFactory);
 
-        // Misc workspace has to be up and running by the time our package is usable so that it can track running
-        // doc events and appropriately map files to/from it and other relevant workspaces (like the
-        // metadata-as-source workspace).
-        await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync().ConfigureAwait(false);
+        packageRegistrationTasks.AddTask(
+            isMainThreadTask: true,
+            task: async (progress, packageRegistrationTasks, cancellationToken) =>
+            {
+                _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
+                TrackBulkFileOperations(globalNotificationService);
 
-        // Proffer in-process service broker services
-        var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(this.JoinableTaskFactory).ConfigureAwait(false);
+                RegisterEditorFactory(settingsEditorFactory);
 
-        serviceBrokerContainer.Proffer(
-            WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
-            (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
+                // Proffer in-process service broker services
+                var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(this.JoinableTaskFactory).ConfigureAwait(false);
 
-        // Must be profferred before any C#/VB projects are loaded and the corresponding UI context activated.
-        serviceBrokerContainer.Proffer(
-            ManagedHotReloadLanguageServiceDescriptor.Descriptor,
-            (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
+                serviceBrokerContainer.Proffer(
+                    WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
+                    (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
+
+                // Must be profferred before any C#/VB projects are loaded and the corresponding UI context activated.
+                serviceBrokerContainer.Proffer(
+                    ManagedHotReloadLanguageServiceDescriptor.Descriptor,
+                    (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
+
+                // Misc workspace has to be up and running by the time our package is usable so that it can track running
+                // doc events and appropriately map files to/from it and other relevant workspaces (like the
+                // metadata-as-source workspace).
+                var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+            });
+
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
+    {
+        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+        // Ensure the options persisters are loaded since we have to fetch options from the shell
+        LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();
+
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        // load some services that have to be loaded in UI thread
+        LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
     }
 
     private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
@@ -206,13 +221,6 @@ internal sealed class RoslynPackage : AbstractPackage
             if (persister is PackageSettingsPersister packageSettingsPersister)
                 packageSettingsPersister.Initialize(this);
         }
-    }
-
-    private async Task InitializeColorsAsync(CancellationToken cancellationToken)
-    {
-        await TaskScheduler.Default;
-        _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
-        await _colorSchemeApplier.InitializeAsync(cancellationToken).ConfigureAwait(false);
     }
 
     protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
