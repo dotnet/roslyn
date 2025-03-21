@@ -246,6 +246,9 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             int totalProjectCount,
             CancellationToken cancellationToken)
         {
+            if (statusBar is null)
+                return;
+
             var threadingContext = service._threadingContext;
 
             var statusMessageWhileRunning = string.Format(ServicesVSResources.Running_code_analysis_for_0, progressName);
@@ -255,20 +258,18 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             // Set the initial status bar progress and text.
 
             uint statusBarCookie = 0;
-            if (statusBar != null)
-            {
-                UpdateStatusBar();
 
-                _progressTracker = new(
-                    DelayTimeSpan.Medium,
-                    async cancellationToken =>
-                    {
-                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        UpdateStatusBar();
-                    },
-                    service._listener,
-                    cancellationToken);
-            }
+            UpdateStatusBar();
+
+            _progressTracker = new(
+                DelayTimeSpan.Medium,
+                async cancellationToken =>
+                {
+                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    UpdateStatusBar();
+                },
+                service._listener,
+                cancellationToken);
 
             return;
 
