@@ -825,6 +825,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: false, diagnostics);
             }
 
+            Debug.Assert(elementType is { });
+
             var syntax = node.Syntax;
             if (LocalRewriter.IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType, Compilation))
             {
@@ -879,7 +881,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
                 {
-                    Debug.Assert(elementType is { });
                     var indexer = GetCollectionExpressionApplicableIndexer(syntax, targetType, elementType, diagnostics);
                     setMethod = indexer?.GetOwnOrInheritedSetMethod();
                     Debug.Assert(setMethod is { });
@@ -1026,7 +1027,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCollectionExpression(
                 syntax,
                 collectionTypeKind,
-                elementType,
                 implicitReceiver,
                 collectionCreation,
                 collectionBuilderSpanPlaceholder,
@@ -2100,7 +2100,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCollectionExpression(
                 syntax,
                 collectionTypeKind: CollectionExpressionTypeKind.None,
-                elementType: null,
                 placeholder: null,
                 collectionCreation: null,
                 collectionBuilderSpanPlaceholder: null,

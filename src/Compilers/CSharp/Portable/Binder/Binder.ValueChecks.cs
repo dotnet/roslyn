@@ -4522,11 +4522,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            switch (expr.CollectionTypeKind)
+            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(_compilation, expr.Type, out var elementType);
+
+            switch (collectionTypeKind)
             {
                 case CollectionExpressionTypeKind.ReadOnlySpan:
-                    Debug.Assert(expr.ElementType is { });
-                    return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, expr.ElementType);
+                    Debug.Assert(elementType.Type is { });
+                    return !LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(expr, elementType.Type);
                 case CollectionExpressionTypeKind.Span:
                     return true;
                 case CollectionExpressionTypeKind.CollectionBuilder:
@@ -4541,7 +4543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Error cases. Restrict the collection to local scope.
                     return true;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(expr.CollectionTypeKind); // ref struct collection type with unexpected type kind
+                    throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
             }
         }
 

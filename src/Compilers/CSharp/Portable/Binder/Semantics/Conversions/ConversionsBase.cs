@@ -1657,7 +1657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out CollectionExpressionTypeKind collectionTypeKind,
             out TypeWithAnnotations elementTypeWithAnnotations)
         {
-            collectionTypeKind = GetCollectionExpressionTypeKindCore(binder.Compilation, targetType, out elementTypeWithAnnotations);
+            collectionTypeKind = GetCollectionExpressionTypeKind(binder.Compilation, targetType, out elementTypeWithAnnotations);
             if (collectionTypeKind == CollectionExpressionTypeKind.None)
             {
                 return false;
@@ -1687,18 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        /// <summary>
-        /// Returns <see cref="CollectionExpressionTypeKind"/> for the target type based on the type signature only,
-        /// without inspecting members, and independent of any binding context. As a result, this method does not
-        /// differentiate between <see cref="CollectionExpressionTypeKind.ImplementsIEnumerable"/> and
-        /// <see cref="CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer"/>, and <paramref name="elementType"/>
-        /// is not set in all cases. This is intended for internal use only; other callers should use
-        /// <see cref="TryGetCollectionExpressionTypeKind(Binder, SyntaxNode, TypeSymbol, out CollectionExpressionTypeKind, out TypeWithAnnotations)"/>
-        /// </summary>
-        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKindCore(
-            CSharpCompilation compilation,
-            TypeSymbol destination,
-            out TypeWithAnnotations elementType)
+        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeWithAnnotations elementType)
         {
             Debug.Assert(compilation is { });
 
