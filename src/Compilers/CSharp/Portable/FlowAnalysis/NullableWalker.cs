@@ -592,6 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
                 }
+                // PROTOTYPE should register the extension parameter
 
                 makeNotNullMembersMaybeNull();
                 // We need to create a snapshot even of the first node, because we want to have the state of the initial parameters.

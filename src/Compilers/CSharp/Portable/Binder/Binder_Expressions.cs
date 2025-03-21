@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (memberOpt?.GetIsNewExtensionMember() == true)
+            {
+                return false;
+            }
+
             var containingType = memberOpt?.ContainingType;
             bool inTopLevelScriptMember = (object)containingType != null && containingType.IsScriptClass;
 

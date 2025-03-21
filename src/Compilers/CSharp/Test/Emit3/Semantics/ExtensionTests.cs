@@ -2640,21 +2640,28 @@ public static class Extensions
         var src = """
 public static class Extensions
 {
-    extension(out int i) { }
+    extension(out int i)
+    {
+        void M2() { }
+        static void M3() { }
+    }
     static void M(this out int i) { }
 }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (3,15): error CS8328:  The parameter modifier 'out' cannot be used with 'extension'
-            //     extension(out int i) { }
+            //     extension(out int i)
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "extension").WithLocation(3, 15),
-            // (4,17): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+            // (5,14): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+            //         void M2() { }
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "M2").WithArguments("i").WithLocation(5, 14),
+            // (8,17): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
             //     static void M(this out int i) { }
-            Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("i").WithLocation(4, 17),
-            // (4,24): error CS8328:  The parameter modifier 'out' cannot be used with 'this'
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("i").WithLocation(8, 17),
+            // (8,24): error CS8328:  The parameter modifier 'out' cannot be used with 'this'
             //     static void M(this out int i) { }
-            Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(4, 24));
+            Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(8, 24));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -2698,6 +2705,60 @@ public static class Extensions
             // (3,19): error CS8328:  The parameter modifier 'out' cannot be used with 'extension'
             //     extension(out out int i) { }
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "extension").WithLocation(3, 19));
+    }
+
+    [Fact]
+    public void ReceiverParameter_Out_04()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(out int i)
+    {
+        void M2(bool b) { if (b) return; else return; }
+    }
+    static void M(this out int i, bool b) { if (b) return; else return; }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS8328:  The parameter modifier 'out' cannot be used with 'extension'
+            //     extension(out int i)
+            Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "extension").WithLocation(3, 15),
+            // (5,34): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+            //         void M2(bool b) { if (b) return; else return; }
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("i").WithLocation(5, 34),
+            // (5,47): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+            //         void M2(bool b) { if (b) return; else return; }
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("i").WithLocation(5, 47),
+            // (7,24): error CS8328:  The parameter modifier 'out' cannot be used with 'this'
+            //     static void M(this out int i, bool b) { if (b) return; else return; }
+            Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(7, 24),
+            // (7,52): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+            //     static void M(this out int i, bool b) { if (b) return; else return; }
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("i").WithLocation(7, 52),
+            // (7,65): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+            //     static void M(this out int i, bool b) { if (b) return; else return; }
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("i").WithLocation(7, 65));
+    }
+
+    [Fact]
+    public void ReceiverParameter_Out_05()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(out int i)
+    {
+        void M2(bool b) { i = 0; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS8328:  The parameter modifier 'out' cannot be used with 'extension'
+            //     extension(out int i)
+            Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "extension").WithLocation(3, 15));
     }
 
     [Fact]
@@ -15948,12 +16009,9 @@ static class E
     public static ref string M(this ref string s) => ref s;
 }
 """;
-        // PROTOTYPE unexpected definite assignment error and missing error on extension parameter
+        // PROTOTYPE missing error on extension parameter
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (12,36): error CS0165: Use of unassigned local variable 's'
-            //         public ref string f => ref s;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(12, 36),
             // (15,30): error CS8337: The first parameter of a 'ref' extension method 'M' must be a value type or a generic type constrained to struct.
             //     public static ref string M(this ref string s) => ref s;
             Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "M").WithArguments("M").WithLocation(15, 30));
@@ -28401,5 +28459,594 @@ _ = object.P;
                 AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
             }
         }
+    }
+
+    [Fact]
+    public void This_01()
+    {
+        var src = """
+static class E
+{
+    extension(object)
+    {
+        public void M()
+        {
+            var x = this;
+            this.ToString();
+            local();
+
+            void local()
+            {
+                var y = this;
+            }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,21): error CS0027: Keyword 'this' is not available in the current context
+            //             var x = this;
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(7, 21),
+            // (8,13): error CS0027: Keyword 'this' is not available in the current context
+            //             this.ToString();
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(8, 13),
+            // (13,25): error CS0027: Keyword 'this' is not available in the current context
+            //                 var y = this;
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(13, 25));
+    }
+
+    [Fact]
+    public void This_02()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void M()
+        {
+            M2();
+            this.M2();
+            M2(new object());
+        }
+        public void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'E.M2(object)'
+            //             M2();
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("o", "E.M2(object)").WithLocation(7, 13),
+            // (8,13): error CS0027: Keyword 'this' is not available in the current context
+            //             this.M2();
+            Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(8, 13));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+
+        invocation = GetSyntax<InvocationExpressionSyntax>(tree, "this.M2()");
+        Assert.Equal("void E.<>E__0.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+        invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2(new object())");
+        Assert.Equal("void E.M2(this System.Object o)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void This_03()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public static void M()
+        {
+            M2();
+        }
+        public void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'E.M2(object)'
+            //             M2();
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("o", "E.M2(object)").WithLocation(7, 13));
+    }
+
+    [Fact]
+    public void This_04()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void M()
+        {
+            M2();
+        }
+        public static void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "M2()");
+        Assert.Equal("void E.M2()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ReceiverParameter_Access_01()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void M()
+        {
+            o.M2();
+        }
+        public void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ReceiverParameter_Access_02()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void M()
+        {
+            o.M2();
+        }
+        public static void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS0176: Member 'E.extension(object).M2()' cannot be accessed with an instance reference; qualify it with a type name instead
+            //             o.M2();
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "o.M2").WithArguments("E.extension(object).M2()").WithLocation(7, 13));
+    }
+
+    [Fact]
+    public void ReceiverParameter_Access_03()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public static void M()
+        {
+            o.M2();
+        }
+        public void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS9512: Cannot use extension parameter 'object o' in this context.
+            //             o.M2();
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(7, 13));
+    }
+
+    [Fact]
+    public void ReceiverParameter_Access_04()
+    {
+        var src = """
+static class E
+{
+    extension(object o)
+    {
+        public void M()
+        {
+            local();
+            void local()
+            {
+                o.M2();
+            }
+        }
+        public void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ReceiverParameter_Access_05()
+    {
+        var src = """
+static class E
+{
+    extension(object o, object o2)
+    {
+        public void M()
+        {
+            o2.ToString();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,25): error CS9504: An extension container can have only one receiver parameter
+            //     extension(object o, object o2)
+            Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "object o2").WithLocation(3, 25),
+            // (7,13): error CS0103: The name 'o2' does not exist in the current context
+            //             o2.ToString();
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "o2").WithArguments("o2").WithLocation(7, 13));
+    }
+
+    [Fact]
+    public void ReceiverParameter_Access_06()
+    {
+        var src = """
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public async void M()
+        {
+            s.ToString();
+            await System.Threading.Tasks.Task.Yield();
+            s.ToString();
+        }
+    }
+}
+""";
+        // PROTOTYPE we should produce this error instead:
+        // error CS4012: Parameters of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+            //             s.ToString();
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s").WithArguments("System.Span<int>").WithLocation(7, 13),
+            // (9,13): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+            //             s.ToString();
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s").WithArguments("System.Span<int>").WithLocation(9, 13));
+    }
+
+    public partial class RegionAnalysisTests : FlowTestBase
+    {
+        // PROTOTYPE consider removing `this` from the region analysis tests
+        [Fact]
+        public void RegionAnalysis_01()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression("""
+static class E
+{
+    extension(int i)
+    {
+        public void M(int i2)
+        {
+            _ = /*<bind>*/i + i2/*</bind>*/;
+        }
+    }
+}
+""");
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned:
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn: i, i2
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside: i, i2
+ReadOutside:
+WrittenInside:
+WrittenOutside: i, this, i2
+""", analysisResults);
+        }
+
+        [Fact]
+        public void RegionAnalysis_02()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression("""
+static class E
+{
+    extension(int i)
+    {
+        public void M(int i2)
+        {
+            /*<bind>*/this.ToString()/*</bind>*/;
+        }
+    }
+}
+""");
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned:
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn: this
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside: this
+ReadOutside:
+WrittenInside:
+WrittenOutside: i, this, i2
+""", analysisResults);
+        }
+
+        [Fact]
+        public void RegionAnalysis_03()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression("""
+static class E
+{
+    extension(int i)
+    {
+        public void M(int i2)
+        {
+            int i3 = 0;
+/*<bind>*/
+            System.Action<int> = () => i + i2 + i3;
+/*</bind>*/
+        }
+    }
+}
+""");
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned:
+Captured: i, i2, i3
+CapturedInside: i, i2, i3
+CapturedOutside:
+DataFlowsIn: i, i2, i3
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, this, i2, i3
+DefinitelyAssignedOnExit: i, this, i2, i3
+ReadInside: i, i2, i3
+ReadOutside:
+WrittenInside:
+WrittenOutside: i, this, i2, i3
+""", analysisResults);
+        }
+
+        [Fact]
+        public void RegionAnalysis_04()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression("""
+static class E
+{
+    extension(ref int i)
+    {
+        public void M(ref int i2)
+        {
+            _ = /*<bind>*/i + i2/*</bind>*/;
+        }
+    }
+}
+""");
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned:
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn: i, i2
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside: i, i2
+ReadOutside: i, i2
+WrittenInside:
+WrittenOutside: i, this, i2
+""", analysisResults);
+        }
+
+        [Fact]
+        public void RegionAnalysis_05()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression("""
+static class E
+{
+    extension(out int i)
+    {
+        public void M(out int i2)
+        {
+            /*<bind>*/i = i2 = 0;/*</bind>*/
+        }
+    }
+}
+""");
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned: i, i2
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn:
+DataFlowsOut: i, i2
+DefinitelyAssignedOnEntry: this
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside:
+ReadOutside: i, i2
+WrittenInside: i, i2
+WrittenOutside: this
+""", analysisResults);
+        }
+
+        [Fact]
+        public void RegionAnalysis_06()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression("""
+static class E
+{
+    extension(int i)
+    {
+        public void M(int i2)
+        {
+            /*<bind>*/i = i2 = 0;/*</bind>*/
+        }
+    }
+}
+""");
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned: i, i2
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn:
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside:
+ReadOutside:
+WrittenInside: i, i2
+WrittenOutside: i, this, i2
+""", analysisResults);
+        }
+
+        [Fact]
+        public void RegionAnalysis_07()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression("""
+static class E
+{
+    extension(ref int i)
+    {
+        public void M(ref int i2)
+        {
+            /*<bind>*/i = ref i2;/*</bind>*/
+        }
+    }
+}
+""");
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned: i
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn: i2
+DataFlowsOut: i, i2
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside: i2
+ReadOutside: i, i2
+WrittenInside: i, i2
+WrittenOutside: i, this, i2
+""", analysisResults);
+        }
+
+        [Fact]
+        public void RegionAnalysis_08()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression("""
+static class E
+{
+    extension(int i)
+    {
+        public void M(int i2)
+        {
+            void local(int i3)
+            {
+                _ = /*<bind>*/i + i2 + i3/*</bind>*/;
+            }
+        }
+    }
+}
+""");
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned:
+Captured: i, i2
+CapturedInside: i, i2
+CapturedOutside:
+DataFlowsIn: i3
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, this, i2, i3
+DefinitelyAssignedOnExit: i, this, i2, i3
+ReadInside: i, i2, i3
+ReadOutside:
+WrittenInside:
+WrittenOutside: i, this, i2, i3
+""", analysisResults);
+        }
+
+        [Fact]
+        public void RegionAnalysis_09()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression("""
+static class E
+{
+    extension(out int i)
+    {
+        public void M(out int i2)
+        {
+            void local(out int i3)
+            {
+                /*<bind>*/i = i2 = i3 = 0;/*</bind>*/
+            }
+        }
+    }
+}
+""");
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned: i, i2, i3
+Captured: i, i2
+CapturedInside: i, i2
+CapturedOutside:
+DataFlowsIn:
+DataFlowsOut: i, i2, i3
+DefinitelyAssignedOnEntry: this
+DefinitelyAssignedOnExit: i, this, i2, i3
+ReadInside:
+ReadOutside: i, i2, i3
+WrittenInside: i, i2, i3
+WrittenOutside: this
+""", analysisResults);
+        }
+    }
+
+    [Fact]
+    public void Base_01()
+    {
+        var src = """
+static class E
+{
+    extension(object)
+    {
+        public void M()
+        {
+            base.ToString();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS1512: Keyword 'base' is not available in the current context
+            //             base.ToString();
+            Diagnostic(ErrorCode.ERR_BaseInBadContext, "base").WithLocation(7, 13));
     }
 }

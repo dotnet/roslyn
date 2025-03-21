@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Property:
                     return member.ContainingSymbol is TypeSymbol { IsExtension: true };
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                    return false;
             }
         }
 

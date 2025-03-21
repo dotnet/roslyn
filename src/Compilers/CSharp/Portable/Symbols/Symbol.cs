@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -1740,6 +1739,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(variable.Kind);
+            }
+
+            if (containingSymbol.GetIsNewExtensionMember()
+                && variable is ParameterSymbol { ContainingSymbol: TypeSymbol { IsExtension: true } })
+            {
+                // An extension member doesn't capture the extension parameter
+                return false;
             }
 
             // Walk up the containing symbols until we find the target function, in which
