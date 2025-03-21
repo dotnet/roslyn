@@ -204,8 +204,6 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
                     cancellationToken,
                     async (project, cancellationToken) =>
                     {
-                        // Force execution on background thread.
-                        await TaskScheduler.Default;
                         await _codeAnalysisService.RunAnalysisAsync(project, cancellationToken).ConfigureAwait(false);
                         statusBarUpdater.OnAfterProjectAnalyzed();
                     }).ConfigureAwait(false);
