@@ -21872,6 +21872,22 @@ static class Extensions
     {
         static int T => T;
     }
+
+    extension<get_P>(C6<get_P> p)
+    {
+        int P => 0;
+    }
+
+    extension<get_Indexer>(C7<get_Indexer> p)
+    {
+        [System.Runtime.CompilerServices.IndexerName("Indexer")]
+        int this[int x] => 0;
+    }
+
+    extension<get_Item>(C8<get_Item> p)
+    {
+        int this[int x] => 0;
+    }
 }
 
 class C1<T> {} 
@@ -21879,6 +21895,9 @@ class C2<T> {}
 class C3<T> {} 
 class C4<T> {} 
 class C5<T> {} 
+class C6<T> {} 
+class C7<T> {} 
+class C8<T> {} 
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
@@ -21960,6 +21979,22 @@ static class Extensions
                 return 0;
             }
         }
+    }
+
+    extension(int[] get_P)
+    {
+        int P => 0;
+    }
+
+    extension(long[] get_Indexer)
+    {
+        [System.Runtime.CompilerServices.IndexerName("Indexer")]
+        int this[int x] => 0;
+    }
+
+    extension(byte[] get_Item)
+    {
+        int this[int x] => 0;
     }
 }
 """;
@@ -22077,6 +22112,7 @@ static class Extensions
         void M2(int p){}
         static void M3(int p){}
         int this[int p] => 0;
+        void M3(int p2, int p2) {}
     }
 }
 """;
@@ -22091,7 +22127,10 @@ static class Extensions
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(6, 28),
             // (7,22): error CS9509: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         int this[int p] => 0;
-            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(7, 22)
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(7, 22),
+            // (8,29): error CS0100: The parameter name 'p2' is a duplicate
+            //         void M3(int p2, int p2) {}
+            Diagnostic(ErrorCode.ERR_DuplicateParamName, "p2").WithArguments("p2").WithLocation(8, 29)
             );
     }
 
@@ -22849,6 +22888,46 @@ static class Extensions
             // (6,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
             //         int M2(int x = p)
             Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p").WithArguments("x").WithLocation(6, 24)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void ReceiverParameterScope_11_InNestedType(bool isStatic)
+    {
+        var modifier = isStatic ? "static" : "";
+
+        var src = @"
+static class Extensions
+{
+    extension(int p)
+    {
+        class Nested
+        {
+            " + modifier + @"
+            int M2()
+            {
+                return p;
+            }
+
+            " + modifier + @"
+            string M3()
+            {
+                return nameof(p);
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics(
+            // (6,15): error CS9501: Extension declarations can include only methods or properties
+            //         class Nested
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(6, 15),
+            // (11,24): error CS9512: Cannot use extension parameter 'int p' in this context.
+            //                 return p;
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(11, 24)
             );
     }
 
@@ -27483,6 +27562,34 @@ public static class E
         AssertEqualAndNoDuplicates([.. _objectMembers], model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         Assert.Empty(model.LookupNamespacesAndTypes(position: 0, o, name: null));
+    }
+
+    [Fact]
+    public void LookupSymbols_ExtensionParameter()
+    {
+        var src = """
+public static class E
+{
+    extension(object o)
+    {
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+
+        int position = extension.OpenBraceToken.EndPosition;
+        AssertEqualAndNoDuplicates(["System.Object o"], model.LookupSymbols(position, null, name: "o").ToTestDisplayStrings());
+        AssertEx.Equal("System.Object o", model.LookupSymbols(position, null, name: null).OfType<IParameterSymbol>().Single().ToTestDisplayString());
+        Assert.Empty(model.LookupNamespacesAndTypes(position, null, name: "o"));
+
+        position = extension.OpenBraceToken.Position;
+        Assert.Empty(model.LookupSymbols(position, null, name: "o"));
+        Assert.Empty(model.LookupSymbols(position, null, name: null).OfType<IParameterSymbol>());
     }
 
     [Fact]

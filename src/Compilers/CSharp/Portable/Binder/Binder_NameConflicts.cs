@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (tp.ContainingSymbol is NamedTypeSymbol { IsExtension: true })
                         {
-                            if (p.ContainingSymbol != (object)tp.ContainingSymbol)
+                            if (p.ContainingSymbol != (object)tp.ContainingSymbol) // Otherwise, SynthesizedExtensionMarker is going to report an error about this conflict
                             {
                                 diagnostics.Add(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, GetLocation(p), name);
                             }
