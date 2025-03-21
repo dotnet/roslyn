@@ -57,7 +57,7 @@ internal sealed partial class ColorSchemeApplier
             threadingContext.DisposalToken);
     }
 
-    public void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
+    public void RegisterInitializationWork(PackageLoadTasks packageInitializationTasks)
     {
         lock (_gate)
         {
@@ -67,10 +67,10 @@ internal sealed partial class ColorSchemeApplier
             _isInitialized = true;
         }
 
-        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
+        packageInitializationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
     }
 
-    private async Task PackageInitializationBackgroundThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
+    private async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
     {
         var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
 
