@@ -78,7 +78,7 @@
     <MicrosoftExtensionsOptionsConfigurationExtensionVersion>8.0.0</MicrosoftExtensionsOptionsConfigurationExtensionVersion>
     <MicrosoftExtensionsOptionsVersion>9.0.0</MicrosoftExtensionsOptionsVersion>
     <MicrosoftExtensionsPrimitivesVersion>9.0.0</MicrosoftExtensionsPrimitivesVersion>
-    <MicrosoftVSSDKBuildToolsVersion>17.9.3137-preview3</MicrosoftVSSDKBuildToolsVersion>
+    <MicrosoftVSSDKBuildToolsVersion>17.14.1043-preview2</MicrosoftVSSDKBuildToolsVersion>
     <vswhereVersion>2.4.1</vswhereVersion>
     <!--
       MicrosoftDevDivOptimizationDataPowerShellVersion and NewtonsoftJsonVersion are used in eng/InternalTools.props. The file is an extensibility port from eng/common/internal/Tools.csproj (managed by Arcade)
