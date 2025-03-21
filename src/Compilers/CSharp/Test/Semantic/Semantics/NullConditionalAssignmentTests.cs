@@ -2609,6 +2609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void NullableAnalysis_02()
         {
             // PROTOTYPE(nca): missing a warning on last F.ToString()
+            // This is likely related to a nullable placeholder getting a slot and then the 'F' getting its own slot. Needs more debugging.
             var source = """
                 #nullable enable
 
@@ -2630,7 +2631,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics();
         }
 
-        // TODO2: 'a?.B = a.C; should not warn for a.C' and so on
+        [Fact]
+        public void NullableAnalysis_03()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                class C
+                {
+                    string? F;
+
+                    static void M(C? c)
+                    {
+                        c?.F = c.F;
+                        Console.Write(c?.F ?? "<null>");
+                    }
+
+                    static void Main()
+                    {
+                        M(new C() { F = "a" });
+                        M(null);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "a<null>");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_04()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string? F = null;
+
+                    static void M(C? c1, C c2)
+                    {
+                        c1?.F! = "a"; // 1
+                        c2.F! = "a"; // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,12): error CS8598: The suppression operator is not allowed in this context
+                //         c1?.F! = "a"; // 1
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, ".F").WithLocation(9, 12),
+                // (10,9): error CS8598: The suppression operator is not allowed in this context
+                //         c2.F! = "a"; // 2
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c2.F").WithLocation(10, 9));
+        }
 
         [Fact]
         public void IncrementDecrement_01()
@@ -2658,6 +2712,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,11): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
                 //         --c?.F;
                 Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "c?.F").WithLocation(7, 11));
+        }
+
+        [Fact(Skip = "TODO2")]
+        public void ControlFlowGraph_01()
+        {
+            var source = """
+                // TODO2: sample with a?.b = c
+                """;
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single();
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+// TODO2: CFG goes here
+""",
+                graph, symbol);
         }
     }
 }
