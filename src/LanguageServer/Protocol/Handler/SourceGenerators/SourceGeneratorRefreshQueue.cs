@@ -129,17 +129,7 @@ internal sealed class SourceGeneratorRefreshQueue :
             return ValueTaskFactory.CompletedTask;
         }
 
-        try
-        {
-            return _notificationManager.SendNotificationAsync(RefreshSourceGeneratedDocumentName, cancellationToken);
-        }
-        catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
-        {
-            // It is entirely possible that we're shutting down and the connection is lost while we're trying to send a notification
-            // as this runs outside of the guaranteed ordering in the queue. We can safely ignore this exception.
-        }
-
-        return ValueTaskFactory.CompletedTask;
+        return _notificationManager.SendNotificationAsync(RefreshSourceGeneratedDocumentName, cancellationToken);
     }
 
     public void Dispose()
