@@ -368,7 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter))
+            ParameterSymbol extensionParameter = null;
+            if (TryGetInstanceExtensionParameter(out extensionParameter))
             {
                 EnterParameter(extensionParameter);
             }
@@ -383,6 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LeaveParameters(methodParameters, null, location);
                 if ((object)methodThisParameter != null) LeaveParameter(methodThisParameter, null, location);
+                if ((object)extensionParameter != null) LeaveParameter(extensionParameter, null, location);
 
                 var savedState = this.State;
                 foreach (PendingBranch returnBranch in pendingReturns)
@@ -390,6 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.State = returnBranch.State;
                     LeaveParameters(methodParameters, returnBranch.Branch.Syntax, null);
                     if ((object)methodThisParameter != null) LeaveParameter(methodThisParameter, returnBranch.Branch.Syntax, null);
+                    if ((object)extensionParameter != null) LeaveParameter(extensionParameter, returnBranch.Branch.Syntax, null);
                     Join(ref savedState, ref this.State);
                 }
 

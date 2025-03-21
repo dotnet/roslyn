@@ -2652,6 +2652,9 @@ public static class Extensions
             // (3,15): error CS8328:  The parameter modifier 'out' cannot be used with 'extension'
             //     extension(out int i)
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "extension").WithLocation(3, 15),
+            // (5,14): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+            //         void M2() { }
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "M2").WithArguments("i").WithLocation(5, 14),
             // (7,17): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
             //     static void M(this out int i) { }
             Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("i").WithLocation(7, 17),
@@ -2701,6 +2704,60 @@ public static class Extensions
             // (3,19): error CS8328:  The parameter modifier 'out' cannot be used with 'extension'
             //     extension(out out int i) { }
             Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "extension").WithLocation(3, 19));
+    }
+
+    [Fact]
+    public void ReceiverParameter_Out_04()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(out int i)
+    {
+        void M2(bool b) { if (b) return; else return; }
+    }
+    static void M(this out int i, bool b) { if (b) return; else return; }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS8328:  The parameter modifier 'out' cannot be used with 'extension'
+            //     extension(out int i)
+            Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "extension").WithLocation(3, 15),
+            // (5,34): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+            //         void M2(bool b) { if (b) return; else return; }
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("i").WithLocation(5, 34),
+            // (5,47): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+            //         void M2(bool b) { if (b) return; else return; }
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("i").WithLocation(5, 47),
+            // (7,24): error CS8328:  The parameter modifier 'out' cannot be used with 'this'
+            //     static void M(this out int i, bool b) { if (b) return; else return; }
+            Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "this").WithLocation(7, 24),
+            // (7,52): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+            //     static void M(this out int i, bool b) { if (b) return; else return; }
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("i").WithLocation(7, 52),
+            // (7,65): error CS0177: The out parameter 'i' must be assigned to before control leaves the current method
+            //     static void M(this out int i, bool b) { if (b) return; else return; }
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "return;").WithArguments("i").WithLocation(7, 65));
+    }
+
+    [Fact]
+    public void ReceiverParameter_Out_05()
+    {
+        var src = """
+public static class Extensions
+{
+    extension(out int i)
+    {
+        void M2(bool b) { i = 0; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS8328:  The parameter modifier 'out' cannot be used with 'extension'
+            //     extension(out int i)
+            Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "extension").WithLocation(3, 15));
     }
 
     [Fact]
@@ -15951,6 +16008,7 @@ static class E
     public static ref string M(this ref string s) => ref s;
 }
 """;
+        // PROTOTYPE missing error on extension parameter
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (15,30): error CS8337: The first parameter of a 'ref' extension method 'M' must be a value type or a generic type constrained to struct.
@@ -28455,7 +28513,6 @@ static class E
     }
 }
 """;
-        // PROTOTYPE confirm expectations
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'E.M2(object)'
@@ -28586,9 +28643,9 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,13): error CS0103: The name 'o' does not exist in the current context
+            // (7,13): error CS9512: Cannot use extension parameter 'object o' in this context.
             //             o.M2();
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(7, 13));
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(7, 13));
     }
 
     [Fact]
