@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
@@ -25,15 +24,40 @@ internal abstract class AbstractPackage : AsyncPackage
         }
     }
 
-    protected virtual void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
+    /// This method is called upon package creation and is the mechanism by which roslyn packages calculate and
+    /// process all package initialization work. Do not override this sealed method, instead override RegisterOnAfterPackageLoadedAsyncWork
+    /// to indicate the work your package needs upon initialization.
+    protected sealed override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        => RegisterAndProcessTasksAsync(RegisterInitializeAsyncWork, cancellationToken);
+
+    /// This method is called after package load and is the mechanism by which roslyn packages calculate and
+    /// process all post load package work. Do not override this sealed method, instead override RegisterOnAfterPackageLoadedAsyncWork
+    /// to indicate the work your package needs after load.
+    protected sealed override Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
+        => RegisterAndProcessTasksAsync(RegisterOnAfterPackageLoadedAsyncWork, cancellationToken);
+
+    private Task RegisterAndProcessTasksAsync(Action<PackageLoadTasks> registerTasks, CancellationToken cancellationToken)
+    {
+        var packageTasks = new PackageLoadTasks(JoinableTaskFactory);
+
+        // Request all initially known work, classified into whether it should be processed on the main or
+        // background thread. These lists can be modified by the work itself to add more work for subsequent processing.
+        // Requesting this information is useful as it lets us batch up work on these threads, significantly
+        // reducing thread switches during package load.
+        registerTasks(packageTasks);
+
+        return packageTasks.ProcessTasksAsync(cancellationToken);
+    }
+
+    protected virtual void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
     {
         // This treatment of registering work on the bg/main threads is a bit unique as we want the component model initialized at the beginning
         // of whichever context is invoked first. The current architecture doesn't execute any of the registered tasks concurrently,
-        // so that isn't a concern for running calculating or setting _componentModel_doNotAccessDirectly multiple times.
-        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: EnsureComponentModelAsync);
-        packageRegistrationTasks.AddTask(isMainThreadTask: true, task: EnsureComponentModelAsync);
+        // so that isn't a concern for calculating or setting _componentModel_doNotAccessDirectly multiple times.
+        packageInitializationTasks.AddTask(isMainThreadTask: false, task: EnsureComponentModelAsync);
+        packageInitializationTasks.AddTask(isMainThreadTask: true, task: EnsureComponentModelAsync);
 
-        async Task EnsureComponentModelAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken token)
+        async Task EnsureComponentModelAsync(PackageLoadTasks packageInitializationTasks, CancellationToken token)
         {
             if (_componentModel_doNotAccessDirectly == null)
             {
@@ -43,31 +67,28 @@ internal abstract class AbstractPackage : AsyncPackage
         }
     }
 
-    /// This method is called upon package creation and is the mechanism by which roslyn packages calculate and
-    /// process all package initialization work. Do not override this sealed method, instead override RegisterInitializationWork
-    /// to indicate the work your package needs upon initialization.
-    protected sealed override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+    protected virtual void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
     {
-        var packageRegistrationTasks = new PackageRegistrationTasks(JoinableTaskFactory);
+        afterPackageLoadedTasks.AddTask(
+            isMainThreadTask: false,
+            task: (afterPackageLoadedTasks, cancellationToken) =>
+            {
+                // TODO: remove, workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1985204
+                var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
+                if (globalOptions.GetOption(SemanticSearchFeatureFlag.Enabled))
+                {
+                    afterPackageLoadedTasks.AddTask(
+                        isMainThreadTask: true,
+                        task: (packageLoadedTasks, cancellationToken) =>
+                        {
+                            UIContext.FromUIContextGuid(new Guid(SemanticSearchFeatureFlag.UIContextId)).IsActive = true;
 
-        // Request all initially known work, classified into whether it should be processed on the main or
-        // background thread. These lists can be modified by the work itself to add more work for subsequent processing.
-        // Requesting this information is useful as it lets us batch up work on these threads, significantly
-        // reducing thread switches during package load.
-        RegisterInitializationWork(packageRegistrationTasks);
+                            return Task.CompletedTask;
+                        });
+                }
 
-        await packageRegistrationTasks.ProcessTasksAsync(progress, cancellationToken).ConfigureAwait(false);
-    }
-
-    protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
-    {
-        // TODO: remove, workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1985204
-        var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
-        if (globalOptions.GetOption(SemanticSearchFeatureFlag.Enabled))
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            UIContext.FromUIContextGuid(new Guid(SemanticSearchFeatureFlag.UIContextId)).IsActive = true;
-        }
+                return Task.CompletedTask;
+            });
     }
 
     protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)

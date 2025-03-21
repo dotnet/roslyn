@@ -244,8 +244,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         {
             phwnd = default;
 
-            var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline)
-                ?? !_globalOptions.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag);
+            var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline);
             if (!enabled)
                 return;
 
