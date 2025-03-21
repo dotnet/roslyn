@@ -1,7 +1,1 @@
-Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.RazorDynamicFileInfo
-Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.RazorDynamicFileInfo.DocumentServiceProvider.get -> Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.IRazorDocumentServiceProvider
-Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.RazorDynamicFileInfo.FilePath.get -> string
-Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.RazorDynamicFileInfo.RazorDynamicFileInfo(string filePath, Microsoft.CodeAnalysis.SourceCodeKind sourceCodeKind, Microsoft.CodeAnalysis.TextLoader textLoader, Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.IRazorDocumentServiceProvider documentServiceProvider) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.RazorDynamicFileInfo.SourceCodeKind.get -> Microsoft.CodeAnalysis.SourceCodeKind
-Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.RazorDynamicFileInfo.TextLoader.get -> Microsoft.CodeAnalysis.TextLoader
-Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared.RazorDynamicFileInfo.ToUpdatedDocumentInfo(Microsoft.CodeAnalysis.DocumentInfo existingDocumentInfo) -> Microsoft.CodeAnalysis.DocumentInfo
+#nullable enable

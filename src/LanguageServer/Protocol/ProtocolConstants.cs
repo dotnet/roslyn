@@ -17,7 +17,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public const string TypeScriptLanguageContract = "TypeScriptLspLanguage";
 
         public const string RazorCohostContract = "RazorLanguageServer";
-
-        public const string RazorFeaturesContract = "RazorFeatures";
     }
 }
