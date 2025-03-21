@@ -457,32 +457,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             // See also https://github.com/dotnet/csharplang/issues/9174
             var source = """
+                using System;
+
+                class C { public int f; }
                 struct S
                 {
-                    int f;
-                    public int this[int i, bool ignored] { get => f; readonly set => f = i; }
+                    public C C = new C();
+                    public S() { }
+                    public int this[int i] { get => C.f; readonly set => C.f = i; }
 
                     static void Main()
                     {
-                        M1(new S { f = 1 });
+                        M1(new S { C = { f = 1 } });
                         M1(null);
-                        M2(new S { f = 2 });
+                        M2(new S { C = { f = 2 } });
                         M2(null);
                     }
 
                     static void M1(S? s)
                     {
                         s?[3] = 4;
-                        Console.WriteLine(s?[1] ?? 5);
+                        Console.Write(s?[1] ?? 5);
                     }
 
                     static void M2(S? s)
                     {
-                        Console.WriteLine((s?[6] = 7) ?? 8);
+                        Console.Write((s?[6] = 7) ?? 8);
                     }
                 }
                 """;
-            CompileAndVerify(source, expectedOutput: "4578");
+            CompileAndVerify(source, expectedOutput: "3578");
         }
 
         [Fact]
@@ -1021,11 +1025,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = """
                 using System;
 
-                class C { public int F; }
                 unsafe struct S
                 {
-                    public C C;
-                    public int P { get => C.F; readonly set => C.F = value; }
+                    public static int SF;
+                    public int P { get => SF; readonly set => SF = value; }
 
                     static void M1(S?* x)
                     {
@@ -1040,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                     static void Main()
                     {
-                        var s = new S { C = new C() };
+                        S s = default;
                         S? s1 = s;
                         S?* s1p = &s1;
                         M1(s1p);
@@ -1059,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void PointerDereference_05()
         {
-            // Same as _04 but accessing field 'C' instead of using a readonly setter
+            // Similar to _04 but accessing reference type field 'C' instead of using a readonly setter
             var source = """
                 using System;
 
@@ -1068,6 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     public C C;
 
+                #pragma warning disable 8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
                     static void M1(S?* x)
                     {
                         (*x)?.C.F = 1;
