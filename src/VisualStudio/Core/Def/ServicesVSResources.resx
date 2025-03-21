@@ -1151,20 +1151,11 @@ Additional information: {1}</value>
   <data name="Running_code_analysis_for_0" xml:space="preserve">
     <value>Running code analysis for '{0}'...</value>
   </data>
-  <data name="Running_code_analysis_for_Solution" xml:space="preserve">
-    <value>Running code analysis for Solution...</value>
-  </data>
   <data name="Code_analysis_completed_for_0" xml:space="preserve">
     <value>Code analysis completed for '{0}'.</value>
   </data>
-  <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
-    <value>Code analysis completed for Solution.</value>
-  </data>
   <data name="Code_analysis_terminated_before_completion_for_0" xml:space="preserve">
     <value>Code analysis terminated before completion for '{0}'.</value>
-  </data>
-  <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
-    <value>Code analysis terminated before completion for Solution.</value>
   </data>
   <data name="Run_background_code_analysis_for_colon" xml:space="preserve">
     <value>Run background code analysis for:</value>
@@ -1596,22 +1587,6 @@ Additional information: {1}</value>
   </data>
   <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
     <value>Combine inheritance margin with indicator margin</value>
-  </data>
-  <data name="Default_Current_Document" xml:space="preserve">
-    <value>Default (Current Document)</value>
-    <comment>This text is a menu command</comment>
-  </data>
-  <data name="Default_Entire_Solution" xml:space="preserve">
-    <value>Default (Entire Solution)</value>
-    <comment>This text is a menu command</comment>
-  </data>
-  <data name="Default_Open_Documents" xml:space="preserve">
-    <value>Default (Open Documents)</value>
-    <comment>This text is a menu command</comment>
-  </data>
-  <data name="Default_None" xml:space="preserve">
-    <value>Default (None)</value>
-    <comment>This text is a menu command</comment>
   </data>
   <data name="Suppress_hints_when_argument_matches_parameter_name" xml:space="preserve">
     <value>Suppress hints when argument matches parameter name</value>
