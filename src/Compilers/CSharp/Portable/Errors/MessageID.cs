@@ -299,8 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureSimpleLambdaParameterModifiers = MessageBase + 12851,
 
         IDS_FeaturePartialEventsAndConstructors = MessageBase + 12852,
-
-        IDS_FeatureNullConditionalAssignment = MessageBase + 12900, // PROTOTYPE(nca): pack
+        IDS_FeatureNullConditionalAssignment = MessageBase + 12853,
     }
 
     // Message IDs may refer to strings that need to be localized.

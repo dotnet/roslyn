@@ -276,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void FieldAccessAssignment_StructReceiver_01()
         {
             // NB: assignment of a 'readonly' setter is permitted even when property access receiver is not a variable
+            // See also https://github.com/dotnet/csharplang/issues/9174
             var source = """
                 using System;
 
@@ -328,6 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void FieldAccessAssignment_StructReceiver_02()
         {
             // NB: assignment of a 'readonly' setter is permitted even when property access receiver is not a variable
+            // See also https://github.com/dotnet/csharplang/issues/9174
             var source = """
                 using System;
 
@@ -419,6 +421,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
 
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IndexerAssignment_StructReceiver_01()
+        {
+            // See also https://github.com/dotnet/csharplang/issues/9174
+            var source = """
+                using System;
+
+                struct S
+                {
+                    int f;
+                    public int this[int i] { get => f; set => f = i; }
+
+                    static void M(S? s)
+                    {
+                        s?[1] = 2; // 1
+                        Console.WriteLine(s?[3] = 4); // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,11): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         s?[1] = 2; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[1]").WithLocation(10, 11),
+                // (11,29): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         Console.WriteLine(s?[3] = 4); // 2
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[3]").WithLocation(11, 29));
+        }
+
+        [Fact]
+        public void IndexerAssignment_StructReceiver_02()
+        {
+            // See also https://github.com/dotnet/csharplang/issues/9174
+            var source = """
+                using System;
+
+                class C { public int f; }
+                struct S
+                {
+                    public C C = new C();
+                    public S() { }
+                    public int this[int i] { get => C.f; readonly set => C.f = i; }
+
+                    static void Main()
+                    {
+                        M1(new S { C = { f = 1 } });
+                        M1(null);
+                        M2(new S { C = { f = 2 } });
+                        M2(null);
+                    }
+
+                    static void M1(S? s)
+                    {
+                        s?[3] = 4;
+                        Console.Write(s?[1] ?? 5);
+                    }
+
+                    static void M2(S? s)
+                    {
+                        Console.Write((s?[6] = 7) ?? 8);
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "3578");
         }
 
         [Fact]
@@ -713,6 +781,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void PropertyAccessAssignment_02()
+        {
+            // init prop
+            var source = """
+                var c = new C();
+                c?.Prop = "a"; // 1
+
+                class C
+                {
+                    public string Prop { get; init; }
+                }
+                """;
+
+            var comp = CreateCompilation([source, IsExternalInitTypeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (2,3): error CS8852: Init-only property or indexer 'C.Prop' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                // c?.Prop = "a"; // 1
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, ".Prop").WithArguments("C.Prop").WithLocation(2, 3));
+        }
+
+        [Fact]
         public void EventAssignment_01()
         {
             var source = """
@@ -802,6 +891,217 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void ExpressionTree()
+        {
+            var source = """
+                using System;
+                using System.Linq.Expressions;
+
+                Expression<Func<C, string>> s = c => c?.F = "a"; // 1, 2
+
+                class C { public string F; }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,38): error CS8072: An expression tree lambda may not contain a null propagating operator.
+                // Expression<Func<C, string>> s = c => c?.F = "a"; // 1, 2
+                Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, @"c?.F = ""a""").WithLocation(4, 38),
+                // (4,40): error CS0832: An expression tree may not contain an assignment operator
+                // Expression<Func<C, string>> s = c => c?.F = "a"; // 1, 2
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, @".F = ""a""").WithLocation(4, 40));
+        }
+
+        [Fact]
+        public void Dynamic_01()
+        {
+            var source = """
+                using System;
+
+                dynamic d = new C();
+                d?.F = "a";
+
+                Console.Write(d.F);
+                Console.Write(d?.F = "b");
+
+                d = null;
+                d?.F = "c";
+                Console.Write(d?.F ?? "<null>");
+                Console.Write((d?.F = "d") ?? "<null>");
+
+                class C { public string F = null!; }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "ab<null><null>");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PointerDereference_01()
+        {
+            var source = """
+
+                struct S
+                {
+                    public int F;
+
+                    static unsafe void M(S?* x)
+                    {
+                        *x?.F = 1;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (4,16): warning CS0649: Field 'S.F' is never assigned to, and will always have its default value 0
+                //     public int F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S.F", "0").WithLocation(4, 16),
+                // (8,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         *x?.F = 1;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "*x?.F = 1").WithLocation(8, 9),
+                // (8,11): error CS0023: Operator '?' cannot be applied to operand of type 'S?*'
+                //         *x?.F = 1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S?*").WithLocation(8, 11));
+        }
+
+        [Fact]
+        public void PointerDereference_02()
+        {
+            var source = """
+                using System;
+
+                struct S
+                {
+                    public int F;
+
+                    static unsafe void M1(S?* x)
+                    {
+                        (*x)?.F = 1; // 1
+                    }
+
+                    static unsafe void M2(S?* x)
+                    {
+                        Console.Write((*x)?.F = 3); // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (9,14): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         (*x)?.F = 1; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, ".F").WithLocation(9, 14),
+                // (14,28): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         Console.Write((*x)?.F = 3); // 2
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, ".F").WithLocation(14, 28));
+        }
+
+        [Fact]
+        public void PointerDereference_03()
+        {
+            var source = """
+                using System;
+
+                unsafe struct S
+                {
+                    public int* F;
+
+                    static void M1(S? x)
+                    {
+                        *x?.F = 1; // 1, 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                      // (9,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                      //         *x?.F = 1; // 1, 2
+                      Diagnostic(ErrorCode.ERR_IllegalStatement, "*x?.F = 1").WithLocation(9, 9),
+                      // (9,12): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                      //         *x?.F = 1; // 1, 2
+                      Diagnostic(ErrorCode.ERR_AssgLvalueExpected, ".F").WithLocation(9, 12));
+        }
+
+        [Fact]
+        public void PointerDereference_04()
+        {
+            var source = """
+                using System;
+
+                unsafe struct S
+                {
+                    public static int SF;
+                    public int P { get => SF; readonly set => SF = value; }
+
+                    static void M1(S?* x)
+                    {
+                        (*x)?.P = 1;
+                        Console.Write((*x)?.P ?? 2);
+                    }
+
+                    static void M2(S?* x)
+                    {
+                        Console.Write(((*x)?.P = 3) ?? 4);
+                    }
+
+                    static void Main()
+                    {
+                        S s = default;
+                        S? s1 = s;
+                        S?* s1p = &s1;
+                        M1(s1p);
+                        M2(s1p);
+
+                        s1 = null;
+                        M1(s1p);
+                        M2(s1p);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped, expectedOutput: "1324");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PointerDereference_05()
+        {
+            // Similar to _04 but accessing reference type field 'C' instead of using a readonly setter
+            var source = """
+                using System;
+
+                class C { public int F; }
+                unsafe struct S
+                {
+                    public C C;
+
+                #pragma warning disable 8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+                    static void M1(S?* x)
+                    {
+                        (*x)?.C.F = 1;
+                        Console.Write((*x)?.C.F ?? 2);
+                    }
+
+                    static void M2(S?* x)
+                    {
+                        Console.Write(((*x)?.C.F = 3) ?? 4);
+                    }
+
+                    static void Main()
+                    {
+                        var s = new S { C = new C() };
+                        S? s1 = s;
+                        S?* s1p = &s1;
+                        M1(s1p);
+                        M2(s1p);
+
+                        s1 = null;
+                        M1(s1p);
+                        M2(s1p);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugExe, verify: Verification.Skipped, expectedOutput: "1324");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void CompoundAssignment_01()
         {
             var source = """
@@ -868,6 +1168,166 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0008:  ldfld      "int C.f"
                   IL_000d:  ldc.i4.3
                   IL_000e:  add
+                  IL_000f:  dup
+                  IL_0010:  stloc.0
+                  IL_0011:  stfld      "int C.f"
+                  IL_0016:  ldloc.0
+                  IL_0017:  call       "void System.Console.Write(int)"
+                  IL_001c:  ret
+                }
+                """);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_02()
+        {
+            // Logical operator
+            // Note that there are no conditional versions of the "conditional logical operators"
+            // So, the set of behaviors we can observe through exhaustive testing is limited.
+            var source = """
+                using System;
+
+                class C
+                {
+                    int f;
+
+                    static void Main()
+                    {
+                        M1(new C() { f = 1 });
+                        M1(null);
+                        M2(new C() { f = 2 });
+                        M2(null);
+                    }
+
+                    static void M1(C c)
+                    {
+                        c?.f |= 4;
+                        Console.Write(c?.f ?? 8);
+                    }
+
+                    static void M2(C c)
+                    {
+                        Console.Write((c?.f |= 4) ?? 8);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "5868");
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       35 (0x23)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  brfalse.s  IL_0011
+                  IL_0003:  ldarg.0
+                  IL_0004:  dup
+                  IL_0005:  ldfld      "int C.f"
+                  IL_000a:  ldc.i4.4
+                  IL_000b:  or
+                  IL_000c:  stfld      "int C.f"
+                  IL_0011:  ldarg.0
+                  IL_0012:  brtrue.s   IL_0017
+                  IL_0014:  ldc.i4.8
+                  IL_0015:  br.s       IL_001d
+                  IL_0017:  ldarg.0
+                  IL_0018:  ldfld      "int C.f"
+                  IL_001d:  call       "void System.Console.Write(int)"
+                  IL_0022:  ret
+                }
+                """);
+            verifier.VerifyIL("C.M2", """
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  brtrue.s   IL_0006
+                  IL_0003:  ldc.i4.8
+                  IL_0004:  br.s       IL_0017
+                  IL_0006:  ldarg.0
+                  IL_0007:  dup
+                  IL_0008:  ldfld      "int C.f"
+                  IL_000d:  ldc.i4.4
+                  IL_000e:  or
+                  IL_000f:  dup
+                  IL_0010:  stloc.0
+                  IL_0011:  stfld      "int C.f"
+                  IL_0016:  ldloc.0
+                  IL_0017:  call       "void System.Console.Write(int)"
+                  IL_001c:  ret
+                }
+                """);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_03()
+        {
+            // Shift operator
+            var source = """
+                using System;
+
+                class C
+                {
+                    int f;
+
+                    static void Main()
+                    {
+                        M1(new C() { f = 1 });
+                        M1(null);
+                        M2(new C() { f = 2 });
+                        M2(null);
+                    }
+
+                    static void M1(C c)
+                    {
+                        c?.f <<= 1;
+                        Console.Write(c?.f ?? 8);
+                    }
+
+                    static void M2(C c)
+                    {
+                        Console.Write((c?.f <<= 1) ?? 8);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "2848");
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       35 (0x23)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  brfalse.s  IL_0011
+                  IL_0003:  ldarg.0
+                  IL_0004:  dup
+                  IL_0005:  ldfld      "int C.f"
+                  IL_000a:  ldc.i4.1
+                  IL_000b:  shl
+                  IL_000c:  stfld      "int C.f"
+                  IL_0011:  ldarg.0
+                  IL_0012:  brtrue.s   IL_0017
+                  IL_0014:  ldc.i4.8
+                  IL_0015:  br.s       IL_001d
+                  IL_0017:  ldarg.0
+                  IL_0018:  ldfld      "int C.f"
+                  IL_001d:  call       "void System.Console.Write(int)"
+                  IL_0022:  ret
+                }
+                """);
+            verifier.VerifyIL("C.M2", """
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  brtrue.s   IL_0006
+                  IL_0003:  ldc.i4.8
+                  IL_0004:  br.s       IL_0017
+                  IL_0006:  ldarg.0
+                  IL_0007:  dup
+                  IL_0008:  ldfld      "int C.f"
+                  IL_000d:  ldc.i4.1
+                  IL_000e:  shl
                   IL_000f:  dup
                   IL_0010:  stloc.0
                   IL_0011:  stfld      "int C.f"
@@ -1462,6 +1922,170 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void UseResult_ReferenceType()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    public static void Main()
+                    {
+                        C.M(new C());
+                        C.M(null);
+                    }
+                }
+
+                class C
+                {
+                    public string t;
+                    public static void M(C c)
+                    {
+                        c?.t = "a";
+                        var x = c?.t = "a";
+                        Console.Write(c?.t ?? "b");
+                        Console.Write(x ?? "b");
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "aabb");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UseResult_ElementAssignment()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    public static void Main()
+                    {
+                        C.M(new C());
+                        C.M(null);
+                    }
+                }
+
+                class C
+                {
+                    private string t;
+                    public string this[string s] { get => t; set => t = value; }
+                    public static void M(C c)
+                    {
+                        c?["a"] = "b";
+                        var x = c?["a"] = "b";
+                        Console.Write(c?.t ?? "c");
+                        Console.Write(x ?? "c");
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "bbcc");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SideEffects_01()
+        {
+            // Arguments to an indexer assignment are conditionally evaluated
+            var source = """
+                using System;
+
+                class C
+                {
+                    public string this[string s] { get => s; set { Console.Write($"(set {value})"); } }
+
+                    public static string GetString()
+                    {
+                        Console.Write("GetString()");
+                        return "a";
+                    }
+
+                    public static void M(C c)
+                    {
+                        Console.Write((c?[GetString()] = "b") ?? "c");
+                    }
+
+                    public static void Main()
+                    {
+                        M(new C());
+                        M(null);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "GetString()(set b)bc");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SideEffects_02()
+        {
+            // Arguments to an invocation assignment are conditionally evaluated
+            var source = """
+                using System;
+
+                class C
+                {
+                    public static string _s;
+                    public ref string M(string s) { Console.Write($"M({s})"); return ref _s; }
+
+                    public static string GetString()
+                    {
+                        Console.Write("GetString()");
+                        return "a";
+                    }
+
+                    public static void M(C c)
+                    {
+                        Console.Write((c?.M(GetString()) = "b") ?? "c");
+                    }
+
+                    public static void Main()
+                    {
+                        M(new C());
+                        M(null);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "GetString()M(a)bc");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Await_01()
+        {
+            var source = """
+                using System.Threading.Tasks;
+                using System;
+
+                class C
+                {
+                    public string F;
+
+                    static async Task M(Task<C> tc)
+                    {
+                        (await tc)?.F = "a";
+                    }
+
+                    public static async Task Main()
+                    {
+                        var c = new C();
+                        await M(Task.FromResult(c));
+                        Console.Write(c.F);
+
+                        c = null;
+                        await M(Task.FromResult(c));
+                        Console.Write(c?.F ?? "b");
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "ab");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TypeParameter_03()
         {
             var source = """
@@ -1869,6 +2493,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void DefiniteAssignment_03()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    ref string M1(int p) => throw null!;
+                    static void M2(C? c)
+                    {
+                        int a;
+                        c?.M1(a = 42) = "b";
+                        a.ToString(); // 1
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,9): error CS0165: Use of unassigned local variable 'a'
+                //         a.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(10, 9));
+        }
+
+        [Fact]
+        public void DefiniteAssignment_04()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                class C
+                {
+                    static string? _s;
+                    ref string? M1(int p1, string p2)
+                    {
+                        Console.Write(p1);
+                        Console.Write(p2);
+                        return ref _s;
+                    }
+                    static void M2(C? c)
+                    {
+                        int a;
+                        c?.M1(a = 42, a.ToString()) = "b";
+                        Console.Write(_s);
+                    }
+
+                    static void Main()
+                    {
+                        M2(new C());
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "4242b");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NullableAnalysis_01()
         {
             var source = """
@@ -1925,9 +2606,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/77741")]
         public void NullableAnalysis_02()
         {
-            // PROTOTYPE(nca): missing a warning on last F.ToString()
+            // Problem: the conditional receiver and its field are getting their own slots.
+            // But, when the assignment '.F = null' is processed, we do look up the slot for 'c' thru 'NullableWalker._lastConditionalAccessSlot'.
+            // Thus the state for 'c.F' gets updated to maybe-null, but the state for '<placeholder>.F' remains not-null.
+            // When we get a slot for RHS of next 'c?.F' expression, we get the slot for '<placeholder>.F', and see the .F as having not-null state.
+            // Thus, the expected warning is missing.
+            // We may want to solve this by ensuring we don't create a slot for the placeholder, and that getting a slot for the placeholder always gives the slot for the original receiver instead.
             var source = """
                 #nullable enable
 
@@ -1946,7 +2633,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             var comp = CreateCompilation(source);
+            // Expected warning is missing here. https://github.com/dotnet/roslyn/issues/77741
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_03()
+        {
+            var source = """
+                #nullable enable
+                using System;
+
+                class C
+                {
+                    string? F;
+
+                    static void M(C? c)
+                    {
+                        c?.F = c.F;
+                        Console.Write(c?.F ?? "<null>");
+                    }
+
+                    static void Main()
+                    {
+                        M(new C() { F = "a" });
+                        M(null);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "a<null>");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_04()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    public string? F = null;
+
+                    static void M(C? c1, C c2)
+                    {
+                        c1?.F! = "a"; // 1
+                        c2.F! = "a"; // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,12): error CS8598: The suppression operator is not allowed in this context
+                //         c1?.F! = "a"; // 1
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, ".F").WithLocation(9, 12),
+                // (10,9): error CS8598: The suppression operator is not allowed in this context
+                //         c2.F! = "a"; // 2
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c2.F").WithLocation(10, 9));
         }
 
         [Fact]
@@ -1975,6 +2718,179 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,11): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
                 //         --c?.F;
                 Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "c?.F").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void ControlFlowGraph_01()
+        {
+            // Verify that conditional accesses and expressions are rewritten in CFG.
+            var source = """
+                class C
+                {
+                    public string F;
+
+                    static void M(C? c, bool b)
+                    {
+                        c?.F = b ? "1" : "2";
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var methodDecl = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(methodDecl.Body, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1} {R2}
+                .locals {R1}
+                {
+                    CaptureIds: [1] [2]
+                    .locals {R2}
+                    {
+                        CaptureIds: [0]
+                        Block[B1] - Block
+                            Predecessors: [B0]
+                            Statements (1)
+                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+                                    Value:
+                                    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+                            Jump if True (Regular) to Block[B7]
+                                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c')
+                                    Operand:
+                                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
+                                Leaving: {R2} {R1}
+                            Next (Regular) Block[B2]
+                        Block[B2] - Block
+                            Predecessors: [B1]
+                            Statements (1)
+                                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.F')
+                                    Value:
+                                    IFieldReferenceOperation: System.String C.F (OperationKind.FieldReference, Type: System.String) (Syntax: '.F')
+                                        Instance Receiver:
+                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
+                            Next (Regular) Block[B3]
+                                Leaving: {R2}
+                    }
+                    Block[B3] - Block
+                        Predecessors: [B2]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B5]
+                            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                        Next (Regular) Block[B4]
+                    Block[B4] - Block
+                        Predecessors: [B3]
+                        Statements (1)
+                            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '"1"')
+                                Value:
+                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "1") (Syntax: '"1"')
+                        Next (Regular) Block[B6]
+                    Block[B5] - Block
+                        Predecessors: [B3]
+                        Statements (1)
+                            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '"2"')
+                                Value:
+                                ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "2") (Syntax: '"2"')
+                        Next (Regular) Block[B6]
+                    Block[B6] - Block
+                        Predecessors: [B4] [B5]
+                        Statements (1)
+                            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c?.F = b ? "1" : "2";')
+                                Expression:
+                                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: '.F = b ? "1" : "2"')
+                                    Left:
+                                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: '.F')
+                                    Right:
+                                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b ? "1" : "2"')
+                        Next (Regular) Block[B7]
+                            Leaving: {R1}
+                }
+                Block[B7] - Exit
+                    Predecessors: [B1] [B6]
+                    Statements (0)
+                """,
+                graph, symbol);
+        }
+
+        [Fact]
+        public void ControlFlowGraph_02()
+        {
+            // Verify that conditional accesses and expressions are rewritten in CFG.
+            var source = """
+                class C
+                {
+                    public string F;
+
+                    static void M(bool b, C? c1, C? c2)
+                    {
+                        (b ? c1 : c2)?.F = "a";
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var methodDecl = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(methodDecl.Body, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    CaptureIds: [0]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B3]
+                            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                        Next (Regular) Block[B2]
+                    Block[B2] - Block
+                        Predecessors: [B1]
+                        Statements (1)
+                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+                                Value:
+                                IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+                        Next (Regular) Block[B4]
+                    Block[B3] - Block
+                        Predecessors: [B1]
+                        Statements (1)
+                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+                                Value:
+                                IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
+                        Next (Regular) Block[B4]
+                    Block[B4] - Block
+                        Predecessors: [B2] [B3]
+                        Statements (0)
+                        Jump if True (Regular) to Block[B6]
+                            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'b ? c1 : c2')
+                                Operand:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'b ? c1 : c2')
+                            Leaving: {R1}
+                        Next (Regular) Block[B5]
+                    Block[B5] - Block
+                        Predecessors: [B4]
+                        Statements (1)
+                            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(b ? c1 : c2)?.F = "a";')
+                                Expression:
+                                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: '.F = "a"')
+                                    Left:
+                                    IFieldReferenceOperation: System.String C.F (OperationKind.FieldReference, Type: System.String) (Syntax: '.F')
+                                        Instance Receiver:
+                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'b ? c1 : c2')
+                                    Right:
+                                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "a") (Syntax: '"a"')
+                        Next (Regular) Block[B6]
+                            Leaving: {R1}
+                }
+                Block[B6] - Exit
+                    Predecessors: [B4] [B5]
+                    Statements (0)
+                """,
+                graph, symbol);
         }
     }
 }
