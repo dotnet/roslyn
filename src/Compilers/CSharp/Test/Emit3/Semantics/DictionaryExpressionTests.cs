@@ -2562,6 +2562,136 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadAccess, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>.MyDictionary()").WithLocation(10, 26));
         }
 
+        [Fact(Skip = "PROTOTYPE")]
+        public void Params_Cycle_01()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    public MyDictionary(params MyDictionary<K, V> args) { }
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public V this[K key, params MyDictionary<K, V> args] { get { return default; } set { } }
+                }
+                """;
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(1, "one");
+                        F<int, string>();
+                        F(x);
+                        F([x]);
+                        F([2:"two"]);
+                    }
+                    static void F<K, V>(params MyDictionary<K, V> args) { }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            // PROTOTYPE: Should report cycle.
+            comp.VerifyEmitDiagnostics(
+                // (10,33): error CS9224: Method 'MyDictionary<K, V>.MyDictionary()' cannot be less visible than the member with params collection 'Program.F3<K, V>(params MyDictionary<K, V>)'.
+                //     public static void F3<K, V>(params MyDictionary<K, V> args) { }
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>.MyDictionary()", "Program.F3<K, V>(params MyDictionary<K, V>)").WithLocation(10, 33));
+        }
+
+        [Fact(Skip = "PROTOTYPE")]
+        public void Params_Cycle_02()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    public MyDictionary(object arg, params MyDictionary<K, V> args) { }
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public V this[K key, params MyDictionary<K, V> args] { get { return default; } set { } }
+                }
+                """;
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(1, "one");
+                        F<int, string>([with(null)]);
+                        F([with(null)], x);
+                        F([with(null)], [x]);
+                    }
+                    static void F<K, V>(MyDictionary<K, V> d, params MyDictionary<K, V> args) { }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            // PROTOTYPE: Should report cycle.
+            comp.VerifyEmitDiagnostics(
+                // (10,33): error CS9224: Method 'MyDictionary<K, V>.MyDictionary()' cannot be less visible than the member with params collection 'Program.F3<K, V>(params MyDictionary<K, V>)'.
+                //     public static void F3<K, V>(params MyDictionary<K, V> args) { }
+                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>.MyDictionary()", "Program.F3<K, V>(params MyDictionary<K, V>)").WithLocation(10, 33));
+        }
+
+        [Theory(Skip = "PROTOTYPE")]
+        [MemberData(nameof(LanguageVersions))]
+        public void Params_Cycle_03(LanguageVersion languageVersion)
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    public MyDictionary(params MyDictionary<K, V> args) { }
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public V this[K key, params MyDictionary<K, V> args] { get { return default; } set { } }
+                    public void Add(KeyValuePair<K, V> kvp) { }
+                }
+                """;
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular13);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(1, "one");
+                        F<int, string>();
+                        F(x);
+                        F([x]);
+                    }
+                    static void F<K, V>(params MyDictionary<K, V> args) { }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (7,9): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
+                    //         F<int, string>();
+                    Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "F<int, string>()").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(7, 9),
+                    // (8,9): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
+                    //         F(x);
+                    Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "F(x)").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(8, 9),
+                    // (9,11): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
+                    //         F([x]);
+                    Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[x]").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(9, 11));
+            }
+            else
+            {
+                // PROTOTYPE: Should report cycle.
+                comp.VerifyEmitDiagnostics(
+                    // (10,33): error CS9224: Method 'MyDictionary<K, V>.MyDictionary()' cannot be less visible than the member with params collection 'Program.F3<K, V>(params MyDictionary<K, V>)'.
+                    //     public static void F3<K, V>(params MyDictionary<K, V> args) { }
+                    Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>.MyDictionary()", "Program.F3<K, V>(params MyDictionary<K, V>)").WithLocation(10, 33));
+            }
+        }
+
         [Theory]
         [InlineData("public V this[K key] { get { return default; } set { } }", true)]
         [InlineData("public K this[K key] { get { return default; } set { } }", false)]

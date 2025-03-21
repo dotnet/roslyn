@@ -929,6 +929,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(syntax, targetType))
                 {
                     // PROTOTYPE: Do we have similar cycles with indexer parameters?
+                    // PROTOTYPE: There are two separate errors for collection expression cycles:
+                    // ERR_ParamsCollectionInfiniteChainOfConstructorCalls and
+                    // ERR_CollectionInitializerInfiniteChainOfAddCalls.
+                    // Test the two distinct code paths for indexer cases.
                     diagnostics.Add(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, syntax, targetType);
                     return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                 }
