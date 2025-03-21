@@ -790,7 +790,7 @@ outerDefault:
 
         private bool FailsConstraintChecks<TMember>(TMember member, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt, CompoundUseSiteInfo<AssemblySymbol> template) where TMember : Symbol
         {
-            int arity = member.GetMemberTotalArity();
+            int arity = member.GetMemberArityIncludingExtension();
             if (arity == 0 || member.OriginalDefinition == (object)member)
             {
                 constraintFailureDiagnosticsOpt = null;
@@ -812,7 +812,7 @@ outerDefault:
                     ref useSiteDiagnosticsBuilder);
             }
 
-            if (member.GetIsNewExtensionMember() && member.ContainingType is { Arity: > 0 } extension)
+            if (member.GetIsNewExtensionMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
             {
                 constraintsSatisfied &= ConstraintsHelper.CheckConstraints(extension, in constraintsArgs,
                     extension.TypeSubstitution, extension.TypeParameters, extension.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,
@@ -1168,7 +1168,7 @@ outerDefault:
             // This is specifying an impossible condition; the member lookup algorithm has already filtered
             // out methods from the method group that have the wrong generic arity.
 
-            Debug.Assert(typeArguments.Count == 0 || typeArguments.Count == member.GetMemberTotalArity());
+            Debug.Assert(typeArguments.Count == 0 || typeArguments.Count == member.GetMemberArityIncludingExtension());
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
             bool disallowExpandedNonArrayParams = (options & Options.DisallowExpandedNonArrayParams) != 0;
@@ -2404,14 +2404,14 @@ outerDefault:
             }
 
             // If MP is a non-generic method and MQ is a generic method, then MP is better than MQ.
-            if (m1.Member.GetMemberTotalArity() == 0)
+            if (m1.Member.GetMemberArityIncludingExtension() == 0)
             {
-                if (m2.Member.GetMemberTotalArity() > 0)
+                if (m2.Member.GetMemberArityIncludingExtension() > 0)
                 {
                     return BetterResult.Left;
                 }
             }
-            else if (m2.Member.GetMemberTotalArity() == 0)
+            else if (m2.Member.GetMemberArityIncludingExtension() == 0)
             {
                 return BetterResult.Right;
             }
@@ -4248,7 +4248,7 @@ outerDefault:
             EffectiveParameters constructedEffectiveParameters;
             bool hasTypeArgumentsInferredFromFunctionType = false;
             if ((options & Options.InferringUniqueMethodGroupSignature) == 0 &&
-                member.GetMemberTotalArity() > 0)
+                member.GetMemberArityIncludingExtension() > 0)
             {
                 ImmutableArray<TypeWithAnnotations> typeArguments;
                 bool isNewExtensionMember = member.GetIsNewExtensionMember();
@@ -4293,8 +4293,8 @@ outerDefault:
                         }
                     }
 
-                    member = construct(member, typeArguments);
-                    leastOverriddenMember = construct(GetConstructedFrom(leastOverriddenMember), typeArguments);
+                    member = member.ConstructIncludingExtension(typeArguments);
+                    leastOverriddenMember = GetConstructedFrom(leastOverriddenMember).ConstructIncludingExtension(typeArguments);
 
                     // Spec (§7.6.5.1)
                     //   Once the (inferred) type arguments are substituted for the corresponding method type parameters, 
@@ -4367,46 +4367,6 @@ outerDefault:
                 isMethodGroupConversion: isMethodGroupConversion,
                 useSiteInfo: ref useSiteInfo);
             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult, hasTypeArgumentsInferredFromFunctionType);
-
-            static TMember construct(TMember member, ImmutableArray<TypeWithAnnotations> typeArguments)
-            {
-                if (member is MethodSymbol method)
-                {
-                    if (method.GetIsNewExtensionMember())
-                    {
-                        NamedTypeSymbol extension = method.ContainingType;
-                        if (extension.Arity > 0)
-                        {
-                            extension = extension.Construct(typeArguments[..extension.Arity]);
-                            method = method.AsMember(extension);
-                        }
-
-                        if (method.Arity > 0)
-                        {
-                            return (TMember)(Symbol)method.Construct(typeArguments[extension.Arity..]);
-                        }
-
-                        return (TMember)(Symbol)method;
-                    }
-
-                    return (TMember)(Symbol)method.Construct(typeArguments);
-                }
-
-                if (member is PropertySymbol property)
-                {
-                    Debug.Assert(property.GetIsNewExtensionMember());
-                    NamedTypeSymbol extension = property.ContainingType;
-                    Debug.Assert(extension.Arity > 0);
-                    Debug.Assert(extension.Arity == typeArguments.Length);
-
-                    extension = extension.Construct(typeArguments);
-                    property = property.AsMember(extension);
-
-                    return (TMember)(Symbol)property;
-                }
-
-                throw ExceptionUtilities.UnexpectedValue(member);
-            }
 
             static ImmutableArray<TypeWithAnnotations> getAllTypeArguments(TMember member, bool isNewExtensionMember)
             {

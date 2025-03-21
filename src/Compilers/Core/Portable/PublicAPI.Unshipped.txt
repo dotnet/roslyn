@@ -6,3 +6,4 @@ override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.ToString() -> 
 
 Microsoft.CodeAnalysis.ITypeSymbol.IsExtension.get -> bool
 Microsoft.CodeAnalysis.TypeKind.Extension = 14 -> Microsoft.CodeAnalysis.TypeKind
+Microsoft.CodeAnalysis.ITypeSymbol.ExtensionParameter.get -> Microsoft.CodeAnalysis.IParameterSymbol?

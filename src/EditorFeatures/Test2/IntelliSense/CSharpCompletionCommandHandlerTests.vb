@@ -12923,5 +12923,28 @@ internal class Program
                 Await state.AssertCompletionItemsContain("String", displayTextSuffix:="")
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestStaticExtensionMethod(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                using System;
+
+                object.$$
+
+                static class C
+                {
+                    extension(object o)
+                    {
+                        public static void EM() { }
+                    }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersionExtensions.CSharpNext)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("EM", displayTextSuffix:="")
+            End Using
+        End Function
     End Class
 End Namespace

@@ -1537,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var scope in new ExtensionScopes(this))
                 {
                     lookupResult ??= LookupResult.GetInstance();
-                    LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo);
+                    LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo); // PROTOTYPE account for new extension members
 
                     if (lookupResult.IsMultiViable)
                     {

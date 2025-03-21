@@ -2121,6 +2121,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Error(diagnostics, ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, node, parameter);
                         }
+                        else if (parameter.ContainingSymbol is NamedTypeSymbol { IsExtension: true } &&
+                                (InParameterDefaultValue || InAttributeArgument ||
+                                 this.ContainingMember() is not { Kind: not SymbolKind.NamedType, IsStatic: false } || // We are not in an instance member
+                                 (object)this.ContainingMember().ContainingSymbol != parameter.ContainingSymbol) &&
+                                !IsInsideNameof)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_InvalidExtensionParameterReference, node, parameter);
+                        }
                         else
                         {
                             // Records never capture parameters within the type
@@ -8006,7 +8014,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
             {
                 Debug.Assert(typeArgumentsOpt.IsDefault);
-                diagnostics.AddRange(resolution.Diagnostics); // PROTOTYPE test dependencies/diagnostics
+                if (!receiver.HasErrors)
+                {
+                    diagnostics.AddRange(resolution.Diagnostics); // PROTOTYPE test dependencies/diagnostics
+                }
+
                 resolution.Free();
 
                 return GetExtensionMemberAccess(syntax, receiver, extensionMember, diagnostics);
@@ -8033,6 +8045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
 
                 case ExtendedErrorTypeSymbol errorTypeSymbol:
+                    // PROTOTYPE we should likely reduce (ie. do type inference and substitute) the candidates (like ToBadExpression)
                     return new BoundBadExpression(syntax, LookupResultKind.Viable, errorTypeSymbol.CandidateSymbols!, [receiver], CreateErrorType());
 
                 default:
@@ -8597,15 +8610,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = default;
 
                 // 1. gather candidates
-                scope.Binder.LookupExtensionMembersInSingleBinder(
-                    lookupResult, left.Type, memberName, arity,
-                    basesBeingResolved: null, lookupOptions, originalBinder: binder, ref useSiteInfo);
-
                 CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
-                binder.LookupExtensionMethods(classicExtensionLookupResult, scope, memberName, arity, ref classicExtensionUseSiteInfo);
-                diagnostics.Add(expression, classicExtensionUseSiteInfo);
+                scope.Binder.LookupAllExtensionMembersInSingleBinder(
+                    lookupResult, memberName, arity, lookupOptions,
+                    originalBinder: binder, useSiteInfo: ref useSiteInfo, classicExtensionUseSiteInfo: ref classicExtensionUseSiteInfo);
 
-                lookupResult.MergeEqual(classicExtensionLookupResult);
+                diagnostics.Add(expression, classicExtensionUseSiteInfo);
 
                 if (!lookupResult.IsMultiViable)
                 {
@@ -8704,12 +8714,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // we can still prune the inapplicable extension methods using the receiver type
                     for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
                     {
-                        if (methodGroup.Methods[i].IsExtensionMethod
-                            && (object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type, binder.Compilation) == null)
+                        MethodSymbol method = methodGroup.Methods[i];
+                        TypeSymbol? receiverType = left.Type;
+                        Debug.Assert(receiverType is not null);
+
+                        bool inapplicable = false;
+                        if (method.IsExtensionMethod
+                            && (object)method.ReduceExtensionMethod(receiverType, binder.Compilation) == null)
+                        {
+                            inapplicable = true;
+                        }
+                        else if (method.GetIsNewExtensionMember()
+                            && SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(binder.Compilation, method, receiverType) == null)
+                        {
+                            inapplicable = true;
+                        }
+
+                        if (inapplicable)
                         {
                             methodGroup.Methods.RemoveAt(i);
                         }
-                        // PROTOTYPE we'll want to do the same for new extension methods
                     }
 
                     if (methodGroup.Methods.Count != 0)
@@ -11030,7 +11054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var scope in new ExtensionScopes(this))
                 {
                     methodGroup.Clear();
-                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, typeArguments, BindingDiagnosticBag.Discarded);
+                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, typeArguments, BindingDiagnosticBag.Discarded); // PROTOTYPE account for new extension members
                     var methods = ArrayBuilder<MethodSymbol>.GetInstance(capacity: methodGroup.Methods.Count);
                     foreach (var extensionMethod in methodGroup.Methods)
                     {

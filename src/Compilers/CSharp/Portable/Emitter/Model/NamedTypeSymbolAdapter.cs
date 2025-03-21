@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert((object)method != null);
 
-                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method.GetCciAdapter().ShouldInclude(context))
+                if ((alwaysIncludeConstructors && method.MethodKind == MethodKind.Constructor) || method is SynthesizedExtensionMarker || method.GetCciAdapter().ShouldInclude(context))
                 {
                     yield return method.GetCciAdapter();
                 }
