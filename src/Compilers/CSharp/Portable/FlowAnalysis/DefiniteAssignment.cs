@@ -1855,11 +1855,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter))
                     {
-                        Debug.Assert(thisParameter.RefKind != RefKind.Out);
-                        int slot = GetOrCreateSlot(thisParameter);
-                        if (slot > 0)
+                        if (extensionParameter.RefKind != RefKind.Out)
                         {
-                            SetSlotAssigned(slot, ref topState);
+                            int slot = GetOrCreateSlot(extensionParameter);
+                            if (slot > 0)
+                            {
+                                SetSlotAssigned(slot, ref topState);
+                            }
                         }
                     }
                 }
