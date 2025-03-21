@@ -1272,6 +1272,11 @@
         <target state="translated">Argument diagnosticId atrybutu „Experimental” musi być prawidłowym identyfikatorem</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExtensionParameterReference">
+        <source>Cannot use extension parameter '{0}' in this context.</source>
+        <target state="new">Cannot use extension parameter '{0}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">Element „{0}” nie jest prawidłowym modyfikatorem zwracanego typu wskaźnikowego funkcji. Prawidłowe modyfikatory to „ref” i „ref readonly”.</target>
@@ -1410,6 +1415,16 @@
       <trans-unit id="ERR_ListPatternRequiresLength">
         <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
         <target state="translated">Wzorce listy nie mogą być używane dla wartości typu „{0}”. Nie znaleziono odpowiedniej właściwości „Długość” ani „Liczba”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LocalSameNameAsExtensionParameter">
+        <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</source>
+        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LocalSameNameAsExtensionTypeParameter">
+        <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</source>
+        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
@@ -1907,6 +1922,11 @@
         <target state="new">An extension container can have only one receiver parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReceiverParameterSameNameAsTypeParameter">
+        <source>'{0}': a receiver parameter cannot have the same name as an extension container type parameter</source>
+        <target state="new">'{0}': a receiver parameter cannot have the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">Konstruktor podstawowy powoduje konflikt z konstruktorem syntetyzowanej kopii.</target>
@@ -2317,6 +2337,16 @@
         <target state="translated">Typ „{0}” musi być publiczny, aby można go było używać jako konwencji wywoływania.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TypeParameterSameNameAsExtensionParameter">
+        <source>Type parameter '{0}' has the same name as an extension parameter</source>
+        <target state="new">Type parameter '{0}' has the same name as an extension parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypeParameterSameNameAsExtensionTypeParameter">
+        <source>Type parameter '{0}' has the same name as an extension container type parameter</source>
+        <target state="new">Type parameter '{0}' has the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
         <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
         <target state="translated">Automatycznie implementowana właściwość „{0}” musi być w pełni przypisana, zanim kontrolka zostanie zwrócona do obiektu wywołującego. Rozważ zaktualizowanie do wersji językowej „{1}”, aby automatycznie ustawić domyślną właściwość.</target>
@@ -2415,6 +2445,16 @@
       <trans-unit id="ERR_UseDefViolationThisUnsupportedVersion">
         <source>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</source>
         <target state="translated">Nie można użyć obiektu „this” przed przypisaniem wszystkich jego pól. Rozważ zaktualizowanie nieprzypisanych pól do wersji językowej „{0}”, aby automatycznie ustawić domyślne pola niezaznaczone.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ValueParameterSameNameAsExtensionParameter">
+        <source>'value': an automatically-generated parameter name conflicts with an extension parameter name</source>
+        <target state="new">'value': an automatically-generated parameter name conflicts with an extension parameter name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ValueParameterSameNameAsExtensionTypeParameter">
+        <source>'value': an automatically-generated parameter name conflicts with an extension type parameter name</source>
+        <target state="new">'value': an automatically-generated parameter name conflicts with an extension type parameter name</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VariableDeclarationNamedField">

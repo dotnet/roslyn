@@ -1141,23 +1141,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
 
-                    for (int i = 0; i < result.Count; i++)
+                    var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
+                    bool checkForDuplicates = true;
+
+                    if ((object)tpEnclosing != null)
                     {
-                        if (name == result[i].Name)
+                        if (tpEnclosing.ContainingSymbol is NamedTypeSymbol { IsExtension: true })
                         {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
-                            break;
+                            diagnostics.Add(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, location, name);
+                            checkForDuplicates = false;
+                        }
+                        else
+                        {
+                            // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
+                            diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
+                        }
+                    }
+
+                    if (checkForDuplicates)
+                    {
+                        for (int i = 0; i < result.Count; i++)
+                        {
+                            if (name == result[i].Name)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
+                                break;
+                            }
                         }
                     }
 
                     SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
-
-                    var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
-                    if ((object)tpEnclosing != null)
-                    {
-                        // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
-                        diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
-                    }
 
                     var syntaxRefs = ImmutableArray.Create(parameter.GetReference());
                     var locations = ImmutableArray.Create(location);

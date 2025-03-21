@@ -72,7 +72,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_ReceiverParameterOnlyOne, parameterList.Parameters[parameterIndex].GetLocation());
                 }
 
-                return ParameterHelpers.MakeExtensionReceiverParameter(withTypeParametersBinder: signatureBinder, owner: this, parameterList, diagnostics);
+                ParameterSymbol? parameter = ParameterHelpers.MakeExtensionReceiverParameter(withTypeParametersBinder: signatureBinder, owner: this, parameterList, diagnostics);
+
+                if (parameter is { Name: var name } && name != "" &&
+                    ContainingType.TypeParameters.Any(static (p, name) => p.Name == name, name))
+                {
+                    diagnostics.Add(ErrorCode.ERR_ReceiverParameterSameNameAsTypeParameter, parameter.GetFirstLocation(), name);
+                }
+
+                return parameter;
             }
         }
     }

@@ -5,9 +5,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -19,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private class ExtensionInfo
         {
-            public StrongBox<ParameterSymbol?>? LazyExtensionParameter;
+            public MethodSymbol? LazyExtensionMarker = ErrorMethodSymbol.UnknownMethod;
+            public ParameterSymbol? LazyExtensionParameter;
             public ImmutableDictionary<MethodSymbol, MethodSymbol>? LazyImplementationMap;
         }
 
@@ -56,30 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                if (_lazyExtensionInfo is null)
+                var markerMethod = TryGetOrCreateExtensionMarker();
+
+                if (_lazyExtensionInfo.LazyExtensionParameter == null && markerMethod is { Parameters: [var parameter, ..] })
                 {
-                    Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
+                    Interlocked.CompareExchange(ref _lazyExtensionInfo.LazyExtensionParameter, new ReceiverParameterSymbol(this, parameter), null);
                 }
 
-                if (_lazyExtensionInfo.LazyExtensionParameter == null)
-                {
-                    var extensionParameter = makeExtensionParameter(this);
-                    Interlocked.CompareExchange(ref _lazyExtensionInfo.LazyExtensionParameter, new StrongBox<ParameterSymbol?>(extensionParameter), null);
-                }
-
-                return _lazyExtensionInfo.LazyExtensionParameter.Value;
-
-                static ParameterSymbol? makeExtensionParameter(SourceNamedTypeSymbol symbol)
-                {
-                    var markerMethod = symbol.GetMembers(WellKnownMemberNames.ExtensionMarkerMethodName).OfType<SynthesizedExtensionMarker>().SingleOrDefault();
-
-                    if (markerMethod is not { Parameters: [var parameter, ..] })
-                    {
-                        return null;
-                    }
-
-                    return new ReceiverParameterSymbol(symbol, parameter);
-                }
+                return _lazyExtensionInfo.LazyExtensionParameter;
             }
         }
 
@@ -113,6 +100,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return _lazyExtensionInfo.LazyImplementationMap.GetValueOrDefault(method);
+        }
+
+        protected sealed override MethodSymbol? CreateSynthesizedExtensionMarker()
+        {
+            return TryGetOrCreateExtensionMarker();
+        }
+
+        [MemberNotNull(nameof(_lazyExtensionInfo))]
+        private MethodSymbol? TryGetOrCreateExtensionMarker()
+        {
+            Debug.Assert(IsExtension);
+
+            if (_lazyExtensionInfo is null)
+            {
+                Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
+            }
+
+            if (_lazyExtensionInfo.LazyExtensionMarker == (object)ErrorMethodSymbol.UnknownMethod)
+            {
+                Interlocked.CompareExchange(ref _lazyExtensionInfo.LazyExtensionMarker, tryCreateExtensionMarker(), ErrorMethodSymbol.UnknownMethod);
+            }
+
+            return _lazyExtensionInfo.LazyExtensionMarker;
+
+            MethodSymbol? tryCreateExtensionMarker()
+            {
+                var syntax = (ExtensionDeclarationSyntax)this.GetNonNullSyntaxNode();
+                var parameterList = syntax.ParameterList;
+                Debug.Assert(parameterList is not null);
+
+                if (parameterList is null)
+                {
+                    return null;
+                }
+
+                int count = parameterList.Parameters.Count;
+                Debug.Assert(count > 0);
+
+                return new SynthesizedExtensionMarker(this, parameterList);
+            }
         }
 
         internal static Symbol? GetCompatibleSubstitutedMember(CSharpCompilation compilation, Symbol extensionMember, TypeSymbol receiverType)

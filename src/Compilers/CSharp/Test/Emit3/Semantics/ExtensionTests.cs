@@ -504,10 +504,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (5,14): error CS0102: The type 'Extensions.extension<T>(object)' already contains a definition for 'T'
-            //         void T() { }
-            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "T").WithArguments("Extensions.extension<T>(object)", "T").WithLocation(5, 14));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -1275,9 +1272,13 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,16): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Extensions.extension<T>(object)'
+            // (5,16): error CS9508: Type parameter 'T' has the same name as an extension container type parameter
             //         void M<T>() { }
-            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Extensions.extension<T>(object)").WithLocation(5, 16));
+            Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(5, 16),
+            // (6,21): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            //         void M2(int T) { }
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(6, 21)
+            );
     }
 
     [Fact]
@@ -2010,12 +2011,13 @@ public class MyAttribute : System.Attribute
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,16): error CS0103: The name 'o' does not exist in the current context
+            // (3,6): error CS0592: Attribute 'My' is not valid on this declaration type. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
             //     [My(nameof(o)), My(nameof(Extensions))]
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(3, 16),
-            // (3,21): error CS0592: Attribute 'My' is not valid on this declaration type. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
+            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "My").WithArguments("My", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(3, 6),
+            // (3,21): error CS0579: Duplicate 'My' attribute
             //     [My(nameof(o)), My(nameof(Extensions))]
-            Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "My").WithArguments("My", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(3, 21));
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "My").WithArguments("My").WithLocation(3, 21)
+            );
     }
 
     [Fact]
@@ -3303,9 +3305,9 @@ public static class Extensions
 
     extension(long x)
     {
-        public static void M3(int x)
+        public static void M3(int y)
         {
-            x.M2(new C());
+            y.M2(new C());
         }
     }
 
@@ -3340,9 +3342,9 @@ public static class Extensions
 
     extension(long x)
     {
-        public static void M3(int x)
+        public static void M3(int y)
         {
-            _ = x.M2;
+            _ = y.M2;
         }
     }
 
@@ -3470,8 +3472,8 @@ file static class Extensions
     {
         public void M1(C c) {}
         public C P => null;
-        public C this[int x]  => null;
-        public int this[C x]  => 0;
+        public C this[int y]  => null;
+        public int this[C y]  => 0;
     }
 
     public static void M2(this int x, C c) {}
@@ -3630,7 +3632,7 @@ public static class Extensions
     }
 
     [Fact]
-    public void ReceiverNotInScopeInStaticMember()
+    public void ReceiverInScopeButIllegalInStaticMember()
     {
         var src = """
 public static class Extensions
@@ -3646,18 +3648,18 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,31): error CS0103: The name 'o' does not exist in the current context
+            // (5,31): error CS9512: Cannot use extension parameter 'object o' in this context.
             //         static object M1() => o;
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(5, 31),
-            // (6,37): error CS0103: The name 'o' does not exist in the current context
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(5, 31),
+            // (6,37): error CS9512: Cannot use extension parameter 'object o' in this context.
             //         static object M2() { return o; }
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(6, 37),
-            // (7,29): error CS0103: The name 'o' does not exist in the current context
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(6, 37),
+            // (7,29): error CS9512: Cannot use extension parameter 'object o' in this context.
             //         static object P1 => o;
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(7, 29),
-            // (8,41): error CS0103: The name 'o' does not exist in the current context
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(7, 29),
+            // (8,41): error CS9512: Cannot use extension parameter 'object o' in this context.
             //         static object P2 { get { return o; } }
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(8, 41)
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(8, 41)
             );
     }
 
@@ -6924,9 +6926,9 @@ static class Extensions
 {
     extension(object o)
     {
-        public static string M2(object o, string s)
+        public static string M2(object o1, string s)
         {
-            return object.M(o, s);
+            return object.M(o1, s);
         }
     }
 }
@@ -7013,9 +7015,9 @@ static class Extensions_
 {
     extension(object o)
     {
-        public static string M2(object o, string s)
+        public static string M2(object o1, string s)
         {
-            return Extensions.M(o, s);
+            return Extensions.M(o1, s);
         }
     }
 }
@@ -7070,9 +7072,9 @@ static class Extensions
 {
     extension(object o)
     {
-        public static string M2(object o, string s)
+        public static string M2(object o1, string s)
         {
-            return new System.Func<object, string, string>(object.M)(o, s);
+            return new System.Func<object, string, string>(object.M)(o1, s);
         }
     }
 }
@@ -7154,9 +7156,9 @@ static class Extensions_
 {
     extension(object o)
     {
-        public static string M2(object o, string s)
+        public static string M2(object o1, string s)
         {
-            return new System.Func<object, string, string>(Extensions.M)(o, s);
+            return new System.Func<object, string, string>(Extensions.M)(o1, s);
         }
     }
 }
@@ -7194,9 +7196,9 @@ static class Extensions
 {
     extension(object o)
     {
-        unsafe public static string M2(object o, string s)
+        unsafe public static string M2(object o1, string s)
         {
-            return ((delegate*<object, string, string>)&object.M)(o, s);
+            return ((delegate*<object, string, string>)&object.M)(o1, s);
         }
     }
 }
@@ -7274,9 +7276,9 @@ static class Extensions_
 {
     extension(object o)
     {
-        unsafe public static string M2(object o, string s)
+        unsafe public static string M2(object o1, string s)
         {
-            return ((delegate*<object, string, string>)&Extensions.M)(o, s);
+            return ((delegate*<object, string, string>)&Extensions.M)(o1, s);
         }
     }
 }
@@ -11466,7 +11468,7 @@ static class E
 {
     extension(object o)
     {
-        public void M(object o) => throw null;
+        public void M(object o1) => throw null;
     }
     public static void M2(this object o, object o2) => throw null;
 }
@@ -11483,7 +11485,7 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
-        Assert.Equal(["void E.<>E__0.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal(["void E.<>E__0.M(System.Object o1)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -12113,7 +12115,7 @@ static class E1
     extension(C c)
     {
         public void M(string s) => throw null;
-        public void M(char c) => throw null;
+        public void M(char c1) => throw null;
     }
 }
 
@@ -12130,7 +12132,7 @@ static class E2
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
         Assert.Equal("void C.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void C.M()", "void E1.<>E__0.M(System.String s)", "void E1.<>E__0.M(System.Char c)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+        Assert.Equal(["void C.M()", "void E1.<>E__0.M(System.String s)", "void E1.<>E__0.M(System.Char c1)", "void C.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -21305,6 +21307,1656 @@ static class E
     }
 
     [Fact]
+    public void NameConflict_01_EnclosingStaticTypeNameWithExtensionTypeParameterName()
+    {
+        var src = """
+static class Extensions
+{
+    extension<Extensions>(int)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void NameConflict_02_EnclosingStaticTypeNameWithReceiverParameterName()
+    {
+        var src = """
+static class Extensions
+{
+    extension(int Extensions)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void NameConflict_03_ExtensionTypeParameterNameWithReceiverParameterName()
+    {
+        var src = """
+static class Extensions
+{
+#line 7
+    extension<T>(T[] T)
+    {
+        void M1(){}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (7,22): error CS9506: 'T': a receiver parameter cannot have the same name as an extension container type parameter
+            //     extension<T>(T[] T)
+            Diagnostic(ErrorCode.ERR_ReceiverParameterSameNameAsTypeParameter, "T").WithArguments("T").WithLocation(7, 22)
+            );
+    }
+
+    [Fact]
+    public void NameConflict_04_ExtensionTypeParameterNameWithMemberParameterName()
+    {
+        var src = """
+static class Extensions
+{
+    extension<T>(T[] p)
+    {
+#line 14
+        void M2(int T){}
+        static void M3(int T){}
+        int this[int T] => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (14,21): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            //         void M2(int T){}
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(14, 21),
+            // (15,28): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            //         static void M3(int T){}
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(15, 28),
+            // (16,22): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            //         int this[int T] => 0;
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(16, 22)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_05_ExtensionTypeParameterNameWithSetterValueParameter(bool isStatic)
+    {
+        var src = @"
+static class Extensions
+{
+    extension<value>(value[] p)
+    {
+        " + (isStatic ? "static" : "") + @"
+        int P11 {set{}}
+
+        " + (isStatic ? "static" : "") + @"
+        int P12 => 0;
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (4,15): warning CS8981: The type name 'value' only contains lower-cased ascii characters. Such names may become reserved for the language.
+            //     extension<value>(value[] p)
+            Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "value").WithArguments("value").WithLocation(4, 15),
+            // (7,18): error CS9513: 'value': an automatically-generated parameter name conflicts with an extension type parameter name
+            //         int P11 {set{}}
+            Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter, "set").WithLocation(7, 18)
+            );
+    }
+
+    [Fact]
+    public void NameConflict_06_ExtensionTypeParameterNameWithSetterValueParameter()
+    {
+        var src = @"
+static class Extensions
+{
+    extension<value>(value[] p)
+    {
+        int this[int i] {set{}}
+        int this[long i] => 0;
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (4,15): warning CS8981: The type name 'value' only contains lower-cased ascii characters. Such names may become reserved for the language.
+            //     extension<value>(value[] p)
+            Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "value").WithArguments("value").WithLocation(4, 15),
+            // (6,26): error CS9513: 'value': an automatically-generated parameter name conflicts with an extension type parameter name
+            //         int this[int i] {set{}}
+            Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter, "set").WithLocation(6, 26)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_07_ExtensionTypeParameterNameWithLocalFunctionParameterName(bool isStatic1, bool isStatic2)
+    {
+        var modifier1 = isStatic1 ? "static " : "";
+        var modifier2 = isStatic2 ? "static " : "";
+
+        var src = @"
+#pragma warning disable CS8321 // The local function 'local' is declared but never used
+
+static class Extensions
+{
+    extension<T>(T[] p)
+    {
+        " + modifier1 + @"void M4()
+        {
+            " + modifier2 + @"int local(int T)
+            {
+                return T;
+            }
+        }
+        " + modifier1 + @"int P7
+        {
+            set
+            {
+                " + modifier2 + @"int local(int T)
+                {
+                    return T;
+                }
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_08_ExtensionTypeParameterNameWithLambdaParameterName(bool isStatic1, bool isStatic2)
+    {
+        var modifier1 = isStatic1 ? "static " : "";
+        var modifier2 = isStatic2 ? "static " : "";
+
+        var src = @"
+static class Extensions
+{
+    extension<T>(T[] p)
+    {
+        " + modifier1 + @"void M4()
+        {
+            System.Func<int, int> l = " + modifier2 + @"(int T) =>
+            {
+                return T;
+            };
+        }
+        " + modifier1 + @"int P7
+        {
+            set
+            {
+                System.Func<int, int> l = " + modifier2 + @"(int T) =>
+                {
+                    return T;
+                };
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_09_ExtensionTypeParameterNameWithLocalName(bool isStatic)
+    {
+        var modifier = isStatic ? "static " : "";
+
+        var src = @"
+static class Extensions
+{
+    extension<T>(T[] p)
+    {
+        " + modifier + @"int M4()
+        {
+#line 19
+            int T = 0;
+            return T;
+        }
+        " + modifier + @"int M5()
+        {
+            int T() => 0;
+            return T();
+        }
+        " + modifier + @"int P7
+        {
+            get
+            {
+                int T = 0;
+                return T;
+            }
+        }
+        " + modifier + @"int P8
+        {
+            get
+            {
+                int T() => 0;
+                return T();
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (19,17): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            //             int T = 0;
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(19, 17),
+            // (24,17): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            //             int T() => 0;
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(24, 17),
+            // (31,21): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            //                 int T = 0;
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(31, 21),
+            // (39,21): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            //                 int T() => 0;
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(39, 21)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_10_ExtensionTypeParameterNameWithLocalNameInLocalFunction(bool isStatic1, bool isStatic2)
+    {
+        var modifier1 = isStatic1 ? "static " : "";
+        var modifier2 = isStatic2 ? "static " : "";
+
+        var src = @"
+#pragma warning disable CS8321 // The local function 'local' is declared but never used
+
+static class Extensions
+{
+    extension<T>(T[] p)
+    {
+        " + modifier1 + @"void M4()
+        {
+            " + modifier2 + @"int local()
+            {
+                int T = 0;
+                return T;
+            }
+        }
+        " + modifier1 + @"void M5()
+        {
+            " + modifier2 + @"int local()
+            {
+                int T() => 0;
+                return T();
+            }
+        }
+        " + modifier1 + @"int P7
+        {
+            set
+            {
+                " + modifier2 + @"int local()
+                {
+                    int T = 0;
+                    return T;
+                }
+            }
+        }
+        " + modifier1 + @"int P8
+        {
+            set
+            {
+                " + modifier2 + @"int local()
+                {
+                    int T() => 0;
+                    return T();
+                }
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_11_ExtensionTypeParameterNameWithLocalNameInLambda(bool isStatic1, bool isStatic2)
+    {
+        var modifier1 = isStatic1 ? "static " : "";
+        var modifier2 = isStatic2 ? "static " : "";
+
+        var src = @"
+static class Extensions
+{
+    extension<T>(T[] p)
+    {
+        " + modifier1 + @"void M4()
+        {
+            System.Func<int> l = " + modifier2 + @"() =>
+            {
+                int T = 0;
+                return T;
+            };
+        }
+        " + modifier1 + @"void M5()
+        {
+            System.Func<int> l = " + modifier2 + @"() =>
+            {
+                int T() => 0;
+                return T();
+            };
+        }
+        " + modifier1 + @"int P7
+        {
+            set
+            {
+                System.Func<int> l = " + modifier2 + @"() =>
+                {
+                    int T = 0;
+                    return T;
+                };
+            }
+        }
+        " + modifier1 + @"int P8
+        {
+            set
+            {
+                System.Func<int> l = " + modifier2 + @"() =>
+                {
+                    int T() => 0;
+                    return T();
+                };
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void NameConflict_12_ExtensionTypeParameterNameWithAnotherExtensionTypeParameterName()
+    {
+        var src = """
+static class Extensions
+{
+#line 55
+    extension<T, T>(T[] p)
+    {}
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (55,18): error CS0692: Duplicate type parameter 'T'
+            //     extension<T, T>(T[] p)
+            Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(55, 18),
+            // (55,21): error CS0229: Ambiguity between 'T' and 'T'
+            //     extension<T, T>(T[] p)
+            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(55, 21)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_13_ExtensionTypeParameterNameWithMemberTypeParameterName(bool isStatic)
+    {
+        var modifier = isStatic ? "static" : "";
+
+        var src = @"
+static class Extensions
+{
+    extension<T>(T[] p)
+    {
+        " + modifier + @"
+#line 60
+        void M9<T>(){}
+
+        " + modifier + @"
+#line 61
+        void M10<T, T>(){}
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (60,17): error CS9508: Type parameter 'T' has the same name as an extension container type parameter
+            //         void M9<T>(){}
+            Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(60, 17),
+            // (61,18): error CS9508: Type parameter 'T' has the same name as an extension container type parameter
+            //         void M10<T, T>(){}
+            Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(61, 18),
+            // (61,21): error CS9508: Type parameter 'T' has the same name as an extension container type parameter
+            //         void M10<T, T>(){}
+            Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(61, 21)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_14_ExtensionTypeParameterNameWithLocalFunctionTypeParameterName(bool isStatic1, bool isStatic2)
+    {
+        var modifier1 = isStatic1 ? "static " : "";
+        var modifier2 = isStatic2 ? "static" : "";
+
+        var src = @"
+#pragma warning disable CS8321 // The local function 'local' is declared but never used
+
+static class Extensions
+{
+    extension<T>(T[] p)
+    {
+        " + modifier1 + @"void M4()
+        {
+            " + modifier2 + @"
+            T local<T>(T p1)
+            {
+                return p1;
+            }
+        }
+        " + modifier1 + @"void M5()
+        {
+            void local2()
+            {
+                " + modifier2 + @"
+                T local<T>(T p1)
+                {
+                    return p1;
+                }
+            }
+        }
+        " + modifier1 + @"int P7
+        {
+            set
+            {
+                " + modifier2 + @"
+                T local<T>(T p1)
+                {
+                    return p1;
+                }
+            }
+        }
+        " + modifier1 + @"int P8
+        {
+            set
+            {
+                void local2()
+                {
+                    " + modifier2 + @"
+                    T local<T>(T p1)
+                    {
+                        return p1;
+                    }
+                }
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        // PROTOTYPE: We might need to add a new warning if we don't want to refer to extension as a type in diagnostics
+
+        comp.VerifyEmitDiagnostics(
+            // (11,21): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Extensions.extension<T>(T[])'
+            //             T local<T>(T p1)
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Extensions.extension<T>(T[])").WithLocation(11, 21),
+            // (21,25): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Extensions.extension<T>(T[])'
+            //                 T local<T>(T p1)
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Extensions.extension<T>(T[])").WithLocation(21, 25),
+            // (32,25): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Extensions.extension<T>(T[])'
+            //                 T local<T>(T p1)
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Extensions.extension<T>(T[])").WithLocation(32, 25),
+            // (45,29): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Extensions.extension<T>(T[])'
+            //                     T local<T>(T p1)
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Extensions.extension<T>(T[])").WithLocation(45, 29)
+            );
+    }
+
+    [Fact]
+    public void NameConflict_15_ExtensionTypeParameterNameWithMemberName()
+    {
+        var src = """
+static class Extensions
+{
+    extension<T>(C1<T> p)
+    {
+        int T()
+        {
+            return T;
+        }
+    }
+
+    extension<T>(C2<T> p)
+    {
+        int T => T;
+    }
+
+    extension<T>(C3<T> p)
+    {
+        [System.Runtime.CompilerServices.IndexerName("T")]
+        int this[int x] => T;
+    }
+
+    extension<T>(C4<T> p)
+    {
+        static int T()
+        {
+            return T;
+        }
+    }
+
+    extension<T>(C5<T> p)
+    {
+        static int T => T;
+    }
+
+    extension<get_P>(C6<get_P> p)
+    {
+        int P => 0;
+    }
+
+    extension<get_Indexer>(C7<get_Indexer> p)
+    {
+        [System.Runtime.CompilerServices.IndexerName("Indexer")]
+        int this[int x] => 0;
+    }
+
+    extension<get_Item>(C8<get_Item> p)
+    {
+        int this[int x] => 0;
+    }
+}
+
+class C1<T> {} 
+class C2<T> {} 
+class C3<T> {} 
+class C4<T> {} 
+class C5<T> {} 
+class C6<T> {} 
+class C7<T> {} 
+class C8<T> {} 
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,20): error CS0119: 'T' is a type, which is not valid in the given context
+            //             return T;
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(7, 20),
+            // (13,18): error CS0119: 'T' is a type, which is not valid in the given context
+            //         int T => T;
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(13, 18),
+            // (19,28): error CS0119: 'T' is a type, which is not valid in the given context
+            //         int this[int x] => T;
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(19, 28),
+            // (26,20): error CS0119: 'T' is a type, which is not valid in the given context
+            //             return T;
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(26, 20),
+            // (32,25): error CS0119: 'T' is a type, which is not valid in the given context
+            //         static int T => T;
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(32, 25)
+            );
+    }
+
+    [Fact]
+    public void NameConflict_16_ReceiverParameterNameWithMemberName()
+    {
+        var src = """
+static class Extensions
+{
+    extension(int M1)
+    {
+        void M1()
+        {
+            int x = M1;
+            x++;
+        }
+    }
+
+    extension(long P1)
+    {
+        int P1
+        {
+            get
+            {
+                P1 = long.MaxValue;
+                return 0;
+            }
+        }
+    }
+
+    extension(byte Indexer)
+    {
+        [System.Runtime.CompilerServices.IndexerName("Indexer")]
+        int this[int y]
+        {
+            get
+            {
+                byte x = Indexer;
+                x++;
+                return 0;
+            }
+        }
+    }
+
+    extension(short M1)
+    {
+        static void M1()
+        {
+            short x = M1;
+            x++;
+        }
+    }
+
+    extension(string P1)
+    {
+        static int P1
+        {
+            get
+            {
+                P1 = "val";
+                return 0;
+            }
+        }
+    }
+
+    extension(int[] get_P)
+    {
+        int P => 0;
+    }
+
+    extension(long[] get_Indexer)
+    {
+        [System.Runtime.CompilerServices.IndexerName("Indexer")]
+        int this[int x] => 0;
+    }
+
+    extension(byte[] get_Item)
+    {
+        int this[int x] => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (42,23): error CS9512: Cannot use extension parameter 'short M1' in this context.
+            //             short x = M1;
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "M1").WithArguments("short M1").WithLocation(42, 23),
+            // (53,17): error CS9512: Cannot use extension parameter 'string P1' in this context.
+            //                 P1 = "val";
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "P1").WithArguments("string P1").WithLocation(53, 17)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_17_ReceiverParameterNameWithMemberTypeParameterName(bool isStatic)
+    {
+        var modifier = isStatic ? "static" : "";
+
+        var src = @"
+static class Extensions
+{
+    extension(int T)
+    {
+        " + modifier + @"
+#line 5
+        void M1<T>(){}
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (5,17): error CS9511: Type parameter 'T' has the same name as an extension parameter
+            //         void M1<T>(){}
+            Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionParameter, "T").WithArguments("T").WithLocation(5, 17)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_18_ReceiverParameterNameWithLocalFunctionTypeParameterName(bool isStatic1, bool isStatic2)
+    {
+        var modifier1 = isStatic1 ? "static " : "";
+        var modifier2 = isStatic2 ? "static" : "";
+
+        var src = @"
+#pragma warning disable CS8321 // The local function 'local' is declared but never used
+
+static class Extensions
+{
+    extension(int T)
+    {
+        " + modifier1 + @"void M4()
+        {
+            " + modifier2 + @"
+            T local<T>(T p1)
+            {
+                return p1;
+            }
+        }
+        " + modifier1 + @"void M5()
+        {
+            void local2()
+            {
+                " + modifier2 + @"
+                T local<T>(T p1)
+                {
+                    return p1;
+                }
+            }
+        }
+        " + modifier1 + @"int P7
+        {
+            set
+            {
+                " + modifier2 + @"
+                T local<T>(T p1)
+                {
+                    return p1;
+                }
+            }
+        }
+        " + modifier1 + @"int P8
+        {
+            set
+            {
+                void local2()
+                {
+                    " + modifier2 + @"
+                    T local<T>(T p1)
+                    {
+                        return p1;
+                    }
+                }
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void NameConflict_19_ReceiverParameterNameWithMemberParameterName()
+    {
+        var src = """
+static class Extensions
+{
+    extension(int p)
+    {
+        void M2(int p){}
+        static void M3(int p){}
+        int this[int p] => 0;
+        void M3(int p2, int p2) {}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (5,21): error CS9509: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
+            //         void M2(int p){}
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(5, 21),
+            // (6,28): error CS9509: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
+            //         static void M3(int p){}
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(6, 28),
+            // (7,22): error CS9509: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
+            //         int this[int p] => 0;
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(7, 22),
+            // (8,29): error CS0100: The parameter name 'p2' is a duplicate
+            //         void M3(int p2, int p2) {}
+            Diagnostic(ErrorCode.ERR_DuplicateParamName, "p2").WithArguments("p2").WithLocation(8, 29)
+            );
+    }
+
+    [Fact]
+    public void NameConflict_20_ReceiverParameterNameWithSetterValueParameter()
+    {
+        var src = """
+static class Extensions
+{
+    extension(int value)
+    {
+        int P1 {get=>0;}
+        int P2 {set{}}
+        int this[int x] {get=>0;}
+        int this[long x] {set{}}
+        int this[long x, int value] {set{}}
+        static int P6 {get=>0;}
+        static int P7 {set{}}
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (6,17): error CS9510: 'value': an automatically-generated parameter name conflicts with an extension parameter name
+            //         int P2 {set{}}
+            Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(6, 17),
+            // (8,27): error CS9510: 'value': an automatically-generated parameter name conflicts with an extension parameter name
+            //         int this[long x] {set{}}
+            Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(8, 27),
+            // (9,30): error CS9509: 'value': a parameter, local variable, or local function cannot have the same name as an extension parameter
+            //         int this[long x, int value] {set{}}
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "value").WithArguments("value").WithLocation(9, 30),
+            // (9,30): error CS0316: The parameter name 'value' conflicts with an automatically-generated parameter name
+            //         int this[long x, int value] {set{}}
+            Diagnostic(ErrorCode.ERR_DuplicateGeneratedName, "value").WithArguments("value").WithLocation(9, 30),
+            // (9,38): error CS9510: 'value': an automatically-generated parameter name conflicts with an extension parameter name
+            //         int this[long x, int value] {set{}}
+            Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(9, 38),
+            // (11,24): error CS9510: 'value': an automatically-generated parameter name conflicts with an extension parameter name
+            //         static int P7 {set{}}
+            Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(11, 24)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_21_ReceiverParameterNameWithLocalFunctionParameterName(bool isStatic1, bool isStatic2)
+    {
+        var modifier1 = isStatic1 ? "static " : "";
+        var modifier2 = isStatic2 ? "static " : "";
+
+        var src = @"
+#pragma warning disable CS8321 // The local function 'local' is declared but never used
+
+static class Extensions
+{
+    extension(string p)
+    {
+        " + modifier1 + @"void M4()
+        {
+            " + modifier2 + @"int local(int p)
+            {
+                return p;
+            }
+        }
+        " + modifier1 + @"int P7
+        {
+            set
+            {
+                " + modifier2 + @"int local(int p)
+                {
+                    return p;
+                }
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_22_ReceiverParameterNameWithLambdaParameterName(bool isStatic1, bool isStatic2)
+    {
+        var modifier1 = isStatic1 ? "static " : "";
+        var modifier2 = isStatic2 ? "static " : "";
+
+        var src = @"
+static class Extensions
+{
+    extension(string p)
+    {
+        " + modifier1 + @"void M4()
+        {
+            System.Func<int, int> l = " + modifier2 + @"(int p) =>
+            {
+                return p;
+            };
+        }
+        " + modifier1 + @"int P7
+        {
+            set
+            {
+                System.Func<int, int> l = " + modifier2 + @"(int p) =>
+                {
+                    return p;
+                };
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_23_ReceiverParameterNameWithLocalName(bool isStatic)
+    {
+        var modifier = isStatic ? "static " : "";
+
+        var src = @"
+static class Extensions
+{
+    extension(int p)
+    {
+        " + modifier + @"int M4()
+        {
+#line 7
+            int p = 0;
+            return p;
+        }
+        " + modifier + @"int M5()
+        {
+            int p() => 0;
+            return p();
+        }
+        " + modifier + @"int P7
+        {
+            get
+            {
+                int p = 0;
+                return p;
+            }
+        }
+        " + modifier + @"int P8
+        {
+            get
+            {
+                int p() => 0;
+                return p();
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (7,17): error CS0136: A local or parameter named 'p' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+            //             int p = 0;
+            Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "p").WithArguments("p").WithLocation(7, 17),
+            // (12,17): error CS0136: A local or parameter named 'p' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+            //             int p() => 0;
+            Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "p").WithArguments("p").WithLocation(12, 17),
+            // (19,21): error CS0136: A local or parameter named 'p' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+            //                 int p = 0;
+            Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "p").WithArguments("p").WithLocation(19, 21),
+            // (27,21): error CS0136: A local or parameter named 'p' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+            //                 int p() => 0;
+            Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "p").WithArguments("p").WithLocation(27, 21)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_24_ReceiverParameterNameWithLocalNameInLocalFunction(bool isStatic1, bool isStatic2)
+    {
+        var modifier1 = isStatic1 ? "static " : "";
+        var modifier2 = isStatic2 ? "static " : "";
+
+        var src = @"
+#pragma warning disable CS8321 // The local function 'local' is declared but never used
+
+static class Extensions
+{
+    extension(string p)
+    {
+        " + modifier1 + @"void M4()
+        {
+            " + modifier2 + @"int local()
+            {
+                int p = 0;
+                return p;
+            }
+        }
+        " + modifier1 + @"void M5()
+        {
+            " + modifier2 + @"int local()
+            {
+                int p() => 0;
+                return p();
+            }
+        }
+        " + modifier1 + @"int P7
+        {
+            set
+            {
+                " + modifier2 + @"int local()
+                {
+                    int p = 0;
+                    return p;
+                }
+            }
+        }
+        " + modifier1 + @"int P8
+        {
+            set
+            {
+                " + modifier2 + @"int local()
+                {
+                    int p() => 0;
+                    return p();
+                }
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void NameConflict_25_ReceiverParameterNameWithLocalNameInLambda(bool isStatic1, bool isStatic2)
+    {
+        var modifier1 = isStatic1 ? "static " : "";
+        var modifier2 = isStatic2 ? "static " : "";
+
+        var src = @"
+static class Extensions
+{
+    extension(string p)
+    {
+        " + modifier1 + @"void M4()
+        {
+            System.Func<int> l = " + modifier2 + @"() =>
+            {
+                int p = 0;
+                return p;
+            };
+        }
+        " + modifier1 + @"void M5()
+        {
+            System.Func<int> l = " + modifier2 + @"() =>
+            {
+                int p() => 0;
+                return p();
+            };
+        }
+        " + modifier1 + @"int P7
+        {
+            set
+            {
+                System.Func<int> l = " + modifier2 + @"() =>
+                {
+                    int p = 0;
+                    return p;
+                };
+            }
+        }
+        " + modifier1 + @"int P8
+        {
+            set
+            {
+                System.Func<int> l = " + modifier2 + @"() =>
+                {
+                    int p() => 0;
+                    return p();
+                };
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void NameConflict_26_ExampleFromSpec()
+    {
+        var src = @"
+using System.Linq;
+
+public static class E
+{
+    extension<T>(T[] ts)
+    {
+        public bool M1(T t) => ts.Contains(t);        // `T` and `ts` are in scope
+        public static bool M2(T t) => ts.Contains(t); // Error: Cannot refer to `ts` from static context
+        public void M3(int T, string ts) { }          // Error: Cannot reuse names `T` and `ts`
+        public void M4<T, ts>(string s) { }           // Error: Cannot reuse names `T` and `ts`
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (9,39): error CS9512: Cannot use extension parameter 'T[] ts' in this context.
+            //         public static bool M2(T t) => ts.Contains(t); // Error: Cannot refer to `ts` from static context
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "ts").WithArguments("T[] ts").WithLocation(9, 39),
+            // (10,28): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            //         public void M3(int T, string ts) { }          // Error: Cannot reuse names `T` and `ts`
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(10, 28),
+            // (10,38): error CS9509: 'ts': a parameter, local variable, or local function cannot have the same name as an extension parameter
+            //         public void M3(int T, string ts) { }          // Error: Cannot reuse names `T` and `ts`
+            Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "ts").WithArguments("ts").WithLocation(10, 38),
+            // (11,24): error CS9508: Type parameter 'T' has the same name as an extension container type parameter
+            //         public void M4<T, ts>(string s) { }           // Error: Cannot reuse names `T` and `ts`
+            Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(11, 24),
+            // (11,27): warning CS8981: The type name 'ts' only contains lower-cased ascii characters. Such names may become reserved for the language.
+            //         public void M4<T, ts>(string s) { }           // Error: Cannot reuse names `T` and `ts`
+            Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "ts").WithArguments("ts").WithLocation(11, 27),
+            // (11,27): error CS9511: Type parameter 'ts' has the same name as an extension parameter
+            //         public void M4<T, ts>(string s) { }           // Error: Cannot reuse names `T` and `ts`
+            Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionParameter, "ts").WithArguments("ts").WithLocation(11, 27)
+            );
+    }
+
+    [Fact]
+    public void NameConflict_27_ExampleFromSpec()
+    {
+        var src = @"
+public static class E
+{
+    extension<T>(T[] ts)
+    {
+        public int T() { return M(ts); } // Generated static method M<T>(T[]) is found
+        public string M() { return T(ts); } // Error: T is a type parameter
+    }
+}
+
+class CTest
+{
+    static int M<T>(T[] ts)
+    {
+        return T(ts);
+    }
+    
+    static int T<U>(U[] ts) => 0;
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (6,33): error CS0029: Cannot implicitly convert type 'string' to 'int'
+            //         public int T() { return M(ts); } // Generated static method M<T>(T[]) is found
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "M(ts)").WithArguments("string", "int").WithLocation(6, 33),
+            // (7,36): error CS0119: 'T' is a type, which is not valid in the given context
+            //         public string M() { return T(ts); } // Error: T is a type parameter
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(7, 36),
+            // (15,16): error CS0119: 'T' is a type, which is not valid in the given context
+            //         return T(ts);
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(15, 16)
+            );
+    }
+
+    [Fact]
+    public void NameConflict_28_ExampleFromSpec()
+    {
+        var src = @"
+public static class E
+{
+    extension(int P)
+    {
+        public int P() { return M(P); } // Generated static method M<T>(T[]) is found
+        public string M() { return P(P); } // Error: P is a parameter
+    }
+}
+
+class CTest
+{
+    static int M(int P)
+    {
+        return P(P);
+    }
+    
+    static int P(int P) => 0;
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (6,33): error CS0029: Cannot implicitly convert type 'string' to 'int'
+            //         public int P() { return M(P); } // Generated static method M<T>(T[]) is found
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "M(P)").WithArguments("string", "int").WithLocation(6, 33),
+            // (7,36): error CS0149: Method name expected
+            //         public string M() { return P(P); } // Error: P is a parameter
+            Diagnostic(ErrorCode.ERR_MethodNameExpected, "P").WithLocation(7, 36),
+            // (15,16): error CS0149: Method name expected
+            //         return P(P);
+            Diagnostic(ErrorCode.ERR_MethodNameExpected, "P").WithLocation(15, 16)
+            );
+    }
+
+    [Fact]
+    public void NameConflict_29_WithStaticTypeTypeParameter()
+    {
+        var src = @"
+public static class E<T>
+{
+    extension(int p)
+    {
+        public void M1<T>() {}
+    }
+
+    extension<T>(T[] p)
+    {
+        public void M2<T>() {}
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (4,5): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(int p)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(4, 5),
+            // (6,24): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'E<T>'
+            //         public void M1<T>() {}
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "E<T>").WithLocation(6, 24),
+            // (9,5): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            //     extension<T>(T[] p)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(9, 5),
+            // (9,15): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'E<T>'
+            //     extension<T>(T[] p)
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "E<T>").WithLocation(9, 15),
+            // (11,24): error CS9508: Type parameter 'T' has the same name as an extension container type parameter
+            //         public void M2<T>() {}
+            Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(11, 24)
+            );
+    }
+
+    [Fact]
+    public void ReceiverParameterScope_01_InStaticMember()
+    {
+        var src = """
+static class Extensions
+{
+    extension(int p)
+    {
+        static int P1 { get => p; }
+        static int M2()
+        {
+            return p;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (5,32): error CS9512: Cannot use extension parameter 'int p' in this context.
+            //         static int P1 { get => p; }
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(5, 32),
+            // (8,20): error CS9512: Cannot use extension parameter 'int p' in this context.
+            //             return p;
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(8, 20)
+            );
+    }
+
+    [Fact]
+    public void ReceiverParameterScope_02_InStaticMember()
+    {
+        var src = """
+static class Extensions
+{
+    extension(int p)
+    {
+        static int P1
+        {
+            get
+            {
+                int local() => p;
+                return local();
+            }
+        }
+        static int M2()
+        {
+            int local() => p;
+            return local();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (9,32): error CS9512: Cannot use extension parameter 'int p' in this context.
+            //                 int local() => p;
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(9, 32),
+            // (15,28): error CS9512: Cannot use extension parameter 'int p' in this context.
+            //             int local() => p;
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(15, 28)
+            );
+    }
+
+    [Fact]
+    public void ReceiverParameterScope_03_InStaticMember()
+    {
+        var src = """
+static class Extensions
+{
+    extension(int p)
+    {
+        static string P1 { get => nameof(p); }
+        static string M2()
+        {
+            return nameof(p);
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ReceiverParameterScope_04_InStaticLocalFunction()
+    {
+        var src = """
+static class Extensions
+{
+    extension(int p)
+    {
+        int P1
+        {
+            get
+            {
+                static int local() => p;
+                return local();
+            }
+        }
+        int M2()
+        {
+            static int local() => p;
+            return local();
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (9,39): error CS8421: A static local function cannot contain a reference to 'p'.
+            //                 static int local() => p;
+            Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "p").WithArguments("p").WithLocation(9, 39),
+            // (15,35): error CS8421: A static local function cannot contain a reference to 'p'.
+            //             static int local() => p;
+            Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "p").WithArguments("p").WithLocation(15, 35)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void ReceiverParameterScope_05_InAttribute(bool isStatic)
+    {
+        var modifier = isStatic ? "static " : "";
+
+        var src = @"
+static class Extensions
+{
+    extension(int p)
+    {
+        [MyAttr(nameof(p))]
+        " + modifier + @"int P1 { get => 0; }
+
+        [MyAttr(nameof(p))]
+        " + modifier + @"int M2()
+        {
+            return 0;
+        }
+    }
+}
+
+class MyAttr : System.Attribute
+{
+    public MyAttr(string s) {}
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void ReceiverParameterScope_06_InAttribute(bool isStatic)
+    {
+        var modifier = isStatic ? "static " : "";
+
+        var src = @"
+static class Extensions
+{
+    extension(int p)
+    {
+        [MyAttr(p)]
+        " + modifier + @"int P1 { get => 0; }
+
+        [MyAttr(p)]
+        " + modifier + @"int M2()
+        {
+            return 0;
+        }
+    }
+}
+
+class MyAttr : System.Attribute
+{
+    public MyAttr(int p) {}
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics(
+            // (6,17): error CS9512: Cannot use extension parameter 'int p' in this context.
+            //         [MyAttr(p)]
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(6, 17),
+            // (6,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+            //         [MyAttr(p)]
+            Diagnostic(ErrorCode.ERR_BadAttributeArgument, "p").WithLocation(6, 17),
+            // (9,17): error CS9512: Cannot use extension parameter 'int p' in this context.
+            //         [MyAttr(p)]
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(9, 17),
+            // (9,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+            //         [MyAttr(p)]
+            Diagnostic(ErrorCode.ERR_BadAttributeArgument, "p").WithLocation(9, 17)
+            );
+    }
+
+    [Fact(Skip = "Cycle")] // PROTOTYPE: There is a cycle due to the attribute
+    public void ReceiverParameterScope_07_InAttribute()
+    {
+        var src = @"
+static class Extensions
+{
+    extension(int p)
+    {
+        [System.Runtime.CompilerServices.IndexerName(nameof(p))]
+        int this[int y]
+        {
+            get
+            {
+                return 0;
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ReceiverParameterScope_08_InAttribute()
+    {
+        var src = @"
+static class Extensions
+{
+    extension(string p)
+    {
+        [System.Runtime.CompilerServices.IndexerName(p)]
+        int this[int y]
+        {
+            get
+            {
+                return 0;
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyDiagnostics(
+            // (6,54): error CS9512: Cannot use extension parameter 'string p' in this context.
+            //         [System.Runtime.CompilerServices.IndexerName(p)]
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("string p").WithLocation(6, 54),
+            // (6,54): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+            //         [System.Runtime.CompilerServices.IndexerName(p)]
+            Diagnostic(ErrorCode.ERR_BadAttributeArgument, "p").WithLocation(6, 54)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void ReceiverParameterScope_09_InDefaultValue(bool isStatic)
+    {
+        var modifier = isStatic ? "static " : "";
+
+        var src = @"
+static class Extensions
+{
+    extension(int p)
+    {
+        " + modifier + @"int M2(string x = nameof(p))
+        {
+            return 0;
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void ReceiverParameterScope_10_InDefaultValue(bool isStatic)
+    {
+        var modifier = isStatic ? "static" : "";
+
+        var src = @"
+static class Extensions
+{
+    extension(int p)
+    {
+        " + modifier + @"
+#line 6
+        int M2(int x = p)
+        {
+            return 0;
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics(
+            // (6,24): error CS9512: Cannot use extension parameter 'int p' in this context.
+            //         int M2(int x = p)
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(6, 24),
+            // (6,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
+            //         int M2(int x = p)
+            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "p").WithArguments("x").WithLocation(6, 24)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void ReceiverParameterScope_11_InNestedType(bool isStatic)
+    {
+        var modifier = isStatic ? "static" : "";
+
+        var src = @"
+static class Extensions
+{
+    extension(int p)
+    {
+        class Nested
+        {
+            " + modifier + @"
+            int M2()
+            {
+                return p;
+            }
+
+            " + modifier + @"
+            string M3()
+            {
+                return nameof(p);
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics(
+            // (6,15): error CS9501: Extension declarations can include only methods or properties
+            //         class Nested
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(6, 15),
+            // (11,24): error CS9512: Cannot use extension parameter 'int p' in this context.
+            //                 return p;
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(11, 24)
+            );
+    }
+
+    [Fact(Skip = "Cycle")] // PROTOTYPE: There is a cycle due to the attribute
+    public void CycleInAttribute_01()
+    {
+        var src = @"
+static class Extensions
+{
+    static const string Str = ""val""
+    extension(string p)
+    {
+        [System.Runtime.CompilerServices.IndexerName(Str)]
+        int this[int y]
+        {
+            get
+            {
+                return 0;
+            }
+        }
+    }
+}
+";
+        var comp = CreateCompilation(src);
+
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
     public void SignatureConflict_01()
     {
         var src = """
@@ -25910,6 +27562,34 @@ public static class E
         AssertEqualAndNoDuplicates([.. _objectMembers], model.LookupSymbols(position: 0, o, name: null, includeReducedExtensionMethods: true).ToTestDisplayStrings());
 
         Assert.Empty(model.LookupNamespacesAndTypes(position: 0, o, name: null));
+    }
+
+    [Fact]
+    public void LookupSymbols_ExtensionParameter()
+    {
+        var src = """
+public static class E
+{
+    extension(object o)
+    {
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+
+        int position = extension.OpenBraceToken.EndPosition;
+        AssertEqualAndNoDuplicates(["System.Object o"], model.LookupSymbols(position, null, name: "o").ToTestDisplayStrings());
+        AssertEx.Equal("System.Object o", model.LookupSymbols(position, null, name: null).OfType<IParameterSymbol>().Single().ToTestDisplayString());
+        Assert.Empty(model.LookupNamespacesAndTypes(position, null, name: "o"));
+
+        position = extension.OpenBraceToken.Position;
+        Assert.Empty(model.LookupSymbols(position, null, name: "o"));
+        Assert.Empty(model.LookupSymbols(position, null, name: null).OfType<IParameterSymbol>());
     }
 
     [Fact]
