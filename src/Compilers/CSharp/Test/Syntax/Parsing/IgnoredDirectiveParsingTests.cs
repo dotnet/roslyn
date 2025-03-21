@@ -132,7 +132,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, messageTrivia.Kind());
         Assert.Equal("abc", messageTrivia.ToString());
         trivia.GetDiagnostics().Verify(
-            // (3,2): error CS9283: '#:' directives cannot be after '#if'
+            // (3,2): error CS9283: '#:' directives cannot be after '#if' directive
             // #:abc
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(3, 2));
     }
@@ -260,10 +260,10 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
         VerifyTrivia();
         UsingTree(source, TestOptions.Regular.WithFeature(FeatureName),
-            // (3,2): error CS9283: '#:' directives cannot be after '#if'
+            // (3,2): error CS9283: '#:' directives cannot be after '#if' directive
             // #:y
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(3, 2),
-            // (5,2): error CS9283: '#:' directives cannot be after '#if'
+            // (5,2): error CS9283: '#:' directives cannot be after '#if' directive
             // #:z
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(5, 2));
 

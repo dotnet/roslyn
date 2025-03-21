@@ -1638,8 +1638,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredFollowsIf">
-        <source>'#:' directives cannot be after '#if'</source>
-        <target state="new">'#:' directives cannot be after '#if'</target>
+        <source>'#:' directives cannot be after '#if' directive</source>
+        <target state="new">'#:' directives cannot be after '#if' directive</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PPIgnoredFollowsToken">
