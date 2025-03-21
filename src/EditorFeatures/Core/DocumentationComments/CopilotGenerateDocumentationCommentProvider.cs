@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
@@ -46,14 +47,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         public async Task GenerateDocumentationProposalAsync(DocumentationCommentSnippet snippet,
             ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
         {
-            await Task.Yield().ConfigureAwait(false);
+            await YieldAwaitableExtensions.ConfigureAwait(Task.Yield(), false);
 
             if (!Enabled)
             {
                 return;
             }
 
-            // MemberNode is not null at this point, checked when determining if the file is exluded.
+            // MemberNode is not null at this point, checked when determining if the file is excluded.
             var snippetProposal = GetSnippetProposal(snippet.SnippetText, snippet.MemberNode!, snippet.Position, snippet.CaretOffset);
 
             if (snippetProposal is null)
@@ -63,20 +64,24 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             // Do not do IntelliCode line completions if we're about to generate a documentation comment
             // so that won't have interfering grey text.
-            var intellicodeLineCompletionsDisposable = await _suggestionManager!.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
-
-            var proposalEdits = await GetProposedEditsAsync(snippetProposal, _copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
-
-            var proposal = Proposal.TryCreateProposal(null, proposalEdits, oldCaret, flags: ProposalFlags.SingleTabToAccept);
-
-            if (proposal is null)
+            var intelliCodeLineCompletionsDisposable = await _suggestionManager!.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
+            var suggestion = new DocumentationCommentSuggestion(this, _suggestionManager, intelliCodeLineCompletionsDisposable);
+            var suggestionSessionStarted = await suggestion.StartSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
+            if (!suggestionSessionStarted)
             {
-                await intellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
                 return;
             }
 
-            var suggestion = new DocumentationCommentSuggestion(this, proposal, _suggestionManager, intellicodeLineCompletionsDisposable);
-            await suggestion.TryDisplaySuggestionAsync(cancellationToken).ConfigureAwait(false);
+            var proposalEdits = await GetProposedEditsAsync(snippetProposal, _copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
+
+            var proposal = Proposal.TryCreateProposal(null, proposalEdits, oldCaret, flags: ProposalFlags.ShowCommitHighlight);
+            if (proposal is null)
+            {
+                await suggestion.DismissSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
+            await suggestion.TryDisplayDocumentationSuggestionAsync(proposal, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
