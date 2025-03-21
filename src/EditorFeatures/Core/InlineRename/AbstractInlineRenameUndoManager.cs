@@ -54,17 +54,6 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
             _trackedSession.ReplacementTextChanged -= InlineRenameSession_ReplacementTextChanged;
         }
 
-        if (!_globalOptionService.GetOption(InlineRenameUIOptionsStorage.UseInlineAdornment))
-        {
-            // If the user is typing directly into the editor as the only way to change 
-            // the replacement text then we don't need to respond to text changes. The 
-            // listener on the textview that calls UpdateCurrentState will handle
-            // this correctly. This option cannot change when we are currently in a session, so
-            // only hook up as needed
-            _trackedSession = null;
-            return;
-        }
-
         _trackedSession = InlineRenameService.ActiveSession;
 
         if (_trackedSession is not null)

@@ -388,7 +388,6 @@ class C {
         // Disable new rename UI for now, it's causing these tests to fail.
         // https://github.com/dotnet/roslyn/issues/63576
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, false);
 
         await TestServices.Workspace.SetTriggerCompletionInArgumentListsAsync(LanguageNames.CSharp, showCompletionInArgumentLists, HangMitigatingCancellationToken);
 

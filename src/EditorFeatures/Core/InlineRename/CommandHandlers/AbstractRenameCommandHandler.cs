@@ -32,10 +32,6 @@ internal abstract partial class AbstractRenameCommandHandler(
 
     protected abstract void SetFocusToAdornment(ITextView textView);
 
-    protected abstract void SetAdornmentFocusToPreviousElement(ITextView textView);
-
-    protected abstract void SetAdornmentFocusToNextElement(ITextView textView);
-
     private CommandState GetCommandState(Func<CommandState> nextHandler)
     {
         if (renameService.ActiveSession != null)
