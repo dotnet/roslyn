@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             // Depending on who wins the race to load these assemblies, the base directory will either be the tooling root (if Roslyn wins)
             // or the ServiceHubCore subfolder (razor). In the root directory these are netstandard2.0 targeted, in ServiceHubCore they are 
             // .net targeted. We need to always pick the same set of assemblies regardless of who causes us to load. Because this code only
-            // runs in a .net based host, its safe to always choose the .net targeted ServiceHubCore versions.
+            // runs in a .net based host, it's safe to always choose the .net targeted ServiceHubCore versions.
             if (!directory.EndsWith(ServiceHubCoreFolderName))
             {
                 directory = Path.Combine(directory, ServiceHubCoreFolderName);
