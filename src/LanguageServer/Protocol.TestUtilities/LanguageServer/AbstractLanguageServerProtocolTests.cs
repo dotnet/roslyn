@@ -834,8 +834,19 @@ namespace Roslyn.Test.Utilities
 
             internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedLspText().Values.Select(v => v.Text)];
 
-            internal ValueTask RunCodeAnalysisAsync(ProjectId projectId)
-                => _codeAnalysisService.RunAnalysisAsync(GetCurrentSolution().GetRequiredProject(projectId), CancellationToken.None);
+            internal async ValueTask RunCodeAnalysisAsync(ProjectId? projectId)
+            {
+                var solution = GetCurrentSolution();
+                if (projectId is null)
+                {
+                    foreach (var project in solution.Projects)
+                        await _codeAnalysisService.RunAnalysisAsync(project, CancellationToken.None);
+                }
+                else
+                {
+                    await _codeAnalysisService.RunAnalysisAsync(solution.GetRequiredProject(projectId), CancellationToken.None);
+                }
+            }
 
             public async ValueTask DisposeAsync()
             {
