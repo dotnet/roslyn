@@ -29,7 +29,6 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
     }
 
     protected readonly InlineRenameService InlineRenameService;
-    private readonly IGlobalOptionService _globalOptionService;
     protected readonly Dictionary<ITextBuffer, TBufferState> UndoManagers = [];
     protected readonly Stack<ActiveSpanState> UndoStack = new Stack<ActiveSpanState>();
     protected readonly Stack<ActiveSpanState> RedoStack = new Stack<ActiveSpanState>();
@@ -39,10 +38,9 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
 
     private InlineRenameSession _trackedSession;
 
-    public AbstractInlineRenameUndoManager(InlineRenameService inlineRenameService, IGlobalOptionService globalOptionService)
+    public AbstractInlineRenameUndoManager(InlineRenameService inlineRenameService)
     {
         this.InlineRenameService = inlineRenameService;
-        _globalOptionService = globalOptionService;
 
         InlineRenameService.ActiveSessionChanged += InlineRenameService_ActiveSessionChanged;
     }
