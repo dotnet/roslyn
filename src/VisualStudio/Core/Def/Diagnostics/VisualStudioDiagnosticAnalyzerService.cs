@@ -241,6 +241,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
 
         private bool _disposed;
         private int _completedProjects;
+        private int _inProgress = 1;
 
         public StatusBarUpdater(
             VisualStudioDiagnosticAnalyzerService service,
@@ -279,21 +280,27 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             {
                 threadingContext.ThrowIfNotOnUIThread();
 
+                // Once we've transitioned to the completed state, we never want to update again.
+                if (_inProgress == 0)
+                    return;
+
                 var analyzedProjectCount = _completedProjects;
                 var disposed = _disposed;
 
-                var inProgress = analyzedProjectCount < totalProjectCount && !disposed;
+                var inProgress = analyzedProjectCount < totalProjectCount && !disposed ? 1 : 0;
                 var message =
                     analyzedProjectCount == totalProjectCount ? statusMessageOnCompleted :
                     disposed ? statusMessageOnTerminated : statusMessageWhileRunning;
 
                 statusBar.Progress(
                     ref statusBarCookie,
-                    fInProgress: inProgress ? 1 : 0,
+                    fInProgress: inProgress,
                     message,
                     (uint)analyzedProjectCount,
                     (uint)totalProjectCount);
                 statusBar.SetText(message);
+
+                _inProgress = inProgress;
             }
         }
 
