@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
@@ -17,12 +18,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 [ExportMetadata("Extensions", new string[] { "cshtml", "razor", })]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class RazorDynamicFileInfoProvider(Lazy<LanguageServerWorkspaceFactory> workspaceFactory) : IDynamicFileInfoProvider, ILspService, IOnInitialized
+internal partial class RazorDynamicFileInfoProvider(Lazy<LanguageServerWorkspaceFactory> workspaceFactory, ILoggerFactory loggerFactory) : IDynamicFileInfoProvider, ILspService, IOnInitialized
 {
     private RazorWorkspaceService? _razorWorkspaceService;
     private RazorLspDynamicFileInfoProvider? _dynamicFileInfoProvider;
 
     public event EventHandler<string>? Updated;
+
+    private readonly ILogger _logger = loggerFactory.CreateLogger<RazorDynamicFileInfoProvider>();
 
     public async Task<DynamicFileInfo?> GetDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
@@ -49,8 +52,15 @@ internal partial class RazorDynamicFileInfoProvider(Lazy<LanguageServerWorkspace
 
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        _razorWorkspaceService = context.GetRequiredService<RazorWorkspaceService>();
-        _dynamicFileInfoProvider = context.GetRequiredService<RazorLspDynamicFileInfoProvider>();
+        _razorWorkspaceService = context.GetService<RazorWorkspaceService>();
+        _dynamicFileInfoProvider = context.GetService<RazorLspDynamicFileInfoProvider>();
+
+        if (_razorWorkspaceService is null || _dynamicFileInfoProvider is null)
+        {
+            _logger.LogError("RazorDynamicFileInfoProvider not initialized. RazorWorkspaceService or RazorLspDynamicFileInfoProvider is null.");
+            return Task.CompletedTask;
+        }
+
         _dynamicFileInfoProvider.Updated += (s, uri) =>
         {
             var filePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
