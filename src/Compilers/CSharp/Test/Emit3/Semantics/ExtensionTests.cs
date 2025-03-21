@@ -25037,19 +25037,21 @@ static class E
     }
 }
 """);
-            Assert.Null(GetSymbolNamesJoined(analysisResults.VariablesDeclared));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.AlwaysAssigned));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.Captured));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedOutside));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.DataFlowsIn));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.DataFlowsOut));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnEntry));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnExit));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.ReadInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.ReadOutside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.WrittenInside));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.WrittenOutside));
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned:
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn: i, i2
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside: i, i2
+ReadOutside:
+WrittenInside:
+WrittenOutside: i, this, i2
+""", analysisResults);
         }
 
         [Fact]
@@ -25067,19 +25069,21 @@ static class E
     }
 }
 """);
-            Assert.Null(GetSymbolNamesJoined(analysisResults.VariablesDeclared));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.AlwaysAssigned));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.Captured));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedOutside));
-            Assert.Equal("this", GetSymbolNamesJoined(analysisResults.DataFlowsIn));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.DataFlowsOut));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnEntry));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnExit));
-            Assert.Equal("this", GetSymbolNamesJoined(analysisResults.ReadInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.ReadOutside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.WrittenInside));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.WrittenOutside));
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned:
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn: this
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside: this
+ReadOutside:
+WrittenInside:
+WrittenOutside: i, this, i2
+""", analysisResults);
         }
 
         [Fact]
@@ -25100,19 +25104,21 @@ static class E
     }
 }
 """);
-            Assert.Null(GetSymbolNamesJoined(analysisResults.VariablesDeclared));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.AlwaysAssigned));
-            Assert.Equal("i, i2, i3", GetSymbolNamesJoined(analysisResults.Captured));
-            Assert.Equal("i, i2, i3", GetSymbolNamesJoined(analysisResults.CapturedInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedOutside));
-            Assert.Equal("i, i2, i3", GetSymbolNamesJoined(analysisResults.DataFlowsIn));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.DataFlowsOut));
-            Assert.Equal("i, this, i2, i3", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnEntry));
-            Assert.Equal("i, this, i2, i3", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnExit));
-            Assert.Equal("i, i2, i3", GetSymbolNamesJoined(analysisResults.ReadInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.ReadOutside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.WrittenInside));
-            Assert.Equal("i, this, i2, i3", GetSymbolNamesJoined(analysisResults.WrittenOutside));
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned:
+Captured: i, i2, i3
+CapturedInside: i, i2, i3
+CapturedOutside:
+DataFlowsIn: i, i2, i3
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, this, i2, i3
+DefinitelyAssignedOnExit: i, this, i2, i3
+ReadInside: i, i2, i3
+ReadOutside:
+WrittenInside:
+WrittenOutside: i, this, i2, i3
+""", analysisResults);
         }
 
         [Fact]
@@ -25130,19 +25136,21 @@ static class E
     }
 }
 """);
-            Assert.Null(GetSymbolNamesJoined(analysisResults.VariablesDeclared));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.AlwaysAssigned));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.Captured));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedOutside));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.DataFlowsIn));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.DataFlowsOut));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnEntry));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnExit));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.ReadInside));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.ReadOutside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.WrittenInside));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.WrittenOutside));
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned:
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn: i, i2
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside: i, i2
+ReadOutside: i, i2
+WrittenInside:
+WrittenOutside: i, this, i2
+""", analysisResults);
         }
 
         [Fact]
@@ -25160,19 +25168,21 @@ static class E
     }
 }
 """);
-            Assert.Null(GetSymbolNamesJoined(analysisResults.VariablesDeclared));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.AlwaysAssigned));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.Captured));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedOutside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.DataFlowsIn));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.DataFlowsOut));
-            Assert.Equal("this", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnEntry));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnExit));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.ReadInside));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.ReadOutside));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.WrittenInside));
-            Assert.Equal("this", GetSymbolNamesJoined(analysisResults.WrittenOutside));
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned: i, i2
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn:
+DataFlowsOut: i, i2
+DefinitelyAssignedOnEntry: this
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside:
+ReadOutside: i, i2
+WrittenInside: i, i2
+WrittenOutside: this
+""", analysisResults);
         }
 
         [Fact]
@@ -25190,19 +25200,21 @@ static class E
     }
 }
 """);
-            Assert.Null(GetSymbolNamesJoined(analysisResults.VariablesDeclared));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.AlwaysAssigned));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.Captured));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedOutside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.DataFlowsIn));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.DataFlowsOut));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnEntry));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnExit));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.ReadInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.ReadOutside));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.WrittenInside));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.WrittenOutside));
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned: i, i2
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn:
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside:
+ReadOutside:
+WrittenInside: i, i2
+WrittenOutside: i, this, i2
+""", analysisResults);
         }
 
         [Fact]
@@ -25220,19 +25232,21 @@ static class E
     }
 }
 """);
-            Assert.Null(GetSymbolNamesJoined(analysisResults.VariablesDeclared));
-            Assert.Equal("i", GetSymbolNamesJoined(analysisResults.AlwaysAssigned));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.Captured));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedOutside));
-            Assert.Equal("i2", GetSymbolNamesJoined(analysisResults.DataFlowsIn));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.DataFlowsOut));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnEntry));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnExit));
-            Assert.Equal("i2", GetSymbolNamesJoined(analysisResults.ReadInside));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.ReadOutside));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.WrittenInside));
-            Assert.Equal("i, this, i2", GetSymbolNamesJoined(analysisResults.WrittenOutside));
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned: i
+Captured:
+CapturedInside:
+CapturedOutside:
+DataFlowsIn: i2
+DataFlowsOut: i, i2
+DefinitelyAssignedOnEntry: i, this, i2
+DefinitelyAssignedOnExit: i, this, i2
+ReadInside: i2
+ReadOutside: i, i2
+WrittenInside: i, i2
+WrittenOutside: i, this, i2
+""", analysisResults);
         }
 
         [Fact]
@@ -25253,19 +25267,21 @@ static class E
     }
 }
 """);
-            Assert.Null(GetSymbolNamesJoined(analysisResults.VariablesDeclared));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.AlwaysAssigned));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.Captured));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.CapturedInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedOutside));
-            Assert.Equal("i3", GetSymbolNamesJoined(analysisResults.DataFlowsIn));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.DataFlowsOut));
-            Assert.Equal("i, this, i2, i3", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnEntry));
-            Assert.Equal("i, this, i2, i3", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnExit));
-            Assert.Equal("i, i2, i3", GetSymbolNamesJoined(analysisResults.ReadInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.ReadOutside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.WrittenInside));
-            Assert.Equal("i, this, i2, i3", GetSymbolNamesJoined(analysisResults.WrittenOutside));
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned:
+Captured: i, i2
+CapturedInside: i, i2
+CapturedOutside:
+DataFlowsIn: i3
+DataFlowsOut:
+DefinitelyAssignedOnEntry: i, this, i2, i3
+DefinitelyAssignedOnExit: i, this, i2, i3
+ReadInside: i, i2, i3
+ReadOutside:
+WrittenInside:
+WrittenOutside: i, this, i2, i3
+""", analysisResults);
         }
 
         [Fact]
@@ -25286,19 +25302,21 @@ static class E
     }
 }
 """);
-            Assert.Null(GetSymbolNamesJoined(analysisResults.VariablesDeclared));
-            Assert.Equal("i, i2, i3", GetSymbolNamesJoined(analysisResults.AlwaysAssigned));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.Captured));
-            Assert.Equal("i, i2", GetSymbolNamesJoined(analysisResults.CapturedInside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.CapturedOutside));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.DataFlowsIn));
-            Assert.Equal("i, i2, i3", GetSymbolNamesJoined(analysisResults.DataFlowsOut));
-            Assert.Equal("this", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnEntry));
-            Assert.Equal("i, this, i2, i3", GetSymbolNamesJoined(analysisResults.DefinitelyAssignedOnExit));
-            Assert.Null(GetSymbolNamesJoined(analysisResults.ReadInside));
-            Assert.Equal("i, i2, i3", GetSymbolNamesJoined(analysisResults.ReadOutside));
-            Assert.Equal("i, i2, i3", GetSymbolNamesJoined(analysisResults.WrittenInside));
-            Assert.Equal("this", GetSymbolNamesJoined(analysisResults.WrittenOutside));
+            VerifyDataFlowAnalysis("""
+VariablesDeclared:
+AlwaysAssigned: i, i2, i3
+Captured: i, i2
+CapturedInside: i, i2
+CapturedOutside:
+DataFlowsIn:
+DataFlowsOut: i, i2, i3
+DefinitelyAssignedOnEntry: this
+DefinitelyAssignedOnExit: i, this, i2, i3
+ReadInside:
+ReadOutside: i, i2, i3
+WrittenInside: i, i2, i3
+WrittenOutside: this
+""", analysisResults);
         }
     }
 
