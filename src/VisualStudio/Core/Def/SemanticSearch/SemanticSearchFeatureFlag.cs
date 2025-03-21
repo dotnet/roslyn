@@ -9,6 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices;
 internal static class SemanticSearchFeatureFlag
 {
     public static readonly Option2<bool> Enabled = new("visual_studio_enable_semantic_search", defaultValue: false);
+    public static readonly Option2<bool> PromptEnabled = new("visual_studio_enable_semantic_search_prompt", defaultValue: false);
 
     /// <summary>
     /// Context id that indicates that Semantic Search feature is enabled.

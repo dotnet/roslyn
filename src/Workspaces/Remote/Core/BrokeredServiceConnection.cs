@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.Win32.SafeHandles;
-using Roslyn.Utilities;
 using StreamJsonRpc;
 using StreamJsonRpc.Protocol;
 

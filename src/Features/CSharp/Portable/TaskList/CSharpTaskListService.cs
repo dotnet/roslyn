@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.TaskList;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TaskList;
 

@@ -15,7 +15,6 @@ using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Host.TemporaryStorageService;
 
 #if DEBUG
-using System.Linq;
 #endif
 
 namespace Microsoft.CodeAnalysis.Serialization;

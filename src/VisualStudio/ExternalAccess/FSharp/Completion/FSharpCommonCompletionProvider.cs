@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion;
 

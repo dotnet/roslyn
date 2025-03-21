@@ -24,13 +24,13 @@ internal readonly struct SolutionUpdate(
     public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> DocumentsWithRudeEdits = documentsWithRudeEdits;
     public readonly Diagnostic? SyntaxError = syntaxError;
 
-    public static SolutionUpdate Blocked(
+    public static SolutionUpdate Empty(
         ImmutableArray<ProjectDiagnostics> diagnostics,
         ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic>)> documentsWithRudeEdits,
         Diagnostic? syntaxError,
-        bool hasEmitErrors)
+        ModuleUpdateStatus status)
         => new(
-            new(syntaxError != null || hasEmitErrors ? ModuleUpdateStatus.Blocked : ModuleUpdateStatus.RestartRequired, []),
+            new(status, Updates: []),
             nonRemappableRegions: [],
             projectBaselines: [],
             diagnostics,
