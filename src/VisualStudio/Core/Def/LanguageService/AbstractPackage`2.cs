@@ -34,14 +34,14 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     {
     }
 
-    protected override void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
+    protected override void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
     {
-        base.RegisterInitializationWork(packageRegistrationTasks);
+        base.RegisterInitializeAsyncWork(packageInitializationTasks);
 
-        packageRegistrationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
+        packageInitializationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
     }
 
-    private async Task PackageInitializationMainThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
+    private async Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
     {
         // This code uses various main thread only services, so it must run completely on the main thread
         // (thus the CA(true) usage throughout)
@@ -63,9 +63,9 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
         // awaiting an IVsTask guarantees to return on the captured context
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
 
-        packageRegistrationTasks.AddTask(
+        packageInitializationTasks.AddTask(
              isMainThreadTask: false,
-             task: (IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken) =>
+             task: (PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken) =>
              {
                  RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
                  {
@@ -86,20 +86,25 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
              });
     }
 
-    protected override async Task OnAfterPackageLoadedAsync(CancellationToken cancellationToken)
+    protected override void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
     {
-        await base.OnAfterPackageLoadedAsync(cancellationToken).ConfigureAwait(false);
+        base.RegisterOnAfterPackageLoadedAsyncWork(afterPackageLoadedTasks);
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        afterPackageLoadedTasks.AddTask(
+            isMainThreadTask: true,
+            task: (packageLoadedTasks, cancellationToken) =>
+            {
+                if (_shell != null && !_shell.IsInCommandLineMode())
+                {
+                    // not every derived package support object browser and for those languages
+                    // this is a no op
+                    RegisterObjectBrowserLibraryManager();
+                }
 
-        if (_shell != null && !_shell.IsInCommandLineMode())
-        {
-            // not every derived package support object browser and for those languages
-            // this is a no op
-            RegisterObjectBrowserLibraryManager();
-        }
+                LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
 
-        LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
+                return Task.CompletedTask;
+            });
     }
 
     protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)

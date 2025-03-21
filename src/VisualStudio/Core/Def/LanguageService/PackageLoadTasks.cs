@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
-using WorkTask = Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, CancellationToken, Task>;
+using WorkTask = Func<PackageLoadTasks, CancellationToken, Task>;
 
 /// <summary>
 /// Provides a mechanism for registering work to be done during package initialization. Work is registered
@@ -22,7 +22,7 @@ using WorkTask = Func<IProgress<ServiceProgressData>, PackageRegistrationTasks, 
 /// Note that currently the processing of these tasks isn't done concurrently. A future optimization may
 /// allow parallel background thread task execution, or even concurrent main and background thread work.
 /// </summary>
-internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
+internal sealed class PackageLoadTasks(JoinableTaskFactory jtf)
 {
     private readonly ConcurrentQueue<WorkTask> _backgroundThreadWorkTasks = [];
     private readonly ConcurrentQueue<WorkTask> _mainThreadWorkTasks = [];
@@ -34,24 +34,24 @@ internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
         workTasks.Enqueue(task);
     }
 
-    public async Task ProcessTasksAsync(IProgress<ServiceProgressData> progress, CancellationToken cancellationToken)
+    public async Task ProcessTasksAsync(CancellationToken cancellationToken)
     {
         // prime the pump by doing the first group of bg thread work if the initiating thread is not the main thread
         if (!_jtf.Context.IsOnMainThread)
-            await PerformWorkAsync(isMainThreadTask: false, progress, cancellationToken).ConfigureAwait(false);
+            await PerformWorkAsync(isMainThreadTask: false, cancellationToken).ConfigureAwait(false);
 
         // Continue processing work until everything is completed, switching between main and bg threads as needed.
         while (!_mainThreadWorkTasks.IsEmpty || !_backgroundThreadWorkTasks.IsEmpty)
         {
-            await PerformWorkAsync(isMainThreadTask: true, progress, cancellationToken).ConfigureAwait(false);
-            await PerformWorkAsync(isMainThreadTask: false, progress, cancellationToken).ConfigureAwait(false);
+            await PerformWorkAsync(isMainThreadTask: true, cancellationToken).ConfigureAwait(false);
+            await PerformWorkAsync(isMainThreadTask: false, cancellationToken).ConfigureAwait(false);
         }
     }
 
     private ConcurrentQueue<WorkTask> GetWorkTasks(bool isMainThreadTask)
         => isMainThreadTask ? _mainThreadWorkTasks : _backgroundThreadWorkTasks;
 
-    private async Task PerformWorkAsync(bool isMainThreadTask, IProgress<ServiceProgressData> progress, CancellationToken cancellationToken)
+    private async Task PerformWorkAsync(bool isMainThreadTask, CancellationToken cancellationToken)
     {
         var workTasks = GetWorkTasks(isMainThreadTask);
         if (workTasks.IsEmpty)
@@ -68,7 +68,7 @@ internal sealed class PackageRegistrationTasks(JoinableTaskFactory jtf)
             // CA(true) is important here, as we want to ensure that each iteration is done in the same
             // captured context. Thus, even poorly behaving tasks (ie, those that do their own thread switching)
             // don't effect the next loop iteration.
-            await work(progress, this, cancellationToken).ConfigureAwait(true);
+            await work(this, cancellationToken).ConfigureAwait(true);
         }
     }
 }

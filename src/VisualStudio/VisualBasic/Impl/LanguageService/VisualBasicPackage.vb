@@ -63,13 +63,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             _comAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
         End Sub
 
-        Protected Overrides Sub RegisterInitializationWork(packageRegistrationTasks As PackageRegistrationTasks)
+        Protected Overrides Sub RegisterInitializeAsyncWork(packageInitializationTasks As PackageLoadTasks)
 
-            MyBase.RegisterInitializationWork(packageRegistrationTasks)
+            MyBase.RegisterInitializeAsyncWork(packageInitializationTasks)
 
-            packageRegistrationTasks.AddTask(
+            packageInitializationTasks.AddTask(
                 isMainThreadTask:=False,
-                task:=Function(progress, packageRegistrationTasks2, cancellationToken) As Task
+                task:=Function(packageInitializationTasks2, cancellationToken) As Task
                           Try
                               RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
 
