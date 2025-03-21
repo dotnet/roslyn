@@ -23,11 +23,8 @@ internal static class SolutionCrawlerOptionsStorage
     public static readonly PerLanguageOption2<CompilerDiagnosticsScope> CompilerDiagnosticsScopeOption = new(
         "dotnet_compiler_diagnostics_scope", defaultValue: CompilerDiagnosticsScope.OpenFiles, group: s_backgroundAnalysisOptionGroup, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<CompilerDiagnosticsScope>());
 
-    public static readonly Option2<bool?> EnableDiagnosticsInSourceGeneratedFiles = new(
-        "dotnet_enable_diagnostics_in_source_generated_files", defaultValue: null, group: s_backgroundAnalysisOptionGroup);
-
-    public static readonly Option2<bool> EnableDiagnosticsInSourceGeneratedFilesFeatureFlag = new(
-        "dotnet_enable_diagnostics_in_source_generated_files_feature_flag", defaultValue: false, group: s_backgroundAnalysisOptionGroup);
+    public static readonly Option2<bool> EnableDiagnosticsInSourceGeneratedFiles = new(
+        "dotnet_enable_diagnostics_in_source_generated_files", defaultValue: true, group: s_backgroundAnalysisOptionGroup);
 
     /// <summary>
     /// Enables forced <see cref="BackgroundAnalysisScope.Minimal"/> scope when low VM is detected to improve performance.
