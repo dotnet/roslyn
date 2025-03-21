@@ -110,6 +110,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         var trivia = root.EndOfFileToken.GetLeadingTrivia().Single();
         Assert.Equal(SyntaxKind.IgnoredDirectiveTrivia, trivia.Kind());
         var structure = (IgnoredDirectiveTriviaSyntax)trivia.GetStructure()!;
+        Assert.Equal(":", structure.DirectiveNameToken.ToFullString());
         var messageTrivia = structure.EndOfDirectiveToken.GetLeadingTrivia().Single();
         Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, messageTrivia.Kind());
         Assert.Equal("abc", messageTrivia.ToString());
@@ -128,6 +129,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         var trivia = root.EndOfFileToken.GetLeadingTrivia().Last();
         Assert.Equal(SyntaxKind.IgnoredDirectiveTrivia, trivia.Kind());
         var structure = (IgnoredDirectiveTriviaSyntax)trivia.GetStructure()!;
+        Assert.Equal(":", structure.DirectiveNameToken.ToFullString());
         var messageTrivia = structure.EndOfDirectiveToken.GetLeadingTrivia().Single();
         Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, messageTrivia.Kind());
         Assert.Equal("abc", messageTrivia.ToString());
