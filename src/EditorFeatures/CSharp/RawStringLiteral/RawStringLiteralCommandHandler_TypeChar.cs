@@ -76,6 +76,13 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
         return true;
     }
 
+    private static bool IsAcceptableRawStringStartToken(SyntaxToken token)
+        => token.Kind()
+            is SyntaxKind.SingleLineRawStringLiteralToken
+            or SyntaxKind.MultiLineRawStringLiteralToken
+            or SyntaxKind.InterpolatedSingleLineRawStringStartToken
+            or SyntaxKind.InterpolatedMultiLineRawStringStartToken;
+
     /// <summary>
     /// When typing <c>"</c> given a normal string like <c>""$$</c>, then update the text to be <c>"""$$"""</c>.
     /// Note that this puts the user in the position where TryGrowInitialEmptyRawString can now take effect.
@@ -115,10 +122,9 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
         if (token.SpanStart != start)
             return null;
 
-        if (token.Kind() is not (SyntaxKind.StringLiteralToken or SyntaxKind.InterpolatedStringStartToken or SyntaxKind.InterpolatedSingleLineRawStringStartToken))
-            return null;
-
-        return new TextChange(new TextSpan(position + 1, 0), "\"\"\"");
+        return IsAcceptableRawStringStartToken(token)
+            ? new TextChange(new TextSpan(position + 1, 0), "\"\"\"")
+            : null;
     }
 
     /// <summary>
@@ -167,15 +173,9 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
         if (token.SpanStart != start)
             return null;
 
-        if (token.Kind() is not (SyntaxKind.SingleLineRawStringLiteralToken or
-                                 SyntaxKind.MultiLineRawStringLiteralToken or
-                                 SyntaxKind.InterpolatedSingleLineRawStringStartToken or
-                                 SyntaxKind.InterpolatedMultiLineRawStringStartToken))
-        {
-            return null;
-        }
-
-        return new TextChange(new TextSpan(position + 1, 0), "\"");
+        return IsAcceptableRawStringStartToken(token)
+            ? new TextChange(new TextSpan(position + 1, 0), "\"")
+            : null;
     }
 
     /// <summary>
