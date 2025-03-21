@@ -60,36 +60,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.CSharp);
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);
 
-            BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptionsStorage.OOP64Bit);
-            BindToOption(Automatically_reload_updated_analyzers_and_generators, WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferences, () =>
-            {
-                // If the option has not been set by the user, check if the option is enabled from experimentation. If
-                // so, default to that.
-                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferencesFeatureFlag);
-            });
-
             BindToOption(Enable_file_logging_for_diagnostics, VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics);
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds);
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer, FeatureOnOffOptions.OfferRemoveUnusedReferences, () => true);
 
             // Source Generators
-            BindToOption(Automatic_Run_generators_after_any_change, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic, () =>
-            {
-                // If the option hasn't been set by the user, then check the feature flag.  If the feature flag has set
-                // us to only run when builds complete, then we're not in automatic mode.  So we `!` the result.
-                return !optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
-            });
-            BindToOption(Balanced_Run_generators_after_saving_or_building, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced, () =>
-            {
-                // If the option hasn't been set by the user, then check the feature flag.  If the feature flag has set
-                // us to only run when builds complete, then we're in `Balanced_Run_generators_after_saving_or_building` mode and directly return it.
-                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
-            });
-            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
-            {
-                // If the option has not been set by the user, check if the option is enabled from experimentation. If so, default to that.
-                return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag);
-            });
+            BindToOption(Automatic_Run_generators_after_any_change, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
+            BindToOption(Balanced_Run_generators_after_saving_or_building, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced);
+
+            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles);
 
             // Go To Definition
             BindToOption(Enable_navigation_to_sourcelink_and_embedded_sources, MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources);
@@ -97,10 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Always_use_default_symbol_servers_for_navigation, MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers);
 
             // Rename
-            BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, () =>
-            {
-                return optionStore.GetOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronouslyFeatureFlag);
-            });
+            BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.CommitRenameAsynchronously);
             BindToOption(Rename_UI_setting, InlineRenameUIOptionsStorage.UseInlineAdornment, label: Rename_UI_setting_label);
 
             // Using Directives
@@ -200,12 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsStorage.OpenOnFocus);
 
             // Document Outline
-            BindToOption(EnableDocumentOutline, DocumentOutlineOptionsStorage.EnableDocumentOutline, () =>
-            {
-                // If the option has not been set by the user, check if the option is disabled from experimentation. If
-                // so, default to reflect that.
-                return !optionStore.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag);
-            });
+            BindToOption(EnableDocumentOutline, DocumentOutlineOptionsStorage.EnableDocumentOutline);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -257,16 +228,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             this.OptionStore.SetOption(InlineHintsOptionsStorage.EnabledForTypes, LanguageNames.CSharp, false);
             UpdateInlineHintsOptions();
-        }
-
-        private void RunCodeAnalysisInSeparateProcess_Checked(object sender, RoutedEventArgs e)
-        {
-            Automatically_reload_updated_analyzers_and_generators.IsEnabled = true;
-        }
-
-        private void RunCodeAnalysisInSeparateProcess_Unchecked(object sender, RoutedEventArgs e)
-        {
-            Automatically_reload_updated_analyzers_and_generators.IsEnabled = false;
         }
 
         private void EnterOutliningMode_Checked(object sender, RoutedEventArgs e)

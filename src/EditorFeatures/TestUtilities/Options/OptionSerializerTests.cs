@@ -90,7 +90,8 @@ public class OptionSerializerTests
     {
         var options = new IOption2[]
         {
-            SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption,
+            new Option2<ConsoleColor?>("Name1", null),
+            new Option2<ConsoleColor?>("Name2", ConsoleColor.Black),
         };
 
         foreach (var option in options)
