@@ -391,7 +391,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_highlight_related_regex_components", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor")},
         {"dotnet_provide_regex_completions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions")},
         {"dotnet_unsupported_report_invalid_regex_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns")},
-        {"remove_document_diagnostics_on_document_close", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_show_signature_help", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Auto List Params", vbKey: "TextEditor.Basic.Auto List Params")},
 #pragma warning restore
@@ -425,7 +424,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_diagnostics_in_source_generated_files", new RoamingProfileStorage("TextEditor.Roslyn.Specific.EnableDiagnosticsInSourceGeneratedFilesExperiment")},
         {"dotnet_enable_diagnostics_in_source_generated_files_feature_flag", new FeatureFlagStorage(@"Roslyn.EnableDiagnosticsInSourceGeneratedFiles")},
         {"dotnet_source_generator_execution", new RoamingProfileStorage("TextEditor.Roslyn.Specific.SourceGeneratorExecution")},
-        {"dotnet_source_generator_execution_balanced_feature_flag", new FeatureFlagStorage(@"Roslyn.SourceGeneratorExecutionBalanced")},
         {"dotnet_reload_changed_analyzer_references", new RoamingProfileStorage("TextEditor.Roslyn.Specific.DotnetReloadChangedAnalyzerReferences")},
         {"xaml_enable_lsp_intellisense", new FeatureFlagStorage(@"Xaml.EnableLspIntelliSense")},
     };
