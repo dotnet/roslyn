@@ -33,7 +33,6 @@ stages:
       buildArguments: -msbuildEngine vs /p:Projects='"$(Build.Repository.LocalPath)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject.csproj"'
 
 - stage: ${{ parameters.configuration }}_Integration
-  condition: and(succeeded(), notIn(variables['System.PullRequest.TargetBranchName'], 'main-vs-deps', 'release/dev18.0'))
   dependsOn: Windows_${{ parameters.configuration }}_Build
   variables:
   - name: XUNIT_LOGS
