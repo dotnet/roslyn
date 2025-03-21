@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
 /// <summary>
-/// Parameters for the <see cref="CustomMessageLoadHandler"/> request.
+/// Parameters for the roslyn/customMessageLoad request.
 /// </summary>
 /// <param name="AssemblyFolderPath">Full path to the assembly that contains the message handlers to load.</param>
 /// <param name="AssemblyFileName">File name of the assembly that contains the message handlers to load.</param>

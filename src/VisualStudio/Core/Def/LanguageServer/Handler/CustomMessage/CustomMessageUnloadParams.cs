@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
 /// <summary>
-/// Parameters for the <see cref="CustomMessageUnloadHandler"/> request.
+/// Parameters for the roslyn/customMessageUnload request.
 /// </summary>
 /// <param name="AssemblyFolderPath">Full path to the folder that contains the message handler assemblies to unload.</param>
 internal readonly record struct CustomMessageUnloadParams(

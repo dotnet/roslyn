@@ -8,12 +8,10 @@ using System.Text.Json.Serialization;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
 /// <summary>
-/// Parameters for the <see cref="CustomMessageHandler"/> request.
+/// Parameters for the roslyn/customMessage request.
 /// </summary>
 /// <param name="MessageName">Name of the custom message to be invoked.</param>
-/// <param name="TypeFullName">Full name of the <see cref="Type"/> of the message handler.</param>
 /// <param name="Message">Json message to be passed to a custom message handler.</param>
 internal readonly record struct CustomMessageParams(
     [property: JsonPropertyName("messageName")] string MessageName,
-    [property: JsonPropertyName("typeFullName")] string TypeFullName,
     [property: JsonPropertyName("message")] string Message);

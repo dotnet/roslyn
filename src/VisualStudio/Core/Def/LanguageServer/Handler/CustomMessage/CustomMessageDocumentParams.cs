@@ -8,7 +8,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
 /// <summary>
-/// Parameters for the <see cref="CustomMessageDocumentHandler"/> request.
+/// Parameters for the roslyn/customDocumentMessage request.
 /// </summary>
 /// <param name="MessageName">Name of the custom message to be invoked.</param>
 /// <param name="Message">Json message to be passed to a custom message handler.</param>
