@@ -172,24 +172,20 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         var solution = _workspace.CurrentSolution;
         var project = GetProject(solution, hierarchy);
 
-        // Handle multi-tfm projects - we want to run code analysis for all tfm flavors of the project.
-        string progressName;
-        ImmutableArray<Project> projectsToAnalyze;
-        if (project != null)
-        {
-            projectsToAnalyze = solution.Projects.WhereAsArray(
+        // 1. If we were given no specific project to analyze, then analyze all projects in the solution.
+        // 2. If we were given a specific project to analyze, then analyze all TFM flavors of it.
+        var projectsToAnalyze = project is null
+            ? [.. solution.Projects]
+            : solution.Projects.WhereAsArray(
                 static (otherProject, project) => otherProject.FilePath == project.FilePath && otherProject.State.NameAndFlavor.name == project.State.NameAndFlavor.name,
                 project);
 
-            progressName = projectsToAnalyze.Length == 1
-                ? project.Name
-                : project.State.NameAndFlavor.name ?? project.Name;
-        }
-        else
-        {
-            projectsToAnalyze = [.. solution.Projects];
-            progressName = PathUtilities.GetFileName(solution.FilePath) ?? FeaturesResources.Solution;
-        }
+        // Pick an appropriate name for any of those cases above for reporting progress. Either the solution name if
+        // we're analyzing the whole solution, or the project name (with TFM) if we only have a single project, or the
+        // project name (without TFM) if we're analyzing all flavors of it.
+        var progressName = project is null
+            ? PathUtilities.GetFileName(solution.FilePath) ?? FeaturesResources.Solution
+            : projectsToAnalyze.Length == 1 ? project.Name : project.State.NameAndFlavor.name ?? project.Name;
 
         _threadingContext.JoinableTaskFactory.RunAsync(async () =>
         {
