@@ -250,7 +250,7 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
-      <NgenPriority>1</NgenPriority>
+      <NgenPriority>2</NgenPriority>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj">
       <Name>ServiceHub.Desktop</Name>
