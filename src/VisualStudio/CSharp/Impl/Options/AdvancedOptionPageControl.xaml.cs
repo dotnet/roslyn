@@ -85,11 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 // us to only run when builds complete, then we're in `Balanced_Run_generators_after_saving_or_building` mode and directly return it.
                 return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
             });
-            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
-            {
-                // If the option has not been set by the user, check if the option is enabled from experimentation. If so, default to that.
-                return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag);
-            });
+            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles);
 
             // Go To Definition
             BindToOption(Enable_navigation_to_sourcelink_and_embedded_sources, MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources);
@@ -97,10 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Always_use_default_symbol_servers_for_navigation, MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers);
 
             // Rename
-            BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, () =>
-            {
-                return optionStore.GetOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronouslyFeatureFlag);
-            });
+            BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.CommitRenameAsynchronously);
             BindToOption(Rename_UI_setting, InlineRenameUIOptionsStorage.UseInlineAdornment, label: Rename_UI_setting_label);
 
             // Using Directives
@@ -200,12 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsStorage.OpenOnFocus);
 
             // Document Outline
-            BindToOption(EnableDocumentOutline, DocumentOutlineOptionsStorage.EnableDocumentOutline, () =>
-            {
-                // If the option has not been set by the user, check if the option is disabled from experimentation. If
-                // so, default to reflect that.
-                return !optionStore.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag);
-            });
+            BindToOption(EnableDocumentOutline, DocumentOutlineOptionsStorage.EnableDocumentOutline);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
