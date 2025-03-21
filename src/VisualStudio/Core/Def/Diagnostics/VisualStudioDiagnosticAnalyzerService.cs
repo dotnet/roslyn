@@ -258,7 +258,6 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             // Set the initial status bar progress and text.
 
             uint statusBarCookie = 0;
-
             UpdateStatusBar();
 
             _progressTracker = new(
