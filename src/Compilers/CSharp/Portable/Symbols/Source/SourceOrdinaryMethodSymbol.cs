@@ -771,18 +771,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                         defaultInterfaceImplementationModifiers,
                                                                         location, diagnostics);
 
-            mods = AddImpliedModifiers(mods, isInterface, methodKind, hasBody);
+            mods = AddImpliedModifiers(syntax, mods, isInterface, methodKind, hasBody);
             return (mods, hasExplicitAccessMod);
         }
 
-        private static DeclarationModifiers AddImpliedModifiers(DeclarationModifiers mods, bool containingTypeIsInterface, MethodKind methodKind, bool hasBody)
+        private static DeclarationModifiers AddImpliedModifiers(MethodDeclarationSyntax syntax, DeclarationModifiers mods, bool containingTypeIsInterface, MethodKind methodKind, bool hasBody)
         {
             // Let's overwrite modifiers for interface and explicit interface implementation methods with what they are supposed to be. 
             // Proper errors must have been reported by now.
             if (containingTypeIsInterface)
             {
                 mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, hasBody,
-                                                                         methodKind == MethodKind.ExplicitInterfaceImplementation);
+                                                                         methodKind == MethodKind.ExplicitInterfaceImplementation,
+                                                                         forMethod: true,
+                                                                         syntax);
             }
             else if (methodKind == MethodKind.ExplicitInterfaceImplementation)
             {
