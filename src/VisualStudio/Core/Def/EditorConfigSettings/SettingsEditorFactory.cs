@@ -21,7 +21,7 @@ using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 
 [Guid(SettingsEditorFactoryGuidString)]
-internal sealed class SettingsEditorFactory(IComponentModel componentModel) : IVsEditorFactory, IVsEditorFactory4
+internal sealed class SettingsEditorFactory() : IVsEditorFactory, IVsEditorFactory4
 {
     private static SettingsEditorFactory? s_instance;
 
@@ -29,12 +29,11 @@ internal sealed class SettingsEditorFactory(IComponentModel componentModel) : IV
     public const string SettingsEditorFactoryGuidString = "68b46364-d378-42f2-9e72-37d86c5f4468";
     public const string Extension = ".editorconfig";
 
-    private readonly IComponentModel _componentModel = componentModel;
     private ServiceProvider? _vsServiceProvider;
 
-    public static SettingsEditorFactory GetInstance(IComponentModel componentModel)
+    public static SettingsEditorFactory GetInstance()
     {
-        s_instance ??= new SettingsEditorFactory(componentModel);
+        s_instance ??= new SettingsEditorFactory();
 
         return s_instance;
     }
@@ -58,7 +57,10 @@ internal sealed class SettingsEditorFactory(IComponentModel componentModel) : IV
         pgrfCDW = 0;
         pbstrEditorCaption = null;
 
-        var workspace = _componentModel.GetService<VisualStudioWorkspace>();
+        Assumes.NotNull(_vsServiceProvider);
+
+        var componentModel = (IComponentModel)_vsServiceProvider.GetService(typeof(SComponentModel));
+        var workspace = componentModel.GetService<VisualStudioWorkspace>();
         if (!workspace.CurrentSolution.Projects.Any(p => p.Language is LanguageNames.CSharp or LanguageNames.VisualBasic))
         {
             // If there are no VB or C# projects loaded in the solution (so an editorconfig file in a C++ project) then we want their
@@ -78,11 +80,10 @@ internal sealed class SettingsEditorFactory(IComponentModel componentModel) : IV
             return VSConstants.E_INVALIDARG;
         }
 
-        var threadingContext = _componentModel.GetService<IThreadingContext>();
+        var threadingContext = componentModel.GetService<IThreadingContext>();
         IVsTextLines? textBuffer = null;
         if (punkDocDataExisting == IntPtr.Zero)
         {
-            Assumes.NotNull(_vsServiceProvider);
             if (_vsServiceProvider.TryGetService<SLocalRegistry, ILocalRegistry>(threadingContext.JoinableTaskFactory, out var localRegistry))
             {
                 var textLinesGuid = typeof(IVsTextLines).GUID;
@@ -118,9 +119,9 @@ internal sealed class SettingsEditorFactory(IComponentModel componentModel) : IV
         }
 
         var settingsDataProviderFactory = workspace.Services.GetRequiredService<ISettingsAggregator>();
-        var tableManagerProvider = _componentModel.GetService<ITableManagerProvider>();
-        var controlProvider = _componentModel.GetService<IWpfTableControlProvider>();
-        var vsEditorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
+        var tableManagerProvider = componentModel.GetService<ITableManagerProvider>();
+        var controlProvider = componentModel.GetService<IWpfTableControlProvider>();
+        var vsEditorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
 
         // Create the editor
         var newEditor = new SettingsEditorPane(vsEditorAdaptersFactoryService,

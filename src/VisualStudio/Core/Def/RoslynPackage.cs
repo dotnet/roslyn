@@ -88,7 +88,7 @@ internal sealed class RoslynPackage : AbstractPackage
 
         Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
         {
-            var settingsEditorFactory = SettingsEditorFactory.GetInstance(this.ComponentModel);
+            var settingsEditorFactory = SettingsEditorFactory.GetInstance();
             RegisterEditorFactory(settingsEditorFactory);
 
             return Task.CompletedTask;
