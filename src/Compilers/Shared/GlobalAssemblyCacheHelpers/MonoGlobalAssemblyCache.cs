@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Roslyn.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis
     {
         private static readonly string s_corlibDirectory;
         private static readonly string s_gacDirectory;
+        private static readonly ReaderWriterLockSlim _globalLock = new ReaderWriterLockSlim();
 
         static MonoGlobalAssemblyCache()
         {
@@ -34,7 +36,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static AssemblyName CreateAssemblyNameFromFile(string path)
-            => AssemblyName.GetAssemblyName(path);
+        {
+            _globalLock.EnterWriteLock();
+            try
+            {
+                return AssemblyName.GetAssemblyName(path);
+            }
+            finally
+            {
+                _globalLock.ExitWriteLock();
+            }
+        }
 
         private static IEnumerable<string> GetGacAssemblyPaths(string gacPath, string name, Version version, byte[] publicKeyTokenBytes)
         {
