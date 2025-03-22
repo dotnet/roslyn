@@ -1342,16 +1342,6 @@
         <target state="translated">Mostrar el comando "Quitar referencias sin usar" en Explorador de soluciones</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_UI_as_dashboard_in_top_right">
-        <source>Show UI as a dashboard in top right</source>
-        <target state="translated">Mostrar la interfaz de usuario como un panel en la parte superior derecha</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
-      <trans-unit id="Show_UI_inline">
-        <source>Show UI Inline</source>
-        <target state="translated">Mostrar interfaz de usuario insertada</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
         <target state="translated">Mostrar errores y advertencias del compilador para:</target>
@@ -1726,11 +1716,6 @@
         <source>When types loosely match</source>
         <target state="translated">Cuando los tipos coinciden ligeramente</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Where_should_the_rename_UI_be_shown">
-        <source>Where should the rename UI be shown?</source>
-        <target state="translated">¿Dónde se debe mostrar la interfaz de usuario de cambio de nombre?</target>
-        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>
