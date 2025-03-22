@@ -27,7 +27,8 @@ internal abstract class AbstractPackage : AsyncPackage
     /// This method is called upon package creation and is the mechanism by which roslyn packages calculate and
     /// process all package initialization work. Do not override this sealed method, instead override RegisterOnAfterPackageLoadedAsyncWork
     /// to indicate the work your package needs upon initialization.
-    protected sealed override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+    /// Not sealed as TypeScriptPackage has IVT and derives from this class and implements this method.
+    protected override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         => RegisterAndProcessTasksAsync(RegisterInitializeAsyncWork, cancellationToken);
 
     /// This method is called after package load and is the mechanism by which roslyn packages calculate and
