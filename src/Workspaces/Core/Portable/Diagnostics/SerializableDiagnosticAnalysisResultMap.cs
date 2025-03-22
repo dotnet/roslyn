@@ -13,9 +13,7 @@ internal readonly struct SerializableDiagnosticAnalysisResults(
     ImmutableArray<(string analyzerId, SerializableDiagnosticMap diagnosticMap)> diagnostics,
     ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)> telemetry)
 {
-    public static readonly SerializableDiagnosticAnalysisResults Empty = new(
-        [],
-        []);
+    public static readonly SerializableDiagnosticAnalysisResults Empty = new([], []);
 
     [DataMember(Order = 0)]
     internal readonly ImmutableArray<(string analyzerId, SerializableDiagnosticMap diagnosticMap)> Diagnostics = diagnostics;
@@ -28,8 +26,7 @@ internal readonly struct SerializableDiagnosticAnalysisResults(
 internal readonly struct SerializableDiagnosticMap(
     ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> syntax,
     ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> semantic,
-    ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> nonLocal,
-    ImmutableArray<DiagnosticData> other)
+    ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> nonLocal)
 {
     [DataMember(Order = 0)]
     public readonly ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> Syntax = syntax;
@@ -39,7 +36,4 @@ internal readonly struct SerializableDiagnosticMap(
 
     [DataMember(Order = 2)]
     public readonly ImmutableArray<(DocumentId, ImmutableArray<DiagnosticData>)> NonLocal = nonLocal;
-
-    [DataMember(Order = 3)]
-    public readonly ImmutableArray<DiagnosticData> Other = other;
 }
