@@ -107,7 +107,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
     public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
-        : base(VisualStudioMefHostServices.Create(exportProvider))
+        : base(exportProvider.GetExportedValue<HostServicesProvider>().HostServices)
     {
         _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
         _asyncServiceProvider = asyncServiceProvider;
