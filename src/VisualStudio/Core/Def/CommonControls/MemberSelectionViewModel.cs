@@ -46,17 +46,16 @@ internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
 
     public bool ShowCheckDependentsButton { get; }
     public bool ShowPublicButton { get; }
-    public bool ShowMakeAbstract => _members.Any(m => m.IsMakeAbstractCheckable);
+    public bool ShowMakeAbstract => Members.Any(m => m.IsMakeAbstractCheckable);
     public ImmutableArray<MemberSymbolViewModel> CheckedMembers => Members.WhereAsArray(m => m.IsChecked && m.IsCheckable);
 
-    private ImmutableArray<MemberSymbolViewModel> _members;
     public ImmutableArray<MemberSymbolViewModel> Members
     {
-        get => _members;
+        get;
         set
         {
-            var oldMembers = _members;
-            if (SetProperty(ref _members, value))
+            var oldMembers = field;
+            if (SetProperty(ref field, value))
             {
                 // If we have registered for events before, remove the handlers
                 // to be a good citizen in the world 
@@ -68,7 +67,7 @@ internal class MemberSelectionViewModel : AbstractNotifyPropertyChanged
                     }
                 }
 
-                foreach (var member in _members)
+                foreach (var member in field)
                 {
                     member.PropertyChanged += MemberPropertyChangedHandler;
                 }

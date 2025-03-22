@@ -20,22 +20,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
             return (ICSPartialMethodExtender)ComAggregate.CreateAggregatedObject(result);
         }
 
-        private readonly bool _hasOtherPart;
-
         private PartialMethodExtender(bool isPartial, bool isDeclaration, bool hasOtherPart)
         {
             IsPartial = isPartial;
             IsDeclaration = isDeclaration;
-            _hasOtherPart = hasOtherPart;
+            HasOtherPart = hasOtherPart;
         }
 
         public bool IsPartial { get; }
 
         public bool IsDeclaration { get; }
 
-        public bool HasOtherPart
-        {
-            get { return _hasOtherPart; }
-        }
+        public bool HasOtherPart { get; }
     }
 }

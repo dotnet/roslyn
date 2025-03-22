@@ -25,8 +25,6 @@ internal partial class DebuggerTextView : IWpfTextView, IDebuggerTextView2, ITex
     private readonly IWpfTextView _innerTextView;
     private readonly IVsTextLines _debuggerTextLinesOpt;
 
-    private IMultiSelectionBroker _multiSelectionBroker;
-
     // This name "CompletionRoot" is specified on the Editor side.
     // Roslyn must match the name.
     // The const should be removed with resolution of https://github.com/dotnet/roslyn/issues/31189
@@ -306,9 +304,9 @@ internal partial class DebuggerTextView : IWpfTextView, IDebuggerTextView2, ITex
     {
         get
         {
-            _multiSelectionBroker ??= _innerTextView.GetMultiSelectionBroker();
+            field ??= _innerTextView.GetMultiSelectionBroker();
 
-            return _multiSelectionBroker;
+            return field;
         }
     }
 

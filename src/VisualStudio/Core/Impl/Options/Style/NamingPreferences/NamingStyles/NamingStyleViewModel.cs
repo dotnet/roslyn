@@ -43,17 +43,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         public IList<CapitalizationDisplay> CapitalizationSchemes { get; set; }
 
-        private int _capitalizationSchemeIndex;
         public int CapitalizationSchemeIndex
         {
-            get
-            {
-                return _capitalizationSchemeIndex;
-            }
+            get;
             set
             {
                 _style.CapitalizationScheme = CapitalizationSchemes[value].Capitalization;
-                if (SetProperty(ref _capitalizationSchemeIndex, value))
+                if (SetProperty(ref field, value))
                 {
                     NotifyPropertyChanged(nameof(CurrentConfiguration));
                 }
@@ -62,11 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         public Guid ID { get; }
 
-        private string _itemName;
         public string ItemName
         {
-            get { return _itemName; }
-            set { SetProperty(ref _itemName, value); }
+            get;
+            set { SetProperty(ref field, value); }
         }
 
         public string CurrentConfiguration
@@ -80,52 +75,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             }
         }
 
-        private string _requiredPrefix;
-
         public string RequiredPrefix
         {
-            get
-            {
-                return _requiredPrefix;
-            }
+            get;
             set
             {
                 _style.Prefix = value;
-                if (SetProperty(ref _requiredPrefix, value))
+                if (SetProperty(ref field, value))
                 {
                     NotifyPropertyChanged(nameof(CurrentConfiguration));
                 }
             }
         }
 
-        private string _requiredSuffix;
         public string RequiredSuffix
         {
-            get
-            {
-                return _requiredSuffix;
-            }
+            get;
             set
             {
                 _style.Suffix = value;
-                if (SetProperty(ref _requiredSuffix, value))
+                if (SetProperty(ref field, value))
                 {
                     NotifyPropertyChanged(nameof(CurrentConfiguration));
                 }
             }
         }
 
-        private string _wordSeparator;
         public string WordSeparator
         {
-            get
-            {
-                return _wordSeparator;
-            }
+            get;
             set
             {
                 _style.WordSeparator = value;
-                if (SetProperty(ref _wordSeparator, value))
+                if (SetProperty(ref field, value))
                 {
                     NotifyPropertyChanged(nameof(CurrentConfiguration));
                 }

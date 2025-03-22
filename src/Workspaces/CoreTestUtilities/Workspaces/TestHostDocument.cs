@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private DocumentId? _id;
         private AbstractTestHostProject? _project;
-        private readonly IReadOnlyList<string>? _folders;
         private readonly IDocumentServiceProvider? _documentServiceProvider;
         private readonly TestDocumentLoader _loader;
 
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             InitialText = code;
             Name = name;
             FilePath = filePath;
-            _folders = folders;
+            Folders = folders;
             this.CursorPosition = cursorPosition;
             SourceCodeKind = sourceCodeKind;
             this.IsLinkFile = isLinkFile;
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SourceCodeKind = sourceCodeKind;
             _loader = new TestDocumentLoader(this, text);
             FilePath = filePath;
-            _folders = folders;
+            Folders = folders;
             _documentServiceProvider = documentServiceProvider;
         }
 
@@ -195,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             get
             {
-                return _folders ?? [];
+                return field ?? [];
             }
         }
 

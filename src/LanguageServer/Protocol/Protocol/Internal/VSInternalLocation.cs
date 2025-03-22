@@ -13,8 +13,6 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     internal class VSInternalLocation : VSLocation
     {
-        private object? textValue = null;
-
         /// <summary>
         /// Gets or sets the text value for a location reference. Must be of type <see cref="ImageElement"/> or <see cref="ContainerElement"/> or <see cref="ClassifiedTextElement"/> or <see cref="string"/>.
         /// </summary>
@@ -23,22 +21,19 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public object? Text
         {
-            get
-            {
-                return this.textValue;
-            }
+            get;
 
             set
             {
                 if (value is ImageElement || value is ContainerElement || value is ClassifiedTextElement || value is string)
                 {
-                    this.textValue = value;
+                    field = value;
                 }
                 else
                 {
                     throw new InvalidOperationException($"{value?.GetType()} is an invalid type.");
                 }
             }
-        }
+        } = null;
     }
 }

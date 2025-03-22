@@ -17,10 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     [UseExportProvider]
     public class SyntaxEditorTests
     {
-        private Workspace _emptyWorkspace;
-
-        private Workspace EmptyWorkspace
-            => _emptyWorkspace ??= new AdhocWorkspace();
+        private Workspace EmptyWorkspace { get => field ??= new AdhocWorkspace(); set; }
 
         private void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
