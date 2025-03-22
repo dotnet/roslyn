@@ -60,7 +60,7 @@ internal sealed class CSharpUseImplicitObjectCreationCodeFixProvider() : SyntaxE
         await editor.ApplyExpressionLevelSemanticEditsAsync(
             document,
             nodes,
-            (semanticModel, node) => Analyze(semanticModel, options, node, semanticModel.Compilation, cancellationToken),
+            (semanticModel, node) => Analyze(semanticModel, options, node, cancellationToken),
             (semanticModel, root, node) => FixOne(root, node),
             cancellationToken).ConfigureAwait(false);
     }

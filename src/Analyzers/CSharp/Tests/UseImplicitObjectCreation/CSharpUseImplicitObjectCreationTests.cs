@@ -643,28 +643,31 @@ public class UseImplicitObjectCreationTests
         }.RunAsync();
     }
 
-    [Fact]
-    public async Task TestWithAsyncMethodExpressionBody()
+    [Theory]
+    [InlineData("Task")]
+    [InlineData("ValueTask")]
+    public async Task TestWithAsyncMethodExpressionBody(string taskLike)
     {
         await new VerifyCS.Test
         {
-            TestCode = """
+            TestCode = $$"""
                 using System.Threading.Tasks;
 
                 class C
                 {
-                    async Task<C> Func() => new [|C|]();
+                    async {{taskLike}}<C> Func() => new [|C|]();
                 }
                 """,
-            FixedCode = """
+            FixedCode = $$"""
                 using System.Threading.Tasks;
 
                 class C
                 {
-                    async Task<C> Func() => new();
+                    async {{taskLike}}<C> Func() => new();
                 }
                 """,
             LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 

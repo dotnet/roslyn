@@ -52,7 +52,7 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
         }
 
         var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
-        if (!Analyze(semanticModel, context.GetCSharpAnalyzerOptions().GetSimplifierOptions(), objectCreation, context.Compilation, cancellationToken))
+        if (!Analyze(semanticModel, context.GetCSharpAnalyzerOptions().GetSimplifierOptions(), objectCreation, cancellationToken))
             return;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
@@ -68,7 +68,6 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
         SemanticModel semanticModel,
         CSharpSimplifierOptions simplifierOptions,
         ObjectCreationExpressionSyntax objectCreation,
-        Compilation compilation,
         CancellationToken cancellationToken)
     {
         // type is apparent if we the object creation location is closely tied (spatially) to the explicit type.  Specifically:
@@ -112,7 +111,7 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
                 OperatorDeclarationSyntax op => (op.ReturnType, default),
                 BasePropertyDeclarationSyntax property => (property.Type, default),
                 AccessorDeclarationSyntax(SyntaxKind.GetAccessorDeclaration) { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } } => (baseProperty.Type, default),
-                _ => (null, default),
+                _ => default,
             };
 
             checkTaskLikeTypeParameter = modifiers?.Any(SyntaxKind.AsyncKeyword) == true;
@@ -155,15 +154,23 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
             return false;
 
         if (checkTaskLikeTypeParameter &&
-            leftType is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } leftNamedType &&
-            new[] { "System.Threading.Tasks.Task`1", "System.Threading.Tasks.ValueTake`1" }
-                .Select(compilation.GetBestTypeByMetadataName)
-                .Any(leftNamedType.ConstructedFrom.Equals))
+            leftType is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } leftNamedType)
         {
-            // In the event we're looking at an async method with a Task<> or ValueTask<> return type, we should
-            // compare against the type parameter as this is generally recognized as the return type of the
-            // function.
-            leftType = leftNamedType.TypeArguments[0];
+#if CODE_STYLE
+            var isTaskLike = new[] { "System.Threading.Tasks.Task`1", "System.Threading.Tasks.ValueTask`1" }
+                .Select(semanticModel.Compilation.GetBestTypeByMetadataName)
+                .Any(leftNamedType.ConstructedFrom.Equals);
+#else
+            var isTaskLike = new KnownTaskTypes(semanticModel.Compilation).IsTaskLike(leftType);
+#endif
+
+            if (isTaskLike)
+            {
+                // In the event we're looking at an async method with a Task<> or ValueTask<> return type, we should
+                // compare against the type parameter as this is generally recognized as the return type of the
+                // function.
+                leftType = leftNamedType.TypeArguments[0];
+            }
         }
 
         if (leftType.IsErrorType() || rightType.IsErrorType())
