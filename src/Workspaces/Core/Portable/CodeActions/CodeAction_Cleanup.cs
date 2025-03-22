@@ -65,8 +65,9 @@ public abstract partial class CodeAction
             .GetProjectChanges()
             .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Concat(p.GetAddedDocuments()))
             .Concat(solutionChanges.GetAddedProjects().SelectMany(p => p.DocumentIds))
-            .ToImmutableArray();
-        return documentIds;
+            .Concat(solutionChanges.GetChangedFrozenSourceGeneratedDocuments());
+
+        return documentIds.ToImmutableArray();
     }
 
     internal static async Task<Solution> CleanSyntaxAndSemanticsAsync(
@@ -89,7 +90,7 @@ public abstract partial class CodeAction
             using var _ = ArrayBuilder<(DocumentId documentId, CodeCleanupOptions options)>.GetInstance(documentIds.Length, out var documentIdsAndOptions);
             foreach (var documentId in documentIds)
             {
-                var document = changedSolution.GetRequiredDocument(documentId);
+                var document = await changedSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
                 // Only care about documents that support syntax.  Non-C#/VB files can't be cleaned.
                 if (document.SupportsSyntaxTree)
@@ -114,7 +115,7 @@ public abstract partial class CodeAction
             CodeAnalysisProgress.None,
             cancellationToken).ConfigureAwait(false);
 
-        return cleanedSolution.GetRequiredDocument(document.Id);
+        return await cleanedSolution.GetRequiredDocumentAsync(document.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<Solution> RunAllCleanupPassesInOrderAsync(
@@ -152,7 +153,7 @@ public abstract partial class CodeAction
                     var (documentId, options) = documentIdAndOptions;
 
                     // Fetch the current state of the document from this fork of the solution.
-                    var document = solution.GetRequiredDocument(documentId);
+                    var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfFalse(document.SupportsSyntaxTree, "GetDocumentIdsAndOptionsAsync should only be returning documents that support syntax");
 
                     // Now, perform the requested cleanup pass on it.

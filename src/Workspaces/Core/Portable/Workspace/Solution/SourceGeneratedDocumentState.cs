@@ -189,6 +189,27 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             generationDateTime);
     }
 
+    public SourceGeneratedDocumentState WithSyntaxRoot(SyntaxNode newRoot)
+    {
+        var newTextVersion = GetNewerVersion();
+        var newTreeVersion = GetNewTreeVersionForUpdatedTree(newRoot, newTextVersion, PreservationMode.PreserveValue);
+        var treeAndVersion = new TreeAndVersion(newRoot.SyntaxTree, newTreeVersion);
+        var newTreeSource = SimpleTreeAndVersionSource.Create(treeAndVersion);
+
+        return new(
+            this.Identity,
+            this.LanguageServices,
+            this.DocumentServiceProvider,
+            this.Attributes,
+            this.ParseOptions,
+            this.TextAndVersionSource,
+            this.SourceText,
+            this.LoadTextOptions,
+            newTreeSource,
+            this._lazyContentHash,
+            this.GenerationDateTime);
+    }
+
     /// <summary>
     /// This is modeled after <see cref="DefaultTextDocumentServiceProvider"/>, but sets
     /// <see cref="IDocumentOperationService.CanApplyChange"/> to <see langword="false"/> for source generated

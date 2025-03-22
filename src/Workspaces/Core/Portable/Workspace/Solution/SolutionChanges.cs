@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -79,5 +82,25 @@ public readonly struct SolutionChanges
                 yield return analyzerReference;
             }
         }
+    }
+
+    internal IEnumerable<DocumentId> GetChangedFrozenSourceGeneratedDocuments()
+    {
+        if (_newSolution.CompilationState.FrozenSourceGeneratedDocumentStates is null)
+            return [];
+
+        using var _ = ArrayBuilder<SourceGeneratedDocumentState>.GetInstance(out var oldStateBuilder);
+        foreach (var (id, _) in _newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
+        {
+            var oldState = _oldSolution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(id);
+            if (oldState is not null)
+                oldStateBuilder.Add(oldState);
+        }
+
+        var oldStates = new TextDocumentStates<SourceGeneratedDocumentState>(oldStateBuilder);
+        return _newSolution.CompilationState.FrozenSourceGeneratedDocumentStates.GetChangedStateIds(
+            oldStates,
+            ignoreUnchangedContent: true,
+            ignoreUnchangeableDocuments: false);
     }
 }
