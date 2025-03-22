@@ -6,12 +6,10 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.VisualStudio.Extensibility;
-using Microsoft.VisualStudio.RpcContracts.ToolWindows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -19,7 +17,7 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp;
 
 /// <summary>
-/// Control the Semantic Search tool window because it is using new VisualStudio Extensibility sdk.
+/// Controls the Semantic Search tool window.
 /// </summary>
 [Export(typeof(ISemanticSearchToolWindowController)), Shared]
 [method: ImportingConstructor]
@@ -59,4 +57,3 @@ internal sealed class SemanticSearchToolWindowController(
         await TaskScheduler.Default;
     }
 }
-
