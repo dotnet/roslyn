@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Scripting
     {
         public static ScriptMetadataResolver Default { get; } = new ScriptMetadataResolver(
             RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(ImmutableArray<string>.Empty, baseDirectory: null));
+        private readonly object _lockObject = new object();
 
         private readonly RuntimeMetadataReferenceResolver _resolver;
 
@@ -64,8 +66,30 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         public override bool ResolveMissingAssemblies => _resolver.ResolveMissingAssemblies;
 
-        public override PortableExecutableReference? ResolveMissingAssembly(MetadataReference definition, AssemblyIdentity referenceIdentity)
-            => _resolver.ResolveMissingAssembly(definition, referenceIdentity);
+        public override PortableExecutableReference? ResolveMissingAssembly(MetadataReference definition,
+            AssemblyIdentity referenceIdentity)
+        {
+            bool lockTaken = false;
+            try
+            {
+                Monitor.TryEnter(_lockObject, 100, ref lockTaken);
+                if (lockTaken)
+                {
+                    return _resolver.ResolveMissingAssembly(definition, referenceIdentity);
+                }
+                else
+                {
+                    return ResolveMissingAssembly(definition, referenceIdentity);
+                }
+            }
+            finally
+            {
+                if (lockTaken)
+                {
+                    Monitor.Exit(_lockObject);
+                }
+            }
+        }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
             => _resolver.ResolveReference(reference, baseFilePath, properties);
