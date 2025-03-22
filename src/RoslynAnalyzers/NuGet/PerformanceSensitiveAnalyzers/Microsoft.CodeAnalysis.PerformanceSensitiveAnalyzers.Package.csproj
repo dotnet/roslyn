@@ -1,0 +1,32 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecPackageId>Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers</NuspecPackageId>
+    <Description>PerformanceSensitive Analyzers</Description>
+    <Summary>PerformanceSensitive Analyzers</Summary>
+    <ReleaseNotes>PerformanceSensitive Analyzers</ReleaseNotes>
+    <PackageTags>Roslyn CodeAnalysis Compiler CSharp Diagnostic Analyzers Syntax Semantics Performance</PackageTags>
+    <AnalyzerDocumentationFileDir>$(RepoRoot)src\RoslynAnalyzers\PerformanceSensitiveAnalyzers</AnalyzerDocumentationFileDir>
+    <AnalyzerSarifFileDir>$(RepoRoot)src\RoslynAnalyzers\PerformanceSensitiveAnalyzers</AnalyzerSarifFileDir>
+    <IsShippingPackage>true</IsShippingPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.dll" />
+    <AnalyzerNupkgFile Include="PerformanceSensitiveAttribute.cs" />
+    <AnalyzerNupkgFile Include="PerformanceSensitiveAttribute.vb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\PerformanceSensitiveAnalyzers\Core\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.csproj" />
+    <ProjectReference Include="..\..\PerformanceSensitiveAnalyzers\CSharp\Analyzers\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.csproj" />
+    <ProjectReference Include="..\..\PerformanceSensitiveAnalyzers\CSharp\CodeFixes\Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.csproj" />
+  </ItemGroup>
+</Project>
