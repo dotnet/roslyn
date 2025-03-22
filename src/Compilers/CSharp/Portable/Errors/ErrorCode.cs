@@ -2369,13 +2369,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialEventInitializer = 9279,
         ERR_PartialConstructorInitializer = 9280,
 
+        ERR_PPIgnoredFollowsToken = 9281,
+        ERR_PPIgnoredNeedsFileBasedProgram = 9282,
+        ERR_PPIgnoredFollowsIf = 9283,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
+        //  2) Add message to CSharpResources.resx
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
         //  2) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  3) Update ErrorFacts.GetWarningLevel (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  4) Update DiagnosticTest.WarningLevel_2 (src/Compilers/CSharp/Test/Syntax/Diagnostics/DiagnosticTest.cs)
+        //  5) Add message and '_Title' to CSharpResources.resx
     }
 }
