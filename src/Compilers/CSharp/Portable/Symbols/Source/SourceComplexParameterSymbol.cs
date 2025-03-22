@@ -1559,7 +1559,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void validateParamsType(BindingDiagnosticBag diagnostics)
             {
-                var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(DeclaringCompilation, Type, out TypeWithAnnotations elementTypeWithAnnotations);
+                var syntax = ParameterSyntax;
+                var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
+                ConversionsBase.TryGetCollectionExpressionTypeKind(binder, syntax, Type, out var collectionTypeKind, out TypeWithAnnotations elementTypeWithAnnotations);
 
                 var elementType = elementTypeWithAnnotations.Type;
                 switch (collectionTypeKind)
@@ -1569,11 +1571,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return;
 
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                    case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
                         {
-                            var syntax = ParameterSyntax;
-                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
-
-                            binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
                             elementType = elementTypeWithAnnotations.Type;
                             if (elementType is null)
                             {
@@ -1591,48 +1590,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 checkIsAtLeastAsVisible(syntax, binder, constructor, diagnostics);
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
+                            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                             {
-                                return;
-                            }
-
-                            Debug.Assert(!addMethods.IsDefaultOrEmpty);
-
-                            if (addMethods[0].IsStatic) // No need to check other methods, extensions are never mixed with instance methods
-                            {
-                                Debug.Assert(addMethods[0].IsExtensionMethod);
-                                diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
-                                return;
-                            }
-
-                            MethodSymbol? reportAsLessVisible = null;
-
-                            foreach (var addMethod in addMethods)
-                            {
-                                if (isAtLeastAsVisible(syntax, binder, addMethod, diagnostics))
+                                if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
                                 {
-                                    reportAsLessVisible = null;
-                                    break;
+                                    return;
                                 }
-                                else
-                                {
-                                    reportAsLessVisible ??= addMethod;
-                                }
-                            }
 
-                            if (reportAsLessVisible is not null)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, syntax, reportAsLessVisible, ContainingSymbol);
+                                Debug.Assert(!addMethods.IsDefaultOrEmpty);
+
+                                if (addMethods[0].IsStatic) // No need to check other methods, extensions are never mixed with instance methods
+                                {
+                                    Debug.Assert(addMethods[0].IsExtensionMethod);
+                                    diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
+                                    return;
+                                }
+
+                                MethodSymbol? reportAsLessVisible = null;
+
+                                foreach (var addMethod in addMethods)
+                                {
+                                    if (isAtLeastAsVisible(syntax, binder, addMethod, diagnostics))
+                                    {
+                                        reportAsLessVisible = null;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        reportAsLessVisible ??= addMethod;
+                                    }
+                                }
+
+                                if (reportAsLessVisible is not null)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, syntax, reportAsLessVisible, ContainingSymbol);
+                                }
                             }
                         }
                         break;
 
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         {
-                            var syntax = ParameterSyntax;
-                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
-
-                            binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
                             elementType = elementTypeWithAnnotations.Type;
                             if (elementType is null)
                             {
@@ -1673,7 +1671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (collectionTypeKind != CollectionExpressionTypeKind.Array)
                 {
-                    MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, ParameterSyntax);
+                    MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, syntax);
                 }
             }
 

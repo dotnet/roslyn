@@ -2407,6 +2407,52 @@ class Program
         }
 
         [Fact]
+        public void ImplementsIEnumerableT_24_ProtectedConstructor()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                internal class MyCollection<T> : IEnumerable<T>
+                {
+                    protected MyCollection() { }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public void Add(T t) { }
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        var f1 = (params MyCollection<string> args) => { };
+                        static void f2<T>(params MyCollection<T> args) { }
+                        f1();
+                        f2<string>();
+                    }
+                    static void F3<T>(params MyCollection<T> args) { }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB]);
+            comp.VerifyEmitDiagnostics(
+                // (5,19): error CS0122: 'MyCollection<string>.MyCollection()' is inaccessible due to its protection level
+                //         var f1 = (params MyCollection<string> args) => { };
+                Diagnostic(ErrorCode.ERR_BadAccess, "params MyCollection<string> args").WithArguments("MyCollection<string>.MyCollection()").WithLocation(5, 19),
+                // (6,27): error CS0122: 'MyCollection<T>.MyCollection()' is inaccessible due to its protection level
+                //         static void f2<T>(params MyCollection<T> args) { }
+                Diagnostic(ErrorCode.ERR_BadAccess, "params MyCollection<T> args").WithArguments("MyCollection<T>.MyCollection()").WithLocation(6, 27),
+                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'obj' of 'Action<MyCollection<string>>'
+                //         f1();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f1").WithArguments("obj", "System.Action<MyCollection<string>>").WithLocation(7, 9),
+                // (8,9): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'f2<T>(params MyCollection<T>)'
+                //         f2<string>();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f2<string>").WithArguments("args", "f2<T>(params MyCollection<T>)").WithLocation(8, 9),
+                // (10,23): error CS0122: 'MyCollection<T>.MyCollection()' is inaccessible due to its protection level
+                //     static void F3<T>(params MyCollection<T> args) { }
+                Diagnostic(ErrorCode.ERR_BadAccess, "params MyCollection<T> args").WithArguments("MyCollection<T>.MyCollection()").WithLocation(10, 23));
+        }
+
+        [Fact]
         public void ImplementsIEnumerable_01()
         {
             var src = """
