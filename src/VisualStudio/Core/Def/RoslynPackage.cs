@@ -77,22 +77,22 @@ internal sealed class RoslynPackage : AbstractPackage
         base.RegisterInitializeAsyncWork(packageInitializationTasks);
 
         packageInitializationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
-    }
+        packageInitializationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
 
-    private async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
-    {
-        await ProfferServiceBrokerServicesAsync().ConfigureAwait(true);
+        return;
 
-        var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
+        Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
+        {
+            return ProfferServiceBrokerServicesAsync();
+        }
 
-        packageInitializationTasks.AddTask(
-            isMainThreadTask: true,
-            task: (packageInitializationTasks, cancellationToken) =>
-            {
-                RegisterEditorFactory(settingsEditorFactory);
+        Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
+        {
+            var settingsEditorFactory = SettingsEditorFactory.GetInstance(this.ComponentModel);
+            RegisterEditorFactory(settingsEditorFactory);
 
-                return Task.CompletedTask;
-            });
+            return Task.CompletedTask;
+        }
     }
 
     protected override void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
@@ -111,7 +111,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
             // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
             var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
-            Assumes.Present(globalNotificationService);
 
             _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
             TrackBulkFileOperations(globalNotificationService);
@@ -295,9 +294,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
         void StartBulkFileOperationNotification()
         {
-            Contract.ThrowIfNull(gate);
-            Contract.ThrowIfNull(globalNotificationService);
-
             lock (gate)
             {
                 // this shouldn't happen, but we are using external component
@@ -314,9 +310,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
         void StopBulkFileOperationNotification()
         {
-            Contract.ThrowIfNull(gate);
-            Contract.ThrowIfNull(globalNotificationService);
-
             lock (gate)
             {
                 // localRegistration may be null if BulkFileOperation was already in the middle of running.  So we
