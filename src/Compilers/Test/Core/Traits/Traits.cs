@@ -290,6 +290,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string NetCore = nameof(NetCore);
             public const string NormalizeModifiersOrOperators = nameof(NormalizeModifiersOrOperators);
             public const string ObjectBrowser = nameof(ObjectBrowser);
+            public const string OnTheFlyDocs = nameof(OnTheFlyDocs);
             public const string Options = nameof(Options);
             public const string Organizing = nameof(Organizing);
             public const string Outlining = nameof(Outlining);

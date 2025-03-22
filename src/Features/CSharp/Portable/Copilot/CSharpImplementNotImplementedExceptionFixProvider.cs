@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
@@ -60,12 +61,16 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
         if (methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax)
         {
-            var fix = DocumentChangeAction.New(
+            // Pull out the computation into a lazy computation here.  That way if we compute (and thus cache) the
+            // result for the preview window, we'll produce the same value when the fix is actually applied.
+            var lazy = AsyncLazy.Create(GetDocumentUpdater(context));
+
+            context.RegisterCodeFix(Create(
                 title: CSharpAnalyzersResources.Implement_with_Copilot,
-                createChangedDocument: (_, cancellationToken) => GetDocumentUpdater(context, diagnostic: null)(cancellationToken),
-                createChangedDocumentPreview: (_, _) => Task.FromResult(context.Document),
-                equivalenceKey: nameof(CSharpAnalyzersResources.Implement_with_Copilot));
-            context.RegisterCodeFix(fix, context.Diagnostics[0]);
+                lazy.GetValueAsync,
+                equivalenceKey: nameof(CSharpAnalyzersResources.Implement_with_Copilot)),
+                context.Diagnostics);
+
             Logger.Log(FunctionId.Copilot_Implement_NotImplementedException_Fix_Registered, logLevel: LogLevel.Information);
         }
     }
@@ -74,7 +79,7 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var memberReferencesBuilder = ImmutableDictionary.CreateBuilder<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>>();
+        var memberReferencesBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImmutableArray<ReferencedSymbol>>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var diagnostic in diagnostics)
@@ -97,8 +102,10 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
         var memberImplementationDetails = await copilotService.ImplementNotImplementedExceptionsAsync(document, memberReferencesBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false);
 
-        foreach (var methodOrProperty in memberReferencesBuilder.Keys)
+        foreach (var node in memberReferencesBuilder.Keys)
         {
+            var methodOrProperty = (MemberDeclarationSyntax)node;
+
             Contract.ThrowIfFalse(memberImplementationDetails.TryGetValue(methodOrProperty, out var implementationDetails));
 
             var replacement = implementationDetails.ReplacementNode;

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -172,7 +173,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         }
         .WithMockCopilotService(copilotService =>
         {
-            copilotService.SetupFixAll = (Document document, ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> memberReferences, CancellationToken cancellationToken) =>
+            copilotService.SetupFixAll = (Document document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> memberReferences, CancellationToken cancellationToken) =>
             {
                 // Create a map of method/property implementations
                 var implementationMap = new Dictionary<string, string>
@@ -191,7 +192,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 };
 
                 // Process each member reference and create implementation details
-                var resultsBuilder = ImmutableDictionary.CreateBuilder<MemberDeclarationSyntax, ImplementationDetails>();
+                var resultsBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImplementationDetails>();
                 foreach (var memberReference in memberReferences)
                 {
                     var memberNode = memberReference.Key;
@@ -633,7 +634,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         {
         }
 
-        public Func<Document, ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>>, CancellationToken, ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>>? SetupFixAll { get; internal set; }
+        public Func<Document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>>, CancellationToken, ImmutableDictionary<SyntaxNode, ImplementationDetails>>? SetupFixAll { get; internal set; }
 
         public ImplementationDetails? PrepareUsingSingleFakeResult { get; internal set; }
 
@@ -661,9 +662,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ICopilotCodeAnalysisService.GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task<ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
+        public Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsAsync(
             Document document,
-            ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+            ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
             CancellationToken cancellationToken)
         {
             if (SetupFixAll != null)
@@ -676,14 +677,14 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 return Task.FromResult(CreateSingleNodeResult(methodOrProperties, PrepareUsingSingleFakeResult));
             }
 
-            return Task.FromResult(ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>.Empty);
+            return Task.FromResult(ImmutableDictionary<SyntaxNode, ImplementationDetails>.Empty);
         }
 
-        private static ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails> CreateSingleNodeResult(
-            ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+        private static ImmutableDictionary<SyntaxNode, ImplementationDetails> CreateSingleNodeResult(
+            ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
             ImplementationDetails implementationDetails)
         {
-            var resultsBuilder = ImmutableDictionary.CreateBuilder<MemberDeclarationSyntax, ImplementationDetails>();
+            var resultsBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImplementationDetails>();
             foreach (var methodOrProperty in methodOrProperties)
             {
                 resultsBuilder.Add(methodOrProperty.Key, implementationDetails);
@@ -695,6 +696,16 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         public Task<bool> IsImplementNotImplementedExceptionsAvailableAsync(CancellationToken cancellationToken)
         {
             return Task.FromResult(true);
+        }
+
+        public Task<string> GetOnTheFlyDocsPromptAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }
