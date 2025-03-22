@@ -38,10 +38,11 @@
     <PackageReference Include="System.Collections.Immutable" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Configuration.ConfigurationManager" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     
-    <!-- Include System.Composition until the 9.0 version is included in Visual Studio. Our MSBuild support for IncludeInVsix only looks at the direct contents
-         of that package and doesn't include any dependencies, which is unfortunate here: System.Composition is a metapackage, and all the actual stuff is in other
+    <!-- Include certain other packages until the 9.0 version is included in Visual Studio. Our MSBuild support for IncludeInVsix only looks at the direct contents
+         of that package and doesn't include any dependencies, which is unfortunate here: the main packages are a metapackages, and all the actual stuff is in other
          packages. We workaround that here by listing all of the "real" packages. I'm using VersionOverride here rather than creating a bunch of new entries in
          our Directories.props files, because eventually we can go and delete these and it keeps the hack self-contained. -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" IncludeInVsix="true" PkgDefEntry="BindingRedirect" VersionOverride="$(MicrosoftExtensionsDependencyInjectionVersion)" />
     <PackageReference Include="System.Composition.AttributedModel" IncludeInVsix="true" PkgDefEntry="BindingRedirect" VersionOverride="$(SystemCompositionVersion)" />
     <PackageReference Include="System.Composition.Convention" IncludeInVsix="true" PkgDefEntry="BindingRedirect" VersionOverride="$(SystemCompositionVersion)" />
     <PackageReference Include="System.Composition.Hosting" IncludeInVsix="true" PkgDefEntry="BindingRedirect" VersionOverride="$(SystemCompositionVersion)" />
