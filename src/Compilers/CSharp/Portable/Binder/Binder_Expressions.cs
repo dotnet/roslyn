@@ -10988,6 +10988,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             useParams = false;
             MethodSymbol? foundMethod = null;
             var typeArguments = node.TypeArgumentsOpt;
+            int arity = typeArguments.IsDefaultOrEmpty ? 0 : typeArguments.Length;
+
+            // 1. instance methods
             if (node.ResultKind == LookupResultKind.Viable)
             {
                 var methods = ArrayBuilder<MethodSymbol>.GetInstance(capacity: node.Methods.Length);
@@ -10995,6 +10998,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (node.ReceiverOpt)
                     {
+                        case BoundTypeOrValueExpression:
+                            break;
                         case BoundTypeExpression:
                         case null: // if `using static Class` is in effect, the receiver is missing
                             if (!memberMethod.IsStatic) continue;
@@ -11006,7 +11011,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                     }
 
-                    int arity = typeArguments.IsDefaultOrEmpty ? 0 : typeArguments.Length;
                     if (memberMethod.Arity != arity)
                     {
                         // We have no way of inferring type arguments, so if the given type arguments
@@ -11047,52 +11051,63 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (node.ReceiverOpt is not BoundTypeExpression && node.SearchExtensions)
+            // 2. extensions
+            if (node.SearchExtensions)
             {
-                var receiver = node.ReceiverOpt!;
-                var methodGroup = MethodGroup.GetInstance();
+                Debug.Assert(node.ReceiverOpt!.Type is not null); // extensions are only considered on member access
+
+                BoundExpression receiver = node.ReceiverOpt;
+                LookupOptions options = arity == 0 ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
+                var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
+                CompoundUseSiteInfo<AssemblySymbol> discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
                 foreach (var scope in new ExtensionScopes(this))
                 {
-                    methodGroup.Clear();
-                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, typeArguments, BindingDiagnosticBag.Discarded); // PROTOTYPE account for new extension members
-                    var methods = ArrayBuilder<MethodSymbol>.GetInstance(capacity: methodGroup.Methods.Count);
-                    foreach (var extensionMethod in methodGroup.Methods)
+                    singleLookupResults.Clear();
+                    scope.Binder.EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, node.Name, arity, options, originalBinder: this, ref discardedUseSiteInfo, ref discardedUseSiteInfo);
+
+                    var methods = ArrayBuilder<MethodSymbol>.GetInstance(capacity: singleLookupResults.Count);
+                    foreach (SingleLookupResult singleLookupResult in singleLookupResults)
                     {
-                        var substituted = typeArguments.IsDefaultOrEmpty ? extensionMethod : extensionMethod.Construct(typeArguments);
-
-                        var reduced = substituted.ReduceExtensionMethod(receiver.Type, Compilation, out bool wasFullyInferred);
-                        if (reduced is null)
+                        // Remove static/instance mismatches
+                        Symbol extensionMember = singleLookupResult.Symbol;
+                        bool memberCountsAsStatic = extensionMember is MethodSymbol { IsExtensionMethod: true } ? false : extensionMember.IsStatic;
+                        switch (node.ReceiverOpt)
                         {
-                            // Extension method was not applicable
-                            continue;
+                            case BoundTypeOrValueExpression:
+                                break;
+                            case BoundTypeExpression:
+                                if (!memberCountsAsStatic) continue;
+                                break;
+                            default:
+                                if (memberCountsAsStatic) continue;
+                                break;
                         }
 
-                        if (!wasFullyInferred)
+                        // Note: we only care about methods since we're already decided this is a method group (ie. not resolving to some other kind of extension member)
+                        if (extensionMember is MethodSymbol method)
                         {
-                            continue;
+                            var substituted = (MethodSymbol?)extensionMember.GetReducedAndFilteredSymbol(typeArguments, receiver.Type, Compilation, checkFullyInferred: true);
+                            if (substituted is not null)
+                            {
+                                methods.Add(substituted);
+                            }
                         }
-
-                        if (!satisfiesConstraintChecks(reduced))
-                        {
-                            continue;
-                        }
-
-                        methods.Add(reduced);
                     }
 
                     if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, out useParams))
                     {
+                        singleLookupResults.Free();
                         methods.Free();
-                        methodGroup.Free();
                         return null;
                     }
 
-                    foreach (var reduced in methods)
+                    foreach (var method in methods)
                     {
-                        if (!isCandidateUnique(ref foundMethod, reduced))
+                        if (!isCandidateUnique(ref foundMethod, method))
                         {
+                            singleLookupResults.Free();
                             methods.Free();
-                            methodGroup.Free();
                             useParams = false;
                             return null;
                         }
@@ -11102,11 +11117,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (foundMethod is not null)
                     {
-                        methodGroup.Free();
+                        singleLookupResults.Free();
                         return foundMethod;
                     }
                 }
-                methodGroup.Free();
+
+                singleLookupResults.Free();
             }
 
             useParams = false;
