@@ -220,7 +220,7 @@ internal abstract partial class AbstractInProcLanguageClient(
 
         var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
 
-        var hostServices = VisualStudioMefHostServices.Create(_exportProvider);
+        var hostServices = _exportProvider.GetExportedValue<HostServicesProvider>().HostServices;
         var server = Create(
             jsonRpc,
             messageFormatter.JsonSerializerOptions,
