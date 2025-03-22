@@ -359,11 +359,6 @@ public partial class Project
         return ImmutableInterlocked.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
     }
 
-    internal ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(CancellationToken cancellationToken)
-    {
-        return Solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(this.State, cancellationToken);
-    }
-
     internal ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(CancellationToken cancellationToken)
     {
         return Solution.CompilationState.GetSourceGeneratorRunResultAsync(this.State, cancellationToken);
