@@ -25,7 +25,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                void M()
+                void {|IDE3000:M|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
                 }
@@ -46,7 +46,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                int P => {|IDE3000:throw new NotImplementedException()|};
+                int {|IDE3000:P|} => {|IDE3000:throw new NotImplementedException()|};
             }
             """,
             LanguageVersion = LanguageVersion.CSharp11,
@@ -64,7 +64,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                public C()
+                public {|IDE3000:C|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|} 
                 }
@@ -85,7 +85,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                ~C()
+                ~{|IDE3000:C|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|} 
                 }
@@ -106,7 +106,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                public int this[int index]
+                public int {|IDE3000:this|}[int index]
                 {
                     get { {|IDE3000:throw new NotImplementedException();|} }
                     set { {|IDE3000:throw new NotImplementedException();|} }
@@ -128,7 +128,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                public event EventHandler MyEvent
+                public event EventHandler {|IDE3000:MyEvent|}
                 {
                     add { {|IDE3000:throw new NotImplementedException();|} }
                     remove { {|IDE3000:throw new NotImplementedException();|} }
@@ -150,7 +150,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                public static C operator +(C a, C b)
+                public static C operator {|IDE3000:+|}(C a, C b)
                 {
                     {|IDE3000:throw new NotImplementedException();|} 
                 }
@@ -171,17 +171,17 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                void M1()
+                void {|IDE3000:M1|}()
                 {
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
                 }
 
-                void M2()
+                void {|IDE3000:M2|}()
                 {
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
                 }
 
-                void M3()
+                void {|IDE3000:M3|}()
                 {
                     try
                     {
@@ -193,41 +193,41 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
                     }
                 }
 
-                int P1
+                int {|IDE3000:P1|}
                 {
                     get { {|IDE3000:throw new NotImplementedException();|} }
                 }
 
-                int P2
-                {
-                    get { {|IDE3000:throw new NotImplementedException();|} }
-                    set { {|IDE3000:throw new NotImplementedException();|} }
-                }
-
-                int this[int index]
+                int {|IDE3000:P2|}
                 {
                     get { {|IDE3000:throw new NotImplementedException();|} }
                     set { {|IDE3000:throw new NotImplementedException();|} }
                 }
 
-                void M4()
+                int {|IDE3000:this|}[int index]
+                {
+                    get { {|IDE3000:throw new NotImplementedException();|} }
+                    set { {|IDE3000:throw new NotImplementedException();|} }
+                }
+
+                void {|IDE3000:M4|}()
                 {
                     Action action = () => {|IDE3000:throw new NotImplementedException()|};
                     action();
                 }
 
-                void M5()
+                void {|IDE3000:M5|}()
                 {
                     Func<int> func = () => {|IDE3000:throw new NotImplementedException()|};
                     func();
                 }
 
-                void M6()
+                void {|IDE3000:M6|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
                 }
 
-                void M7()
+                void {|IDE3000:M7|}()
                 {
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
                 }

@@ -31,60 +31,545 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTests
 {
     [Fact]
+    public async Task FixAll_HandleThrowInSwitchExpression()
+    {
+        await new CustomCompositionCSharpTest
+        {
+            CodeFixTestBehaviors = CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
+            TestCode = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            public class GeometryService
+            {
+                public IEnumerable<Point> {|IDE3000:ApplyTransformation|}(IEnumerable<Point> points, TransformationType transformation)
+                {
+                    return from point in points where point.IsValid select transformation switch
+                    {
+                        TransformationType.Translate => new Point(point.X + 10, point.Y + 10),
+                        TransformationType.Scale => new Point(point.X * 2, point.Y * 2),
+                        TransformationType.Rotate90 => new Point(-point.Y, point.X),
+                        TransformationType.RotateArbitrary => {|IDE3000:throw new NotImplementedException()|},
+                        _ => point
+                    };
+                }
+
+                public static Point {|IDE3000:RotateArbitrary|}(Point point, int angle)
+                {
+                    {|IDE3000:throw new NotImplementedException("Not yet implemented");|}
+                }
+
+                public class Point
+                {
+                    public Point(float x, float y)
+                    {
+                        X = x;
+                        Y = y;
+                        IsValid = true;
+                    }
+
+                    public float X { get; }
+                    public float Y { get; }
+                    public bool IsValid { get; }
+                }
+
+                public enum TransformationType
+                {
+                    Translate,
+                    Scale,
+                    Rotate90,
+                    RotateArbitrary
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            public class GeometryService
+            {
+                public IEnumerable<Point> ApplyTransformation(IEnumerable<Point> points, TransformationType transformation)
+                {
+                    return from point in points
+                           where point.IsValid
+                           select transformation switch
+                           {
+                               TransformationType.Translate => new Point(point.X + 10, point.Y + 10),
+                               TransformationType.Scale => new Point(point.X * 2, point.Y * 2),
+                               TransformationType.Rotate90 => new Point(-point.Y, point.X),
+                               TransformationType.RotateArbitrary => RotateArbitrary(point, 45),
+                               _ => point
+                           };
+                }
+
+                public static Point RotateArbitrary(Point point, int angle)
+                {
+                    // Convert angle from degrees to radians
+                    double radians = angle * (Math.PI / 180);
+
+                    // Calculate new coordinates after rotation
+                    float newX = (float)(point.X * Math.Cos(radians) - point.Y * Math.Sin(radians));
+                    float newY = (float)(point.X * Math.Sin(radians) + point.Y * Math.Cos(radians));
+
+                    return new Point(newX, newY);
+                }
+
+                public class Point
+                {
+                    public Point(float x, float y)
+                    {
+                        X = x;
+                        Y = y;
+                        IsValid = true;
+                    }
+
+                    public float X { get; }
+                    public float Y { get; }
+                    public bool IsValid { get; }
+                }
+
+                public enum TransformationType
+                {
+                    Translate,
+                    Scale,
+                    Rotate90,
+                    RotateArbitrary
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }
+        .WithMockCopilotService(copilotService =>
+        {
+            copilotService.SetupFixAll = (Document document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> memberReferences, CancellationToken cancellationToken) =>
+            {
+                // Create a map of method/property implementations
+                var implementationMap = new Dictionary<string, string>
+                {
+                    ["ApplyTransformation"] = """
+                public IEnumerable<Point> ApplyTransformation(IEnumerable<Point> points, TransformationType transformation)
+                {
+                    return from point in points where point.IsValid select transformation switch
+                    {
+                        TransformationType.Translate => new Point(point.X + 10, point.Y + 10),
+                        TransformationType.Scale => new Point(point.X * 2, point.Y * 2),
+                        TransformationType.Rotate90 => new Point(-point.Y, point.X),
+                        TransformationType.RotateArbitrary => RotateArbitrary(point, 45),
+                        _  => point
+                    };
+                }
+                """,
+                    ["RotateArbitrary"] = """
+                public static Point RotateArbitrary(Point point, int angle)
+                {
+                    // Convert angle from degrees to radians
+                    double radians = angle * (Math.PI / 180);
+
+                    // Calculate new coordinates after rotation
+                    float newX = (float)(point.X * Math.Cos(radians) - point.Y * Math.Sin(radians));
+                    float newY = (float)(point.X * Math.Sin(radians) + point.Y * Math.Cos(radians));
+
+                    return new Point(newX, newY);
+                }
+                """
+                };
+
+                return BuildResult(memberReferences, implementationMap);
+            };
+        })
+        .RunAsync();
+    }
+
+    [Fact]
+    public async Task FixAll_ComplexScenarios_NestedThrowExpressions()
+    {
+        await new CustomCompositionCSharpTest
+        {
+            CodeFixTestBehaviors = CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
+            TestCode = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+        
+            public class ComplexExceptionScenarios
+            {
+                public class Person
+                {
+                    public string Name { get; set; }
+                    public int Age { get; set; }
+                    public List<string> Skills { get; set; }
+                    public Person Supervisor { get; set; }
+                }
+
+                // Switch expression in lambda in a method
+                public void {|IDE3000:ProcessData|}(List<object> data)
+                {
+                    var result = data.Select(item => item switch 
+                    {
+                        string s => s.ToUpper(),
+                        int i => i.ToString(),
+                        DateTime d => d.ToShortDateString(),
+                        _ => {|IDE3000:throw new NotImplementedException("Unsupported data type")|} 
+                    });
+
+                    {|IDE3000:throw new NotImplementedException("Method not implemented");|}
+                }
+
+                // Object initializer with conditional expressions
+                public Person {|IDE3000:CreatePerson|}(string name, int age)
+                {
+                    return new Person
+                    {
+                        Name = name ?? {|IDE3000:throw new NotImplementedException("Name cannot be null")|},
+                        Age = age < 0 ? {|IDE3000:throw new NotImplementedException("Age must be positive")|} : age,
+                        Skills = new() { "C#", "F#" }
+                    };
+                }
+
+                // Local method with throw
+                public void {|IDE3000:ProcessWithLocalMethod|}(string input)
+                {
+                    string ParseInput(string text)
+                    {
+                        return text?.Length > 5 ? text : {|IDE3000:throw new NotImplementedException("Input too short")|};
+                    }
+
+                    {|IDE3000:throw new NotImplementedException("Method not fully implemented");|}
+                }
+
+                // Anonymous method with throw
+                public Func<int, int> {|IDE3000:GetCalculator|}(string operation)
+                {
+                    return operation switch
+                    {
+                        "square" => x => x * x,
+                        "double" => x => x * 2,
+                        _ => {|IDE3000:throw new NotImplementedException($"Operation {operation} not implemented")|} 
+                    };
+                }
+
+                // Nested delegated expressions
+                public void {|IDE3000:ProcessWithNestedDelegates|}()
+                {
+                    // Anonymous function that returns another function
+                    Func<int, Func<int, int>> createOperation = x => 
+                        y => x > 0 ? x + y : {|IDE3000:throw new NotImplementedException("Negative values not implemented")|};
+                
+                    {|IDE3000:throw new NotImplementedException("Method body not implemented");|}
+                }
+
+                // Async method with complex initialization
+                public async Task<Person> {|IDE3000:GetPersonAsync|}(int id)
+                {
+                    var supervisor = id > 100 
+                        ? new Person { Name = "Manager" } 
+                        : {|IDE3000:throw new NotImplementedException("Non-manager employees not implemented")|};
+                    
+                    {|IDE3000:throw new NotImplementedException("Async retrieval not implemented");|}
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+        
+            public class ComplexExceptionScenarios
+            {
+                public class Person
+                {
+                    public string Name { get; set; }
+                    public int Age { get; set; }
+                    public List<string> Skills { get; set; }
+                    public Person Supervisor { get; set; }
+                }
+
+                // Switch expression in lambda in a method
+                public void ProcessData(List<object> data)
+                {
+                    var result = data.Select(item => item switch
+                    {
+                        string s => s.ToUpper(),
+                        int i => i.ToString(),
+                        DateTime d => d.ToShortDateString(),
+                        bool b => b.ToString().ToLower(),
+                        double d => d.ToString("F2"),
+                        List<object> list => $"List with {list.Count} items",
+                        _ => item?.ToString() ?? "null"
+                    }).ToList();
+
+                    foreach (var item in result)
+                    {
+                        Console.WriteLine($"Processed: {item}");
+                    }
+                }
+
+                // Object initializer with conditional expressions
+                public Person CreatePerson(string name, int age)
+                {
+                    return new Person
+                    {
+                        Name = name ?? throw new ArgumentNullException(nameof(name), "Name cannot be null"),
+                        Age = age < 0 ? throw new ArgumentException("Age must be positive", nameof(age)) : age,
+                        Skills = new() { "C#", "F#" }
+                    };
+                }
+
+                // Local method with throw
+                public void ProcessWithLocalMethod(string input)
+                {
+                    string ParseInput(string text)
+                    {
+                        return text?.Length > 5 ? text : throw new ArgumentException("Input must be longer than 5 characters", nameof(text));
+                    }
+
+                    if (string.IsNullOrEmpty(input))
+                    {
+                        throw new ArgumentNullException(nameof(input));
+                    }
+
+                    var result = ParseInput(input);
+                    Console.WriteLine($"Processed input: {result}");
+                }
+
+                // Anonymous method with throw
+                public Func<int, int> GetCalculator(string operation)
+                {
+                    return operation switch
+                    {
+                        "square" => x => x * x,
+                        "double" => x => x * 2,
+                        "triple" => x => x * 3,
+                        "increment" => x => x + 1,
+                        "decrement" => x => x - 1,
+                        _ => throw new ArgumentException($"Operation '{operation}' is not supported", nameof(operation))
+                    };
+                }
+
+                // Nested delegated expressions
+                public void ProcessWithNestedDelegates()
+                {
+                    // Anonymous function that returns another function
+                    Func<int, Func<int, int>> createOperation = x =>
+                        y => x > 0 ? x + y : throw new ArgumentException("First parameter must be positive", nameof(x));
+
+                    var operation = createOperation(10);
+                    var result = operation(20);
+                    Console.WriteLine($"Result of nested operation: {result}");
+                }
+
+                // Async method with complex initialization
+                public async Task<Person> GetPersonAsync(int id)
+                {
+                    var supervisor = id > 100
+                        ? new Person { Name = "Manager" }
+                        : new Person { Name = "Team Lead" };
+
+                    await Task.Delay(100); // Simulate database access
+
+                    return new Person
+                    {
+                        Name = $"Employee {id}",
+                        Age = 30 + id % 20,
+                        Skills = new List<string> { "C#", "SQL", "JavaScript" },
+                        Supervisor = supervisor
+                    };
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }
+        .WithMockCopilotService(copilotService =>
+        {
+            copilotService.SetupFixAll = (Document document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> memberReferences, CancellationToken cancellationToken) =>
+            {
+                // Create a map of method/property implementations
+                var implementationMap = new Dictionary<string, string>
+                {
+                    ["ProcessData"] = """
+                public void ProcessData(List<object> data)
+                {
+                    var result = data.Select(item => item switch 
+                    {
+                        string s => s.ToUpper(),
+                        int i => i.ToString(),
+                        DateTime d => d.ToShortDateString(),
+                        bool b => b.ToString().ToLower(),
+                        double d => d.ToString("F2"),
+                        List<object> list => $"List with {list.Count} items",
+                        _ => item?.ToString() ?? "null"
+                    }).ToList();
+                    
+                    foreach (var item in result)
+                    {
+                        Console.WriteLine($"Processed: {item}");
+                    }
+                }
+                """,
+                    ["CreatePerson"] = """
+                public Person CreatePerson(string name, int age)
+                {
+                    return new Person
+                    {
+                        Name = name ?? throw new ArgumentNullException(nameof(name), "Name cannot be null"),
+                        Age = age < 0 ? throw new ArgumentException("Age must be positive", nameof(age)) : age,
+                        Skills = new() { "C#", "F#" }
+                    };
+                }
+                """,
+                    ["ProcessWithLocalMethod"] = """
+                public void ProcessWithLocalMethod(string input)
+                {
+                    string ParseInput(string text)
+                    {
+                        return text?.Length > 5 ? text : throw new ArgumentException("Input must be longer than 5 characters", nameof(text));
+                    }
+                    
+                    if (string.IsNullOrEmpty(input))
+                    {
+                        throw new ArgumentNullException(nameof(input));
+                    }
+                    
+                    var result = ParseInput(input);
+                    Console.WriteLine($"Processed input: {result}");
+                }
+                """,
+                    ["GetCalculator"] = """
+                public Func<int, int> GetCalculator(string operation)
+                {
+                    return operation switch
+                    {
+                        "square" => x => x * x,
+                        "double" => x => x * 2,
+                        "triple" => x => x * 3,
+                        "increment" => x => x + 1,
+                        "decrement" => x => x - 1,
+                        _ => throw new ArgumentException($"Operation '{operation}' is not supported", nameof(operation))
+                    };
+                }
+                """,
+                    ["ProcessWithNestedDelegates"] = """
+                public void ProcessWithNestedDelegates()
+                {
+                    // Anonymous function that returns another function
+                    Func<int, Func<int, int>> createOperation = x => 
+                        y => x > 0 ? x + y : throw new ArgumentException("First parameter must be positive", nameof(x));
+                    
+                    var operation = createOperation(10);
+                    var result = operation(20);
+                    Console.WriteLine($"Result of nested operation: {result}");
+                }
+                """,
+                    ["GetPersonAsync"] = """
+                public async Task<Person> GetPersonAsync(int id)
+                {
+                    var supervisor = id > 100 
+                        ? new Person { Name = "Manager" } 
+                        : new Person { Name = "Team Lead" };
+
+                    await Task.Delay(100); // Simulate database access
+
+                    return new Person
+                    {
+                        Name = $"Employee {id}",
+                        Age = 30 + id % 20,
+                        Skills = new List<string> { "C#", "SQL", "JavaScript" },
+                        Supervisor = supervisor
+                    };
+                }
+                """
+                };
+
+                return BuildResult(memberReferences, implementationMap);
+            };
+        })
+        .RunAsync();
+    }
+
+    [Fact]
     public async Task FixAll_ParseSuccessfully()
     {
         await new CustomCompositionCSharpTest
         {
+            CodeFixTestBehaviors = CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
             using System;
             using System.Threading.Tasks;
+            using System.Linq;
 
             public class MathService : IMathService
             {
-                public int Add(int a, int b)
+                private string _name;
+                public string {|IDE3000:Name|}
+                {
+                    get => _name;
+                    set => _name = value ?? {|IDE3000:throw new NotImplementedException()|};
+                }
+
+                public int {|IDE3000:Add|}(int a, int b)
                 {
                     {|IDE3000:throw new NotImplementedException("Add method not implemented");|}
                 }
-            
-                public int Subtract(int a, int b) => {|IDE3000:throw new NotImplementedException("Subtract method not implemented")|};
-            
-                public int Multiply(int a, int b) {
+        
+                public int {|IDE3000:Subtract|}(int a, int b) => {|IDE3000:throw new NotImplementedException("Subtract method not implemented")|};
+        
+                public int {|IDE3000:Multiply|}(int a, int b) {
                     {|IDE3000:throw new NotImplementedException("Multiply method not implemented");|}
                 }
-            
-                public double Divide(int a, int b)
+        
+                public double {|IDE3000:Divide|}(int a, int b)
                 {
                     {|IDE3000:throw new NotImplementedException("Divide method not implemented");|}
                 }
-            
-                public double CalculateSquareRoot(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented")|};
-            
-                public int Factorial(int number)
+        
+                public double {|IDE3000:CalculateSquareRoot|}(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented")|};
+        
+                public int {|IDE3000:Factorial|}(int number)
                 {
                     {|IDE3000:throw new NotImplementedException("Factorial method not implemented");|}
                 }
-            
-                public int ConstantValue => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
-            
-                public MathService()
+        
+                public int {|IDE3000:ConstantValue|} => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
+        
+                public {|IDE3000:MathService|}()
                 {
                     {|IDE3000:throw new NotImplementedException("Constructor not implemented");|}
                 }
-            
-                ~MathService()
+        
+                ~{|IDE3000:MathService|}()
                 {
                     {|IDE3000:throw new NotImplementedException("Destructor not implemented");|}
                 }
-            
-                public event EventHandler MyEvent
+        
+                public event EventHandler {|IDE3000:MyEvent|}
                 {
                     add { {|IDE3000:throw new NotImplementedException("Event add not implemented");|} }
                     remove { {|IDE3000:throw new NotImplementedException("Event remove not implemented");|} }
                 }
-            
-                public static MathService operator +(MathService a, MathService b)
+        
+                public static MathService operator {|IDE3000:+|}(MathService a, MathService b)
                 {
                     {|IDE3000:throw new NotImplementedException("Operator not implemented");|}
+                }
+
+                public double {|IDE3000:CalculateSumOfSquares|}(int?[] numbers)
+                {
+                    var result = numbers.Select(x => !x.HasValue ? int.MaxValue : {|IDE3000:throw new NotImplementedException()|});
+
+                    return 0;
+                }
+
+                public int {|IDE3000:CalculateSum|}(int[] numbers)
+                {
+                    var obj = new { Calculate = (Func<int>)(() => {|IDE3000:throw new NotImplementedException()|}) };
+
+                    return obj.Calculate();
                 }
             }
 
@@ -103,37 +588,45 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             FixedCode = """
             using System;
             using System.Threading.Tasks;
+            using System.Linq;
 
             public class MathService : IMathService
             {
+                private string _name;
+                public string Name
+                {
+                    get => _name;
+                    set => _name = value ?? throw new ArgumentNullException(nameof(value), "Name cannot be null");
+                }
+
                 public int Add(int a, int b)
                 {
                     return a + b;
                 }
-            
+        
                 public int Subtract(int a, int b) => a - b;
-            
+        
                 public int Multiply(int a, int b)
                 {
                     return a * b;
                 }
-            
+        
                 public double Divide(int a, int b)
                 {
                     if (b == 0) throw new DivideByZeroException("Division by zero is not allowed");
                     return (double)a / b;
                 }
-            
+        
                 public double CalculateSquareRoot(double number) => Math.Sqrt(number);
-            
+        
                 public int Factorial(int number)
                 {
                     if (number < 0) throw new ArgumentException("Number must be non-negative", nameof(number));
                     return number == 0 ? 1 : number * Factorial(number - 1);
                 }
-            
+        
                 public int ConstantValue => 42;
-            
+        
                 public MathService()
                 {
                     // Constructor implementation
@@ -143,19 +636,29 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 {
                     // Destructor implementation
                 }
-            
+        
                 public event EventHandler MyEvent
                 {
                     add { /* Event add implementation */ }
                     remove { /* Event remove implementation */ }
                 }
-            
+        
                 public static MathService operator +(MathService a, MathService b)
                 {
                     return new MathService(); // Operator implementation
                 }
+
+                public double CalculateSumOfSquares(int?[] numbers)
+                {
+                    return numbers.Where(x => x.HasValue).Sum(x => x.Value * x.Value);
+                }
+
+                public int CalculateSum(int[] numbers)
+                {
+                    return numbers.Sum();
+                }
             }
-            
+        
             public interface IMathService
             {
                 int Add(int a, int b);
@@ -188,38 +691,12 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     ["MathService"] = "public MathService()\n{\n    // Constructor implementation\n}\n",
                     ["~MathService"] = "~MathService()\n{\n    // Destructor implementation\n}\n",
                     ["MyEvent"] = "public event EventHandler MyEvent\n{\n    add { /* Event add implementation */ }\n    remove { /* Event remove implementation */ }\n}\n",
-                    ["operator +"] = "public static MathService operator +(MathService a, MathService b)\n{\n    return new MathService(); // Operator implementation\n}\n"
+                    ["operator +"] = "public static MathService operator +(MathService a, MathService b)\n{\n    return new MathService(); // Operator implementation\n}\n",
+                    ["CalculateSumOfSquares"] = "public double CalculateSumOfSquares(int?[] numbers)\n{\n    return numbers.Where(x => x.HasValue).Sum(x => x.Value * x.Value);\n}\n",
+                    ["CalculateSum"] = "public int CalculateSum(int[] numbers)\n{\n    return numbers.Sum();\n}\n",
+                    ["Name"] = "public string Name\n{\n    get => _name;\n    set => _name = value ?? throw new ArgumentNullException(nameof(value), \"Name cannot be null\");\n}\n"
                 };
-
-                // Process each member reference and create implementation details
-                var resultsBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImplementationDetails>();
-                foreach (var memberReference in memberReferences)
-                {
-                    var memberNode = memberReference.Key;
-
-                    // Get the identifier based on node type
-                    var identifier = memberNode switch
-                    {
-                        MethodDeclarationSyntax method => method.Identifier.Text,
-                        PropertyDeclarationSyntax property => property.Identifier.Text,
-                        ConstructorDeclarationSyntax constructor => constructor.Identifier.Text,
-                        DestructorDeclarationSyntax destructor => destructor.TildeToken.Text + destructor.Identifier.Text,
-                        EventDeclarationSyntax @event => @event.Identifier.Text,
-                        OperatorDeclarationSyntax @operator => "operator " + @operator.OperatorToken.Text,
-                        _ => string.Empty
-                    };
-
-                    // Look up implementation in our map
-                    Assumes.True(implementationMap.TryGetValue(identifier, out var implementation));
-                    resultsBuilder.Add(
-                        memberNode,
-                        new ImplementationDetails
-                        {
-                            ReplacementNode = SyntaxFactory.ParseMemberDeclaration(implementation),
-                        });
-                }
-
-                return resultsBuilder.ToImmutable();
+                return BuildResult(memberReferences, implementationMap);
             };
         })
         .RunAsync();
@@ -233,29 +710,29 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     {
         await new CustomCompositionCSharpTest
         {
-            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
             using System;
             using System.Threading.Tasks;
 
             public class DataService : IDataService
             {
-                public void AddData(string data)
+                public void {|IDE3000:AddData|}(string data)
                 {
                     {|IDE3000:throw new NotImplementedException("AddData method not implemented");|}
                 }
 
-                public string GetData(int id) => {|IDE3000:throw new NotImplementedException()|};
+                public string {|IDE3000:GetData|}(int id) => {|IDE3000:throw new NotImplementedException()|};
 
                 /* Updates the data for a given ID */
-                public void UpdateData(int id, string data)
+                public void {|IDE3000:UpdateData|}(int id, string data)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
                     {|IDE3000:throw new NotImplementedException("UpdateData method not implemented");|}
                 }
 
                 // Deletes data by ID
-                public void DeleteData(int id)
+                public void {|IDE3000:DeleteData|}(int id)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
                     {|IDE3000:throw new NotImplementedException();|}
@@ -265,12 +742,12 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 /// Saves changes asynchronously
                 /// </summary>
                 /// <returns>A task representing the save operation</returns>
-                public Task SaveChangesAsync()
+                public Task {|IDE3000:SaveChangesAsync|}()
                 {
                     {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
 
-                public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
+                public int {|IDE3000:DataCount|} => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
 
             public interface IDataService
@@ -290,22 +767,22 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             public class DataService : IDataService
             {
                 /* {{copilotErrorMessage}} */
-                public void AddData(string data)
+                public void {|IDE3000:AddData|}(string data)
                 {
                     {|IDE3000:throw new NotImplementedException("AddData method not implemented");|}
                 }
             
-                public string GetData(int id) => {|IDE3000:throw new NotImplementedException()|};
+                public string {|IDE3000:GetData|}(int id) => {|IDE3000:throw new NotImplementedException()|};
             
                 /* Updates the data for a given ID */
-                public void UpdateData(int id, string data)
+                public void {|IDE3000:UpdateData|}(int id, string data)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
                     {|IDE3000:throw new NotImplementedException("UpdateData method not implemented");|}
                 }
             
                 // Deletes data by ID
-                public void DeleteData(int id)
+                public void {|IDE3000:DeleteData|}(int id)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
                     {|IDE3000:throw new NotImplementedException();|}
@@ -315,12 +792,12 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 /// Saves changes asynchronously
                 /// </summary>
                 /// <returns>A task representing the save operation</returns>
-                public Task SaveChangesAsync()
+                public Task {|IDE3000:SaveChangesAsync|}()
                 {
                     {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
             
-                public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
+                public int {|IDE3000:DataCount|} => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
 
             public interface IDataService
@@ -340,17 +817,17 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             public class DataService : IDataService
             {
                 /* {{copilotErrorMessage}} */
-                public void AddData(string data)
+                public void {|IDE3000:AddData|}(string data)
                 {
                     {|IDE3000:throw new NotImplementedException("AddData method not implemented");|}
                 }
             
                 /* {{copilotErrorMessage}} */
-                public string GetData(int id) => {|IDE3000:throw new NotImplementedException()|};
+                public string {|IDE3000:GetData|}(int id) => {|IDE3000:throw new NotImplementedException()|};
             
                 /* Updates the data for a given ID */
                 /* {{copilotErrorMessage}} */
-                public void UpdateData(int id, string data)
+                public void {|IDE3000:UpdateData|}(int id, string data)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
                     {|IDE3000:throw new NotImplementedException("UpdateData method not implemented");|}
@@ -358,7 +835,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             
                 // Deletes data by ID
                 /* {{copilotErrorMessage}} */
-                public void DeleteData(int id)
+                public void {|IDE3000:DeleteData|}(int id)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
                     {|IDE3000:throw new NotImplementedException();|}
@@ -369,13 +846,13 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 /// Saves changes asynchronously
                 /// </summary>
                 /// <returns>A task representing the save operation</returns>
-                public Task SaveChangesAsync()
+                public Task {|IDE3000:SaveChangesAsync|}()
                 {
                     {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
             
                 /* {{copilotErrorMessage}} */
-                public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
+                public int {|IDE3000:DataCount|} => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
 
             public interface IDataService
@@ -415,13 +892,13 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     {
         await new CustomCompositionCSharpTest
         {
-            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
             using System;
 
             class C
             {
-                void M()
+                void {|IDE3000:M|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
                 }
@@ -441,7 +918,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                         throw new NotImplementedException();
                     }
                 } */
-                void M()
+                void {|IDE3000:M|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
                 }
@@ -525,13 +1002,13 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         Assumes.False(string.IsNullOrWhiteSpace(implementationDetails.Message));
         await new CustomCompositionCSharpTest
         {
-            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
             using System;
 
             class C
             {
-                void M()
+                void {|IDE3000:M|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
                 }
@@ -543,7 +1020,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             class C
             {
                 /* {{implementationDetails.Message}} */
-                void M()
+                void {|IDE3000:M|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
                 }
@@ -561,6 +1038,40 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             copilotService.PrepareUsingSingleFakeResult = implementationDetails;
         })
         .RunAsync();
+    }
+
+    private static ImmutableDictionary<SyntaxNode, ImplementationDetails> BuildResult(ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> memberReferences, Dictionary<string, string> implementationMap)
+    {
+
+        // Process each member reference and create implementation details
+        var resultsBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImplementationDetails>();
+        foreach (var memberReference in memberReferences)
+        {
+            var memberNode = memberReference.Key;
+
+            // Get the identifier based on node type
+            var identifier = memberNode switch
+            {
+                MethodDeclarationSyntax method => method.Identifier.Text,
+                PropertyDeclarationSyntax property => property.Identifier.Text,
+                ConstructorDeclarationSyntax constructor => constructor.Identifier.Text,
+                DestructorDeclarationSyntax destructor => destructor.TildeToken.Text + destructor.Identifier.Text,
+                EventDeclarationSyntax @event => @event.Identifier.Text,
+                OperatorDeclarationSyntax @operator => "operator " + @operator.OperatorToken.Text,
+                _ => string.Empty
+            };
+
+            // Look up implementation in our map
+            Assumes.True(implementationMap.TryGetValue(identifier, out var implementation));
+            resultsBuilder.Add(
+                memberNode,
+                new ImplementationDetails
+                {
+                    ReplacementNode = SyntaxFactory.ParseMemberDeclaration(implementation),
+                });
+        }
+
+        return resultsBuilder.ToImmutable();
     }
 
     private class CustomCompositionCSharpTest : VerifyCS.Test
