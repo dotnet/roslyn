@@ -49,9 +49,6 @@ internal sealed partial class SolutionCompilationState
             RegularCompilationTracker underlyingTracker,
             TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates)
         {
-            // We should never create a chain of trackers wrapping each other.
-            Contract.ThrowIfTrue(underlyingTracker is WithFrozenSourceGeneratedDocumentsCompilationTracker);
-
             this.UnderlyingTracker = underlyingTracker;
             _replacementDocumentStates = replacementDocumentStates;
             _skeletonReferenceCache = underlyingTracker.GetClonedSkeletonReferenceCache();
@@ -97,6 +94,13 @@ internal sealed partial class SolutionCompilationState
                 : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
+        /// <summary>
+        /// Updates the frozen source generated documents states being tracked
+        /// </summary>
+        /// <remarks>
+        /// NOTE: This does not merge the states currently tracked, it simply replaces them. If merging is desired, it should be done
+        /// by the caller.
+        /// </remarks>
         public ICompilationTracker WithReplacementDocumentStates(TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates)
         {
             return new WithFrozenSourceGeneratedDocumentsCompilationTracker(this.UnderlyingTracker, replacementDocumentStates);

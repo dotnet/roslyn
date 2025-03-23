@@ -27,6 +27,7 @@ internal sealed class RemoteFullyQualifyService : BrokeredServiceBase, IRemoteFu
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
+            // Including source generated documents as this service is used in Razor scenarios.
             var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
             var service = document.GetRequiredLanguageService<IFullyQualifyService>();

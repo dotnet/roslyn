@@ -90,6 +90,9 @@ public abstract partial class CodeAction
             using var _ = ArrayBuilder<(DocumentId documentId, CodeCleanupOptions options)>.GetInstance(documentIds.Length, out var documentIdsAndOptions);
             foreach (var documentId in documentIds)
             {
+                // We include source generated documents here for Razor, which uses them. In that scenario the cleaned document is compared to the
+                // original to create a set of changes for the LSP client, and part of that will include mapping the changes back to the Razor document,
+                // so whilst it would seem like cleaning source generated documents is a waste of time, it's sometimes not.
                 var document = await changedSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
                 // Only care about documents that support syntax.  Non-C#/VB files can't be cleaned.

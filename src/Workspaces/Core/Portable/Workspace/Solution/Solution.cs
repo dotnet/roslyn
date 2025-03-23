@@ -1616,6 +1616,7 @@ public partial class Solution
     internal Document WithFrozenSourceGeneratedDocument(
         SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)
     {
+        // SyntaxNode is null here because it will be computed on demand. Other APIs, like Document.WithSyntaxRoot, specify it.
         var newCompilationState = CompilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text, syntaxNode: null)]);
         var newSolution = WithCompilationState(newCompilationState);
 
