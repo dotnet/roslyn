@@ -2562,10 +2562,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadAccess, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>.MyDictionary()").WithLocation(10, 26));
         }
 
-        [Fact(Skip = "PROTOTYPE")]
+        [Fact]
         public void Params_Cycle_01()
         {
-            string sourceA = """
+            string source = """
                 using System.Collections;
                 using System.Collections.Generic;
                 public class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
@@ -2575,9 +2575,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     IEnumerator IEnumerable.GetEnumerator() => null;
                     public V this[K key, params MyDictionary<K, V> args] { get { return default; } set { } }
                 }
-                """;
-            string sourceB = """
-                using System.Collections.Generic;
                 class Program
                 {
                     static void Main()
@@ -2591,30 +2588,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void F<K, V>(params MyDictionary<K, V> args) { }
                 }
                 """;
-            var comp = CreateCompilation([sourceA, sourceB]);
+            var comp = CreateCompilation(source);
             // PROTOTYPE: Should report cycle.
             comp.VerifyEmitDiagnostics(
-                // (10,33): error CS9224: Method 'MyDictionary<K, V>.MyDictionary()' cannot be less visible than the member with params collection 'Program.F3<K, V>(params MyDictionary<K, V>)'.
-                //     public static void F3<K, V>(params MyDictionary<K, V> args) { }
-                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>.MyDictionary()", "Program.F3<K, V>(params MyDictionary<K, V>)").WithLocation(10, 33));
+                // (5,25): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
+                //     public MyDictionary(params MyDictionary<K, V> args) { }
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>", "Add").WithLocation(5, 25),
+                // (8,26): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
+                //     public V this[K key, params MyDictionary<K, V> args] { get { return default; } set { } }
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>", "Add").WithLocation(8, 26),
+                // (15,9): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'Program.F<K, V>(params MyDictionary<K, V>)'
+                //         F<int, string>();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "F<int, string>").WithArguments("args", "Program.F<K, V>(params MyDictionary<K, V>)").WithLocation(15, 9),
+                // (16,9): error CS0411: The type arguments for method 'Program.F<K, V>(params MyDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(x);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<K, V>(params MyDictionary<K, V>)").WithLocation(16, 9),
+                // (17,11): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                //         F([x]);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(17, 11),
+                // (18,9): error CS0411: The type arguments for method 'Program.F<K, V>(params MyDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F([2:"two"]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<K, V>(params MyDictionary<K, V>)").WithLocation(18, 9),
+                // (20,25): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
+                //     static void F<K, V>(params MyDictionary<K, V> args) { }
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>", "Add").WithLocation(20, 25));
         }
 
-        [Fact(Skip = "PROTOTYPE")]
+        [Fact]
         public void Params_Cycle_02()
         {
-            string sourceA = """
+            string source = """
                 using System.Collections;
                 using System.Collections.Generic;
                 public class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
                 {
+                    public MyDictionary() { }
                     public MyDictionary(object arg, params MyDictionary<K, V> args) { }
                     public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
                     IEnumerator IEnumerable.GetEnumerator() => null;
                     public V this[K key, params MyDictionary<K, V> args] { get { return default; } set { } }
                 }
-                """;
-            string sourceB = """
-                using System.Collections.Generic;
                 class Program
                 {
                     static void Main()
@@ -2627,15 +2640,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void F<K, V>(MyDictionary<K, V> d, params MyDictionary<K, V> args) { }
                 }
                 """;
-            var comp = CreateCompilation([sourceA, sourceB]);
+            var comp = CreateCompilation(source);
             // PROTOTYPE: Should report cycle.
             comp.VerifyEmitDiagnostics(
-                // (10,33): error CS9224: Method 'MyDictionary<K, V>.MyDictionary()' cannot be less visible than the member with params collection 'Program.F3<K, V>(params MyDictionary<K, V>)'.
-                //     public static void F3<K, V>(params MyDictionary<K, V> args) { }
-                Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>.MyDictionary()", "Program.F3<K, V>(params MyDictionary<K, V>)").WithLocation(10, 33));
+                // (6,37): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
+                //     public MyDictionary(object arg, params MyDictionary<K, V> args) { }
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>", "Add").WithLocation(6, 37),
+                // (9,26): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
+                //     public V this[K key, params MyDictionary<K, V> args] { get { return default; } set { } }
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>", "Add").WithLocation(9, 26),
+                // (16,9): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'Program.F<K, V>(MyDictionary<K, V>, params MyDictionary<K, V>)'
+                //         F<int, string>([with(null)]);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "F<int, string>").WithArguments("args", "Program.F<K, V>(MyDictionary<K, V>, params MyDictionary<K, V>)").WithLocation(16, 9),
+                // (17,9): error CS0411: The type arguments for method 'Program.F<K, V>(MyDictionary<K, V>, params MyDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F([with(null)], x);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<K, V>(MyDictionary<K, V>, params MyDictionary<K, V>)").WithLocation(17, 9),
+                // (18,11): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                //         F([with(null)], [x]);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[with(null)]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(18, 11),
+                // (18,25): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                //         F([with(null)], [x]);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(18, 25),
+                // (20,47): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
+                //     static void F<K, V>(MyDictionary<K, V> d, params MyDictionary<K, V> args) { }
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>", "Add").WithLocation(20, 47));
         }
 
-        [Theory(Skip = "PROTOTYPE")]
+        [Theory]
         [MemberData(nameof(LanguageVersions))]
         public void Params_Cycle_03(LanguageVersion languageVersion)
         {
@@ -2650,6 +2681,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public V this[K key, params MyDictionary<K, V> args] { get { return default; } set { } }
                     public void Add(KeyValuePair<K, V> kvp) { }
                 }
+                public static class Helpers
+                {
+                    public static void F<K, V>(params MyDictionary<K, V> args) { }
+                }
                 """;
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular13);
             var refA = comp.EmitToImageReference();
@@ -2661,35 +2696,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         var x = new KeyValuePair<int, string>(1, "one");
-                        F<int, string>();
-                        F(x);
-                        F([x]);
+                        Helpers.F<int, string>();
+                        Helpers.F(x);
+                        Helpers.F([x]);
                     }
-                    static void F<K, V>(params MyDictionary<K, V> args) { }
                 }
                 """;
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp13)
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (7,9): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
-                    //         F<int, string>();
-                    Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "F<int, string>()").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(7, 9),
-                    // (8,9): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
-                    //         F(x);
-                    Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "F(x)").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(8, 9),
-                    // (9,11): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
-                    //         F([x]);
-                    Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[x]").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(9, 11));
-            }
-            else
-            {
-                // PROTOTYPE: Should report cycle.
-                comp.VerifyEmitDiagnostics(
-                    // (10,33): error CS9224: Method 'MyDictionary<K, V>.MyDictionary()' cannot be less visible than the member with params collection 'Program.F3<K, V>(params MyDictionary<K, V>)'.
-                    //     public static void F3<K, V>(params MyDictionary<K, V> args) { }
-                    Diagnostic(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>.MyDictionary()", "Program.F3<K, V>(params MyDictionary<K, V>)").WithLocation(10, 33));
-            }
+            comp.VerifyEmitDiagnostics(
+                // (7,9): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
+                //         Helpers.F<int, string>();
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Helpers.F<int, string>()").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(7, 9),
+                // (8,9): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
+                //         Helpers.F(x);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "Helpers.F(x)").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(8, 9),
+                // (9,19): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
+                //         Helpers.F([x]);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[x]").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(9, 19));
         }
 
         [Theory]

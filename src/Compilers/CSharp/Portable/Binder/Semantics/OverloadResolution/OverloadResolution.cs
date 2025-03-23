@@ -1320,14 +1320,7 @@ outerDefault:
                 return false;
             }
 
-            SyntaxNode syntax = CSharpSyntaxTree.Dummy.GetRoot();
-            CollectionExpressionTypeKind collectionTypeKind;
-            ConversionsBase.TryGetCollectionExpressionTypeKind(binder, syntax, type, out collectionTypeKind, out elementType);
-
-            if (elementType.Type is null)
-            {
-                return false;
-            }
+            var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(binder.Compilation, type, out elementType);
 
             switch (collectionTypeKind)
             {
@@ -1335,20 +1328,42 @@ outerDefault:
                     return false;
 
                 case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
-                    if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
+                case CollectionExpressionTypeKind.CollectionBuilder:
                     {
-                        return false;
-                    }
+                        SyntaxNode syntax = CSharpSyntaxTree.Dummy.GetRoot();
+                        binder.TryGetCollectionIterationType(syntax, type, out elementType);
 
-                    if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable &&
-                        !binder.HasCollectionExpressionApplicableAddMethod(syntax, type, addMethods: out _, BindingDiagnosticBag.Discarded))
-                    {
-                        return false;
+                        if (elementType.Type is null)
+                        {
+                            return false;
+                        }
+
+                        if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+                        {
+                            if (binder.HasParamsCollectionTypeApplicableIndexerInProgress(syntax, type))
+                            {
+                                // We are in a cycle. Optimistically assume the type has an applicable indexer.
+                                break;
+                            }
+
+                            binder = new ParamsCollectionTypeApplicableIndexerInProgress(syntax, type, binder);
+
+                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
+                            {
+                                return false;
+                            }
+
+                            if (binder.GetCollectionExpressionApplicableIndexerIfEnabled(syntax, type, elementType.Type, BindingDiagnosticBag.Discarded) is null &&
+                                !binder.HasCollectionExpressionApplicableAddMethod(syntax, type, addMethods: out _, BindingDiagnosticBag.Discarded))
+                            {
+                                return false;
+                            }
+                        }
                     }
                     break;
             }
 
+            Debug.Assert(elementType.Type is { });
             return true;
         }
 

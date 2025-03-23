@@ -1566,6 +1566,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        internal bool HasParamsCollectionTypeApplicableIndexerInProgress(SyntaxNode syntax, TypeSymbol targetType)
+        {
+            Binder? current = this;
+            do
+            {
+                if (current is ParamsCollectionTypeApplicableIndexerInProgress binder &&
+                    binder.Syntax == syntax &&
+                    binder.CollectionType.OriginalDefinition.Equals(targetType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return true;
+                }
+                current = current.Next;
+            } while (current is { });
+
+            return false;
+        }
+
+        internal PropertySymbol? GetCollectionExpressionApplicableIndexerIfEnabled(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+        {
+            if (object.ReferenceEquals(elementType.OriginalDefinition, Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)) &&
+                Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions))
+            {
+                return GetCollectionExpressionApplicableIndexer(syntax, targetType, elementType, diagnostics);
+            }
+            return null;
+        }
+
         internal PropertySymbol? GetCollectionExpressionApplicableIndexer(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
         {
             bool isKeyValuePair = ConversionsBase.IsKeyValuePairType(Compilation, elementType, out var keyType, out var valueType);

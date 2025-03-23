@@ -1671,15 +1671,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+                if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable &&
+                    binder.GetCollectionExpressionApplicableIndexerIfEnabled(syntax, targetType, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is { })
                 {
-                    var elementType = elementTypeWithAnnotations.Type;
-                    if (object.ReferenceEquals(elementType.OriginalDefinition, binder.Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)) &&
-                        binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
-                        binder.GetCollectionExpressionApplicableIndexer(syntax, targetType, elementType, BindingDiagnosticBag.Discarded) is { })
-                    {
-                        collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
-                    }
+                    collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
                 }
             }
 
