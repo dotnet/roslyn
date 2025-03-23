@@ -62,6 +62,7 @@ internal partial class StateResetInProcess
         ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameInComments);
         ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameInStrings);
         ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameOverloads);
+        ResetOption(globalOptions, InlineRenameUIOptionsStorage.UseInlineAdornment);
         ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
         ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution);
         ResetPerLanguageOption(globalOptions, FormattingOptions2.IndentationSize);

@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -19,7 +20,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal sealed class InlineRenameAdornmentManager : IDisposable
+    internal class InlineRenameAdornmentManager : IDisposable
     {
         private readonly IWpfTextView _textView;
         private readonly IGlobalOptionService _globalOptionService;
@@ -117,45 +118,59 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return null;
             }
 
-            if (!_textView.HasAggregateFocus)
+            var useInlineAdornment = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.UseInlineAdornment);
+            LogAdornmentChoice(useInlineAdornment);
+            if (useInlineAdornment)
             {
-                // For the rename flyout, the adornment is dismissed on focus lost. There's
-                // no need to keep an adornment on every textview for show/hide behaviors
-                return null;
+                if (!_textView.HasAggregateFocus)
+                {
+                    // For the rename flyout, the adornment is dismissed on focus lost. There's
+                    // no need to keep an adornment on every textview for show/hide behaviors
+                    return null;
+                }
+
+                // Get the active selection to make sure the rename text is selected in the same way
+                var originalSpan = _renameService.ActiveSession.TriggerSpan;
+                var selectionSpan = _textView.Selection.SelectedSpans.First();
+
+                var start = selectionSpan.IsEmpty
+                    ? 0
+                    : selectionSpan.Start - originalSpan.Start; // The length from the identifier to the start of selection
+
+                var length = selectionSpan.IsEmpty
+                    ? originalSpan.Length
+                    : selectionSpan.Length;
+
+                var identifierSelection = new TextSpan(start, length);
+
+                var adornment = new RenameFlyout(
+                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(
+                        _renameService.ActiveSession,
+                        session => new RenameFlyoutViewModel(session,
+                            identifierSelection,
+                            registerOleComponent: true,
+                            _globalOptionService,
+                            _threadingContext,
+                            _listenerProvider,
+                            _smartRenameSessionFactory)),
+                    _textView,
+                    _themeService,
+                    _asyncQuickInfoBroker,
+                    _editorFormatMapService,
+                    _threadingContext,
+                    _listenerProvider);
+
+                return adornment;
             }
+            else
+            {
+                var newAdornment = new RenameDashboard(
+                    (RenameDashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameDashboardViewModel(session, _threadingContext, _textView)),
+                    _editorFormatMapService,
+                    _textView);
 
-            // Get the active selection to make sure the rename text is selected in the same way
-            var originalSpan = _renameService.ActiveSession.TriggerSpan;
-            var selectionSpan = _textView.Selection.SelectedSpans.First();
-
-            var start = selectionSpan.IsEmpty
-                ? 0
-                : selectionSpan.Start - originalSpan.Start; // The length from the identifier to the start of selection
-
-            var length = selectionSpan.IsEmpty
-                ? originalSpan.Length
-                : selectionSpan.Length;
-
-            var identifierSelection = new TextSpan(start, length);
-
-            var adornment = new RenameFlyout(
-                (RenameFlyoutViewModel)s_createdViewModels.GetValue(
-                    _renameService.ActiveSession,
-                    session => new RenameFlyoutViewModel(session,
-                        identifierSelection,
-                        registerOleComponent: true,
-                        _globalOptionService,
-                        _threadingContext,
-                        _listenerProvider,
-                        _smartRenameSessionFactory)),
-                _textView,
-                _themeService,
-                _asyncQuickInfoBroker,
-                _editorFormatMapService,
-                _threadingContext,
-                _listenerProvider);
-
-            return adornment;
+                return newAdornment;
+            }
         }
 
         private static bool ViewIncludesBufferFromWorkspace(IWpfTextView textView, Workspace workspace)
@@ -168,6 +183,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             Workspace.TryGetWorkspace(textContainer, out var workspace);
             return workspace;
+        }
+
+        private static void LogAdornmentChoice(bool useInlineAdornment)
+        {
+            TelemetryLogging.Log(FunctionId.InlineRenameAdornmentChoice, KeyValueLogMessage.Create(m =>
+            {
+                m[nameof(useInlineAdornment)] = useInlineAdornment;
+            }));
         }
     }
 }
