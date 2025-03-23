@@ -2563,7 +2563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Params_Cycle_01()
+        public void Params_Cycle_IncorrectSignature()
         {
             string source = """
                 using System.Collections;
@@ -2582,14 +2582,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         var x = new KeyValuePair<int, string>(1, "one");
                         F<int, string>();
                         F(x);
+                        F<int, string>(x);
                         F([x]);
-                        F([2:"two"]);
+                        F<int, string>([2:"two"]);
                     }
                     static void F<K, V>(params MyDictionary<K, V> args) { }
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Should report cycle.
             comp.VerifyEmitDiagnostics(
                 // (5,25): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
                 //     public MyDictionary(params MyDictionary<K, V> args) { }
@@ -2603,19 +2603,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (16,9): error CS0411: The type arguments for method 'Program.F<K, V>(params MyDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F(x);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<K, V>(params MyDictionary<K, V>)").WithLocation(16, 9),
-                // (17,11): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                // (17,24): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'params MyDictionary<int, string>'
+                //         F<int, string>(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Collections.Generic.KeyValuePair<int, string>", "params MyDictionary<int, string>").WithLocation(17, 24),
+                // (18,11): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
                 //         F([x]);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(17, 11),
-                // (18,9): error CS0411: The type arguments for method 'Program.F<K, V>(params MyDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         F([2:"two"]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<K, V>(params MyDictionary<K, V>)").WithLocation(18, 9),
-                // (20,25): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(18, 11),
+                // (19,24): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                //         F<int, string>([2:"two"]);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[2:""two""]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(19, 24),
+                // (19,25): error CS9275: Collection expression type 'MyDictionary<int, string>' does not support key-value pair elements.
+                //         F<int, string>([2:"two"]);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, @"2:""two""").WithArguments("MyDictionary<int, string>").WithLocation(19, 25),
+                // (21,25): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
                 //     static void F<K, V>(params MyDictionary<K, V> args) { }
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>", "Add").WithLocation(20, 25));
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>", "Add").WithLocation(21, 25));
         }
 
         [Fact]
-        public void Params_Cycle_02()
+        public void Params_Cycle_Overloads()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    public MyDictionary(params MyDictionary<K, V> args) { }
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public V this[K key] { get { return default; } set { } }
+                    public V this[K key, params MyDictionary<K, V> args] { get { return default; } set { } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>(1, "one");
+                        F<int, string>();
+                        F(x);
+                        F<int, string>(x);
+                        F([x]);
+                        F<int, string>([2:"two"]);
+                    }
+                    static void F<K, V>(params MyDictionary<K, V> args) { }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (16,9): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
+                //         F<int, string>();
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "F<int, string>()").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(16, 9),
+                // (17,9): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
+                //         F(x);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "F(x)").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(17, 9),
+                // (18,9): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
+                //         F<int, string>(x);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "F<int, string>(x)").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(18, 9),
+                // (19,11): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
+                //         F([x]);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, "[x]").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(19, 11),
+                // (20,24): error CS9223: Creation of params collection 'MyDictionary<int, string>' results in an infinite chain of invocation of constructor 'MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)'.
+                //         F<int, string>([2:"two"]);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, @"[2:""two""]").WithArguments("MyDictionary<int, string>", "MyDictionary<K, V>.MyDictionary(params MyDictionary<K, V>)").WithLocation(20, 24));
+        }
+
+        [Fact]
+        public void Params_Cycle_ConstructorArguments()
         {
             string source = """
                 using System.Collections;
@@ -2635,13 +2688,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         var x = new KeyValuePair<int, string>(1, "one");
                         F<int, string>([with(null)]);
                         F([with(null)], x);
+                        F<int, string>([with(null)], x);
                         F([with(null)], [x]);
                     }
                     static void F<K, V>(MyDictionary<K, V> d, params MyDictionary<K, V> args) { }
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Should report cycle.
             comp.VerifyEmitDiagnostics(
                 // (6,37): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
                 //     public MyDictionary(object arg, params MyDictionary<K, V> args) { }
@@ -2655,20 +2708,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (17,9): error CS0411: The type arguments for method 'Program.F<K, V>(MyDictionary<K, V>, params MyDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F([with(null)], x);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<K, V>(MyDictionary<K, V>, params MyDictionary<K, V>)").WithLocation(17, 9),
-                // (18,11): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                // (18,24): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                //         F<int, string>([with(null)], x);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[with(null)]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(18, 24),
+                // (18,38): error CS1503: Argument 2: cannot convert from 'System.Collections.Generic.KeyValuePair<int, string>' to 'params MyDictionary<int, string>'
+                //         F<int, string>([with(null)], x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("2", "System.Collections.Generic.KeyValuePair<int, string>", "params MyDictionary<int, string>").WithLocation(18, 38),
+                // (19,11): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
                 //         F([with(null)], [x]);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[with(null)]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(18, 11),
-                // (18,25): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[with(null)]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(19, 11),
+                // (19,25): error CS1061: 'MyDictionary<int, string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyDictionary<int, string>' could be found (are you missing a using directive or an assembly reference?)
                 //         F([with(null)], [x]);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(18, 25),
-                // (20,47): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[x]").WithArguments("MyDictionary<int, string>", "Add").WithLocation(19, 25),
+                // (21,47): error CS0117: 'MyDictionary<K, V>' does not contain a definition for 'Add'
                 //     static void F<K, V>(MyDictionary<K, V> d, params MyDictionary<K, V> args) { }
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>", "Add").WithLocation(20, 47));
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "params MyDictionary<K, V> args").WithArguments("MyDictionary<K, V>", "Add").WithLocation(21, 47));
         }
 
         [Theory]
         [MemberData(nameof(LanguageVersions))]
-        public void Params_Cycle_03(LanguageVersion languageVersion)
+        public void Params_Cycle_AddAndIndexer(LanguageVersion languageVersion)
         {
             string sourceA = """
                 using System.Collections;

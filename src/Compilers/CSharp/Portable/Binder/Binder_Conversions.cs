@@ -928,11 +928,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(syntax, targetType))
                 {
-                    // PROTOTYPE: Do we have similar cycles with indexer parameters?
-                    // PROTOTYPE: There are two separate errors for collection expression cycles:
-                    // ERR_ParamsCollectionInfiniteChainOfConstructorCalls and
-                    // ERR_CollectionInitializerInfiniteChainOfAddCalls.
-                    // Test the two distinct code paths for indexer cases.
                     diagnostics.Add(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, syntax, targetType);
                     return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                 }
@@ -1635,7 +1630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol? namedType = targetType as NamedTypeSymbol;
 
-            if (namedType is not null && HasParamsCollectionTypeInProgress(namedType, out _, out _)) // PROTOTYPE: Test cycles with params for indexers.
+            if (namedType is not null && HasParamsCollectionTypeInProgress(namedType, out _, out _))
             {
                 // We are in a cycle. Optimistically assume we have the right Add to break the cycle
                 addMethods = [];
