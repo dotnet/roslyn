@@ -84,8 +84,6 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         moveToNamespaceAnalysisResult = await TryAnalyzeNamedTypeAsync(document, node, cancellationToken).ConfigureAwait(false);
         return moveToNamespaceAnalysisResult ?? MoveToNamespaceAnalysisResult.Invalid;
     }
-
-
     private async Task<MoveToNamespaceAnalysisResult?> TryAnalyzeNamespaceAsync(
         Document document, SyntaxNode node, int position, CancellationToken cancellationToken)
     {
