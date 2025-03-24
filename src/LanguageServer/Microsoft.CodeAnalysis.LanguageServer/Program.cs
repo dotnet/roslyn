@@ -181,7 +181,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
 }
 
-static CliRootCommand CreateCommandLineParser()
+static CliConfiguration CreateCommandLineParser()
 {
     var debugOption = new CliOption<bool>("--debug")
     {
@@ -277,6 +277,7 @@ static CliRootCommand CreateCommandLineParser()
         serverPipeNameOption,
         useStdIoOption
     };
+
     rootCommand.SetAction((parseResult, cancellationToken) =>
     {
         var launchDebugger = parseResult.GetValue(debugOption);
@@ -308,7 +309,13 @@ static CliRootCommand CreateCommandLineParser()
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
-    return rootCommand;
+
+    var config = new CliConfiguration(rootCommand)
+    {
+        EnableDefaultExceptionHandler = false
+    };
+
+    return config;
 }
 
 static (string clientPipe, string serverPipe) CreateNewPipeNames()
