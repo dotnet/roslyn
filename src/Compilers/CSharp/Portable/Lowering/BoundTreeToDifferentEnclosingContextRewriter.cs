@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// a bound node rewriter that rewrites types properly (which in some cases the automatically-generated
     /// base class does not).  This is used in the lambda rewriter, the iterator rewriter, and the async rewriter.
     /// </summary>
-    internal abstract class BoundTreeToDifferentEnclosingContextRewriter : BoundTreeRewriterWithStackGuard
+    internal abstract class BoundTreeToDifferentEnclosingContextRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         // A mapping from every local variable to its replacement local variable.  Local variables are replaced when
         // their types change due to being inside of a generic method.  Otherwise we reuse the original local (even
@@ -35,6 +35,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Fail($"Override the visitor for {node.Kind}");
             return base.DefaultVisit(node);
         }
+
+#if DEBUG
+        [return: NotNullIfNotNull(nameof(node))]
+        public override BoundNode? Visit(BoundNode? node)
+        {
+            // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
+            Debug.Assert(node is not BoundBinaryOperator { InterpolatedStringHandlerData: not null });
+            return base.Visit(node);
+        }
+#endif
 
         protected void RewriteLocals(ImmutableArray<LocalSymbol> locals, ArrayBuilder<LocalSymbol> newLocals)
         {
@@ -109,22 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override TypeSymbol? VisitType(TypeSymbol? type)
         {
             return TypeMap.SubstituteType(type).Type;
-        }
-
-        public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
-        {
-            // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
-            Debug.Assert(node.InterpolatedStringHandlerData is null);
-
-            return node.Update(
-                node.OperatorKind,
-                node.ConstantValueOpt,
-                VisitMethodSymbol(node.Method),
-                VisitType(node.ConstrainedToType),
-                node.ResultKind,
-                (BoundExpression)Visit(node.Left),
-                (BoundExpression)Visit(node.Right),
-                VisitType(node.Type));
         }
 
         public override BoundNode? VisitConversion(BoundConversion node)

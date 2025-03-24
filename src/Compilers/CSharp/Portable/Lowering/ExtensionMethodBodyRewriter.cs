@@ -187,7 +187,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return ExtensionMethodReferenceRewriter.VisitFunctionPointerLoad(this, node);
         }
-
-        // PROTOTYPE: Handle deep recursion on long chain of binary operators, etc.
     }
 }
