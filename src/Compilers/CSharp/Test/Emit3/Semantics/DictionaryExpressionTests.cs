@@ -736,8 +736,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        // PROTOTYPE: Confirm with language design that we should support params dictionary types,
-        // noting that we don't check dictionary-ness for target types that use CollectionBuilderAttribute.
         [Theory]
         [CombinatorialData]
         public void Dictionary_Params(
