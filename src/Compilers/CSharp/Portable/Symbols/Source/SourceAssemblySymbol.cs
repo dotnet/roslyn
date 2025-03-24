@@ -1666,7 +1666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             attributesBag = null;
-            Func<AttributeSyntax, bool> attributeMatches = attribute switch
+            Func<AttributeSyntax, Binder?, bool> attributeMatches = attribute switch
             {
                 QuickAttributes.AssemblySignatureKey => isPossibleAssemblySignatureKeyAttribute,
                 QuickAttributes.AssemblyKeyName => isPossibleAssemblyKeyNameAttribute,
@@ -1678,19 +1678,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (CommonAssemblyWellKnownAttributeData?)attributesBag?.DecodedWellKnownAttributeData;
 
-            bool isPossibleAssemblySignatureKeyAttribute(AttributeSyntax node)
+            bool isPossibleAssemblySignatureKeyAttribute(AttributeSyntax node, Binder? rootBinderOpt)
             {
                 QuickAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(node.SyntaxTree).GetBinder(node).QuickAttributeChecker;
                 return checker.IsPossibleMatch(node, QuickAttributes.AssemblySignatureKey);
             }
 
-            bool isPossibleAssemblyKeyNameAttribute(AttributeSyntax node)
+            bool isPossibleAssemblyKeyNameAttribute(AttributeSyntax node, Binder? rootBinderOpt)
             {
                 QuickAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(node.SyntaxTree).GetBinder(node).QuickAttributeChecker;
                 return checker.IsPossibleMatch(node, QuickAttributes.AssemblyKeyName);
             }
 
-            bool isPossibleAssemblyKeyFileAttribute(AttributeSyntax node)
+            bool isPossibleAssemblyKeyFileAttribute(AttributeSyntax node, Binder? rootBinderOpt)
             {
                 QuickAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(node.SyntaxTree).GetBinder(node).QuickAttributeChecker;
                 return checker.IsPossibleMatch(node, QuickAttributes.AssemblyKeyFile);
@@ -1756,7 +1756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(removed);
         }
 
-        private bool IsPossibleForwardedTypesAttribute(AttributeSyntax node)
+        private bool IsPossibleForwardedTypesAttribute(AttributeSyntax node, Binder rootBinderOpt)
         {
             QuickAttributeChecker checker =
                 this.DeclaringCompilation.GetBinderFactory(node.SyntaxTree).GetBinder(node).QuickAttributeChecker;
