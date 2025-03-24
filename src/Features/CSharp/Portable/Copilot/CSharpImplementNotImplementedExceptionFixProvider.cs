@@ -79,7 +79,7 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var memberReferencesBuilder = ImmutableDictionary.CreateBuilder<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>>();
+        var memberReferencesBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImmutableArray<ReferencedSymbol>>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var diagnostic in diagnostics)
@@ -102,8 +102,10 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
         var memberImplementationDetails = await copilotService.ImplementNotImplementedExceptionsAsync(document, memberReferencesBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false);
 
-        foreach (var methodOrProperty in memberReferencesBuilder.Keys)
+        foreach (var node in memberReferencesBuilder.Keys)
         {
+            var methodOrProperty = (MemberDeclarationSyntax)node;
+
             Contract.ThrowIfFalse(memberImplementationDetails.TryGetValue(methodOrProperty, out var implementationDetails));
 
             var replacement = implementationDetails.ReplacementNode;
