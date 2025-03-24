@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
@@ -28,28 +27,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename;
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 [ExportWorkspaceServiceFactory(typeof(IInlineRenameUndoManager), ServiceLayer.Host), Shared]
-internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory : IWorkspaceServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory(
+    InlineRenameService inlineRenameService,
+    IVsEditorAdaptersFactoryService editorAdaptersFactoryService) : IWorkspaceServiceFactory
 {
-    private readonly InlineRenameService _inlineRenameService;
-    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-    private readonly IGlobalOptionService _globalOptionService;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioInlineRenameUndoManagerServiceFactory(
-        InlineRenameService inlineRenameService,
-        IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-        IGlobalOptionService globalOptionService)
-    {
-        _inlineRenameService = inlineRenameService;
-        _editorAdaptersFactoryService = editorAdaptersFactoryService;
-        _globalOptionService = globalOptionService;
-    }
-
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new InlineRenameUndoManager(_inlineRenameService, _editorAdaptersFactoryService, _globalOptionService);
+        => new InlineRenameUndoManager(inlineRenameService, editorAdaptersFactoryService);
 
-    internal class InlineRenameUndoManager : AbstractInlineRenameUndoManager<InlineRenameUndoManager.BufferUndoState>, IInlineRenameUndoManager
+    internal sealed class InlineRenameUndoManager(InlineRenameService inlineRenameService, IVsEditorAdaptersFactoryService editorAdaptersFactoryService) : AbstractInlineRenameUndoManager<InlineRenameUndoManager.BufferUndoState>(inlineRenameService), IInlineRenameUndoManager
     {
         private class RenameUndoPrimitive : IOleUndoUnit
         {
@@ -94,10 +81,7 @@ internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory : IWorks
             public ITextBuffer UndoHistoryBuffer { get; set; }
         }
 
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-
-        public InlineRenameUndoManager(InlineRenameService inlineRenameService, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IGlobalOptionService globalOptionService) : base(inlineRenameService, globalOptionService)
-            => _editorAdaptersFactoryService = editorAdaptersFactoryService;
+        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService = editorAdaptersFactoryService;
 
         public void CreateStartRenameUndoTransaction(Workspace workspace, ITextBuffer subjectBuffer, IInlineRenameSession inlineRenameSession)
         {

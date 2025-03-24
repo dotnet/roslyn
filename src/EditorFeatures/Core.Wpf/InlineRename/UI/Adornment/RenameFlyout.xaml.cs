@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private const int DefaultMinWidth = 200;
 
         private readonly RenameFlyoutViewModel _viewModel;
-        private readonly IEditorFormatMap _editorFormatMap;
         private readonly IWpfTextView _textView;
-        private readonly IWpfThemeService? _wpfThemeService;
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IThreadingContext _threadingContext;
@@ -36,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public RenameFlyout(
             RenameFlyoutViewModel viewModel,
             IWpfTextView textView,
-            IWpfThemeService? themeService,
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
-            IEditorFormatMapService editorFormatMapService,
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
@@ -50,11 +46,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.ViewportWidthChanged += TextView_ViewPortChanged;
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineRenameFlyout);
             _threadingContext = threadingContext;
-            _wpfThemeService = themeService;
 
             RenameUserInput = _viewModel.SmartRenameViewModel is null ? new RenameUserInputTextBox(_viewModel) : new SmartRenameUserInputComboBox(_viewModel);
 
             // On load focus the first tab target
+            var token1 = _listener.BeginAsyncOperation(nameof(RenameUserInput.GotFocus));
             Loaded += (s, e) =>
             {
                 // Wait until load to position adornment for space negotiation
@@ -64,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 RenameUserInput.SelectText(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
                 RenameUserInput.TextSelectionChanged += RenameUserInput_TextSelectionChanged;
                 RenameUserInput.GotFocus += RenameUserInput_GotFocus;
+                token1.Dispose();
             };
 
             InitializeComponent();
@@ -79,14 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 MainPanel.Children.Insert(index + 1, smartRenameControl);
             }
 
-            _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
-
             // Dismiss any current tooltips. Note that this does not disable tooltips
             // from showing up again, so if a user has the mouse unmoved another
             // tooltip will pop up. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1611398
             // tracks when we can handle this with IFeaturesService in VS
-            var token = _listener.BeginAsyncOperation(nameof(DismissToolTipsAsync));
-            _ = DismissToolTipsAsync().CompletesAsyncOperation(token);
+            var token2 = _listener.BeginAsyncOperation(nameof(DismissToolTipsAsync));
+            _ = DismissToolTipsAsync().CompletesAsyncOperation(token2);
         }
 
         internal IRenameUserInput RenameUserInput { get; }
