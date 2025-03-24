@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
-    internal class DocumentationCommentSuggestion(CopilotGenerateDocumentationCommentProvider providerInstance,
+    internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentationCommentProvider providerInstance,
         SuggestionManagerBase suggestionManager, VisualStudio.Threading.IAsyncDisposable? intelliCodeLineCompletionsDisposable) : SuggestionBase
     {
         public SuggestionManagerBase SuggestionManager { get; } = suggestionManager;
@@ -65,6 +65,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Starts the Suggestion Session. The TryDisplaySuggestion call doesn't display any grey text, but starts the session such that we have the
+        /// exclusive right to display grey text later.
+        /// </summary>
+        /// <returns>If true, user will see the thinking state as long as the Suggestion Session is active and replace with grey text if a call to DisplayProposal succeeds.
+        /// If unable to retrieve the session, the caller should bail out.
+        /// </returns>
         public async Task<bool> StartSuggestionSessionAsync(CancellationToken cancellationToken)
         {
             await RunWithEnqueueActionAsync(
@@ -83,31 +90,24 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         public async Task TryDisplayDocumentationSuggestionAsync(ProposalBase proposal, CancellationToken cancellationToken)
         {
-            var success = await TryDisplayProposalAsync(proposal, cancellationToken).ConfigureAwait(false);
-            if (success)
-            {
-                Logger.Log(FunctionId.Copilot_Generate_Documentation_Displayed, logLevel: LogLevel.Information);
-            }
-        }
-
-        private async Task<bool> TryDisplayProposalAsync(ProposalBase proposal, CancellationToken cancellationToken)
-        {
             try
             {
                 await RunWithEnqueueActionAsync(
                     "DisplayProposal",
                     async () => await _suggestionSession!.DisplayProposalAsync(proposal, cancellationToken).ConfigureAwait(false),
                     cancellationToken).ConfigureAwait(false);
-                return true;
+
+                Logger.Log(FunctionId.Copilot_Generate_Documentation_Displayed, logLevel: LogLevel.Information);
             }
             catch (OperationCanceledException)
             {
                 Logger.Log(FunctionId.Copilot_Generate_Documentation_Canceled, logLevel: LogLevel.Information);
             }
-
-            return false;
         }
 
+        /// <summary>
+        /// Dismisses the session if the proposal we generated was invalid.
+        /// </summary>
         public async Task DismissSuggestionSessionAsync(CancellationToken cancellationToken)
         {
             await DisposeAsync().ConfigureAwait(false);
@@ -120,8 +120,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         /// <summary>
         /// In general, calls to a SuggestionManager or SuggestionSession need to be wrapped in an EnqueueAction.
         /// This is the pattern recommended by VS Platform to avoid races.
+        /// Pattern from platform shown here:
+        /// https://devdiv.visualstudio.com/DevDiv/_git/IntelliCode-VS?path=/src/VSIX/IntelliCode.VSIX/SuggestionService/AmbientAI/SuggestionProviderForAmbientAI.cs
         /// </summary>
-        public async Task RunWithEnqueueActionAsync(string description, Func<Task> action, CancellationToken cancel)
+        private async Task RunWithEnqueueActionAsync(string description, Func<Task> action, CancellationToken cancel)
         {
             Assumes.NotNull(SuggestionManager);
 
@@ -134,7 +136,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 {
                     await action().ConfigureAwait(false);
                 }
-
                 finally
                 {
                     taskCompletionSource.SetResult(true);
@@ -159,6 +160,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             await DisposeAsync().ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// The IntelliCodeLineCompletionDisposable needs to be disposed any time we exit the SuggestionSession so that
+        /// line completions can be shown again.
+        /// </summary>
         private async Task DisposeAsync()
         {
             if (IntelliCodeLineCompletionsDisposable != null)
