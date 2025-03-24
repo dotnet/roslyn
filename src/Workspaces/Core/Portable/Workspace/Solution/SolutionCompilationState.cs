@@ -1374,7 +1374,6 @@ internal sealed partial class SolutionCompilationState
                 {
                     Contract.ThrowIfFalse(trackerMap.TryGetValue(projectId, out var existingTracker));
                     var replacingItemTracker = (WithFrozenSourceGeneratedDocumentsCompilationTracker)existingTracker;
-                    Contract.ThrowIfTrue(replacingItemTracker.UnderlyingTracker is WithFrozenSourceGeneratedDocumentsCompilationTracker);
                     trackerMap[projectId] = replacingItemTracker.UnderlyingTracker;
                 }
             },
