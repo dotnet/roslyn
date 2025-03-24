@@ -54,6 +54,18 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpOnTheFlyDocsService
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.IExternalCSharpCopilotGenerateImplementationService
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.RelatedDocuments.ICopilotRelatedDocumentsService
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.RelatedDocuments.ICopilotRelatedDocumentsService.GetRelatedDocumentIdsAsync(Microsoft.CodeAnalysis.Document! document, int position, System.Func<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentId!>, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! callbackAsync, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.CompilationErrors.get -> System.Collections.Generic.IReadOnlyList<(string! id, string! message)>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.CompilationErrors.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.CopilotSemanticSearchQueryResults() -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.Error.get -> string?
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.Error.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.LimitReached.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.LimitReached.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.Symbols.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults.Symbols.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryExecutor
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ICopilotSemanticSearchQueryExecutor.ExecuteAsync(string! query, int resultCountLimit, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.CopilotSemanticSearchQueryResults>!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotServiceImpl
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.ISemanticSearchCopilotServiceImpl.TryGetQueryAsync(string! text, Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotContextImpl! context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotGeneratedQueryImpl>
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.SemanticSearch.SemanticSearchCopilotContextImpl
