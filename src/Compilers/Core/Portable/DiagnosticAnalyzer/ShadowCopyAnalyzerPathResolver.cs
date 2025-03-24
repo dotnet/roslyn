@@ -12,9 +12,14 @@ using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Globalization;
+using System.Runtime.Versioning;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
+#if NET
+    [SupportedOSPlatform("windows")]
+#endif
     internal sealed class ShadowCopyAnalyzerPathResolver : IAnalyzerPathResolver
     {
         /// <summary>
@@ -52,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         /// is a map between the original path and the Task that completes when the shadow copy for that
         /// original path completes.
         /// </summary>
-        private ConcurrentDictionary<string, Task> CopyMap { get; } = new(AnalyzerAssemblyLoader.OriginalPathComparer);
+        private ConcurrentDictionary<string, Task<string>> CopyMap { get; } = new(AnalyzerAssemblyLoader.OriginalPathComparer);
 
         /// <summary>
         /// This is the number of shadow copies that have occurred in this instance.
@@ -198,7 +203,7 @@ namespace Microsoft.CodeAnalysis
                 return;
             }
 
-            var tcs = new TaskCompletionSource<object?>();
+            var tcs = new TaskCompletionSource<string>();
             var task = CopyMap.GetOrAdd(originalFilePath, tcs.Task);
             if (object.ReferenceEquals(task, tcs.Task))
             {
@@ -206,7 +211,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     copyFile(originalFilePath, shadowCopyPath);
-                    tcs.SetResult(null);
+                    tcs.SetResult(shadowCopyPath);
                 }
                 catch (Exception ex)
                 {
@@ -218,6 +223,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // This thread lost and we need to wait for the winner to finish the copy.
                 task.Wait();
+                Debug.Assert(AnalyzerAssemblyLoader.GeneratedPathComparer.Equals(shadowCopyPath, task.Result));
             }
 
             static void copyFile(string originalPath, string shadowCopyPath)
