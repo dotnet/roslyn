@@ -23,9 +23,6 @@ internal sealed class LspServiceLogger : AbstractLspLogger, ILspService
 
     public override void LogDebug(string message, params object[] @params) => _hostLogger.LogDebug(message, @params);
 
-    [Obsolete($"Use {nameof(CreateContext)} instead.")]
-    public override void LogEndContext(string message, params object[] @params) => _hostLogger.LogDebug($"[{DateTime.UtcNow:hh:mm:ss.fff}][End]{message}", @params);
-
     public override void LogError(string message, params object[] @params) => _hostLogger.LogError(message, @params);
 
     public override void LogException(Exception exception, string? message = null, params object[] @params) => _hostLogger.LogError(exception, message, @params);
@@ -34,9 +31,6 @@ internal sealed class LspServiceLogger : AbstractLspLogger, ILspService
     /// TODO - Switch this to call LogInformation once appropriate callers have been changed to LogDebug.
     /// </summary>
     public override void LogInformation(string message, params object[] @params) => _hostLogger.LogDebug(message, @params);
-
-    [Obsolete($"Use {nameof(CreateContext)} instead.")]
-    public override void LogStartContext(string message, params object[] @params) => _hostLogger.LogDebug($"[{DateTime.UtcNow:hh:mm:ss.fff}][Start]{message}", @params);
 
     public override void LogWarning(string message, params object[] @params) => _hostLogger.LogWarning(message, @params);
 }

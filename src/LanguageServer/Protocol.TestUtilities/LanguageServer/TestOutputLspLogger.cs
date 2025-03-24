@@ -21,18 +21,12 @@ internal sealed class TestOutputLspLogger : AbstractLspLogger, ILspService
 
     public override void LogDebug(string message, params object[] @params) => Log("Debug", message, @params);
 
-    [Obsolete($"Use {nameof(CreateContext)} instead.")]
-    public override void LogEndContext(string message, params object[] @params) => Log("End", message, @params);
-
     public override void LogError(string message, params object[] @params) => Log("Error", message, @params);
 
     public override void LogException(Exception exception, string? message = null, params object[] @params)
         => Log("Warning", $"{message}{Environment.NewLine}{exception}", @params);
 
     public override void LogInformation(string message, params object[] @params) => Log("Info", message, @params);
-
-    [Obsolete($"Use {nameof(CreateContext)} instead.")]
-    public override void LogStartContext(string message, params object[] @params) => Log("Start", message, @params);
 
     public override void LogWarning(string message, params object[] @params) => Log("Warning", message, @params);
 
