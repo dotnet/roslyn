@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
     /// 
     /// For example in a typical session: the <see cref="ProgramFilesAnalyzerPathResolver"/> will return true for 
     /// analyzer paths under C:\Program Files\dotnet. That means the <see cref="ShadowCopyAnalyzerPathResolver"/>,
-    /// which appears last on windows, will never see these paths and hence won't shadow copy them.
+    /// which appears last on Windows, will never see these paths and hence won't shadow copy them.
     /// </summary>
     /// <remarks>
     /// Instances of this type will be accessed from multiple threads. All method implementations are expected 

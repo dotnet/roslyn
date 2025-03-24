@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 if (loader.AnalyzerPathResolvers.OfType<ShadowCopyAnalyzerPathResolver>().FirstOrDefault() is { } shadowResolver)
                 {
-                    testOutputHelper.WriteLine($"Shadow loader: {shadowResolver.BaseDirectory}");
+                    testOutputHelper.WriteLine($"{nameof(ShadowCopyAnalyzerPathResolver)}: {shadowResolver.BaseDirectory}");
                 }
 
                 testOutputHelper.WriteLine($"Loader path maps");
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 if (loader.AnalyzerPathResolvers.OfType<ShadowCopyAnalyzerPathResolver>().FirstOrDefault() is { } shadowResolver)
                 {
-                    testOutputHelper.WriteLine($"Shadow loader: {shadowResolver.BaseDirectory}");
+                    testOutputHelper.WriteLine($"{nameof(ShadowCopyAnalyzerPathResolver)}: {shadowResolver.BaseDirectory}");
                 }
 
                 testOutputHelper.WriteLine($"Loader path maps");
