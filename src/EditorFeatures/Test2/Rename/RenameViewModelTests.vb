@@ -627,14 +627,11 @@ class D : B
                 End Using
 
                 Dim TestQuickInfoBroker = New TestQuickInfoBroker()
-                Dim editorFormatMapService = workspace.ExportProvider.GetExport(Of IEditorFormatMapService)().Value
 
                 Using flyout = New RenameFlyout(
                     New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, Nothing), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                     textView:=cursorDocument.GetTextView(),
-                    themeService:=Nothing,
                     TestQuickInfoBroker,
-                    editorFormatMapService,
                     threadingContext,
                     listenerProvider)
 
