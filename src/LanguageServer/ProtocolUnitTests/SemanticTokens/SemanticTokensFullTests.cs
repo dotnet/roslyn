@@ -12,12 +12,14 @@ using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
+#pragma warning disable format // We want to force explicit column spacing within the collection literals in this file, so we disable formatting.
+
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens;
 
-public sealed class SemanticTokensRangesTests(ITestOutputHelper testOutputHelper) : AbstractSemanticTokensTests(testOutputHelper)
+public sealed class SemanticTokensFullTests(ITestOutputHelper testOutputHelper) : AbstractSemanticTokensTests(testOutputHelper)
 {
     [Theory, CombinatorialData]
-    public async Task TestGetSemanticTokensRanges_FullDocAsync(bool mutatingLspWorkspace, bool isVS)
+    public async Task TestGetSemanticTokensFull_FullDocAsync(bool mutatingLspWorkspace, bool isVS)
     {
         var markup =
             """
@@ -28,15 +30,13 @@ public sealed class SemanticTokensRangesTests(ITestOutputHelper testOutputHelper
         await using var testLspServer = await CreateTestLspServerAsync(
             markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
-        var ranges = new[] { new LSP.Range { Start = new Position(0, 0), End = new Position(2, 0) } };
-        var results = await RunGetSemanticTokensRangesAsync(testLspServer, testLspServer.GetLocations("caret").First(), ranges);
+        var results = await RunGetSemanticTokensFullAsync(testLspServer, testLspServer.GetLocations("caret").First());
 
         var expectedResults = new LSP.SemanticTokens();
         var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
         if (isVS)
         {
             expectedResults.Data =
-#pragma warning disable format // Force explicit column spacing.
             [
                 // Line | Char | Len | Token type                                                               | Modifier
                    0,     0,     10,   tokenTypeToIndex[SemanticTokenTypes.Comment],      0, // '// Comment'
@@ -60,7 +60,6 @@ public sealed class SemanticTokensRangesTests(ITestOutputHelper testOutputHelper
                    0,     2,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
             ];
         }
-#pragma warning restore format
 
         await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data).ConfigureAwait(false);
         AssertEx.Equal(ConvertToReadableFormat(testLspServer.ClientCapabilities, expectedResults.Data), ConvertToReadableFormat(testLspServer.ClientCapabilities, results.Data));
