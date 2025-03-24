@@ -57,9 +57,6 @@ public sealed class ShadowCopyAnalyzerPathResolverTests : IDisposable
         Assert.False(File.Exists(shadowPath));
     }
 
-    /// <summary>
-    /// A shadow copy of a file that doesn't exist should produce a file that doesn't exist, not throw
-    /// </summary>
     [Fact]
     public void GetRealPath_Copies()
     {

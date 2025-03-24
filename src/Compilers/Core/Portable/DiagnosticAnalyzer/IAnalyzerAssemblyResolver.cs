@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="loader">The <see cref="AnalyzerAssemblyLoader"/> instance that is performing the load</param>
         /// <param name="assemblyName">The name of the assembly to be loaded</param>
         /// <param name="directoryContext">The <see cref="AssemblyLoadContext"/> for the <paramref name="directory"/></param>
-        /// <param name="directory">The directory where the assembly is being loaded from</param>
+        /// <param name="directory">The resolved directory where the assembly is being loaded from</param>
         /// <returns>The <see cref="Assembly"/> resolved or null if it's not handled by this instance</returns>
         Assembly? Resolve(AnalyzerAssemblyLoader loader, AssemblyName assemblyName, AssemblyLoadContext directoryContext, string directory);
     }

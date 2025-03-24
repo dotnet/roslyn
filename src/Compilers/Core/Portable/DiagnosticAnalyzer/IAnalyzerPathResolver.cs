@@ -16,6 +16,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
+    /// This interface gives the host the ability to control the actaul path used to load an analyzer into the 
+    /// compiler.
+    ///
     /// Instances of these types are considered in the order they are added to the <see cref="AnalyzerAssemblyLoader"/>.
     /// The first instance to return true from <see cref="IsAnalyzerPathHandled(string)"/> will be considered to 
     /// be the owner of that path. From then on only that instance will be called for the other methods on this
@@ -47,7 +50,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// This method is used to allow compiler hosts to intercept an analyzer satellite path and redirect it to a
-        /// a different location.
+        /// a different location. A null return here means there is no available satellite assembly for that 
+        /// culture.
         /// </summary>
         /// <remarks>
         /// This will only be called for paths that return true from <see cref="IsAnalyzerPathHandled(string)"/>.

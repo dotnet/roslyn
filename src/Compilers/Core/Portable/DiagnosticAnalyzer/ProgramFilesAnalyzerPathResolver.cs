@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,6 +20,9 @@ namespace Microsoft.CodeAnalysis;
 /// copied because they are read-only and are not expected to be updated. Putting this resolver
 /// before shadow copy will let them load in place.
 /// </summary>
+#if NET
+[SupportedOSPlatform("windows")]
+#endif
 internal sealed class ProgramFilesAnalyzerPathResolver : IAnalyzerPathResolver
 {
     internal static readonly IAnalyzerPathResolver Instance = new ProgramFilesAnalyzerPathResolver();

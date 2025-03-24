@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         internal static IAnalyzerAssemblyResolver StreamAnalyzerAssemblyResolver => StreamResolver.Instance;
 
         /// <summary>
-        /// Map of directories to load contexts.
+        /// Map of resolved directory paths to load contexts that manage their assemblies.
         /// </summary>
         private readonly Dictionary<string, DirectoryLoadContext> _loadContextByDirectory = new Dictionary<string, DirectoryLoadContext>(GeneratedPathComparer);
 
@@ -271,6 +271,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// This loads the assemblies from a <see cref="Stream"/> which is advantageous because it does
+        /// not lock the underlying assembly on disk.
+        /// </summary>
+        /// <remarks>
+        /// This should be avoided on Windows. Yes <see cref="DiskResolver"/> locks files on disks but it also
+        /// amortizes the cost of AV scanning the assemblies. When loading from <see cref="Stream"/>
+        /// the AV will scan the assembly every single time. That cost is significant and easily shows up in
+        /// performance profiles.
+        /// </remarks>
         private sealed class StreamResolver : IAnalyzerAssemblyResolver
         {
             public static readonly IAnalyzerAssemblyResolver Instance = new StreamResolver();
