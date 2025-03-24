@@ -1342,6 +1342,16 @@
         <target state="translated">Çözüm Gezgini'nde "Kullanılmayan Başvuruları Kaldır" komutunu göster</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_UI_as_dashboard_in_top_right">
+        <source>Show UI as a dashboard in top right</source>
+        <target state="translated">UI öğesini sağ üstte pano olarak göster</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
+      <trans-unit id="Show_UI_inline">
+        <source>Show UI Inline</source>
+        <target state="translated">UI Satır İçini Göster</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
         <target state="translated">Şunun için derleyici hatalarını ve uyarılarını göster:</target>
@@ -1716,6 +1726,11 @@
         <source>When types loosely match</source>
         <target state="translated">Türler yaklaşık olarak eşleştiğinde</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Where_should_the_rename_UI_be_shown">
+        <source>Where should the rename UI be shown?</source>
+        <target state="translated">Yeniden adlandırma UI öğesi nerede gösterilmeli?</target>
+        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>

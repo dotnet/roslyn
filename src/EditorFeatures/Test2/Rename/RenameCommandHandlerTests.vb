@@ -220,6 +220,50 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function TypingTabDuringRename(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                                class $$Goo
+                                {
+                                    Goo f;
+                                }
+                            </Document>
+                    </Project>
+                </Workspace>, host)
+
+                ' This test specifically matters for the case where a user is typing in the editor
+                ' and is not intended to test the rename flyout tab behavior
+                Dim optionsService = workspace.GetService(Of IGlobalOptionService)()
+                optionsService.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, False)
+
+                Dim view = workspace.Documents.Single().GetTextView()
+                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
+
+                Dim commandHandler = CreateCommandHandler(workspace)
+
+                Dim session = StartSession(workspace)
+
+                ' TODO: should we make tab wait instead?
+                Await WaitForRename(workspace)
+
+                ' Unfocus the dashboard
+                Dim dashboard = DirectCast(view.GetAdornmentLayer("RoslynRenameDashboard").Elements(0).Adornment, RenameDashboard)
+                dashboard.ShouldReceiveKeyboardNavigation = False
+
+                commandHandler.ExecuteCommand(New TabKeyCommandArgs(view, view.TextBuffer),
+                                              Sub() AssertEx.Fail("Tab should not have been passed to the editor."),
+                                              Utilities.TestCommandExecutionContext.Create())
+
+                Assert.Equal(3, view.Caret.Position.BufferPosition.GetContainingLineNumber())
+
+                session.Cancel()
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function SelectAllDuringRename(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
