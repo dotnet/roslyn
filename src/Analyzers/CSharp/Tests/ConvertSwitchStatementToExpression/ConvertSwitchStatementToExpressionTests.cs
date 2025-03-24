@@ -2398,6 +2398,48 @@ public class ConvertSwitchStatementToExpressionTests
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77084")]
+    public async Task TestRuntimeTypeConversion_Assignment3()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            class Program
+            {
+                void M(string s)
+                {
+                    object result;
+
+                    [|switch|] (s)
+                    {
+                    case "a":
+                        result = 1234;
+                        break;
+                    case "b":
+                        result = 3.14;
+                        break;
+                    default:
+                        result = true;
+                        break;
+                    }
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                void M(string s)
+                {
+                    object result = s switch
+                    {
+                        "a" => 1234,
+                        "b" => 3.14,
+                        _ => true,
+                    };
+                }
+            }
+            """);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58636")]
     public async Task TestRuntimeTypeConversion_Return1()
     {
@@ -2469,6 +2511,41 @@ public class ConvertSwitchStatementToExpressionTests
                         "b" => 3.14,
                         "c" => true,
                         _ => throw new System.Exception(),
+                    };
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77084")]
+    public async Task TestRuntimeTypeConversion_Return3()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            class Program
+            {
+                object M(string s)
+                {
+                    [|switch|] (s)
+                    {
+                    case "a":
+                        return true;
+
+                    default:
+                        return false;
+                    }
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                object M(string s)
+                {
+                    return s switch
+                    {
+                        "a" => true,
+                        _ => false,
                     };
                 }
             }
