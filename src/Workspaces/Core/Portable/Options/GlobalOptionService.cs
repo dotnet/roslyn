@@ -58,8 +58,9 @@ internal sealed class GlobalOptionService(
             ImmutableArray<Lazy<IOptionPersisterProvider>> persisterProviders,
             CancellationToken cancellationToken)
         {
-            if (workspaceThreadingService is not null)
+            if (workspaceThreadingService is not null && workspaceThreadingService.IsOnMainThread)
             {
+                // speedometer tests report jtf.run calls from background threads, so we try to avoid those.
                 return workspaceThreadingService.Run(() => GetOptionPersistersAsync(persisterProviders, cancellationToken));
             }
             else
