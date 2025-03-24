@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (member is MethodSymbol method)
             {
                 // 1. construct with explicit type arguments if provided
-                MethodSymbol constructed;
+                MethodSymbol? constructed;
                 if (!typeArguments.IsDefaultOrEmpty && method.GetMemberArityIncludingExtension() == typeArguments.Length)
                 {
                     constructed = method.ConstructIncludingExtension(typeArguments);
@@ -194,17 +194,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         Debug.Assert(method.GetIsNewExtensionMember());
-                        constructed = (MethodSymbol)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, constructed, receiverType)!;
+                        constructed = (MethodSymbol?)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, constructed, receiverType);
 
-                        if (checkFullyInferred && constructed.IsGenericMethod && typeArguments.IsDefaultOrEmpty)
+                        if (checkFullyInferred && constructed?.IsGenericMethod == true && typeArguments.IsDefaultOrEmpty)
                         {
                             return null;
                         }
-                    }
-
-                    if ((object)constructed == null)
-                    {
-                        return null;
                     }
                 }
 
@@ -215,14 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // infer type arguments based off the receiver type if needed, check applicability
                 Debug.Assert(receiverType is not null);
                 Debug.Assert(property.GetIsNewExtensionMember());
-                var constructedProperty = (PropertySymbol)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, property, receiverType)!;
-
-                if (constructedProperty is null)
-                {
-                    return null;
-                }
-
-                return constructedProperty;
+                return (PropertySymbol?)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, property, receiverType);
             }
 
             throw ExceptionUtilities.UnexpectedValue(member.Kind);

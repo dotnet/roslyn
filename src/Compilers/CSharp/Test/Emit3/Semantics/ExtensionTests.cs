@@ -29412,6 +29412,37 @@ public static class E
     }
 
     [Fact]
+    public void FunctionType_InstanceReceiver_11()
+    {
+        var src = """
+using N;
+
+var x = "ran".M;
+
+public static class E1
+{
+    extension<T>(T t) where T : struct
+    {
+        public void M<U>() { }
+    }
+}
+
+namespace N
+{
+    public static class E2
+    {
+        extension<T>(T t)
+        {
+            public void M() { }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
     public void FunctionType_ColorColorReceiver_01()
     {
         var src = """
