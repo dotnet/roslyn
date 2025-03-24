@@ -16152,7 +16152,7 @@ static class E
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE handle GetMemberGroup on a property access
     }
 
-    [Fact(Skip = "PROTOTYPE function type")]
+    [Fact]
     public void ResolveAll_Instance_InferredVariable_InnerExtensionMethodVsOuterInvocableExtensionProperty()
     {
         var src = """
@@ -16182,15 +16182,13 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("void System.Object.M(System.Int32 i)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal(["void System.Object.M(System.Int32 i)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // PROTOTYPE should include the extension property
+        Assert.Equal(["void System.Object.M(System.Int32 i)", "System.Action E.<>E__0.M { get; }"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
     [Fact]
@@ -28411,11 +28409,10 @@ E.M2();
         comp = CreateCompilation(srcCompat, references: [libRef]);
         comp.VerifyEmitDiagnostics();
 
-        // PROTOTYPE function type not yet supported
         var src = """
 object.M2();
 System.Action a = object.M2;
-//var x = object.M2;
+var x = object.M2;
 
 _ = object.P;
 """;
@@ -28427,6 +28424,9 @@ _ = object.P;
             // (2,26): error CS0117: 'object' does not contain a definition for 'M2'
             // System.Action a = object.M2;
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M2").WithArguments("object", "M2").WithLocation(2, 26),
+            // (3,16): error CS0117: 'object' does not contain a definition for 'M2'
+            // var x = object.M2;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M2").WithArguments("object", "M2").WithLocation(3, 16),
             // (5,12): error CS0117: 'object' does not contain a definition for 'P'
             // _ = object.P;
             Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("object", "P").WithLocation(5, 12));
@@ -29048,5 +29048,714 @@ static class E
             // (7,13): error CS1512: Keyword 'base' is not available in the current context
             //             base.ToString();
             Diagnostic(ErrorCode.ERR_BaseInBadContext, "base").WithLocation(7, 13));
+    }
+
+    [Fact]
+    public void FunctionType_TypeReceiver_01()
+    {
+        var src = """
+var x = int.M;
+x();
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public static void M() { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, "var x = int.M");
+        Assert.Equal("System.Action", model.GetTypeInfo(localDeclaration.Type).Type.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void FunctionType_TypeReceiver_02()
+    {
+        var src = """
+var x = int.M;
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = int.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "int.M").WithLocation(1, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, "var x = int.M");
+        Assert.True(model.GetTypeInfo(localDeclaration.Type).Type.IsErrorType());
+    }
+
+    [Fact]
+    public void FunctionType_TypeReceiver_03()
+    {
+        var src = """
+var x = int.M;
+
+public static class E
+{
+    public static void M<T>(this T t) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = int.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "int.M").WithLocation(1, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, "var x = int.M");
+        Assert.True(model.GetTypeInfo(localDeclaration.Type).Type.IsErrorType());
+    }
+
+    [Fact]
+    public void FunctionType_InstanceReceiver_01()
+    {
+        var src = """
+var x = 42.M;
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { System.Console.Write(t); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS1113: Extension method 'E.extension<int>(int).M()' defined on value type 'int' cannot be used to create delegates
+            // var x = 42.M;
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "42.M").WithArguments("E.extension<int>(int).M()", "int").WithLocation(1, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, "var x = 42.M");
+        Assert.Equal("System.Action", model.GetTypeInfo(localDeclaration.Type).Type.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void FunctionType_InstanceReceiver_02()
+    {
+        var src = """
+var x = "ran".M;
+x();
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { System.Console.Write(t); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, """var x = "ran".M""");
+        Assert.Equal("System.Action", model.GetTypeInfo(localDeclaration.Type).Type.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void FunctionType_InstanceReceiver_03()
+    {
+        var src = """
+var x = 42.M;
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = 42.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "42.M").WithLocation(1, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, "var x = 42.M");
+        Assert.True(model.GetTypeInfo(localDeclaration.Type).Type.IsErrorType());
+    }
+
+    [Fact]
+    public void FunctionType_InstanceReceiver_04()
+    {
+        var src = """
+var x = 42.M;
+
+public static class E
+{
+    extension(int)
+    {
+        public void M<T>() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = 42.M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "42.M").WithLocation(1, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, "var x = 42.M");
+        Assert.True(model.GetTypeInfo(localDeclaration.Type).Type.IsErrorType());
+    }
+
+    [Fact]
+    public void FunctionType_InstanceReceiver_05()
+    {
+        var src = """
+var x = "ran".M<object>;
+x();
+
+public static class E
+{
+    extension(string s)
+    {
+        public void M<T>() { System.Console.Write(s); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, """var x = "ran".M<object>""");
+        Assert.Equal("System.Action", model.GetTypeInfo(localDeclaration.Type).Type.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void FunctionType_InstanceReceiver_06()
+    {
+        var src = """
+var x = "ran".M;
+x();
+
+public static class E
+{
+    extension(string s)
+    {
+        public void M() { System.Console.Write(s); }
+        public void M<T>(T t) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, """var x = "ran".M""");
+        Assert.Equal("System.Action", model.GetTypeInfo(localDeclaration.Type).Type.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void FunctionType_InstanceReceiver_07()
+    {
+        var src = """
+namespace N
+{
+    public class C
+    {
+        public static void Main()
+        {
+            var x = "".M;
+            System.Console.Write(x);
+        }
+    }
+
+    public static class E1
+    {
+        extension(string s)
+        {
+            public void M<T>() { }
+        }
+    }
+}
+
+public static class E2
+{
+    extension(string s)
+    {
+        public int M => 42;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (7,21): error CS8917: The delegate type could not be inferred.
+            //             var x = "".M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, @""""".M").WithLocation(7, 21));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, """var x = "".M""");
+        Assert.True(model.GetTypeInfo(localDeclaration.Type).Type.IsErrorType());
+    }
+
+    [Fact]
+    public void FunctionType_InstanceReceiver_08()
+    {
+        var src = """
+namespace N
+{
+    public class C
+    {
+        public static void Main()
+        {
+            var x = "ran".M;
+            x(42);
+        }
+    }
+
+    public static class E1
+    {
+        extension(string s)
+        {
+            public void M<T>() { }
+        }
+    }
+}
+
+public static class E2
+{
+    extension(string s)
+    {
+        public void M(int i) { System.Console.Write((s, i)); }
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "(ran, 42)").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var localDeclaration = GetSyntax<VariableDeclarationSyntax>(tree, """var x = "ran".M""");
+        Assert.Equal("System.Action<System.Int32>", model.GetTypeInfo(localDeclaration.Type).Type.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void FunctionType_InstanceReceiver_09()
+    {
+        var src = """
+var x = "ran".M;
+
+public static class E1
+{
+    extension(string s)
+    {
+        public void M() { }
+    }
+}
+
+public static class E2
+{
+    extension(string s)
+    {
+        public void M(int i) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS8917: The delegate type could not be inferred.
+            // var x = "ran".M;
+            Diagnostic(ErrorCode.ERR_CannotInferDelegateType, @"""ran"".M").WithLocation(1, 9));
+    }
+
+    [Fact]
+    public void FunctionType_InstanceReceiver_10()
+    {
+        var src = """
+System.Delegate x = "ran".M;
+x.DynamicInvoke();
+
+id("ran".M)();
+
+T id<T>(T t) => t;
+
+public static class E
+{
+    extension(string s)
+    {
+        public void M() { System.Console.Write("ran "); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FunctionType_InstanceReceiver_11()
+    {
+        var src = """
+using N;
+
+var x = "ran".M;
+
+public static class E1
+{
+    extension<T>(T t) where T : struct
+    {
+        public void M<U>() { }
+    }
+}
+
+namespace N
+{
+    public static class E2
+    {
+        extension<T>(T t)
+        {
+            public void M() { }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FunctionType_ColorColorReceiver_01()
+    {
+        var src = """
+Color.M2(new Color());
+
+public class Color
+{
+    public static void M2(Color Color)
+    {
+        var x = Color.M;
+        x();
+    }
+}
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FunctionType_ColorColorReceiver_02()
+    {
+        var src = """
+Color.M2(null);
+
+public class Color
+{
+    public static void M2(Color Color)
+    {
+        var x = Color.M;
+        x();
+    }
+}
+
+public static class E
+{
+    extension<T>(T)
+    {
+        public static void M() { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FunctionType_ColorColorReceiver_03()
+    {
+        var src = """
+Color.M2(new Color());
+
+public class Color
+{
+    public static void M2(Color Color)
+    {
+        var x = Color.M;
+        x();
+    }
+    public void M() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FunctionType_ColorColorReceiver_04()
+    {
+        var src = """
+Color.M2(null);
+
+public class Color
+{
+    public static void M2(Color Color)
+    {
+        var x = Color.M;
+        x();
+    }
+    public static void M() { System.Console.Write("ran"); }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void FunctionType_ColorColorReceiver_05()
+    {
+        var src = """
+public class Color
+{
+    public static void M2(Color Color)
+    {
+        var x = Color.M;
+    }
+}
+
+public static class E1
+{
+    extension<T>(T)
+    {
+        public static void M() { }
+    }
+}
+
+public static class E2
+{
+    extension<T>(T)
+    {
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,17): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension<T>(T).M()' and 'E2.extension<T>(T).M()'
+            //         var x = Color.M;
+            Diagnostic(ErrorCode.ERR_AmbigCall, "Color.M").WithArguments("E1.extension<T>(T).M()", "E2.extension<T>(T).M()").WithLocation(5, 17));
+    }
+
+    [Fact]
+    public void Params_ExtensionScopes_01()
+    {
+        var source = """
+static class E1
+{
+    extension(N.C c)
+    {
+        public void M(int[] x) => System.Console.Write(3);
+    }
+}
+
+namespace N
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void M(params int[] x) => System.Console.Write(2);
+        }
+    }
+
+    class C
+    {
+        public void M(params int[] x) => System.Console.Write(1);
+        public static void Main()
+        {
+            var d = new C().M;
+            System.Console.WriteLine(d.GetType());
+            d();
+        }
+    }
+}
+""";
+
+        var expectedOutput = """
+<>f__AnonymousDelegate0`1[System.Int32]
+1
+""";
+
+        CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        static void validateSymbols(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+            Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+        }
+    }
+
+    [Fact]
+    public void Params_ExtensionScopes_02()
+    {
+        var source = """
+static class E1
+{
+    extension(N.C c)
+    {
+        public void M(params int[] x) => System.Console.Write(3);
+    }
+}
+
+namespace N
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void M(params int[] x) => System.Console.Write(2);
+        }
+    }
+
+    class C
+    {
+        public void M(params int[] x) => System.Console.Write(1);
+        public static void Main()
+        {
+            var d = new C().M;
+            System.Console.WriteLine(d.GetType());
+            d();
+        }
+    }
+}
+""";
+
+        var expectedOutput = """
+<>f__AnonymousDelegate0`1[System.Int32]
+1
+""";
+
+        CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        static void validateSymbols(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+            Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+        }
+    }
+    [Fact]
+    public void Params_ExtensionScopes_07()
+    {
+        var source = """
+static class E1
+{
+    extension(N.C c)
+    {
+        public void M(params int[] x) => System.Console.Write(1);
+    }
+}
+
+namespace N
+{
+    static class E2
+    {
+        extension(C)
+        {
+            public void M(int[] x) => System.Console.Write(2);
+        }
+    }
+
+    class C
+    {
+        public static void Main()
+        {
+            var d = new C().M;
+            System.Console.WriteLine(d.GetType());
+            d(default);
+        }
+    }
+}
+""";
+
+        var expectedOutput = """
+System.Action`1[System.Int32[]]
+2
+""";
+
+        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Params_ExtensionScopes_08()
+    {
+        var source = """
+static class E1
+{
+    extension(N.C c)
+    {
+        public void M(int[] x) => System.Console.Write(1);
+    }
+}
+
+namespace N
+{
+    static class E2
+    {
+        extension(C c)
+        {
+            public void M(params int[] x) => System.Console.Write(2);
+        }
+    }
+
+    class C
+    {
+        public static void Main()
+        {
+            var d = new C().M;
+            System.Console.WriteLine(d.GetType());
+            d();
+        }
+    }
+}
+""";
+
+        var expectedOutput = """
+<>f__AnonymousDelegate0`1[System.Int32]
+2
+""";
+
+        CreateCompilation(source).VerifyDiagnostics();
+        CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        static void validateSymbols(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+            Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+        }
     }
 }

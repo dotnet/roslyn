@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -154,6 +155,87 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.UnexpectedValue(member);
         }
 
+        // For lookup APIs in the semantic model, we can return symbols that aren't fully inferred.
+        // But for function type inference, if the symbol isn't fully inferred with the information we have (the receiver and any explicit type arguments)
+        // then we won't return it.
+        internal static Symbol? GetReducedAndFilteredSymbol(this Symbol member, ImmutableArray<TypeWithAnnotations> typeArguments, TypeSymbol receiverType, CSharpCompilation compilation, bool checkFullyInferred)
+        {
+            if (member is MethodSymbol method)
+            {
+                // 1. construct with explicit type arguments if provided
+                MethodSymbol? constructed;
+                if (!typeArguments.IsDefaultOrEmpty && method.GetMemberArityIncludingExtension() == typeArguments.Length)
+                {
+                    constructed = method.ConstructIncludingExtension(typeArguments);
+                    Debug.Assert((object)constructed != null);
+
+                    if (!checkConstraintsIncludingExtension(constructed, compilation, method.ContainingAssembly.CorLibrary.TypeConversions))
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    constructed = method;
+                }
+
+                // 2. infer type arguments based on the receiver type if needed, check applicability, reduce symbol (for classic extension methods), check whether fully inferred
+                if ((object)receiverType != null)
+                {
+                    if (method.IsExtensionMethod)
+                    {
+                        constructed = constructed.ReduceExtensionMethod(receiverType, compilation, out bool wasFullyInferred);
+
+                        if (checkFullyInferred && !wasFullyInferred)
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        Debug.Assert(method.GetIsNewExtensionMember());
+                        constructed = (MethodSymbol?)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, constructed, receiverType);
+
+                        if (checkFullyInferred && constructed?.IsGenericMethod == true && typeArguments.IsDefaultOrEmpty)
+                        {
+                            return null;
+                        }
+                    }
+                }
+
+                return constructed;
+            }
+            else if (member is PropertySymbol property)
+            {
+                // infer type arguments based off the receiver type if needed, check applicability
+                Debug.Assert(receiverType is not null);
+                Debug.Assert(property.GetIsNewExtensionMember());
+                return (PropertySymbol?)SourceNamedTypeSymbol.GetCompatibleSubstitutedMember(compilation, property, receiverType);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(member.Kind);
+
+            static bool checkConstraintsIncludingExtension(MethodSymbol symbol, CSharpCompilation compilation, TypeConversions conversions)
+            {
+                var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
+                   NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
+
+                bool success = true;
+
+                if (symbol.GetIsNewExtensionMember())
+                {
+                    NamedTypeSymbol extensionDeclaration = symbol.ContainingType;
+                    success = extensionDeclaration.CheckConstraints(constraintArgs);
+                }
+
+                if (success)
+                {
+                    success = symbol.CheckConstraints(constraintArgs);
+                }
+
+                return success;
+            }
+        }
 #nullable disable
 
         /// <summary>
