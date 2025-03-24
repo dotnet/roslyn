@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 
@@ -36,7 +37,7 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
                 context.RegisterOperationAction(context => AnalyzeThrow(context, notImplementedExceptionType), OperationKind.Throw);
 
                 // Register action for all member declarations
-                using var _ = SharedPools.Default<HashSet<SyntaxNode>>().GetPooledObject(out var reportedMembers);
+                using var _ = SharedPools.Default<ConcurrentSet<SyntaxNode>>().GetPooledObject(out var reportedMembers);
                 context.RegisterSyntaxNodeAction(context => AnalyzeMethod(context, notImplementedExceptionType, reportedMembers),
                     SyntaxKind.MethodDeclaration,
                     SyntaxKind.ConstructorDeclaration,
@@ -72,7 +73,7 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
         }
     }
 
-    private void AnalyzeMethod(SyntaxNodeAnalysisContext context, INamedTypeSymbol notImplementedExceptionType, HashSet<SyntaxNode> reportedMembers)
+    private void AnalyzeMethod(SyntaxNodeAnalysisContext context, INamedTypeSymbol notImplementedExceptionType, ConcurrentSet<SyntaxNode> reportedMembers)
     {
         if (context.Node is not MemberDeclarationSyntax memberDeclaration || reportedMembers.Contains(memberDeclaration))
             return;
@@ -87,16 +88,17 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
 
         foreach (var throwNode in throwNodes)
         {
-            ExpressionSyntax? expression = null;
-            if (throwNode is ThrowStatementSyntax throwStatement)
-                expression = throwStatement.Expression;
-            else if (throwNode is ThrowExpressionSyntax throwExpression)
-                expression = throwExpression.Expression;
+            var expression = throwNode switch
+            {
+                ThrowStatementSyntax throwStatement => throwStatement.Expression,
+                ThrowExpressionSyntax throwExpression => throwExpression.Expression,
+                _ => null,
+            };
 
             if (expression is ObjectCreationExpressionSyntax objectCreation)
             {
                 var typeInfo = semanticModel.GetTypeInfo(objectCreation);
-                if (typeInfo.Type != null && notImplementedExceptionType.Equals(typeInfo.Type))
+                if (notImplementedExceptionType.Equals(typeInfo.Type))
                 {
                     reportedMembers.Add(memberDeclaration);
                     context.ReportDiagnostic(Diagnostic.Create(
