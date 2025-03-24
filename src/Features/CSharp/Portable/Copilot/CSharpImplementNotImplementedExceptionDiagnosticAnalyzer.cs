@@ -32,99 +32,50 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
         {
             var notImplementedExceptionType = context.Compilation.GetTypeByMetadataName(typeof(NotImplementedException).FullName!);
             if (notImplementedExceptionType != null)
-            {
-                // Register action for all throw operations
-                context.RegisterOperationAction(context => AnalyzeThrow(context, notImplementedExceptionType), OperationKind.Throw);
-
-                // Register action for all member declarations
-                using var _ = SharedPools.Default<ConcurrentSet<SyntaxNode>>().GetPooledObject(out var reportedMembers);
-                context.RegisterSyntaxNodeAction(context => AnalyzeMethod(context, notImplementedExceptionType, reportedMembers),
-                    SyntaxKind.MethodDeclaration,
-                    SyntaxKind.ConstructorDeclaration,
-                    SyntaxKind.DestructorDeclaration,
-                    SyntaxKind.PropertyDeclaration,
-                    SyntaxKind.EventDeclaration,
-                    SyntaxKind.IndexerDeclaration,
-                    SyntaxKind.OperatorDeclaration,
-                    SyntaxKind.ConversionOperatorDeclaration);
-            }
+                context.RegisterOperationBlockAction(context => AnalyzeBlock(context, notImplementedExceptionType));
         });
     }
 
-    private void AnalyzeThrow(OperationAnalysisContext context, INamedTypeSymbol notImplementedExceptionType)
+    private void AnalyzeBlock(OperationBlockAnalysisContext context, INamedTypeSymbol notImplementedExceptionType)
     {
-        var throwOperation = (IThrowOperation)context.Operation;
-        if (throwOperation is
+        var hasThrowOperation = false;
+        foreach (var block in context.OperationBlocks)
+        {
+            foreach (var operation in block.DescendantsAndSelf())
             {
-                Exception: IConversionOperation
-                {
-                    Operand: IObjectCreationOperation
+                if (operation is IThrowOperation
                     {
-                        Constructor.ContainingType: INamedTypeSymbol constructedType,
-                    },
-                },
-                Syntax: ThrowExpressionSyntax or ThrowStatementSyntax,
-            } &&
-            notImplementedExceptionType.Equals(constructedType))
-        {
-            context.ReportDiagnostic(Diagnostic.Create(
-                Descriptor,
-                throwOperation.Syntax.GetLocation()));
-        }
-    }
-
-    private void AnalyzeMethod(SyntaxNodeAnalysisContext context, INamedTypeSymbol notImplementedExceptionType, ConcurrentSet<SyntaxNode> reportedMembers)
-    {
-        if (context.Node is not MemberDeclarationSyntax memberDeclaration || reportedMembers.Contains(memberDeclaration))
-            return;
-
-        var nameToken = GetMemberNameToken(memberDeclaration);
-        if (nameToken == default)
-            return;
-
-        var semanticModel = context.SemanticModel;
-        var throwNodes = memberDeclaration.DescendantNodes()
-            .Where(n => n is ThrowStatementSyntax || n is ThrowExpressionSyntax);
-
-        foreach (var throwNode in throwNodes)
-        {
-            var expression = throwNode switch
-            {
-                ThrowStatementSyntax throwStatement => throwStatement.Expression,
-                ThrowExpressionSyntax throwExpression => throwExpression.Expression,
-                _ => null,
-            };
-
-            if (expression is ObjectCreationExpressionSyntax objectCreation)
-            {
-                var typeInfo = semanticModel.GetTypeInfo(objectCreation);
-                if (notImplementedExceptionType.Equals(typeInfo.Type))
+                        Exception: IConversionOperation
+                        {
+                            Operand: IObjectCreationOperation
+                            {
+                                Constructor.ContainingType: INamedTypeSymbol constructedType,
+                            },
+                        },
+                        Syntax: ThrowExpressionSyntax or ThrowStatementSyntax,
+                    } throwOperation &&
+                    notImplementedExceptionType.Equals(constructedType))
                 {
-                    reportedMembers.Add(memberDeclaration);
                     context.ReportDiagnostic(Diagnostic.Create(
                         Descriptor,
-                        nameToken.GetLocation()));
-
-                    // Report only once for each member
-                    break;
+                        throwOperation.Syntax.GetLocation()));
+                    hasThrowOperation = true;
                 }
             }
         }
-    }
 
-    private static SyntaxToken GetMemberNameToken(MemberDeclarationSyntax memberDeclaration)
-    {
-        return memberDeclaration switch
+        if (hasThrowOperation)
         {
-            MethodDeclarationSyntax method => method.Identifier,
-            ConstructorDeclarationSyntax constructor => constructor.Identifier,
-            DestructorDeclarationSyntax destructor => destructor.Identifier,
-            PropertyDeclarationSyntax property => property.Identifier,
-            EventDeclarationSyntax @event => @event.Identifier,
-            IndexerDeclarationSyntax indexer => indexer.ThisKeyword,
-            OperatorDeclarationSyntax @operator => @operator.OperatorToken,
-            ConversionOperatorDeclarationSyntax conversion => conversion.Type.GetFirstToken(),
-            _ => default
-        };
+            foreach (var location in context.OwningSymbol.Locations)
+            {
+                if (location.SourceTree == context.FilterTree)
+                {
+                    // Report diagnostic on the member name token
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        Descriptor,
+                        location));
+                }
+            }
+        }
     }
 }
