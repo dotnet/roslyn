@@ -65,6 +65,14 @@ internal static partial class ISolutionExtensions
     }
 
 #if !CODE_STYLE
+    /// <summary>
+    /// Returns the <see cref="SourceGeneratedDocument"/> for the given <see cref="DocumentId"/> if it exists and has been generated.
+    /// </summary>
+    /// <remarks>
+    /// This method is intended to be called on generated document that are "frozen", and hence there is a 100% guarantee that their content
+    /// is available. If the document is not generated, or if it is not frozen, there is an inherent race condition that could cause this method
+    /// to throw an exception at essentially random times.
+    /// </remarks>
     public static SourceGeneratedDocument GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(this Solution solution, DocumentId documentId)
     {
         if (documentId is null)

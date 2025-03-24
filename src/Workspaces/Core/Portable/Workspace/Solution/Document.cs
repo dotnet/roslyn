@@ -393,9 +393,8 @@ public class Document : TextDocument
 
         if (Id.IsSourceGenerated)
         {
-            var document = solution.GetRequiredProject(Id.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(Id);
-            Contract.ThrowIfNull(document, "We just modified the text of the generated document, so it should be available synchronously");
-            return document;
+            // We just modified the text of the generated document, so it should be available synchronously, and throwing is appropriate if it isn't.
+            return solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id);
         }
 
         return solution.GetRequiredDocument(Id);
@@ -410,9 +409,8 @@ public class Document : TextDocument
 
         if (Id.IsSourceGenerated)
         {
-            var document = solution.GetRequiredProject(Id.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(Id);
-            Contract.ThrowIfNull(document, "We just modified the tree of the generated document, so it should be available synchronously");
-            return document;
+            // We just modified the text of the generated document, so it should be available synchronously, and throwing is appropriate if it isn't.
+            return solution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(Id);
         }
 
         return solution.GetRequiredDocument(Id);
