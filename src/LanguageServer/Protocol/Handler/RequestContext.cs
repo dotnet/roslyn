@@ -388,4 +388,9 @@ internal readonly struct RequestContext
     {
         return _lspServices.GetRequiredServices<T>();
     }
+
+    public T? GetService<T>() where T : class, ILspService
+    {
+        return _lspServices.GetService<T>();
+    }
 }
