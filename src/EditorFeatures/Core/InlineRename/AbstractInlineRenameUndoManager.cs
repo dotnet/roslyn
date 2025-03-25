@@ -29,6 +29,7 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
     }
 
     protected readonly InlineRenameService InlineRenameService;
+    private readonly IGlobalOptionService _globalOptionService;
     protected readonly Dictionary<ITextBuffer, TBufferState> UndoManagers = [];
     protected readonly Stack<ActiveSpanState> UndoStack = new Stack<ActiveSpanState>();
     protected readonly Stack<ActiveSpanState> RedoStack = new Stack<ActiveSpanState>();
@@ -38,9 +39,10 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
 
     private InlineRenameSession _trackedSession;
 
-    public AbstractInlineRenameUndoManager(InlineRenameService inlineRenameService)
+    public AbstractInlineRenameUndoManager(InlineRenameService inlineRenameService, IGlobalOptionService globalOptionService)
     {
         this.InlineRenameService = inlineRenameService;
+        _globalOptionService = globalOptionService;
 
         InlineRenameService.ActiveSessionChanged += InlineRenameService_ActiveSessionChanged;
     }
@@ -50,6 +52,17 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
         if (_trackedSession is not null)
         {
             _trackedSession.ReplacementTextChanged -= InlineRenameSession_ReplacementTextChanged;
+        }
+
+        if (!_globalOptionService.GetOption(InlineRenameUIOptionsStorage.UseInlineAdornment))
+        {
+            // If the user is typing directly into the editor as the only way to change 
+            // the replacement text then we don't need to respond to text changes. The 
+            // listener on the textview that calls UpdateCurrentState will handle
+            // this correctly. This option cannot change when we are currently in a session, so
+            // only hook up as needed
+            _trackedSession = null;
+            return;
         }
 
         _trackedSession = InlineRenameService.ActiveSession;

@@ -1342,6 +1342,16 @@
         <target state="translated">Befehl „Nicht verwendete Verweise entfernen“ in Projektmappen-Explorer anzeigen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_UI_as_dashboard_in_top_right">
+        <source>Show UI as a dashboard in top right</source>
+        <target state="translated">Benutzeroberfläche als Dashboard oben rechts anzeigen</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
+      <trans-unit id="Show_UI_inline">
+        <source>Show UI Inline</source>
+        <target state="translated">Inline der Benutzeroberfläche anzeigen</target>
+        <note>"UI" is an acronym for "User Interface"</note>
+      </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
         <target state="translated">Compilerfehler und -warnungen anzeigen für:</target>
@@ -1716,6 +1726,11 @@
         <source>When types loosely match</source>
         <target state="translated">Wenn Typen lose übereinstimmen</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Where_should_the_rename_UI_be_shown">
+        <source>Where should the rename UI be shown?</source>
+        <target state="translated">Wo sollte die Benutzeroberfläche zum Umbenennen angezeigt werden?</target>
+        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>

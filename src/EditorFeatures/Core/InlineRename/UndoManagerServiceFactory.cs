@@ -21,13 +21,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 [ExportWorkspaceServiceFactory(typeof(IInlineRenameUndoManager), ServiceLayer.Default), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class UndoManagerServiceFactory(InlineRenameService inlineRenameService) : IWorkspaceServiceFactory
+internal class UndoManagerServiceFactory(InlineRenameService inlineRenameService, IGlobalOptionService globalOptionService) : IWorkspaceServiceFactory
 {
-    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new InlineRenameUndoManager(inlineRenameService);
+    private readonly InlineRenameService _inlineRenameService = inlineRenameService;
+    private readonly IGlobalOptionService _globalOptionService = globalOptionService;
 
-    internal sealed class InlineRenameUndoManager(InlineRenameService inlineRenameService)
-        : AbstractInlineRenameUndoManager<InlineRenameUndoManager.BufferUndoState>(inlineRenameService), IInlineRenameUndoManager
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new InlineRenameUndoManager(_inlineRenameService, _globalOptionService);
+
+    internal class InlineRenameUndoManager(InlineRenameService inlineRenameService, IGlobalOptionService globalOptionService) : AbstractInlineRenameUndoManager<InlineRenameUndoManager.BufferUndoState>(inlineRenameService, globalOptionService), IInlineRenameUndoManager
     {
         internal class BufferUndoState
         {

@@ -36,6 +36,7 @@ public class CSharpRename : AbstractEditorTest
 
         // reset relevant global options to default values:
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+        globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, false);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, false);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, false);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, false);
@@ -668,6 +669,8 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
     [IdeFact]
     public async Task VerifyTextSync()
     {
+        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+        globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
             """
             public class Class2
@@ -706,6 +709,8 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/68374")]
     public async Task VerifySelectionAsync()
     {
+        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+        globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
         var startCode = """
             public class Class2
             {
@@ -746,6 +751,8 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/73630"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1903953/")]
     public async Task VerifyRenameLinkedDocumentsAsync()
     {
+        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+        globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
         var projectName = "MultiTFMProject";
         await TestServices.SolutionExplorer.AddCustomProjectAsync(projectName, ".csproj", """
             <Project Sdk="Microsoft.NET.Sdk">
@@ -799,11 +806,15 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
         await TestServices.SolutionExplorer.GetProjectItemAsync(projectName, "MyTestClass.cs", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
-    public async Task VerifyAsyncRename()
+    [CombinatorialData]
+    [IdeTheory]
+    public async Task VerifyAsyncRename(bool useInlineRename)
     {
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, true);
+
+        if (!useInlineRename)
+            globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, false);
 
         var markup = """
             class Program
