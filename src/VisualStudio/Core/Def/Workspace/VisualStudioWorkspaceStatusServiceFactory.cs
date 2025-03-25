@@ -77,8 +77,7 @@ internal sealed class VisualStudioWorkspaceStatusServiceFactory(
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
 
                 // Make sure the HubClient package is loaded, since we rely on it for proffered OOP services
-                var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>(throwOnFailure: true, _threadingContext.DisposalToken).ConfigureAwait(true);
-                Assumes.Present(shell);
+                var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>(_threadingContext.DisposalToken).ConfigureAwait(true);
 
                 await shell.LoadPackageAsync(Guids.GlobalHubClientPackageGuid);
             });

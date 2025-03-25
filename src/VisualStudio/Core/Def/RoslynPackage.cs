@@ -133,9 +133,9 @@ internal sealed class RoslynPackage : AbstractPackage
     private async Task ProfferServiceBrokerServicesAsync(CancellationToken cancellationToken)
     {
         // Proffer in-process service broker services
-        var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(throwOnFailure: true, cancellationToken).ConfigureAwait(false);
+        var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(cancellationToken).ConfigureAwait(false);
 
-        serviceBrokerContainer!.Proffer(
+        serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
 

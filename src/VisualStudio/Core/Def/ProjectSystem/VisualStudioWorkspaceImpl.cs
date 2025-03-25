@@ -924,11 +924,11 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             return false;
 
         // All checks pass, so let's treat this special.
-        var dte = _threadingContext.JoinableTaskFactory.Run(() => _asyncServiceProvider.GetServiceAsync<SDTE, EnvDTE.DTE>(throwOnFailure: true, _threadingContext.DisposalToken));
+        var dte = _threadingContext.JoinableTaskFactory.Run(() => _asyncServiceProvider.GetServiceAsync<SDTE, EnvDTE.DTE>(_threadingContext.DisposalToken));
 
         const string SolutionItemsFolderName = "Solution Items";
 
-        var projects = dte!.Solution.Projects.OfType<EnvDTE.Project>();
+        var projects = dte.Solution.Projects.OfType<EnvDTE.Project>();
         var solutionItemsFolder = projects.FirstOrDefault(static p => p.Kind == EnvDTE.Constants.vsProjectKindSolutionItems && p.Name == SolutionItemsFolderName);
 
         if (solutionItemsFolder != null)

@@ -73,9 +73,9 @@ internal class VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFact
         {
             Task.Run(async () =>
             {
-                var shellService = await _serviceProvider.GetServiceAsync<SVsSolution, IVsSolution>(throwOnFailure: true, _threadingContext.DisposalToken).ConfigureAwait(true);
+                var shellService = await _serviceProvider.GetServiceAsync<SVsSolution, IVsSolution>(_threadingContext.DisposalToken).ConfigureAwait(true);
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
-                shellService!.AdviseSolutionEvents(this, out _);
+                shellService.AdviseSolutionEvents(this, out _);
             }, _threadingContext.DisposalToken);
         }
     }
