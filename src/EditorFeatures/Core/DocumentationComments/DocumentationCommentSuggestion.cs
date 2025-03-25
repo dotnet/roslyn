@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         /// </returns>
         public async Task<bool> StartSuggestionSessionAsync(CancellationToken cancellationToken)
         {
-            await RunWithEnqueueActionAsync(
+            _suggestionSession = await RunWithEnqueueActionAsync(
                 "StartWork",
-                async () => _suggestionSession = await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false),
+                async () => await SuggestionManager.TryDisplaySuggestionAsync(this, cancellationToken).ConfigureAwait(false),
             cancellationToken).ConfigureAwait(false);
 
             if (_suggestionSession is null)
@@ -92,9 +92,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             try
             {
-                await RunWithEnqueueActionAsync(
+                await RunWithEnqueueActionAsync<bool>(
                     "DisplayProposal",
-                    async () => await _suggestionSession!.DisplayProposalAsync(proposal, cancellationToken).ConfigureAwait(false),
+                    async () =>
+                    {
+                        await _suggestionSession!.DisplayProposalAsync(proposal, cancellationToken).ConfigureAwait(false);
+                        return true;
+                    },
                     cancellationToken).ConfigureAwait(false);
 
                 Logger.Log(FunctionId.Copilot_Generate_Documentation_Displayed, logLevel: LogLevel.Information);
@@ -111,9 +115,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         public async Task DismissSuggestionSessionAsync(CancellationToken cancellationToken)
         {
             await DisposeAsync().ConfigureAwait(false);
-            await RunWithEnqueueActionAsync(
+            await RunWithEnqueueActionAsync<bool>(
                 "DismissSuggestionSession",
-                async () => await _suggestionSession!.DismissAsync(ReasonForDismiss.DismissedDueToInvalidProposal, cancellationToken).ConfigureAwait(false),
+                async () =>
+                {
+                    await _suggestionSession!.DismissAsync(ReasonForDismiss.DismissedDueToInvalidProposal, cancellationToken).ConfigureAwait(false);
+                    return true;
+                },
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -123,22 +131,23 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         /// Pattern from platform shown here:
         /// https://devdiv.visualstudio.com/DevDiv/_git/IntelliCode-VS?path=/src/VSIX/IntelliCode.VSIX/SuggestionService/AmbientAI/SuggestionProviderForAmbientAI.cs
         /// </summary>
-        private async Task RunWithEnqueueActionAsync(string description, Func<Task> action, CancellationToken cancel)
+        private async Task<T> RunWithEnqueueActionAsync<T>(string description, Func<Task<T>> action, CancellationToken cancel)
         {
             Assumes.NotNull(SuggestionManager);
 
-            var taskCompletionSource = new TaskCompletionSource<bool>();
+            var taskCompletionSource = new TaskCompletionSource<T>();
 
             await providerInstance.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
             SuggestionManager.EnqueueAction(description, async () =>
             {
                 try
                 {
-                    await action().ConfigureAwait(false);
+                    var result = await action().ConfigureAwait(false);
+                    taskCompletionSource.SetResult(result);
                 }
-                finally
+                catch (Exception exception)
                 {
-                    taskCompletionSource.SetResult(true);
+                    taskCompletionSource.SetException(exception);
                 }
             });
 
@@ -147,6 +156,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 await TaskScheduler.Default;
                 await taskCompletionSource.Task.WithCancellation(cancel).ConfigureAwait(false);
             }
+
+            return await taskCompletionSource.Task.ConfigureAwait(false);
         }
 
         private async Task ClearSuggestionAsync(ReasonForDismiss reason, CancellationToken cancellationToken)
