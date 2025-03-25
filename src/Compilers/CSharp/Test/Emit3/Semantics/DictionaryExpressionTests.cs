@@ -1676,8 +1676,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else
             {
-                // PROTOTYPE: Should report: "error CS0029: Cannot implicitly convert type 'dynamic' to 'KeyValuePair<K, V>'"
-                // for these cases, the same as in KeyValuePairConversions_Dynamic_02.
                 comp.VerifyEmitDiagnostics();
             }
         }
@@ -1694,6 +1692,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
+            // PROTOTYPE: Should allow implicit conversions from expression and from type for expression element
+            // and spread element, not just implicit conversions between Key and Value types.
             comp.VerifyEmitDiagnostics(
                 // (4,65): error CS0029: Cannot implicitly convert type 'dynamic' to 'KeyValuePair<K, V>'
                 //     static Dictionary<K, V> FromExpression<K, V>(dynamic d) => [d];
