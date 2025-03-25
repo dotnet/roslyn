@@ -400,10 +400,10 @@ public static class Extensions
             // (3,21): error CS0229: Ambiguity between 'T' and 'T'
             //     extension<T, T>(T) { }
             Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(3, 21),
-            // (3,21): error CS9514: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            // (3,21): error CS9514: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, T>(T) { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T").WithArguments("T", "T").WithLocation(3, 21),
-            // (3,21): error CS9514: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            // (3,21): error CS9514: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, T>(T) { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T").WithArguments("T", "T").WithLocation(3, 21));
 
@@ -433,10 +433,10 @@ class C<T> { }
             // (3,18): error CS0692: Duplicate type parameter 'T'
             //     extension<T, T>(C<T>) { }
             Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(3, 18),
-            // (3,21): error CS9514: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            // (3,21): error CS9514: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, T>(C<T>) { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C<T>").WithArguments("C<T>", "T").WithLocation(3, 21),
-            // (3,21): error CS9514: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            // (3,21): error CS9514: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, T>(C<T>) { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C<T>").WithArguments("C<T>", "T").WithLocation(3, 21),
             // (3,23): error CS0229: Ambiguity between 'T' and 'T'
@@ -2254,7 +2254,7 @@ public static class Extensions
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
-            // (5,18): error CS9514: The extended type 'int' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            // (5,18): error CS9514: The extended type 'int' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T>(int) 
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "int").WithArguments("int", "T").WithLocation(5, 18));
     }
@@ -2278,7 +2278,7 @@ public static class Extensions
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
-            // (5,23): error CS9514: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is missing.
+            // (5,23): error CS9514: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is not referenced.
             //     extension<T1, T2>(T1) 
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "T2").WithLocation(5, 23));
     }
@@ -2302,7 +2302,7 @@ public static class Extensions
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
-            // (5,23): error CS9514: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is missing.
+            // (5,23): error CS9514: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is not referenced.
             //     extension<T1, T2>(T1) where T1 : class
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "T2").WithLocation(5, 23));
     }
@@ -21824,10 +21824,10 @@ static class Extensions
             // (55,21): error CS0229: Ambiguity between 'T' and 'T'
             //     extension<T, T>(T[] p)
             Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(55, 21),
-            // (55,25): error CS9514: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            // (55,25): error CS9514: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, T>(T[] p)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "p").WithArguments("T[]", "T").WithLocation(55, 25),
-            // (55,25): error CS9514: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            // (55,25): error CS9514: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, T>(T[] p)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "p").WithArguments("T[]", "T").WithLocation(55, 25)
             );
@@ -24601,10 +24601,10 @@ public static class Extensions2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (8,23): error CS9514: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'U1' is missing.
+            // (8,23): error CS9514: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'U1' is not referenced.
             //     extension<T1, U1>(T1)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "U1").WithLocation(8, 23),
-            // (16,23): error CS9514: The extended type 'T2' must reference all the type parameters declared by the extension, but type parameter 'U2' is missing.
+            // (16,23): error CS9514: The extended type 'T2' must reference all the type parameters declared by the extension, but type parameter 'U2' is not referenced.
             //     extension<T2, U2>(T2)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T2").WithArguments("T2", "U2").WithLocation(16, 23));
     }
@@ -29441,10 +29441,10 @@ static class E
             // (1,11): error CS0117: 'C' does not contain a definition for 'P'
             // int i = C.P;
             Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("C", "P").WithLocation(1, 11),
-            // (7,21): error CS9514: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            // (7,21): error CS9514: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, U>(C)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C").WithArguments("C", "T").WithLocation(7, 21),
-            // (7,21): error CS9514: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'U' is missing.
+            // (7,21): error CS9514: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'U' is not referenced.
             //     extension<T, U>(C)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C").WithArguments("C", "U").WithLocation(7, 21));
     }

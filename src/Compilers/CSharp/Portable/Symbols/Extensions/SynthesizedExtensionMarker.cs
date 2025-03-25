@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (parameter is { })
                 {
-                    checkUnderspecifiedGenericExtension(parameter.Type, ContainingType.TypeParameters, diagnostics, parameter.GetFirstLocation());
+                    checkUnderspecifiedGenericExtension(parameter, ContainingType.TypeParameters, diagnostics);
                 }
 
                 if (parameter is { Name: var name } && name != "" &&
@@ -89,34 +89,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return parameter;
             }
 
-            static bool checkUnderspecifiedGenericExtension(TypeSymbol underlyingType, ImmutableArray<TypeParameterSymbol> typeParameters,
-                BindingDiagnosticBag diagnostics, Location location)
+            static void checkUnderspecifiedGenericExtension(ParameterSymbol parameter, ImmutableArray<TypeParameterSymbol> typeParameters, BindingDiagnosticBag diagnostics)
             {
+                var underlyingType = parameter.Type;
                 var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
                 underlyingType.VisitType(collectTypeParameters, arg: usedTypeParameters);
 
-                bool anyUnusedTypeParameter = false;
                 foreach (var typeParameter in typeParameters)
                 {
                     if (!usedTypeParameters.Contains(typeParameter))
                     {
-                        anyUnusedTypeParameter = true;
-                        diagnostics.Add(ErrorCode.ERR_UnderspecifiedExtension, location, underlyingType, typeParameter);
+                        diagnostics.Add(ErrorCode.ERR_UnderspecifiedExtension, parameter.GetFirstLocation(), underlyingType, typeParameter);
                     }
                 }
 
                 usedTypeParameters.Free();
-                return anyUnusedTypeParameter;
+            }
 
-                static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool ignored)
+            static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool ignored)
+            {
+                if (type is TypeParameterSymbol typeParameter)
                 {
-                    if (type is TypeParameterSymbol typeParameter)
-                    {
-                        typeParameters.Add(typeParameter);
-                    }
-
-                    return false;
+                    typeParameters.Add(typeParameter);
                 }
+
+                return false;
             }
 
         }

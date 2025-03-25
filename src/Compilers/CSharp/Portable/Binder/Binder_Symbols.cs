@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The immediately containing namespace or named type, or the global
         /// namespace if containing symbol is neither a namespace or named type.
         /// We don't want to use an extension declaration as the containing type
-        /// for error type symbols, as that causes cycles.
+        /// for error type symbols, as that causes cycles during symbol display.
         /// </summary>
         private NamespaceOrTypeSymbol GetContainingNamespaceOrNonExtensionType(Symbol symbol)
         {
