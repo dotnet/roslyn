@@ -982,11 +982,6 @@
         <target state="translated">正在尋找上一個同層級的 Span......</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_colon_0">
-        <source>Rename: {0}</source>
-        <target state="translated">重新命名: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">引擎必須連結到互動視窗。</target>

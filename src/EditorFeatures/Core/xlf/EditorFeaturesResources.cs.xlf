@@ -982,11 +982,6 @@
         <target state="translated">Hledá se rozpětí předchozí položky na stejné úrovni...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_colon_0">
-        <source>Rename: {0}</source>
-        <target state="translated">Přejmenovat: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">Stroj musí být připojený k oknu Interactive.</target>

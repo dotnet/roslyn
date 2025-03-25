@@ -92,11 +92,6 @@
         <target state="translated">События решения</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_MissingImportDiscovery">
-        <source>Missing import discovery</source>
-        <target state="translated">Отсутствует обнаружение импорта</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_NavigateToSearch">
         <source>Navigate to</source>
         <target state="translated">Перейти к</target>

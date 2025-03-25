@@ -1989,11 +1989,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 드롭다운을 사용하여 이 파일이 속할 수 있는 다른 프로젝트를 보고 해당 프로젝트로 전환합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AnalyzerChangedOnDisk">
-        <source>AnalyzerChangedOnDisk</source>
-        <target state="translated">AnalyzerChangedOnDisk</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted">
         <source>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</source>
         <target state="translated">분석기 어셈블리 '{0}'이(가) 변경되었습니다. Visual Studio를 다시 시작할 때까지 진단이 올바르지 않을 수 있습니다.</target>

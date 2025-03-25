@@ -92,11 +92,6 @@
         <target state="translated">Eventos de solución</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_MissingImportDiscovery">
-        <source>Missing import discovery</source>
-        <target state="translated">Detección de importaciones que faltan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_NavigateToSearch">
         <source>Navigate to</source>
         <target state="translated">Navegar a</target>

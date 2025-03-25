@@ -417,9 +417,6 @@
   <data name="Finding_span_of_previous_sibling" xml:space="preserve">
     <value>Finding span of previous sibling...</value>
   </data>
-  <data name="Rename_colon_0" xml:space="preserve">
-    <value>Rename: {0}</value>
-  </data>
   <data name="Engine_must_be_attached_to_an_Interactive_Window" xml:space="preserve">
     <value>Engine must be attached to an Interactive Window.</value>
   </data>

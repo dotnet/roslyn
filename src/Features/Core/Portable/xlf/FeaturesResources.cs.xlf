@@ -2980,11 +2980,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Aktualizace velikosti {0} vyžaduje restartování aplikace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
-        <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
-        <target state="translated">Aktualizace typu {0} (z {1} na {2}) kolem aktivního příkazu vyžaduje restartování aplikace.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
         <source>Updating the type of {0} requires restarting the application.</source>
         <target state="translated">Aktualizace typu {0} vyžaduje restartování aplikace.</target>

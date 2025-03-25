@@ -982,11 +982,6 @@
         <target state="translated">Поиск диапазона предыдущего одноуровневого элемента...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_colon_0">
-        <source>Rename: {0}</source>
-        <target state="translated">Переименовать: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">Модуль должен быть подключен к Интерактивному окну.</target>

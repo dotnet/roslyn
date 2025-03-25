@@ -982,11 +982,6 @@
         <target state="translated">正在查找上一个同级的范围...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_colon_0">
-        <source>Rename: {0}</source>
-        <target state="translated">重命名: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">引擎必须附加到“交互窗口”。</target>

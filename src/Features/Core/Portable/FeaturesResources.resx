@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -456,9 +456,6 @@
   </data>
   <data name="Updating_a_0_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Updating a {0} around an active statement requires restarting the application.</value>
-  </data>
-  <data name="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
-    <value>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</value>
   </data>
   <data name="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Updating async or iterator modifier around an active statement requires restarting the application.</value>

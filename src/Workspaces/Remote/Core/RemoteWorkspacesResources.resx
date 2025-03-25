@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -125,9 +125,6 @@
   </data>
   <data name="Feature_0_is_currently_unavailable_due_to_an_internal_error" xml:space="preserve">
     <value>Feature '{0}' is currently unavailable due to an internal error.</value>
-  </data>
-  <data name="FeatureName_MissingImportDiscovery" xml:space="preserve">
-    <value>Missing import discovery</value>
   </data>
   <data name="FeatureName_CodeLensReferences" xml:space="preserve">
     <value>CodeLens references</value>

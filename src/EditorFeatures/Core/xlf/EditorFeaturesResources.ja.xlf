@@ -982,11 +982,6 @@
         <target state="translated">前の兄弟の範囲を検索しています...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_colon_0">
-        <source>Rename: {0}</source>
-        <target state="translated">{0} の名前変更</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">インタラクティブ ウィンドウにエンジンを関連付ける必要があります。</target>
