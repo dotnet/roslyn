@@ -539,7 +539,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
     private static ImmutableDictionary<SyntaxNode, ImplementationDetails> BuildResult(ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> memberReferences, Dictionary<string, string> implementationMap)
     {
-
         // Process each member reference and create implementation details
         var resultsBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImplementationDetails>();
         foreach (var memberReference in memberReferences)
