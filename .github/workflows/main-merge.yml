@@ -5,11 +5,6 @@ on:
   schedule:
     # Create a merge every 3 hours (works only for merges from `main`, others would need a `push` trigger).
     - cron: '0 */3 * * *'
-  push:
-    branches:
-      - main-vs-deps
-      - release/dev17.15
-      - release/dev17.15-vs-deps
   workflow_dispatch:
     inputs:
       configuration_file_branch:

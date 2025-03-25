@@ -20,6 +20,8 @@ System.Collections.Frozen.FrozenDictionary`2.get_Item(`0)
 System.Collections.Frozen.FrozenDictionary`2.get_Keys
 System.Collections.Frozen.FrozenDictionary`2.get_Values
 System.Collections.Frozen.FrozenSet
+System.Collections.Frozen.FrozenSet.Create``1(System.Collections.Generic.IEqualityComparer{``0},System.ReadOnlySpan{``0})
+System.Collections.Frozen.FrozenSet.Create``1(System.ReadOnlySpan{``0})
 System.Collections.Frozen.FrozenSet.ToFrozenSet``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0})
 System.Collections.Frozen.FrozenSet`1
 System.Collections.Frozen.FrozenSet`1.Contains(`0)
