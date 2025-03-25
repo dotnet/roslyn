@@ -1424,7 +1424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeCollectionExpressionSpreadElement(
             BoundCollectionExpressionSpreadElement node,
             BoundExpression rewrittenExpression,
-            Func<BoundNode, BoundStatement> rewriteBody)
+            Func<BoundStatement, BoundStatement> rewriteBody)
         {
             var enumeratorInfo = node.EnumeratorInfoOpt;
             var convertedExpression = (BoundConversion?)node.Conversion;

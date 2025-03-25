@@ -1944,8 +1944,8 @@
     <Field Name="LengthOrCount" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
     <!-- Collection element placeholder, used in IteratorBody. -->
     <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <!-- Code executed for each collection element. -->
-    <Field Name="IteratorBody" Type="BoundNode?" SkipInVisitor="true" Null="allow"/>
+    <!-- Statement executed for each collection element. -->
+    <Field Name="IteratorBody" Type="BoundStatement?" SkipInVisitor="true" Null="allow"/>
   </Node>
 
   <!-- A key:value pair element within a collection expression. -->
