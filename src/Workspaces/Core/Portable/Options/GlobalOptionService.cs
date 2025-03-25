@@ -80,7 +80,7 @@ internal sealed class GlobalOptionService(
             ref _lazyOptionPersisters,
             lazyOptionPersisters);
 
-        return lazyOptionPersisters;
+        return _lazyOptionPersisters;
     }
 
     private static object? LoadOptionFromPersisterOrGetDefault(OptionKey2 optionKey, ImmutableArray<IOptionPersister> persisters)
@@ -107,8 +107,8 @@ internal sealed class GlobalOptionService(
     public T GetOption<T>(Option2<T> option)
         => GetOption<T>(new OptionKey2(option));
 
-    public ValueTask<T> GetOptionAsync<T>(Option2<T> option)
-        => GetOptionAsync<T>(new OptionKey2(option));
+    public ValueTask<T> GetOptionAsync<T>(Option2<T> option, CancellationToken cancellationToken)
+        => GetOptionAsync<T>(new OptionKey2(option), cancellationToken);
 
     public T GetOption<T>(PerLanguageOption2<T> option, string language)
         => GetOption<T>(new OptionKey2(option, language));
@@ -131,7 +131,7 @@ internal sealed class GlobalOptionService(
         }
     }
 
-    public ValueTask<T> GetOptionAsync<T>(OptionKey2 optionKey)
+    public ValueTask<T> GetOptionAsync<T>(OptionKey2 optionKey, CancellationToken cancellationToken)
     {
         // Performance: This is called very frequently, with the vast majority (> 99%) of calls requesting a previously
         //  added key. In those cases, we can avoid taking the lock as _currentValues is an immutable structure.
@@ -140,12 +140,12 @@ internal sealed class GlobalOptionService(
             return new ValueTask<T>((T)value!);
         }
 
-        return GetOptionSlowAsync(optionKey);
+        return GetOptionSlowAsync(optionKey, cancellationToken);
 
-        async ValueTask<T> GetOptionSlowAsync(OptionKey2 optionKey)
+        async ValueTask<T> GetOptionSlowAsync(OptionKey2 optionKey, CancellationToken cancellationToken)
         {
             // Ensure the option persisters are available before taking the global lock
-            var persisters = await GetOptionPersistersAsync(CancellationToken.None).ConfigureAwait(false);
+            var persisters = await GetOptionPersistersAsync(cancellationToken).ConfigureAwait(false);
 
             lock (_gate)
             {

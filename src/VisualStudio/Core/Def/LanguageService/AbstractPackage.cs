@@ -76,7 +76,7 @@ internal abstract class AbstractPackage : AsyncPackage
             {
                 // TODO: remove, workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1985204
                 var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
-                var isSemanticSearchEnabled = await globalOptions.GetOptionAsync(SemanticSearchFeatureFlag.Enabled).ConfigureAwait(false);
+                var isSemanticSearchEnabled = await globalOptions.GetOptionAsync(SemanticSearchFeatureFlag.Enabled, cancellationToken).ConfigureAwait(false);
                 if (isSemanticSearchEnabled)
                 {
                     afterPackageLoadedTasks.AddTask(

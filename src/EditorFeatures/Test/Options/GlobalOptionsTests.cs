@@ -9,6 +9,7 @@ using System.Composition;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.BraceMatching;
@@ -61,8 +62,8 @@ public sealed class GlobalOptionsTests
         public T GetOption<T>(Option2<T> option)
             => GetOption<T>(new OptionKey2(option));
 
-        public ValueTask<T> GetOptionAsync<T>(Option2<T> option)
-            => GetOptionAsync<T>(new OptionKey2(option));
+        public ValueTask<T> GetOptionAsync<T>(Option2<T> option, CancellationToken cancellationToken)
+            => GetOptionAsync<T>(new OptionKey2(option), cancellationToken);
 
         public T GetOption<T>(PerLanguageOption2<T> option, string languageName)
             => GetOption<T>(new OptionKey2(option, languageName));
@@ -73,7 +74,7 @@ public sealed class GlobalOptionsTests
             return (T)OptionsTestHelpers.GetDifferentValue(typeof(T), optionKey.Option.DefaultValue)!;
         }
 
-        public ValueTask<T> GetOptionAsync<T>(OptionKey2 optionKey)
+        public ValueTask<T> GetOptionAsync<T>(OptionKey2 optionKey, CancellationToken cancellationToken)
         {
             OnOptionAccessed(optionKey);
             return new ValueTask<T>((T)OptionsTestHelpers.GetDifferentValue(typeof(T), optionKey.Option.DefaultValue)!);

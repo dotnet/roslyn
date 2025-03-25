@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Options;
@@ -22,7 +23,7 @@ internal interface IGlobalOptionService : IOptionsReader
     /// <summary>
     /// Gets the current value of the specific option.
     /// </summary>
-    ValueTask<T> GetOptionAsync<T>(Option2<T> option);
+    ValueTask<T> GetOptionAsync<T>(Option2<T> option, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets the current value of the specific option.
@@ -37,7 +38,7 @@ internal interface IGlobalOptionService : IOptionsReader
     /// <summary>
     /// Gets the current value of the specific option.
     /// </summary>
-    ValueTask<T> GetOptionAsync<T>(OptionKey2 optionKey);
+    ValueTask<T> GetOptionAsync<T>(OptionKey2 optionKey, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets the current values of specified options.

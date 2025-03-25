@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -54,9 +55,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 => default!;
 
             public T GetOption<T>(Option2<T> option) => throw new NotImplementedException();
-            public ValueTask<T> GetOptionAsync<T>(Option2<T> option) => throw new NotImplementedException();
+            public ValueTask<T> GetOptionAsync<T>(Option2<T> option, CancellationToken cancellationToken) => throw new NotImplementedException();
             public T GetOption<T>(OptionKey2 optionKey) => throw new NotImplementedException();
-            public ValueTask<T> GetOptionAsync<T>(OptionKey2 optionKey) => throw new NotImplementedException();
+            public ValueTask<T> GetOptionAsync<T>(OptionKey2 optionKey, CancellationToken cancellationToken) => throw new NotImplementedException();
             public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys) => throw new NotImplementedException();
             public bool RefreshOption(OptionKey2 optionKey, object? newValue) => throw new NotImplementedException();
             public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey2> optionKeys) => throw new NotImplementedException();
