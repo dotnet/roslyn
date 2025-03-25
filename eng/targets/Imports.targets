@@ -286,6 +286,14 @@
     <Warning Condition="'%(RestrictedInternalsVisibleTo.Partner)' == '' and '%(RestrictedInternalsVisibleTo.Namespace)' == ''" Text="RestrictedInternalsVisibleTo items must specify the 'Partner' or 'Namespace' attribute. Target assembly: %(Identity)" />
   </Target>
 
+  <!--
+    Deletes the package built by this project from local NuGet cache (if present).
+    Allows refreshing locally built Roslyn packages consumed by another local repo.
+  -->
+  <Target Name="NuGetCacheCleanup" AfterTargets="Pack" Condition="'$(IsPackable)' == 'true' and '$(ContinuousIntegrationBuild)' != 'true'">
+    <RemoveDir Directories="$(NuGetPackageRoot)\$(PackageId)\$(Version)" />
+  </Target>
+
   <!-- Make sure expected compile items are included -->
   <ItemGroup>
     <UnexpectedCompileExcludes Include="@(ExpectedCompile)" Exclude="@(Compile)" />

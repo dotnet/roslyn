@@ -241,4 +241,7 @@
     <DefineConstants Condition="'$(DefineConstants)' != ''">DOTNET_BUILD_FROM_SOURCE;$(DefineConstants)</DefineConstants>
     <DefineConstants Condition="'$(DefineConstants)' == ''">DOTNET_BUILD_FROM_SOURCE</DefineConstants>
   </PropertyGroup>
+
+  <!-- Allow devs to locally override settings (the file is gitignore'd) -->
+  <Import Project="Settings.user.props" Condition="Exists('Settings.user.props')" />
 </Project>
