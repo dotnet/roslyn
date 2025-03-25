@@ -32,7 +32,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
     {
         var assemblyLoaderProvider = solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         using var _ = ArrayBuilder<AnalyzerReference>.GetInstance(out var builder);
-        foreach (var ar in builder)
+        foreach (var ar in references)
         {
             if (ar is AnalyzerFileReference afr)
             {

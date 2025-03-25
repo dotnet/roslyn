@@ -243,7 +243,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         }
 
         using var _ = ArrayBuilder<AnalyzerReference>.GetInstance(out var builder);
-        foreach (var ar in builder)
+        foreach (var ar in references)
         {
             if (ar is AnalyzerFileReference afr)
             {
@@ -272,11 +272,13 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         var optionsService = solutionServices.GetRequiredService<IWorkspaceConfigurationService>();
         var assemblyLoaderProvider = solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         if (!optionsService.Options.ReloadChangedAnalyzerReferences)
+        {
             return await DefaultCreateIsolatedAnalyzerReferencesAsync(
                 useAsync,
                 assemblyLoaderProvider,
                 await getReferencesAsync().ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
+        }
 
         if (analyzerChecksums.Children.Length == 0)
             return [];

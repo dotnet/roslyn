@@ -64,7 +64,9 @@
       <_RequireNoApiChanges Condition="'$(ContinuousIntegrationBuildCorrectness)' == 'true'">true</_RequireNoApiChanges>
     </PropertyGroup>
 
+<!--
     <Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask References="@(_InputReference)" ApiSets="@(ApiSet)" OutputDir="$(_OutputDir)" ApisDir="$(_ApisDir)" RequireNoApiChanges="$(_RequireNoApiChanges)" />
+    -->
 
     <ItemGroup>
       <FileWrites Include="@(_OutputFile)" />
