@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Search.Data;
 using Microsoft.VisualStudio.Search.UI.PreviewPanel.Models;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 

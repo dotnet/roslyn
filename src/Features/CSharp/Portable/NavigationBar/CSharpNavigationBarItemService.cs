@@ -21,7 +21,9 @@ using static Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem;
 namespace Microsoft.CodeAnalysis.CSharp.NavigationBar;
 
 [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.CSharp), Shared]
-internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpNavigationBarItemService() : AbstractNavigationBarItemService
 {
     private static readonly SymbolDisplayFormat s_typeFormat =
         SymbolDisplayFormat.CSharpErrorMessageFormat.AddGenericsOptions(SymbolDisplayGenericsOptions.IncludeVariance);
@@ -38,12 +40,6 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                                   SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral |
                                   SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpNavigationBarItemService()
-    {
-    }
 
     protected override async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsInCurrentProcessAsync(
         Document document, bool supportsCodeGeneration, CancellationToken cancellationToken)
@@ -83,10 +79,15 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
                         memberItems.AddIfNotNull(CreateItemForMember(solution, propertySymbol, tree, cancellationToken));
                         memberItems.AddIfNotNull(CreateItemForMember(solution, propertySymbol.PartialImplementationPart, tree, cancellationToken));
                     }
-                    else if (member is IMethodSymbol or IPropertySymbol)
+                    else if (member is IEventSymbol { PartialImplementationPart: { } } eventSymbol)
                     {
-                        Debug.Assert(member is IMethodSymbol { PartialDefinitionPart: null } or IPropertySymbol { PartialDefinitionPart: null },
-                            $"NavBar expected GetMembers to return partial method/property definition parts but the implementation part was returned.");
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, eventSymbol, tree, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, eventSymbol.PartialImplementationPart, tree, cancellationToken));
+                    }
+                    else if (member is IMethodSymbol or IPropertySymbol or IEventSymbol)
+                    {
+                        Debug.Assert(member is IMethodSymbol { PartialDefinitionPart: null } or IPropertySymbol { PartialDefinitionPart: null } or IEventSymbol { PartialDefinitionPart: null },
+                            $"NavBar expected GetMembers to return partial method/property/event definition parts but the implementation part was returned.");
 
                         memberItems.AddIfNotNull(CreateItemForMember(solution, member, tree, cancellationToken));
                     }

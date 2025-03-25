@@ -153,9 +153,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EnterBreakState(debuggingSession);
 
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"P.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFileB.Path)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"P.csproj: (0,0)-(0,0): Error ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFileB.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
     }
@@ -595,9 +595,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // an error occurred so we need to call update to determine whether we have changes to apply or not:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Warning ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
 
@@ -642,9 +642,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // an error occurred so we need to call update to determine whether we have changes to apply or not:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Warning ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Error ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         fileLock.Dispose();
 
@@ -1168,9 +1168,9 @@ class C { int Y => 2; }
 
         // since the document is out-of-sync we need to call update to determine whether we have changes to apply or not:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         // update the file to match the build:
         sourceFile.WriteAllText(source0, Encoding.UTF8);
@@ -2312,8 +2312,8 @@ class G
 
         // since the document is out-of-sync we need to call update to determine whether we have changes to apply or not:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
-        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
+        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Error ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         // undo:
         solution = solution.WithDocumentText(documentId, CreateText(source1));
@@ -3109,6 +3109,44 @@ class C { int Y => 1; }
 
         debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    public async Task ValidInsignificantChange()
+    {
+        var sourceV1 = "class C1 { void M() { /* System.Console.WriteLine(1); */ } }";
+        var sourceV2 = "class C1 { void M() { /* System.Console.WriteLine(2); */ } }";
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+        (solution, var document1) = AddDefaultTestProject(solution, sourceV1);
+
+        var moduleId = EmitAndLoadLibraryToDebuggee(sourceV1);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // change the source (valid edit):
+        solution = solution.WithDocumentText(document1.Id, CreateText(sourceV2));
+        var document2 = solution.GetDocument(document1.Id);
+
+        var diagnostics1 = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
+        AssertEx.Empty(diagnostics1);
+
+        // validate solution update status and emit:
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(emitDiagnostics);
+        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+
+        // solution has been updated:
+        var text = await debuggingSession.LastCommittedSolution.GetRequiredProject(document1.Project.Id).GetDocument(document1.Id).GetTextAsync();
+        Assert.Equal(sourceV2, text.ToString());
+
+        EndDebuggingSession(debuggingSession);
+
+        AssertEx.SequenceEqual(
+        [
+            "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
+            "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=False|HadValidInsignificantChanges=True|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=0|ProjectIdsWithAppliedChanges=|ProjectIdsWithUpdatedBaselines="
+        ], _telemetryLog);
     }
 
     [Fact]

@@ -1800,13 +1800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Handle the case of the implementation of a partial member.
-                Symbol partial = symbol switch
-                {
-                    MethodSymbol method => method.PartialImplementationPart,
-                    SourcePropertySymbol property => property.PartialImplementationPart,
-                    _ => null
-                };
-
+                Symbol partial = symbol.GetPartialImplementationPart();
                 if ((object)partial != null)
                 {
                     var loc = partial.GetFirstLocation();

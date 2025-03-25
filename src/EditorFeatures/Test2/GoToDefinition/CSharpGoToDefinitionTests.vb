@@ -315,6 +315,69 @@ class Program
         End Function
 
         <WpfFact>
+        Public Async Function TestCSharpGotoDefinitionPartialEvent() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            partial class Test
+            {
+                public partial event System.Action E;
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Test();
+                    int i = t.E$$;
+                }
+
+                public partial event System.Action [|E|]
+                {
+                    add { }
+                    remove { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharpGotoDefinitionPartialConstructor() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+            partial class Test
+            {
+                public partial Test();
+            }
+        </Document>
+        <Document>
+            partial class Test
+            {
+                void Goo()
+                {
+                    var t = new Te$$st();
+                }
+
+                public partial [|Test|]()
+                {
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
         Public Async Function TestCSharpGotoDefinitionOnMethodCall1() As Task
             Dim workspace =
 <Workspace>

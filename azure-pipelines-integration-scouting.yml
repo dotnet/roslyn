@@ -9,6 +9,7 @@ schedules:
   branches:
     include:
     - main
+    exclude:
     - main-vs-deps
 
 variables:
