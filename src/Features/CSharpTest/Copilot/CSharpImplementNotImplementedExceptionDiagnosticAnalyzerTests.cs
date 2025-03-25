@@ -168,7 +168,9 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
         {
             TestCode = """
             using System;
+            using System.Collections.Generic;
             using System.Linq;
+            using System.Threading.Tasks;
 
             class C
             {
@@ -359,6 +361,65 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
                         .Select(x => x * 2)
                         .Where(x => x > 0 ? true : throw new NotImplementedException())
                         .ToArray();
+                }
+            
+                // Switch expression in lambda in a method
+                public void ProcessData(List<object> data)
+                {
+                    var result = data.Select(item => item switch 
+                    {
+                        string s => s.ToUpper(),
+                        int i => i.ToString(),
+                        DateTime d => d.ToShortDateString(),
+                        _ => throw new NotImplementedException("Unsupported data type")
+                    });
+                }
+            
+                // Object initializer with conditional expressions
+                internal Person CreatePerson(string name, int age)
+                {
+                    return new Person
+                    {
+                        Name = name ?? throw new NotImplementedException("Name cannot be null"),
+                        Age = age < 0 ? throw new NotImplementedException("Age must be positive") : age,
+                        Skills = new() { "C#", "F#" }
+                    };
+                }
+            
+                // Local method with throw
+                public void ProcessWithLocalMethod(string input)
+                {
+                    string ParseInput(string text)
+                    {
+                        return text?.Length > 5 ? text : throw new NotImplementedException("Input too short");
+                    }
+                }
+            
+                // Anonymous method with throw
+                public Func<int, int> GetCalculator(string operation)
+                {
+                    return operation switch
+                    {
+                        "square" => x => x * x,
+                        "double" => x => x * 2,
+                        _ => throw new NotImplementedException($"Operation {operation} not implemented")
+                    };
+                }
+            
+                // Nested delegated expressions
+                public void ProcessWithNestedDelegates()
+                {
+                    // Anonymous function that returns another function
+                    Func<int, Func<int, int>> createOperation = x => 
+                        y => x > 0 ? x + y : throw new NotImplementedException("Negative values not implemented");
+                }
+            
+                internal class Person
+                {
+                    public string Name { get; set; }
+                    public int Age { get; set; }
+                    public List<string> Skills { get; set; }
+                    public Person Supervisor { get; set; }
                 }
             }
             """,
