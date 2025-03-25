@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return;
 
-            void addExtensionParameter(NamedTypeSymbol? underlyingTypeSymbol) // PROTOTYPE use public API once it's available
+            void addExtensionParameter(NamedTypeSymbol? underlyingTypeSymbol)
             {
                 if (!Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)
                     && underlyingTypeSymbol!.ExtensionParameter is { } extensionParameter)

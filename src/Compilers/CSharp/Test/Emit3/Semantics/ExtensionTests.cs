@@ -194,7 +194,7 @@ public static class Extensions
         var src = """
 public static class Extensions
 {
-    extension<T>(object) { }
+    extension<T>(T) { }
 }
 """;
         var comp = CreateCompilation(src);
@@ -213,10 +213,10 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
-                object ''
-            ) cil managed 
+                !T ''
+            ) cil managed
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -274,7 +274,7 @@ public static class Extensions
         var src = """
 public static class Extensions
 {
-    extension<T>(object) where T : struct { }
+    extension<T>(T) where T : struct { }
 }
 """;
         var comp = CreateCompilation(src);
@@ -295,7 +295,7 @@ public static class Extensions
         // Methods
         .method private hidebysig specialname static 
             void '<Extension>$' (
-                object ''
+                !T ''
             ) cil managed 
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -325,7 +325,7 @@ public static class Extensions
         Assert.Empty(symbol.TypeParameters.Single().ConstraintTypes);
 
         var format = new SymbolDisplayFormat(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints);
-        Assert.Equal("extension<T>(Object) where T : struct", symbol.ToDisplayString(format));
+        Assert.Equal("extension<T>(T) where T : struct", symbol.ToDisplayString(format));
     }
 
     [Fact]
@@ -362,7 +362,7 @@ public static class Extensions
         var src = """
 public static class Extensions
 {
-    extension<out T>(object) { }
+    extension<out T>(T) { }
 }
 """;
         var comp = CreateCompilation(src);
@@ -389,14 +389,59 @@ public static class Extensions
         var src = """
 public static class Extensions
 {
-    extension<T, T>(object) { }
+    extension<T, T>(T) { }
 }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (3,18): error CS0692: Duplicate type parameter 'T'
-            //     extension<T, T>(object) { }
-            Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(3, 18));
+            //     extension<T, T>(T) { }
+            Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(3, 18),
+            // (3,21): error CS0229: Ambiguity between 'T' and 'T'
+            //     extension<T, T>(T) { }
+            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(3, 21),
+            // (3,21): error CS9514: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            //     extension<T, T>(T) { }
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T").WithArguments("T", "T").WithLocation(3, 21),
+            // (3,21): error CS9514: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            //     extension<T, T>(T) { }
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T").WithArguments("T", "T").WithLocation(3, 21));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+
+        var symbol = model.GetDeclaredSymbol(extension);
+        Assert.Equal(2, symbol.Arity);
+        Assert.Equal(["T", "T"], symbol.TypeParameters.ToTestDisplayStrings());
+        Assert.Equal(["T", "T"], symbol.TypeArguments.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void TypeParameters_05_Nested()
+    {
+        // Duplicate type parameter
+        var src = """
+public static class Extensions
+{
+    extension<T, T>(C<T>) { }
+}
+class C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,18): error CS0692: Duplicate type parameter 'T'
+            //     extension<T, T>(C<T>) { }
+            Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(3, 18),
+            // (3,21): error CS9514: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            //     extension<T, T>(C<T>) { }
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C<T>").WithArguments("C<T>", "T").WithLocation(3, 21),
+            // (3,21): error CS9514: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            //     extension<T, T>(C<T>) { }
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C<T>").WithArguments("C<T>", "T").WithLocation(3, 21),
+            // (3,23): error CS0229: Ambiguity between 'T' and 'T'
+            //     extension<T, T>(C<T>) { }
+            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(3, 23));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -415,7 +460,7 @@ public static class Extensions
         var src = """
 public static class Extensions<T>
 {
-    extension<T>(object) { }
+    extension<T>(T) { }
 }
 """;
         var comp = CreateCompilation(src);
@@ -449,7 +494,7 @@ public static class Extensions<T>
         var src = $$"""
 public static class Extensions
 {
-    extension<record>(object) { }
+    extension<record>(record) { }
 }
 """;
         var comp = CreateCompilation(src);
@@ -473,7 +518,7 @@ public static class Extensions
         var src = $$"""
 public static class Extensions
 {
-    extension<file>(object) { }
+    extension<file>(file) { }
 }
 """;
         var comp = CreateCompilation(src);
@@ -497,7 +542,7 @@ public static class Extensions
         var src = $$"""
 public static class Extensions
 {
-    extension<T>(object)
+    extension<T>(T)
     {
         void T() { }
     }
@@ -514,7 +559,7 @@ public static class Extensions
 #nullable enable
 public static class Extensions
 {
-    extension<T>(object) where T : notnull
+    extension<T>(T) where T : notnull
     {
     }
 }
@@ -539,7 +584,7 @@ public static class Extensions
         // Methods
         .method private hidebysig specialname static 
             void '<Extension>$' (
-                object ''
+                !T ''
             ) cil managed 
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -813,13 +858,13 @@ public static partial class Extensions
         var src1 = """
 public static partial class Extensions
 {
-    extension<T>(object) { }
+    extension<T>(T t) { }
 }
 """;
         var src2 = """
 public static partial class Extensions
 {
-    extension<T1, T2>(string) { }
+    extension<T1, T2>((T1, T2) t) { }
 }
 """;
 
@@ -849,11 +894,11 @@ public static partial class Extensions
         var src = """
 public static partial class Extensions
 {
-    extension<T>(object) { }
+    extension<T>(T) { }
 }
 public static partial class Extensions
 {
-    extension<T1, T2>(string) { }
+    extension<T1, T2>((T1, T2)) { }
 }
 """;
 
@@ -879,8 +924,8 @@ public static partial class Extensions
         var src = """
 public static class Extensions
 {
-    extension<T>(object) { }
-    extension<T>(object) { }
+    extension<T>(T) { }
+    extension<T>(T) { }
 }
 """;
 
@@ -908,9 +953,9 @@ public static class Extensions
         var src = """
 public static class Extensions
 {
-    extension<T>(object) { }
+    extension<T>(T) { }
     class C { }
-    extension<T>(object) { }
+    extension<T>(T) { }
 }
 """;
 
@@ -936,9 +981,9 @@ public static class Extensions
     public void ExtensionIndex_TwoExtensions_SameSignatures_03()
     {
         var src = """
-extension<T>(object) { }
+extension<T>(T) { }
 class C { }
-extension<T>(object) { }
+extension<T>(T) { }
 """;
 
         var comp = CreateCompilation(src);
@@ -971,8 +1016,8 @@ extension<T>(object) { }
         var src = """
 public static class Extensions
 {
-    extension<T>(object) { }
-    extension<T1, T2>(string) { }
+    extension<T>(T) { }
+    extension<T1, T2>((T1, T2) t) { }
 }
 """;
 
@@ -1000,8 +1045,8 @@ public static class Extensions
         var src = """
 public static class Extensions
 {
-    extension<T>(object) { }
-    extension<T1>(object) where T1 : struct { }
+    extension<T>(T) { }
+    extension<T1>(T1) where T1 : struct { }
 }
 """;
         var comp = CreateCompilation(src);
@@ -1028,17 +1073,17 @@ public static class Extensions
         var src = """
 public static class Extensions
 {
-    extension<T1>(object o1) { }
-    extension<T2>(object o2) { }
-    extension<T3>(object o3) { }
-    extension<T4>(object o4) { }
-    extension<T5>(object o5) { }
-    extension<T6>(object o6) { }
-    extension<T7>(object o7) { }
-    extension<T8>(object o8) { }
-    extension<T9>(object o9) { }
-    extension<T10>(object o10) { }
-    extension<T10>(object o11) { }
+    extension<T1>(T1 o1) { }
+    extension<T2>(T2 o2) { }
+    extension<T3>(T3 o3) { }
+    extension<T4>(T4 o4) { }
+    extension<T5>(T5 o5) { }
+    extension<T6>(T6 o6) { }
+    extension<T7>(T7 o7) { }
+    extension<T8>(T8 o8) { }
+    extension<T9>(T9 o9) { }
+    extension<T10>(T10 o10) { }
+    extension<T11>(T11 o11) { }
 }
 """;
 
@@ -1051,7 +1096,7 @@ public static class Extensions
         var symbol = model.GetDeclaredSymbol(extension);
         var sourceExtension = symbol.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__10`1", symbol.MetadataName);
-        Assert.Equal("Extensions.<>E__10<T10>", symbol.ToTestDisplayString());
+        Assert.Equal("Extensions.<>E__10<T11>", symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -1263,7 +1308,7 @@ public static class Extensions
         var src = """
 public static class Extensions
 {
-    extension<T>(object o)
+    extension<T>(T o)
     {
         void M<T>() { }
         void M2(int T) { }
@@ -2204,13 +2249,14 @@ public static class Extensions
     }
 }
 """;
-        // PROTOTYPE report a declaration error for unreferenced type parameter
-        //   or maybe we only trigger the rule in presence of members that disallow explicit type arguments
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
+            // (5,18): error CS9514: The extended type 'int' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            //     extension<T>(int) 
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "int").WithArguments("int", "T").WithLocation(5, 18));
     }
 
     [Fact]
@@ -2227,12 +2273,14 @@ public static class Extensions
     }
 }
 """;
-        // PROTOTYPE report a declaration error for unreferenced type parameter
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
+            // (5,23): error CS9514: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is missing.
+            //     extension<T1, T2>(T1) 
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "T2").WithLocation(5, 23));
     }
 
     [Fact]
@@ -2249,12 +2297,14 @@ public static class Extensions
     }
 }
 """;
-        // PROTOTYPE report a declaration error for unreferenced type parameter
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
+            // (5,23): error CS9514: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is missing.
+            //     extension<T1, T2>(T1) where T1 : class
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "T2").WithLocation(5, 23));
     }
 
     [Fact]
@@ -19254,7 +19304,7 @@ static class E
         Assert.Null(model.GetDeconstructionInfo(deconstruction).Method);
     }
 
-    [Fact(Skip = "PROTOTYPE Asserts in BindDynamicInvocation")]
+    [Fact]
     public void ExtensionMemberLookup_PatternBased_Deconstruct_DynamicProperty()
     {
         var src = """
@@ -19279,6 +19329,9 @@ static class E
             // (1,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
             // var (x, y) = new C();
             Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(1, 9),
+            // (1,14): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // var (x, y) = new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(1, 14),
             // (1,14): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
             // var (x, y) = new C();
             Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(1, 14)
@@ -21368,7 +21421,7 @@ static class E
         var src = """
 static class Extensions
 {
-    extension<Extensions>(int)
+    extension<Extensions>(Extensions)
     {
     }
 }
@@ -21770,7 +21823,13 @@ static class Extensions
             Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(55, 18),
             // (55,21): error CS0229: Ambiguity between 'T' and 'T'
             //     extension<T, T>(T[] p)
-            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(55, 21)
+            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(55, 21),
+            // (55,25): error CS9514: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            //     extension<T, T>(T[] p)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "p").WithArguments("T[]", "T").WithLocation(55, 25),
+            // (55,25): error CS9514: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            //     extension<T, T>(T[] p)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "p").WithArguments("T[]", "T").WithLocation(55, 25)
             );
     }
 
@@ -24541,7 +24600,13 @@ public static class Extensions2
 }
 """;
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp).VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (8,23): error CS9514: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'U1' is missing.
+            //     extension<T1, U1>(T1)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "U1").WithLocation(8, 23),
+            // (16,23): error CS9514: The extended type 'T2' must reference all the type parameters declared by the extension, but type parameter 'U2' is missing.
+            //     extension<T2, U2>(T2)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T2").WithArguments("T2", "U2").WithLocation(16, 23));
     }
 
     [Fact]
@@ -29353,6 +29418,35 @@ static class E
             // (9,13): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
             //             s.ToString();
             Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s").WithArguments("System.Span<int>").WithLocation(9, 13));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParametersMustBeUsed()
+    {
+        var src = """
+int i = C.P;
+
+class C { }
+
+static class E
+{
+    extension<T, U>(C)
+    {
+        static int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,11): error CS0117: 'C' does not contain a definition for 'P'
+            // int i = C.P;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("C", "P").WithLocation(1, 11),
+            // (7,21): error CS9514: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'T' is missing.
+            //     extension<T, U>(C)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C").WithArguments("C", "T").WithLocation(7, 21),
+            // (7,21): error CS9514: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'U' is missing.
+            //     extension<T, U>(C)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C").WithArguments("C", "U").WithLocation(7, 21));
     }
 
     public partial class RegionAnalysisTests : FlowTestBase

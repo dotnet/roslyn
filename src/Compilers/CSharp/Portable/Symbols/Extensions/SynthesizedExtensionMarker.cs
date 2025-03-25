@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -74,6 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ParameterSymbol? parameter = ParameterHelpers.MakeExtensionReceiverParameter(withTypeParametersBinder: signatureBinder, owner: this, parameterList, diagnostics);
 
+                if (parameter is { })
+                {
+                    checkUnderspecifiedGenericExtension(parameter.Type, ContainingType.TypeParameters, diagnostics, parameter.GetFirstLocation());
+                }
+
                 if (parameter is { Name: var name } && name != "" &&
                     ContainingType.TypeParameters.Any(static (p, name) => p.Name == name, name))
                 {
@@ -82,6 +88,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return parameter;
             }
+
+            static bool checkUnderspecifiedGenericExtension(TypeSymbol underlyingType, ImmutableArray<TypeParameterSymbol> typeParameters,
+                BindingDiagnosticBag diagnostics, Location location)
+            {
+                var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+                underlyingType.VisitType(collectTypeParameters, arg: usedTypeParameters);
+
+                bool anyUnusedTypeParameter = false;
+                foreach (var typeParameter in typeParameters)
+                {
+                    if (!usedTypeParameters.Contains(typeParameter))
+                    {
+                        anyUnusedTypeParameter = true;
+                        diagnostics.Add(ErrorCode.ERR_UnderspecifiedExtension, location, underlyingType, typeParameter);
+                    }
+                }
+
+                usedTypeParameters.Free();
+                return anyUnusedTypeParameter;
+
+                static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool ignored)
+                {
+                    if (type is TypeParameterSymbol typeParameter)
+                    {
+                        typeParameters.Add(typeParameter);
+                    }
+
+                    return false;
+                }
+            }
+
         }
     }
 }
