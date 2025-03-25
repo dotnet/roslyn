@@ -35,20 +35,19 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
             {
                 context.RegisterOperationBlockAction(context =>
                 {
-                    using var _ = SharedPools.Default<ConcurrentSet<Location>>().GetPooledObject(out var reportedLocations);
-                    AnalyzeBlock(context, notImplementedExceptionType, reportedLocations);
+                    AnalyzeBlock(context, notImplementedExceptionType);
                 });
             }
         });
     }
 
     private void AnalyzeBlock(
-    OperationBlockAnalysisContext context,
-    INamedTypeSymbol notImplementedExceptionType,
-    ConcurrentSet<Location> reportedLocations)
+        OperationBlockAnalysisContext context,
+        INamedTypeSymbol notImplementedExceptionType)
     {
         var throwCount = 0;
         var hasNonDirectThrow = false;
+        using var _ = SharedPools.Default<HashSet<Location>>().GetPooledObject(out var reportedLocations);
 
         // Analyze all throw operations with NotImplementedException
         foreach (var block in context.OperationBlocks)
