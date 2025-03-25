@@ -83,7 +83,7 @@ internal sealed class RoslynPackage : AbstractPackage
 
         Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
         {
-            return ProfferServiceBrokerServicesAsync();
+            return ProfferServiceBrokerServicesAsync(cancellationToken);
         }
 
         Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
@@ -130,12 +130,12 @@ internal sealed class RoslynPackage : AbstractPackage
         }
     }
 
-    private async Task ProfferServiceBrokerServicesAsync()
+    private async Task ProfferServiceBrokerServicesAsync(CancellationToken cancellationToken)
     {
         // Proffer in-process service broker services
-        var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(this.JoinableTaskFactory).ConfigureAwait(false);
+        var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(throwOnFailure: true, cancellationToken).ConfigureAwait(false);
 
-        serviceBrokerContainer.Proffer(
+        serviceBrokerContainer!.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
 
