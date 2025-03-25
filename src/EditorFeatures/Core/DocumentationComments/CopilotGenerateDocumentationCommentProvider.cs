@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var summaryEndTag = comments.IndexOf("</summary>", index, StringComparison.Ordinal);
             if (summaryEndTag != -1 && summaryStartTag != -1)
             {
-                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(caret + startIndex, 0), null, DocumentationCommentTagType.Summary));
+                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(caret + startIndex, 0), symbolName: null, DocumentationCommentTagType.Summary));
             }
 
             // We may receive remarks from the model. In that case, we want to insert the remark tags and remark directly after the summary.
-            proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(summaryEndTag + "</summary>".Length + startIndex, 0), null, DocumentationCommentTagType.Remarks));
+            proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(summaryEndTag + "</summary>".Length + startIndex, 0), symbolName: null, DocumentationCommentTagType.Remarks));
 
             while (true)
             {
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var returnsEndTag = comments.IndexOf("</returns>", index, StringComparison.Ordinal);
             if (returnsEndTag != -1)
             {
-                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(returnsEndTag + startIndex, 0), null, DocumentationCommentTagType.Returns));
+                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(returnsEndTag + startIndex, 0), symbolName: null, DocumentationCommentTagType.Returns));
             }
 
             while (true)
