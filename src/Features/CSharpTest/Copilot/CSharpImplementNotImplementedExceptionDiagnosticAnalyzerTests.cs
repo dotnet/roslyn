@@ -414,6 +414,65 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
                         y => x > 0 ? x + y : throw new NotImplementedException("Negative values not implemented");
                 }
             
+                // Async method with complex initialization
+                public async Task<Person> GetPersonAsync(int id)
+                {
+                    var supervisor = id > 100 
+                        ? new Person { Name = "Manager" } 
+                        : throw new NotImplementedException("Non-manager employees not implemented");
+                }
+            
+                internal class Person
+                {
+                    public string Name { get; set; }
+                    public int Age { get; set; }
+                    public List<string> Skills { get; set; }
+                    public Person Supervisor { get; set; }
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task ShouldNotThrowButCurrentlyIs()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            class C
+            {
+                // Async method with complex initialization
+                public async Task<Person> GetPersonAsync(int id)
+                {
+                    var supervisor = id > 100 
+                        ? new Person { Name = "Manager" } 
+                        : throw new NotImplementedException("Non-manager employees not implemented");
+
+                    return supervisor;
+                }
+            
+                // Should NOT report - throw is inside a ternary
+                internal void {|IDE3000:TernaryThrow|}(bool condition)
+                {
+                    var result = condition ? 1 : throw new NotImplementedException();
+            
+                    {|IDE3000:throw new NotImplementedException("Not implemented");|}
+                }
+            
+                // Should NOT report - throw is inside a ternary
+                internal void {|IDE3000:ArbitraryThrow|}(bool condition)
+                {
+                    var result = condition ? 1 : 2;
+            
+                    {|IDE3000:throw new NotImplementedException("Not implemented");|}
+                }
+            
                 internal class Person
                 {
                     public string Name { get; set; }
