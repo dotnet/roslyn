@@ -10,7 +10,6 @@
 #pragma warning disable IDE2004 // Blank line not allowed after constructor initializer colon
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
 
-#nullable disable
 
 // Ported from
 // https://github.com/dotnet/runtime/blob/main/src/libraries/System.Threading.Tasks.Parallel/src/System/Threading/Tasks/Parallel.ForEachAsync.cs

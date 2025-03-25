@@ -289,8 +289,6 @@ internal partial struct SymbolKey
         // annotating WriteStringArray and WriteLocationArray as allowing null elements
         // then causes issues where we can't pass ImmutableArrays of non-null elements
 
-#nullable disable
-
         internal void WriteStringArray(ImmutableArray<string> strings)
             => WriteArray(strings, _writeString);
 
