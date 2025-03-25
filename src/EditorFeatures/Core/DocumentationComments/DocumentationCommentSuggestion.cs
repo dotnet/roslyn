@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Copilot;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
@@ -131,33 +132,32 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         /// Pattern from platform shown here:
         /// https://devdiv.visualstudio.com/DevDiv/_git/IntelliCode-VS?path=/src/VSIX/IntelliCode.VSIX/SuggestionService/AmbientAI/SuggestionProviderForAmbientAI.cs
         /// </summary>
-        private async Task<T> RunWithEnqueueActionAsync<T>(string description, Func<Task<T>> action, CancellationToken cancel)
+        private async Task<T> RunWithEnqueueActionAsync<T>(string description, Func<Task<T>> action, CancellationToken cancellationToken)
         {
             Assumes.NotNull(SuggestionManager);
 
             var taskCompletionSource = new TaskCompletionSource<T>();
 
-            await providerInstance.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancel);
+            await providerInstance.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             SuggestionManager.EnqueueAction(description, async () =>
             {
+                var task = action();
                 try
                 {
                     var result = await action().ConfigureAwait(false);
-                    taskCompletionSource.SetResult(result);
+                    taskCompletionSource.TrySetResult(result);
+                }
+                catch (OperationCanceledException operationCanceledException)
+                {
+                    taskCompletionSource.TrySetCanceled(operationCanceledException.CancellationToken);
                 }
                 catch (Exception exception)
                 {
-                    taskCompletionSource.SetException(exception);
+                    taskCompletionSource.TrySetException(exception);
                 }
             });
 
-            if (!taskCompletionSource.Task.IsCompleted)
-            {
-                await TaskScheduler.Default;
-                await taskCompletionSource.Task.WithCancellation(cancel).ConfigureAwait(false);
-            }
-
-            return await taskCompletionSource.Task.ConfigureAwait(false);
+            return await taskCompletionSource.Task.WithCancellation(cancellationToken).ConfigureAwait(false);
         }
 
         private async Task ClearSuggestionAsync(ReasonForDismiss reason, CancellationToken cancellationToken)
