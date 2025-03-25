@@ -69,7 +69,9 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
                         Descriptor,
                         throwOperation.Syntax.GetLocation()));
 
-                    // If the throw is the top-level operation in the containing symbol, report a diagnostic on the symbol as well.
+                    // If the throw is the top-level operation in the containing symbol, report a diagnostic on the
+                    // symbol as well. Note: consider reporting on the entire symbol, instead of just the name.  And in
+                    // this case, do not report directly on the throw as well.
                     if (operation == singularBlockOperation)
                     {
                         foreach (var location in context.OwningSymbol.Locations)
