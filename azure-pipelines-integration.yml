@@ -3,11 +3,11 @@ trigger:
   branches:
     include:
     - main
+    - main-vs-deps
     - release/*
     - features/*
     - demos/*
     exclude:
-    - main-vs-deps
     - release/dev17.15-vs-deps
     - release/dev18.0
     # Since the version of VS on the integration VM images are a moving target,
@@ -21,11 +21,11 @@ pr:
   branches:
     include:
     - main
+    - main-vs-deps
     - release/*
     - features/*
     - demos/*
     exclude:
-    - main-vs-deps
     - release/dev17.15-vs-deps
     - release/dev18.0
     # Since the version of VS on the integration VM images are a moving target,
