@@ -6,9 +6,6 @@ using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.BraceMatching;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages

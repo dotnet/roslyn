@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;

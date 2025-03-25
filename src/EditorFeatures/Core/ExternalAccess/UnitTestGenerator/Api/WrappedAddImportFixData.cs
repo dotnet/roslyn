@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTestGenerator.Api;
 

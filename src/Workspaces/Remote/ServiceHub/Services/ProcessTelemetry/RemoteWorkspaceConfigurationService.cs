@@ -4,10 +4,7 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Storage;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
