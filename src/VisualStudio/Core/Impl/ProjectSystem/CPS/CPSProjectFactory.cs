@@ -165,13 +165,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>(_threadingContext.JoinableTaskFactory).ConfigureAwait(true);
+                var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>(throwOnFailure: true, cancellationToken).ConfigureAwait(true);
 
                 // Force the F# package to load; this is necessary because the F# package listens to WorkspaceChanged to 
                 // set up some items, and the F# project system doesn't guarantee that the F# package has been loaded itself
                 // so we're caught in the middle doing this.
                 var packageId = Guids.FSharpPackageId;
-                await shell.LoadPackageAsync(ref packageId);
+                await shell!.LoadPackageAsync(ref packageId);
 
                 await TaskScheduler.Default;
             }

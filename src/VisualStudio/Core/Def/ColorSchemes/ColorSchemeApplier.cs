@@ -72,10 +72,10 @@ internal sealed partial class ColorSchemeApplier
 
     private async Task AfterPackageLoadedBackgroundThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
     {
-        var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+        var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(throwOnFailure: true, cancellationToken).ConfigureAwait(false);
 
         // We need to update the theme whenever the Editor Color Scheme setting changes.
-        settingsManager.GetSubset(ColorSchemeOptionsStorage.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
+        settingsManager!.GetSubset(ColorSchemeOptionsStorage.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
 
         // Try to migrate the `useEnhancedColorsSetting` to the new `ColorSchemeName` setting.
         _settings.MigrateToColorSchemeSetting();

@@ -64,9 +64,9 @@ internal sealed class VisualStudioSuppressionFixService(
 
     private IWpfTableControl? _tableControl;
 
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
+    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
+        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
         _tableControl = errorList?.TableControl;
     }
 
