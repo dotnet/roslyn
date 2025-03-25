@@ -13,4 +13,4 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 /// <param name="AssemblyFileName">File name of the assembly that contains the message handlers to load.</param>
 internal readonly record struct CustomMessageLoadParams(
     [property: JsonPropertyName("assemblyFolderPath")] string AssemblyFolderPath,
-    [property: JsonPropertyName("assemblyFolderPath")] string AssemblyFileName);
+    [property: JsonPropertyName("assemblyFileName")] string AssemblyFileName);
