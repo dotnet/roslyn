@@ -1672,7 +1672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable &&
-                    binder.GetCollectionExpressionApplicableIndexerIfEnabled(syntax, targetType, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is { })
+                    binder.GetCollectionExpressionApplicableIndexer(syntax, targetType, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is { })
                 {
                     collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
                 }

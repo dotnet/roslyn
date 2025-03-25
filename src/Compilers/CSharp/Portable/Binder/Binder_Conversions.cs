@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 (SpreadElementSyntax)spreadElement.Syntax,
                                 spreadElement,
                                 implicitReceiver,
-                                (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
+                                static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
                                 {
                                     Debug.Assert(ConversionsBase.IsKeyValuePairType(binder.Compilation, item.Type, out _, out _));
                                     return binder.BindDictionaryItemAssignment(
@@ -1568,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (current is ParamsCollectionTypeApplicableIndexerInProgress binder &&
                     binder.Syntax == syntax &&
-                    binder.CollectionType.OriginalDefinition.Equals(targetType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                    object.ReferenceEquals(binder.CollectionType.OriginalDefinition, targetType.OriginalDefinition))
                 {
                     return true;
                 }
@@ -1578,21 +1578,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal PropertySymbol? GetCollectionExpressionApplicableIndexerIfEnabled(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
-        {
-            if (object.ReferenceEquals(elementType.OriginalDefinition, Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)) &&
-                Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions))
-            {
-                return GetCollectionExpressionApplicableIndexer(syntax, targetType, elementType, diagnostics);
-            }
-            return null;
-        }
-
         internal PropertySymbol? GetCollectionExpressionApplicableIndexer(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
         {
-            bool isKeyValuePair = ConversionsBase.IsKeyValuePairType(Compilation, elementType, out var keyType, out var valueType);
-            Debug.Assert(keyType is { });
-            Debug.Assert(valueType is { });
+            if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions))
+            {
+                return null;
+            }
+
+            if (!ConversionsBase.IsKeyValuePairType(Compilation, elementType, out var keyType, out var valueType))
+            {
+                return null;
+            }
 
             var receiver = new BoundValuePlaceholder(syntax, targetType);
             var analyzedArguments = AnalyzedArguments.GetInstance();

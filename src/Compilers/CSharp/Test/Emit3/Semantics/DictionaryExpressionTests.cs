@@ -850,9 +850,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
-        [CombinatorialData]
-        public void CustomDictionary_Params(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        [MemberData(nameof(LanguageVersions))]
+        public void CustomDictionary_Params(LanguageVersion languageVersion)
         {
             string sourceA = $$"""
                 using System.Collections;
@@ -1644,9 +1643,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
-        [CombinatorialData]
-        public void KeyValuePairConversions_Dynamic_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        [MemberData(nameof(LanguageVersions))]
+        public void KeyValuePairConversions_Dynamic_01(LanguageVersion languageVersion)
         {
             string source = """
                 using System.Collections.Generic;
@@ -1727,6 +1725,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("[one:1], [two:2], "));
             verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.FromPair1<K, V>", """
+                {
+                  // Code size       77 (0x4d)
+                  .maxstack  6
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, V>> Program.<>o__1<K, V>.<>p__0"
+                  IL_000c:  brtrue.s   IL_0032
+                  IL_000e:  ldc.i4.0
+                  IL_000f:  ldtoken    "V"
+                  IL_0014:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0019:  ldtoken    "Program"
+                  IL_001e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0023:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                  IL_0028:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, V>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, V>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_002d:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, V>> Program.<>o__1<K, V>.<>p__0"
+                  IL_0032:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, V>> Program.<>o__1<K, V>.<>p__0"
+                  IL_0037:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, V> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, V>>.Target"
+                  IL_003c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, V>> Program.<>o__1<K, V>.<>p__0"
+                  IL_0041:  ldarg.1
+                  IL_0042:  callvirt   "V System.Func<System.Runtime.CompilerServices.CallSite, dynamic, V>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_0047:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_004c:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.FromPair2<K, V>", """
+                {
+                  // Code size       77 (0x4d)
+                  .maxstack  5
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, K>> Program.<>o__2<K, V>.<>p__0"
+                  IL_000b:  brtrue.s   IL_0031
+                  IL_000d:  ldc.i4.0
+                  IL_000e:  ldtoken    "K"
+                  IL_0013:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0018:  ldtoken    "Program"
+                  IL_001d:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0022:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                  IL_0027:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, K>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, K>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_002c:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, K>> Program.<>o__2<K, V>.<>p__0"
+                  IL_0031:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, K>> Program.<>o__2<K, V>.<>p__0"
+                  IL_0036:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, K> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, K>>.Target"
+                  IL_003b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, K>> Program.<>o__2<K, V>.<>p__0"
+                  IL_0040:  ldarg.0
+                  IL_0041:  callvirt   "K System.Func<System.Runtime.CompilerServices.CallSite, dynamic, K>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_0046:  ldarg.1
+                  IL_0047:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_004c:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1759,9 +1809,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
-        [CombinatorialData]
-        public void KeyValuePairConversions_LanguageVersion(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        [MemberData(nameof(LanguageVersions))]
+        public void KeyValuePairConversions_LanguageVersion(LanguageVersion languageVersion)
         {
             string source = """
                 using System.Collections.Generic;

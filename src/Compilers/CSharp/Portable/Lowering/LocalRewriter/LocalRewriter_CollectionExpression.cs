@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return VisitCollectionInitializerCollectionExpression(node, node.Type);
                     case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
-                        return VisitDictionaryExpression(node, (NamedTypeSymbol)node.Type);
+                        return VisitImplementsIEnumerableWithIndexerCollectionExpression(node, (NamedTypeSymbol)node.Type);
                     case CollectionExpressionTypeKind.Array:
                     case CollectionExpressionTypeKind.Span:
                     case CollectionExpressionTypeKind.ReadOnlySpan:
@@ -1212,9 +1212,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionType);
         }
 
-        private BoundExpression VisitDictionaryExpression(BoundCollectionExpression node, NamedTypeSymbol collectionType)
+        private BoundExpression VisitImplementsIEnumerableWithIndexerCollectionExpression(BoundCollectionExpression node, NamedTypeSymbol collectionType)
         {
             Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(node.CollectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer);
 
             var rewrittenReceiver = VisitExpression(node.CollectionCreation);
             Debug.Assert(rewrittenReceiver is { });

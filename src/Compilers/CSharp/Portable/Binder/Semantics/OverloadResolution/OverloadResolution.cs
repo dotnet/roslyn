@@ -1353,7 +1353,7 @@ outerDefault:
                                 return false;
                             }
 
-                            if (binder.GetCollectionExpressionApplicableIndexerIfEnabled(syntax, type, elementType.Type, BindingDiagnosticBag.Discarded) is null &&
+                            if (binder.GetCollectionExpressionApplicableIndexer(syntax, type, elementType.Type, BindingDiagnosticBag.Discarded) is null &&
                                 !binder.HasCollectionExpressionApplicableAddMethod(syntax, type, addMethods: out _, BindingDiagnosticBag.Discarded))
                             {
                                 return false;
