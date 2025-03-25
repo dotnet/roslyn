@@ -228,5 +228,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = rewriter.VisitType(node.Type);
             return node.Update(targetMethod, constrainedToTypeOpt, type);
         }
+
+        protected override BoundBinaryOperator.UncommonData? VisitBinaryOperatorData(BoundBinaryOperator node)
+        {
+            Debug.Assert(node.Method is null ||
+                         (!node.Method.IsExtensionMethod && !node.Method.GetIsNewExtensionMember())); // Expression tree context. At the moment an operator cannot be an extension method
+
+            return base.VisitBinaryOperatorData(node);
+        }
     }
 }
