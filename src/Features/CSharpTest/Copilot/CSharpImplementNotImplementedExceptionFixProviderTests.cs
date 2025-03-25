@@ -222,14 +222,14 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 public string {|IDE3000:GetData|}(int id) => {|IDE3000:throw new NotImplementedException()|};
 
                 /* Updates the data for a given ID */
-                public void {|IDE3000:UpdateData|}(int id, string data)
+                public void UpdateData(int id, string data)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
                     {|IDE3000:throw new NotImplementedException("UpdateData method not implemented");|}
                 }
 
                 // Deletes data by ID
-                public void {|IDE3000:DeleteData|}(int id)
+                public void DeleteData(int id)
                 {
                     if (id <= 0) throw new ArgumentException("ID must be greater than zero", nameof(id));
                     {|IDE3000:throw new NotImplementedException();|}

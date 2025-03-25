@@ -31,27 +31,24 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
         context.RegisterCompilationStartAction(context =>
         {
             var notImplementedExceptionType = context.Compilation.GetTypeByMetadataName(typeof(NotImplementedException).FullName!);
-            if (notImplementedExceptionType != null)
-            {
-                context.RegisterOperationBlockAction(context =>
-                {
-                    AnalyzeBlock(context, notImplementedExceptionType);
-                });
-            }
+            if (notImplementedExceptionType is null)
+                return;
+
+            context.RegisterOperationBlockAction(context => AnalyzeOperationBlock(context, notImplementedExceptionType));
         });
     }
 
-    private void AnalyzeBlock(
+    private void AnalyzeOperationBlock(
         OperationBlockAnalysisContext context,
         INamedTypeSymbol notImplementedExceptionType)
     {
-        var throwCount = 0;
-        var hasNonDirectThrow = false;
-        using var _ = SharedPools.Default<HashSet<Location>>().GetPooledObject(out var reportedLocations);
-
-        // Analyze all throw operations with NotImplementedException
         foreach (var block in context.OperationBlocks)
+            AnalyzeBlock(block);
+
+        void AnalyzeBlock(IOperation block)
         {
+            var singularBlockOperation = block is IBlockOperation { Operations: [var child] } ? child : null;
+
             foreach (var operation in block.DescendantsAndSelf())
             {
                 if (operation is IThrowOperation
@@ -67,97 +64,26 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
                     } throwOperation &&
                     notImplementedExceptionType.Equals(constructedType))
                 {
-                    throwCount++;
-
                     // Report diagnostic for each throw operation
-                    var location = throwOperation.Syntax.GetLocation();
-                    if (reportedLocations.Add(location))
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        Descriptor,
+                        throwOperation.Syntax.GetLocation()));
+
+                    // If the throw is the top-level operation in the containing symbol, report a diagnostic on the symbol as well.
+                    if (operation == singularBlockOperation)
                     {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            Descriptor,
-                            location));
-                    }
-
-                    // Check if any throw is inside a conditional or other nested context
-                    if (!IsDirectThrow(throwOperation, context))
-                    {
-                        hasNonDirectThrow = true;
-                    }
-                }
-            }
-        }
-
-        // Only report diagnostic on the containing member if all throws are direct AND
-        // the method contains nothing but throws
-        if (throwCount > 0 && !hasNonDirectThrow)
-        {
-            // Check if member body contains only throw statements
-            var membersOnlyContainsThrows = true;
-
-            foreach (var block in context.OperationBlocks)
-            {
-                // Count all statements that are not throw statements
-                var nonThrowStatements = block.Descendants()
-                    .OfType<IExpressionStatementOperation>()
-                    .Count(stmt => !(stmt.Operation is IThrowOperation));
-
-                if (nonThrowStatements > 0)
-                {
-                    membersOnlyContainsThrows = false;
-                    break;
-                }
-            }
-
-            if (membersOnlyContainsThrows)
-            {
-                foreach (var location in context.OwningSymbol.Locations)
-                {
-                    if (location.SourceTree == context.FilterTree && reportedLocations.Add(location))
-                    {
-                        context.ReportDiagnostic(Diagnostic.Create(
-                            Descriptor,
-                            location));
+                        foreach (var location in context.OwningSymbol.Locations)
+                        {
+                            if (location.SourceTree == context.FilterTree)
+                            {
+                                context.ReportDiagnostic(Diagnostic.Create(
+                                    Descriptor,
+                                    location));
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-
-    private static bool IsDirectThrow(IThrowOperation throwOperation, OperationBlockAnalysisContext context)
-    {
-        // Walk up the operation tree to see if this throw is inside any nested structure
-        IOperation current = throwOperation;
-
-        while (current.Parent != null)
-        {
-            var parent = current.Parent;
-
-            // Check if the parent is any of these nested contexts that should be excluded
-            if (parent is IAnonymousFunctionOperation or         // Lambda or anonymous method
-                ILocalFunctionOperation or                       // Local function
-                ICatchClauseOperation or                         // Catch blocks
-                IConditionalOperation or                         // if statements
-                ILoopOperation or                                // for/foreach/while/do loops
-                ISwitchOperation or                              // switch statements/cases
-                ISwitchExpressionOperation or                    // switch expressions (C# 8+)
-                IUsingOperation or                               // using statements/blocks
-                ILockOperation or                                // lock statements
-                IConditionalAccessOperation or                   // null conditional operations (?.)
-                ICoalesceOperation)                              // null coalescing operations (??)
-            {
-                return false;
-            }
-
-            // If we reached one of the top-level operation blocks, this is a direct throw
-            if (context.OperationBlocks.Contains(parent))
-            {
-                return true;
-            }
-
-            current = parent;
-        }
-
-        // If we directly reached the top without finding a nested context, it's a direct throw
-        return true;
     }
 }
