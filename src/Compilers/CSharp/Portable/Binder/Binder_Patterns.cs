@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (deconstructMethod is null)
                 hasErrors = true;
 
-            int skippedExtensionParameters = deconstructMethod?.IsExtensionMethod == true ? 1 : 0;
+            int skippedExtensionParameters = deconstructMethod?.IsExtensionMethod == true ? 1 : 0; // PROTOTYPE: Test this code path with new extensions
             for (int i = 0; i < node.Subpatterns.Count; i++)
             {
                 var subPattern = node.Subpatterns[i];

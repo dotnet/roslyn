@@ -11937,7 +11937,7 @@ static class E
         Assert.Equal(["void E.<>E__0.Method()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
 
-    [Fact(Skip = "PROTOTYPE: crash when binding foreach")]
+    [Fact]
     public void InstanceMethodInvocation_PatternBased_ForEach_NoMethod()
     {
         var src = """
@@ -11966,12 +11966,13 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+            // (1,19): error CS0117: 'D' does not contain a definition for 'Current'
             // foreach (var x in new C())
-            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(1, 19)
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("D", "Current").WithLocation(1, 19),
+            // (1,19): error CS0202: foreach requires that the return type 'D' of 'E.extension(C).GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var x in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("D", "E.extension(C).GetEnumerator()").WithLocation(1, 19)
             );
-        // PROTOTYPE metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "42");
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -18987,7 +18988,7 @@ static class E
             Diagnostic(ErrorCode.ERR_NoSuchMember, "P<>").WithArguments("object", "P").WithLocation(2, 8));
     }
 
-    [Fact(Skip = "PROTOTYPE: crash when binding foreach")]
+    [Fact]
     public void ExtensionMemberLookup_PatternBased_ForEach_NoMethod()
     {
         var src = """
@@ -19014,7 +19015,14 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (1,19): error CS0117: 'D' does not contain a definition for 'Current'
+            // foreach (var x in new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("D", "Current").WithLocation(1, 19),
+            // (1,19): error CS0202: foreach requires that the return type 'D' of 'E.extension(C).GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var x in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("D", "E.extension(C).GetEnumerator()").WithLocation(1, 19)
+            );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -19024,7 +19032,7 @@ static class E
         Assert.Null(model.GetForEachStatementInfo(loop).CurrentProperty);
     }
 
-    [Fact(Skip = "PROTOTYPE: crash when binding foreach")]
+    [Fact]
     public void ExtensionMemberLookup_PatternBased_ForEach_NoApplicableMethod()
     {
         var src = """
@@ -19054,7 +19062,14 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS0117: 'D' does not contain a definition for 'Current'
+            // foreach (var x in new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("D", "Current").WithLocation(1, 19),
+            // (1,19): error CS0202: foreach requires that the return type 'D' of 'E.extension(C).GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var x in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("D", "E.extension(C).GetEnumerator()").WithLocation(1, 19)
+            );
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -30385,5 +30400,341 @@ namespace N
             var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
             Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
         }
+    }
+
+    [Fact]
+    public void ImplementsIEnumerableT_21_AddIsNotAnExtension()
+    {
+        var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+class MyCollection : IEnumerable<long>
+{
+    IEnumerator<long> IEnumerable<long>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+static class Ext
+{
+    extension(MyCollection c)
+    {
+        public void Add(long l) {}
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+        Test(1);
+        Test(2, 3);
+    }
+#line 24
+    static void Test(params MyCollection a)
+    {
+    }
+
+    static void Test2()
+    {
+        Test([2, 3]);
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+        comp.VerifyDiagnostics(
+            // (24,22): error CS9227: 'MyCollection' does not contain a definition for a suitable instance 'Add' method
+            //     static void Test(params MyCollection a)
+            Diagnostic(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, "params MyCollection a").WithArguments("MyCollection").WithLocation(24, 22)
+            );
+    }
+
+    [Fact]
+    public void TestGetEnumeratorPatternViaExtensionWithOptionalParameter()
+    {
+        var source = @"
+using System;
+public class C
+{
+    public static void Main()
+    /*<bind>*/
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    /*</bind>*/
+
+    public sealed class Enumerator
+    {
+        public Enumerator(int start) => Current = start;
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    extension(C self)
+    {
+        public C.Enumerator GetEnumerator(int x = 1) => new C.Enumerator(x);
+    }
+}";
+        var verifier = CompileAndVerify(source, expectedOutput: "23");
+
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>((CSharpCompilation)verifier.Compilation,
+@"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C()')
+              Value:
+                IInvocationOperation ( C.Enumerator Extensions.<>E__0.GetEnumerator([System.Int32 x = 1])) (OperationKind.Invocation, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: 'new C()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Identity)
+                      Operand:
+                        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new C()')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new C()')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation ( System.Boolean C.Enumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new C()')
+              Instance Receiver:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
+              Arguments(0)
+            Leaving: {R1}
+        Next (Regular) Block[B3]
+            Entering: {R2}
+    .locals {R2}
+    {
+        Locals: [System.Int32 i]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                  Left:
+                    ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                  Right:
+                    IPropertyReferenceOperation: System.Int32 C.Enumerator.Current { get; private set; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(i);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(i)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+", []);
+    }
+
+    [Fact]
+    public void TestGetEnumeratorPatternViaExtensionWithOptionalParameter_02()
+    {
+        var source = @"
+using System;
+public struct C
+{
+    public static void Main()
+    /*<bind>*/
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    /*</bind>*/
+
+    public sealed class Enumerator
+    {
+        public Enumerator(int start) => Current = start;
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    extension(object self)
+    {
+        public C.Enumerator GetEnumerator(int x = 1) => new C.Enumerator(x);
+    }
+}";
+        var verifier = CompileAndVerify(source, expectedOutput: "23", parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never")); // PROTOTYPE: Nullable analysis asserts 
+
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>((CSharpCompilation)verifier.Compilation,
+@"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C()')
+              Value:
+                IInvocationOperation ( C.Enumerator Extensions.<>E__0.GetEnumerator([System.Int32 x = 1])) (OperationKind.Invocation, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'new C()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Boxing)
+                      Operand:
+                        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                          Arguments(0)
+                          Initializer:
+                            null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new C()')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new C()')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation ( System.Boolean C.Enumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'new C()')
+              Instance Receiver:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
+              Arguments(0)
+            Leaving: {R1}
+        Next (Regular) Block[B3]
+            Entering: {R2}
+    .locals {R2}
+    {
+        Locals: [System.Int32 i]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'var')
+                  Left:
+                    ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                  Right:
+                    IPropertyReferenceOperation: System.Int32 C.Enumerator.Current { get; private set; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'var')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.Write(i);')
+                  Expression:
+                    IInvocationOperation (void System.Console.Write(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.Write(i)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+", []);
+    }
+
+    [Fact]
+    public void TestMoveNextPatternViaExtensions_OnInstanceGetEnumerator()
+    {
+        var source = @"
+using System;
+public class C
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+    }
+
+    public C.Enumerator GetEnumerator() => new C.Enumerator();
+}
+public static class Extensions
+{
+    extension(C.Enumerator e)
+    {
+        public bool MoveNext() => false;
+    }
+}";
+        CreateCompilation(source)
+            .VerifyDiagnostics(
+                // (7,27): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNext'
+                //         foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNext").WithLocation(7, 27),
+                // (7,27): error CS0202: foreach requires that the return type 'C.Enumerator' of 'C.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                //         foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(7, 27)
+                );
+    }
+
+    [Fact]
+    public void TestGetEnumeratorPatternViaRefExtensionOnNonAssignableVariable()
+    {
+        var source = @"
+using System;
+public struct C
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public struct Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    extension(ref C self)
+    {
+        public C.Enumerator GetEnumerator() => new C.Enumerator();
+    }
+}";
+        CreateCompilation(source)
+                .VerifyDiagnostics(
+                // (7,27): error CS1510: A ref or out value must be an assignable variable
+                //         foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new C()").WithLocation(7, 27));
     }
 }
