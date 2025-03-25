@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,16 +22,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
+using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
+using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.Threading;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
             var project = solution.Projects.First();
             var document = project.Documents.First();
+            Assert.Empty(document.Folders);
             var tree = await document.GetSyntaxTreeAsync();
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
             Assert.NotNull(type);
