@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 return tk;
 
-                int LineBreaksAfterLeading(SyntaxToken syntaxToken)
+                static int lineBreaksAfterLeading(SyntaxToken syntaxToken)
                 {
                     if (syntaxToken.LeadingTrivia.Count < 2)
                     {
