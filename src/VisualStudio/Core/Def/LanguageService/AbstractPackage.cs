@@ -72,11 +72,12 @@ internal abstract class AbstractPackage : AsyncPackage
     {
         afterPackageLoadedTasks.AddTask(
             isMainThreadTask: false,
-            task: (afterPackageLoadedTasks, cancellationToken) =>
+            task: async (afterPackageLoadedTasks, cancellationToken) =>
             {
                 // TODO: remove, workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1985204
                 var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
-                if (globalOptions.GetOption(SemanticSearchFeatureFlag.Enabled))
+                var isSemanticSearchEnabled = await globalOptions.GetOptionAsync(SemanticSearchFeatureFlag.Enabled).ConfigureAwait(false);
+                if (isSemanticSearchEnabled)
                 {
                     afterPackageLoadedTasks.AddTask(
                         isMainThreadTask: true,
@@ -87,8 +88,6 @@ internal abstract class AbstractPackage : AsyncPackage
                             return Task.CompletedTask;
                         });
                 }
-
-                return Task.CompletedTask;
             });
     }
 

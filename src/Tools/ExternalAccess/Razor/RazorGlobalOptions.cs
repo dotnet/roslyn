@@ -3,15 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Formatting;
-using System.Linq;
-using System.Collections.Immutable;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using Roslyn.Utilities;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
@@ -56,7 +54,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 => default!;
 
             public T GetOption<T>(Option2<T> option) => throw new NotImplementedException();
+            public ValueTask<T> GetOptionAsync<T>(Option2<T> option) => throw new NotImplementedException();
             public T GetOption<T>(OptionKey2 optionKey) => throw new NotImplementedException();
+            public ValueTask<T> GetOptionAsync<T>(OptionKey2 optionKey) => throw new NotImplementedException();
             public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys) => throw new NotImplementedException();
             public bool RefreshOption(OptionKey2 optionKey, object? newValue) => throw new NotImplementedException();
             public ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey2> optionKeys) => throw new NotImplementedException();

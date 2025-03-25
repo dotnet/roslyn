@@ -111,18 +111,18 @@ internal partial class ColorSchemeApplier
             itemKey.Flush();
         }
 
-        public ColorSchemeName GetConfiguredColorScheme()
+        public async Task<ColorSchemeName> GetConfiguredColorSchemeAsync()
         {
-            var schemeName = _globalOptions.GetOption(ColorSchemeOptionsStorage.ColorScheme);
+            var schemeName = await _globalOptions.GetOptionAsync(ColorSchemeOptionsStorage.ColorScheme).ConfigureAwait(false);
             return schemeName != ColorSchemeName.None
                 ? schemeName
                 : ColorSchemeOptionsStorage.ColorScheme.Definition.DefaultValue;
         }
 
-        public void MigrateToColorSchemeSetting()
+        public async Task MigrateToColorSchemeSettingAsync()
         {
             // Get the preview feature flag value.
-            var useEnhancedColorsSetting = _globalOptions.GetOption(ColorSchemeOptionsStorage.LegacyUseEnhancedColors);
+            var useEnhancedColorsSetting = await _globalOptions.GetOptionAsync(ColorSchemeOptionsStorage.LegacyUseEnhancedColors).ConfigureAwait(false);
 
             // Return if we have already migrated.
             if (useEnhancedColorsSetting == ColorSchemeOptionsStorage.UseEnhancedColors.Migrated)

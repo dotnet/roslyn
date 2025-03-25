@@ -9,6 +9,7 @@ using System.Composition;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Classification;
@@ -60,6 +61,9 @@ public sealed class GlobalOptionsTests
         public T GetOption<T>(Option2<T> option)
             => GetOption<T>(new OptionKey2(option));
 
+        public ValueTask<T> GetOptionAsync<T>(Option2<T> option)
+            => GetOptionAsync<T>(new OptionKey2(option));
+
         public T GetOption<T>(PerLanguageOption2<T> option, string languageName)
             => GetOption<T>(new OptionKey2(option, languageName));
 
@@ -67,6 +71,12 @@ public sealed class GlobalOptionsTests
         {
             OnOptionAccessed(optionKey);
             return (T)OptionsTestHelpers.GetDifferentValue(typeof(T), optionKey.Option.DefaultValue)!;
+        }
+
+        public ValueTask<T> GetOptionAsync<T>(OptionKey2 optionKey)
+        {
+            OnOptionAccessed(optionKey);
+            return new ValueTask<T>((T)OptionsTestHelpers.GetDifferentValue(typeof(T), optionKey.Option.DefaultValue)!);
         }
 
         #region Unused

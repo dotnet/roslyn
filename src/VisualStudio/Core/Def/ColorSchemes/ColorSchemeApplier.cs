@@ -78,7 +78,7 @@ internal sealed partial class ColorSchemeApplier
         settingsManager.GetSubset(ColorSchemeOptionsStorage.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
 
         // Try to migrate the `useEnhancedColorsSetting` to the new `ColorSchemeName` setting.
-        _settings.MigrateToColorSchemeSetting();
+        await _settings.MigrateToColorSchemeSettingAsync().ConfigureAwait(false);
 
         // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
         // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
@@ -125,7 +125,7 @@ internal sealed partial class ColorSchemeApplier
         var appliedColorScheme = await _settings.GetAppliedColorSchemeAsync(cancellationToken).ConfigureAwait(false);
 
         // The color scheme configured in VS settings.
-        var configuredColorScheme = _settings.GetConfiguredColorScheme();
+        var configuredColorScheme = await _settings.GetConfiguredColorSchemeAsync().ConfigureAwait(false);
 
         if (appliedColorScheme == configuredColorScheme)
             return null;
