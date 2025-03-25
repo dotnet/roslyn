@@ -8,6 +8,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
+// Change added to kick off bootstrap build. According to Rikki.
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
