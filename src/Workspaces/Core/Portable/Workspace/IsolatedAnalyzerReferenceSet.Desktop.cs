@@ -36,13 +36,11 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         {
             if (ar is AnalyzerFileReference afr)
             {
-                var fullPath = ((AnalyzerFileReference)ar).FullPath;
-                var newAr = new AnalyzerFileReference(fullPath, assemblyLoaderProvider.SharedShadowCopyLoader);
+                var newAr = new AnalyzerFileReference(afr.FullPath, assemblyLoaderProvider.SharedShadowCopyLoader);
                 builder.Add(newAr);
             }
             else
             {
-                Debug.Assert(ar is AnalyzerImageReference);
                 builder.Add(ar);
             }
         }
