@@ -560,6 +560,9 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     public async Task TestReadOnlyInterfaces(string type)
     {
         var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
             using System;
             using System.Collections.Generic;
 
@@ -569,7 +572,9 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 {
                     {{type}} list = [with($$)];
                 }
-            }
+            }]]></Document>
+                </Project>
+            </Workspace>
             """;
 
         await VerifyItemIsAbsentAsync(markup, "capacity", displayTextSuffix: ":");
