@@ -11,8 +11,6 @@ internal static class WorkspaceConfigurationOptionsStorage
     public static WorkspaceConfigurationOptions GetWorkspaceConfigurationOptions(this IGlobalOptionService globalOptions)
         => new(
             SourceGeneratorExecution: globalOptions.GetOption(SourceGeneratorExecution),
-            ReloadChangedAnalyzerReferences:
-                globalOptions.GetOption(ReloadChangedAnalyzerReferences),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
 
     public static readonly Option2<bool> ValidateCompilationTrackerStates = new(
@@ -25,8 +23,4 @@ internal static class WorkspaceConfigurationOptionsStorage
         serializer: new EditorConfigValueSerializer<SourceGeneratorExecutionPreference>(
             s => SourceGeneratorExecutionPreferenceUtilities.Parse(s, SourceGeneratorExecutionPreference.Balanced),
             SourceGeneratorExecutionPreferenceUtilities.GetEditorConfigString));
-
-    public static readonly Option2<bool> ReloadChangedAnalyzerReferences = new(
-        "dotnet_reload_changed_analyzer_references",
-        defaultValue: true);
 }
