@@ -1780,6 +1780,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void KeyValuePairConversions_Dynamic_MultipleIndexers()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    private Dictionary<K, V> _d = new();
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => _d.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    public V this[K key]
+                    {
+                        get { return _d[key]; }
+                        set { Console.WriteLine("{0}, {1}, {2}, {3}", typeof(K).Name, typeof(V).Name, key, value); _d[key] = value; }
+                    }
+                    public int this[string key]
+                    {
+                        get { return (int)(object)_d[(K)(object)key]; }
+                        set { Console.WriteLine("string, int, {0}, {1}", key, value); _d[(K)(object)key] = (V)(object)value; }
+                    }
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        FromPair1A("one", 1);
+                        FromPair2A("two", 2);
+                        FromPair1B("one", 1);
+                        FromPair2B("two", 2);
+                    }
+                    static MyDictionary<object, object> FromPair1A(string k, dynamic v) => [k:v];
+                    static MyDictionary<object, object> FromPair2A(dynamic k, int v) => [k:v];
+                    static MyDictionary<object, object> FromPair1B(string k, dynamic v) { var d = new MyDictionary<object, object>(); d[k] = v; return d; }
+                    static MyDictionary<object, object> FromPair2B(dynamic k, int v) { var d = new MyDictionary<object, object>(); d[k] = v; return d; }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("""
+                    Object, Object, one, 1
+                    Object, Object, two, 2
+                    string, int, one, 1
+                    string, int, two, 2
+                    """));
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void KeyValuePairConversions_KeyValuePairConstraint()
         {
             string source = """
