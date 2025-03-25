@@ -315,7 +315,9 @@ object with(object a, object b) { ... }
 
 ***Introduced in Visual Studio 2022 version 17.14***
 
-For a collection expression where the target type is a `struct` or `class` type where the *iteration type* of the target type is some `KeyValuePair<K, V>`, and where the target type provides an indexer of the form `public V this[K key] { get; set; }`, the collection instance will be constructed using the indexer `set` accessor rather than applicable `Add()` methods.
+For a collection expression where the target type is a `struct` or `class` type where the *iteration type* of the target type
+is `KeyValuePair<K, V>`, and where the target type provides an indexer of the form `public V this[K key] { get; set; }`,
+the collection instance will be constructed using the indexer `set` accessor rather than applicable `Add()` methods.
 
 ```csharp
 KeyValuePair<string, int> x = ...;
