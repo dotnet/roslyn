@@ -31,159 +31,6 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTests
 {
     [Fact]
-    public async Task FixAll_HandleThrowInSwitchExpression()
-    {
-        await new CustomCompositionCSharpTest
-        {
-            CodeFixTestBehaviors = CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
-            TestCode = """
-            using System;
-            using System.Collections.Generic;
-            using System.Linq;
-
-            public class GeometryService
-            {
-                public IEnumerable<Point> {|IDE3000:ApplyTransformation|}(IEnumerable<Point> points, TransformationType transformation)
-                {
-                    return from point in points where point.IsValid select transformation switch
-                    {
-                        TransformationType.Translate => new Point(point.X + 10, point.Y + 10),
-                        TransformationType.Scale => new Point(point.X * 2, point.Y * 2),
-                        TransformationType.Rotate90 => new Point(-point.Y, point.X),
-                        TransformationType.RotateArbitrary => {|IDE3000:throw new NotImplementedException()|},
-                        _ => point
-                    };
-                }
-
-                public static Point {|IDE3000:RotateArbitrary|}(Point point, int angle)
-                {
-                    {|IDE3000:throw new NotImplementedException("Not yet implemented");|}
-                }
-
-                public class Point
-                {
-                    public Point(float x, float y)
-                    {
-                        X = x;
-                        Y = y;
-                        IsValid = true;
-                    }
-
-                    public float X { get; }
-                    public float Y { get; }
-                    public bool IsValid { get; }
-                }
-
-                public enum TransformationType
-                {
-                    Translate,
-                    Scale,
-                    Rotate90,
-                    RotateArbitrary
-                }
-            }
-            """,
-            FixedCode = """
-            using System;
-            using System.Collections.Generic;
-            using System.Linq;
-
-            public class GeometryService
-            {
-                public IEnumerable<Point> ApplyTransformation(IEnumerable<Point> points, TransformationType transformation)
-                {
-                    return from point in points
-                           where point.IsValid
-                           select transformation switch
-                           {
-                               TransformationType.Translate => new Point(point.X + 10, point.Y + 10),
-                               TransformationType.Scale => new Point(point.X * 2, point.Y * 2),
-                               TransformationType.Rotate90 => new Point(-point.Y, point.X),
-                               TransformationType.RotateArbitrary => RotateArbitrary(point, 45),
-                               _ => point
-                           };
-                }
-
-                public static Point RotateArbitrary(Point point, int angle)
-                {
-                    // Convert angle from degrees to radians
-                    double radians = angle * (Math.PI / 180);
-
-                    // Calculate new coordinates after rotation
-                    float newX = (float)(point.X * Math.Cos(radians) - point.Y * Math.Sin(radians));
-                    float newY = (float)(point.X * Math.Sin(radians) + point.Y * Math.Cos(radians));
-
-                    return new Point(newX, newY);
-                }
-
-                public class Point
-                {
-                    public Point(float x, float y)
-                    {
-                        X = x;
-                        Y = y;
-                        IsValid = true;
-                    }
-
-                    public float X { get; }
-                    public float Y { get; }
-                    public bool IsValid { get; }
-                }
-
-                public enum TransformationType
-                {
-                    Translate,
-                    Scale,
-                    Rotate90,
-                    RotateArbitrary
-                }
-            }
-            """,
-            LanguageVersion = LanguageVersion.CSharp11,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
-        }
-        .WithMockCopilotService(copilotService =>
-        {
-            copilotService.SetupFixAll = (Document document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> memberReferences, CancellationToken cancellationToken) =>
-            {
-                // Create a map of method/property implementations
-                var implementationMap = new Dictionary<string, string>
-                {
-                    ["ApplyTransformation"] = """
-                public IEnumerable<Point> ApplyTransformation(IEnumerable<Point> points, TransformationType transformation)
-                {
-                    return from point in points where point.IsValid select transformation switch
-                    {
-                        TransformationType.Translate => new Point(point.X + 10, point.Y + 10),
-                        TransformationType.Scale => new Point(point.X * 2, point.Y * 2),
-                        TransformationType.Rotate90 => new Point(-point.Y, point.X),
-                        TransformationType.RotateArbitrary => RotateArbitrary(point, 45),
-                        _  => point
-                    };
-                }
-                """,
-                    ["RotateArbitrary"] = """
-                public static Point RotateArbitrary(Point point, int angle)
-                {
-                    // Convert angle from degrees to radians
-                    double radians = angle * (Math.PI / 180);
-
-                    // Calculate new coordinates after rotation
-                    float newX = (float)(point.X * Math.Cos(radians) - point.Y * Math.Sin(radians));
-                    float newY = (float)(point.X * Math.Sin(radians) + point.Y * Math.Cos(radians));
-
-                    return new Point(newX, newY);
-                }
-                """
-                };
-
-                return BuildResult(memberReferences, implementationMap);
-            };
-        })
-        .RunAsync();
-    }
-
-    [Fact]
     public async Task FixAll_ComplexScenarios_NestedThrowExpressions()
     {
         await new CustomCompositionCSharpTest
@@ -505,13 +352,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             public class MathService : IMathService
             {
-                private string _name;
-                public string {|IDE3000:Name|}
-                {
-                    get => _name;
-                    set => _name = value ?? {|IDE3000:throw new NotImplementedException()|};
-                }
-
                 public int {|IDE3000:Add|}(int a, int b)
                 {
                     {|IDE3000:throw new NotImplementedException("Add method not implemented");|}
@@ -535,7 +375,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {|IDE3000:throw new NotImplementedException("Factorial method not implemented");|}
                 }
         
-                public int {|IDE3000:ConstantValue|} => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
+                public int ConstantValue => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
         
                 public {|IDE3000:MathService|}()
                 {
@@ -547,29 +387,15 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {|IDE3000:throw new NotImplementedException("Destructor not implemented");|}
                 }
         
-                public event EventHandler {|IDE3000:MyEvent|}
+                public event EventHandler MyEvent
                 {
-                    add { {|IDE3000:throw new NotImplementedException("Event add not implemented");|} }
-                    remove { {|IDE3000:throw new NotImplementedException("Event remove not implemented");|} }
+                    {|IDE3000:add|} { {|IDE3000:throw new NotImplementedException("Event add not implemented");|} }
+                    {|IDE3000:remove|} { {|IDE3000:throw new NotImplementedException("Event remove not implemented");|} }
                 }
         
                 public static MathService operator {|IDE3000:+|}(MathService a, MathService b)
                 {
                     {|IDE3000:throw new NotImplementedException("Operator not implemented");|}
-                }
-
-                public double {|IDE3000:CalculateSumOfSquares|}(int?[] numbers)
-                {
-                    var result = numbers.Select(x => !x.HasValue ? int.MaxValue : {|IDE3000:throw new NotImplementedException()|});
-
-                    return 0;
-                }
-
-                public int {|IDE3000:CalculateSum|}(int[] numbers)
-                {
-                    var obj = new { Calculate = (Func<int>)(() => {|IDE3000:throw new NotImplementedException()|}) };
-
-                    return obj.Calculate();
                 }
             }
 
@@ -592,13 +418,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
             public class MathService : IMathService
             {
-                private string _name;
-                public string Name
-                {
-                    get => _name;
-                    set => _name = value ?? throw new ArgumentNullException(nameof(value), "Name cannot be null");
-                }
-
                 public int Add(int a, int b)
                 {
                     return a + b;
@@ -647,16 +466,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 {
                     return new MathService(); // Operator implementation
                 }
-
-                public double CalculateSumOfSquares(int?[] numbers)
-                {
-                    return numbers.Where(x => x.HasValue).Sum(x => x.Value * x.Value);
-                }
-
-                public int CalculateSum(int[] numbers)
-                {
-                    return numbers.Sum();
-                }
             }
         
             public interface IMathService
@@ -692,9 +501,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     ["~MathService"] = "~MathService()\n{\n    // Destructor implementation\n}\n",
                     ["MyEvent"] = "public event EventHandler MyEvent\n{\n    add { /* Event add implementation */ }\n    remove { /* Event remove implementation */ }\n}\n",
                     ["operator +"] = "public static MathService operator +(MathService a, MathService b)\n{\n    return new MathService(); // Operator implementation\n}\n",
-                    ["CalculateSumOfSquares"] = "public double CalculateSumOfSquares(int?[] numbers)\n{\n    return numbers.Where(x => x.HasValue).Sum(x => x.Value * x.Value);\n}\n",
-                    ["CalculateSum"] = "public int CalculateSum(int[] numbers)\n{\n    return numbers.Sum();\n}\n",
-                    ["Name"] = "public string Name\n{\n    get => _name;\n    set => _name = value ?? throw new ArgumentNullException(nameof(value), \"Name cannot be null\");\n}\n"
                 };
                 return BuildResult(memberReferences, implementationMap);
             };
@@ -747,7 +553,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
 
-                public int {|IDE3000:DataCount|} => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
+                public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
 
             public interface IDataService
@@ -797,7 +603,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
             
-                public int {|IDE3000:DataCount|} => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
+                public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
 
             public interface IDataService
@@ -852,7 +658,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 }
             
                 /* {{copilotErrorMessage}} */
-                public int {|IDE3000:DataCount|} => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
+                public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
 
             public interface IDataService

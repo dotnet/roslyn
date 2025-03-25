@@ -46,7 +46,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                int {|IDE3000:P|} => {|IDE3000:throw new NotImplementedException()|};
+                int P => {|IDE3000:throw new NotImplementedException()|};
             }
             """,
             LanguageVersion = LanguageVersion.CSharp11,
@@ -106,10 +106,10 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                public int {|IDE3000:this|}[int index]
+                public int this[int index]
                 {
-                    get { {|IDE3000:throw new NotImplementedException();|} }
-                    set { {|IDE3000:throw new NotImplementedException();|} }
+                    {|IDE3000:get|} { {|IDE3000:throw new NotImplementedException();|} }
+                    {|IDE3000:set|} { {|IDE3000:throw new NotImplementedException();|} }
                 }
             }
             """,
@@ -128,10 +128,10 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                public event EventHandler {|IDE3000:MyEvent|}
+                public event EventHandler MyEvent
                 {
-                    add { {|IDE3000:throw new NotImplementedException();|} }
-                    remove { {|IDE3000:throw new NotImplementedException();|} }
+                    {|IDE3000:add|} { {|IDE3000:throw new NotImplementedException();|} }
+                    {|IDE3000:remove|} { {|IDE3000:throw new NotImplementedException();|} }
                 }
             }
             """,
@@ -168,6 +168,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
         {
             TestCode = """
             using System;
+            using System.Linq;
 
             class C
             {
@@ -176,12 +177,142 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
                 }
 
+                void {|IDE3000:M1WithComment|}()
+                {
+                    // Some comment
+                    {|IDE3000:throw new NotImplementedException("Not implemented");|}
+                }
+
                 void {|IDE3000:M2|}()
                 {
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
                 }
 
-                void {|IDE3000:M3|}()
+                int P1
+                {
+                    {|IDE3000:get|} { {|IDE3000:throw new NotImplementedException();|} }
+                }
+
+                int P2
+                {
+                    {|IDE3000:get|} { {|IDE3000:throw new NotImplementedException();|} }
+                    {|IDE3000:set|} { {|IDE3000:throw new NotImplementedException();|} }
+                }
+
+                int this[int index]
+                {
+                    {|IDE3000:get|} { {|IDE3000:throw new NotImplementedException();|} }
+                    {|IDE3000:set|} { {|IDE3000:throw new NotImplementedException();|} }
+                }
+            
+                int P11
+                {
+                    {|IDE3000:get|} { {|IDE3000:throw new NotImplementedException();|} /*I am a comment*/ }
+                }
+            
+                void {|IDE3000:M6|}()
+                {
+                    {|IDE3000:throw new NotImplementedException();|}
+                }
+            
+                void {|IDE3000:M7|}()
+                {
+                    {|IDE3000:throw new NotImplementedException("Not implemented");|}
+                }
+            
+                public double {|IDE3000:CalculateSquareRoot|}(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented")|};
+
+                private string _name;
+                public string Name
+                {
+                    get => _name;
+                    // Should NOT report - throw is conditionally inside a lambda
+                    set => _name = value ?? throw new NotImplementedException();
+                }
+
+                // Should NOT report - throw is inside a function
+                void LambdaThrowWithFunc()
+                {
+                    Func<int> func = () => throw new NotImplementedException();
+                    func();
+                }
+
+                // Should NOT report - throw is inside a lambda
+                void LambdaThrow()
+                {
+                    Action action = () => throw new NotImplementedException();
+                    action();
+                }
+
+                // Should NOT report - throw is inside an anonymous method
+                void AnonymousMethodThrow()
+                {
+                    Action action = delegate 
+                    { 
+                        throw new NotImplementedException(); 
+                    };
+                    action();
+                }
+
+                // Should NOT report - throw is inside a local function
+                void LocalFunctionThrow()
+                {
+                    void Local() 
+                    { 
+                        throw new NotImplementedException(); 
+                    }
+
+                    Local();
+                }
+
+                // Should NOT report - throw is inside a nested block
+                void NestedBlockThrow()
+                {
+                    if (true)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+
+                // Should NOT report - throw is inside a loop
+                void LoopThrow()
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+
+                // Should NOT report - throw is inside a switch
+                void SwitchThrow(int value)
+                {
+                    switch (value)
+                    {
+                        case 1:
+                            throw new NotImplementedException();
+                    }
+                }
+            
+                // Should NOT report - throw is inside a switch expression arm
+                public int GetValue(string type) =>
+                    type switch
+                    {
+                        "A" => 1,
+                        "B" => 2,
+                        _ => throw new NotImplementedException($"Type '{type}' not implemented")
+                    };
+
+                // Should NOT report - throw is inside a using block
+                void UsingThrow()
+                {
+                    using (var resource = new System.IO.MemoryStream())
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            
+                // Should NOT report - throw is inside a try-catch block
+                void M3()
                 {
                     try
                     {
@@ -189,47 +320,45 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
                     }
                     catch (Exception)
                     {
-                        {|IDE3000:throw new NotImplementedException();|}
+                        throw new NotImplementedException();
                     }
                 }
 
-                int {|IDE3000:P1|}
+                // Should NOT report - throw is inside a lock
+                void LockThrow()
                 {
-                    get { {|IDE3000:throw new NotImplementedException();|} }
+                    lock (new object())
+                    {
+                        throw new NotImplementedException();
+                    }
                 }
-
-                int {|IDE3000:P2|}
+            
+                // Should NOT report - throw is inside a ternary
+                void TernaryThrow(bool condition)
                 {
-                    get { {|IDE3000:throw new NotImplementedException();|} }
-                    set { {|IDE3000:throw new NotImplementedException();|} }
+                    var result = condition ? 1 : throw new NotImplementedException();
                 }
-
-                int {|IDE3000:this|}[int index]
+            
+                // Should NOT report - throw is inside an anonymous type with lambda
+                void AnonymousTypeWithLambdaThrow()
                 {
-                    get { {|IDE3000:throw new NotImplementedException();|} }
-                    set { {|IDE3000:throw new NotImplementedException();|} }
+                    var result = new { Value = (Func<int>)(() => throw new NotImplementedException()) };
                 }
-
-                void {|IDE3000:M4|}()
+            
+                // Should NOT report - throw is inside a LINQ query/expression
+                void LinqThrow()
                 {
-                    Action action = () => {|IDE3000:throw new NotImplementedException()|};
-                    action();
+                    var result = new[] { 1, 2, 3 }.Select(x => x > 0 ? x : throw new NotImplementedException());
                 }
-
-                void {|IDE3000:M5|}()
+            
+                // Should NOT report - throw is inside a complex LINQ query with multiple nestings
+                public int[] ComplexQuery()
                 {
-                    Func<int> func = () => {|IDE3000:throw new NotImplementedException()|};
-                    func();
-                }
-
-                void {|IDE3000:M6|}()
-                {
-                    {|IDE3000:throw new NotImplementedException();|}
-                }
-
-                void {|IDE3000:M7|}()
-                {
-                    {|IDE3000:throw new NotImplementedException("Not implemented");|}
+                    return new[] { 1, 2, 3 }
+                        .Where(x => x > 0)
+                        .Select(x => x * 2)
+                        .Where(x => x > 0 ? true : throw new NotImplementedException())
+                        .ToArray();
                 }
             }
             """,

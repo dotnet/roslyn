@@ -178,7 +178,7 @@ public class TestService
         ],
         // Property with NotImplementedException in expression-bodied member
         [
-    @"public int {|IDE3000:TestProperty|} => {|IDE3000:throw new NotImplementedException()|};"
+    @"public int TestProperty => {|IDE3000:throw new NotImplementedException()|};"
         ] =
         [
     @"public int TestProperty => 42;",
