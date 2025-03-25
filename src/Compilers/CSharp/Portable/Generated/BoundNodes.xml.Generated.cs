@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CollectionExpressionSpreadExpressionPlaceholder,
         CollectionExpressionSpreadElement,
         KeyValuePairElement,
-        IndexerAssignmentFromExpressionElement,
+        KeyValuePairExpressionElement,
         CollectionExpressionWithElement,
         TupleLiteral,
         ConvertedTupleLiteral,
@@ -6578,10 +6578,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundIndexerAssignmentFromExpressionElement : BoundNode
+    internal sealed partial class BoundKeyValuePairExpressionElement : BoundNode
     {
-        public BoundIndexerAssignmentFromExpressionElement(SyntaxNode syntax, BoundExpression expression, BoundValuePlaceholder expressionPlaceholder, BoundExpression indexerAssignment, bool hasErrors = false)
-            : base(BoundKind.IndexerAssignmentFromExpressionElement, syntax, hasErrors || expression.HasErrors() || expressionPlaceholder.HasErrors() || indexerAssignment.HasErrors())
+        public BoundKeyValuePairExpressionElement(SyntaxNode syntax, BoundExpression expression, BoundValuePlaceholder expressionPlaceholder, BoundExpression indexerAssignment, bool hasErrors = false)
+            : base(BoundKind.KeyValuePairExpressionElement, syntax, hasErrors || expression.HasErrors() || expressionPlaceholder.HasErrors() || indexerAssignment.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6598,13 +6598,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression IndexerAssignment { get; }
 
         [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitIndexerAssignmentFromExpressionElement(this);
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitKeyValuePairExpressionElement(this);
 
-        public BoundIndexerAssignmentFromExpressionElement Update(BoundExpression expression, BoundValuePlaceholder expressionPlaceholder, BoundExpression indexerAssignment)
+        public BoundKeyValuePairExpressionElement Update(BoundExpression expression, BoundValuePlaceholder expressionPlaceholder, BoundExpression indexerAssignment)
         {
             if (expression != this.Expression || expressionPlaceholder != this.ExpressionPlaceholder || indexerAssignment != this.IndexerAssignment)
             {
-                var result = new BoundIndexerAssignmentFromExpressionElement(this.Syntax, expression, expressionPlaceholder, indexerAssignment, this.HasErrors);
+                var result = new BoundKeyValuePairExpressionElement(this.Syntax, expression, expressionPlaceholder, indexerAssignment, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9315,8 +9315,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCollectionExpressionSpreadElement((BoundCollectionExpressionSpreadElement)node, arg);
                 case BoundKind.KeyValuePairElement:
                     return VisitKeyValuePairElement((BoundKeyValuePairElement)node, arg);
-                case BoundKind.IndexerAssignmentFromExpressionElement:
-                    return VisitIndexerAssignmentFromExpressionElement((BoundIndexerAssignmentFromExpressionElement)node, arg);
+                case BoundKind.KeyValuePairExpressionElement:
+                    return VisitKeyValuePairExpressionElement((BoundKeyValuePairExpressionElement)node, arg);
                 case BoundKind.CollectionExpressionWithElement:
                     return VisitCollectionExpressionWithElement((BoundCollectionExpressionWithElement)node, arg);
                 case BoundKind.TupleLiteral:
@@ -9621,7 +9621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitKeyValuePairElement(BoundKeyValuePairElement node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitIndexerAssignmentFromExpressionElement(BoundIndexerAssignmentFromExpressionElement node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitKeyValuePairExpressionElement(BoundKeyValuePairExpressionElement node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCollectionExpressionWithElement(BoundCollectionExpressionWithElement node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitTupleLiteral(BoundTupleLiteral node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node, A arg) => this.DefaultVisit(node, arg);
@@ -9860,7 +9860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitKeyValuePairElement(BoundKeyValuePairElement node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitIndexerAssignmentFromExpressionElement(BoundIndexerAssignmentFromExpressionElement node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitKeyValuePairExpressionElement(BoundKeyValuePairExpressionElement node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCollectionExpressionWithElement(BoundCollectionExpressionWithElement node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitTupleLiteral(BoundTupleLiteral node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node) => this.DefaultVisit(node);
@@ -10660,7 +10660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Value);
             return null;
         }
-        public override BoundNode? VisitIndexerAssignmentFromExpressionElement(BoundIndexerAssignmentFromExpressionElement node)
+        public override BoundNode? VisitKeyValuePairExpressionElement(BoundKeyValuePairExpressionElement node)
         {
             this.Visit(node.Expression);
             return null;
@@ -11978,7 +11978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? indexerAssignment = node.IndexerAssignment;
             return node.Update(key, value, keyPlaceholder, valuePlaceholder, indexerAssignment);
         }
-        public override BoundNode? VisitIndexerAssignmentFromExpressionElement(BoundIndexerAssignmentFromExpressionElement node)
+        public override BoundNode? VisitKeyValuePairExpressionElement(BoundKeyValuePairExpressionElement node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundValuePlaceholder expressionPlaceholder = node.ExpressionPlaceholder;
@@ -16696,7 +16696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
-        public override TreeDumperNode VisitIndexerAssignmentFromExpressionElement(BoundIndexerAssignmentFromExpressionElement node, object? arg) => new TreeDumperNode("indexerAssignmentFromExpressionElement", null, new TreeDumperNode[]
+        public override TreeDumperNode VisitKeyValuePairExpressionElement(BoundKeyValuePairExpressionElement node, object? arg) => new TreeDumperNode("keyValuePairExpressionElement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("expressionPlaceholder", null, new TreeDumperNode[] { Visit(node.ExpressionPlaceholder, null) }),

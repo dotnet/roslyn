@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.TypeOrValueExpression:
                 case BoundKind.KeyValuePairElement: // PROTOTYPE: Implement IOperation support.
                 case BoundKind.CollectionExpressionWithElement: // PROTOTYPE: Implement IOperation support.
-                case BoundKind.IndexerAssignmentFromExpressionElement: // PROTOTYPE: Implement IOperation support.
+                case BoundKind.KeyValuePairExpressionElement: // PROTOTYPE: Implement IOperation support.
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -1267,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 BoundCollectionExpressionWithElement withElement => Create(withElement),
                 BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(expr, spreadElement),
                 BoundKeyValuePairElement keyValuePairElement => Create(keyValuePairElement),
-                BoundIndexerAssignmentFromExpressionElement indexerAssignment => Create(indexerAssignment),
+                BoundKeyValuePairExpressionElement keyValuePairExpressionElement => Create(keyValuePairExpressionElement),
                 _ => Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false))
             };
         }

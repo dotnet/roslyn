@@ -1258,16 +1258,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             RemovePlaceholderReplacement(keyValuePairElement.KeyPlaceholder);
                         }
                         break;
-                    case BoundIndexerAssignmentFromExpressionElement indexerAssignment:
+                    case BoundKeyValuePairExpressionElement keyValuePairExpressionElement:
                         {
                             // dictionary[element.Key] = element.Value;
-                            var rewrittenExpression = VisitExpression(indexerAssignment.Expression);
+                            var rewrittenExpression = VisitExpression(keyValuePairExpressionElement.Expression);
                             BoundLocal exprTemp = _factory.StoreToTemp(rewrittenExpression, out assignmentToTemp);
                             localsBuilder.Add(exprTemp);
                             sideEffects.Add(assignmentToTemp);
-                            AddPlaceholderReplacement(indexerAssignment.ExpressionPlaceholder, exprTemp);
-                            sideEffects.Add(VisitExpression(indexerAssignment.IndexerAssignment));
-                            RemovePlaceholderReplacement(indexerAssignment.ExpressionPlaceholder);
+                            AddPlaceholderReplacement(keyValuePairExpressionElement.ExpressionPlaceholder, exprTemp);
+                            sideEffects.Add(VisitExpression(keyValuePairExpressionElement.IndexerAssignment));
+                            RemovePlaceholderReplacement(keyValuePairExpressionElement.ExpressionPlaceholder);
                         }
                         break;
                     case BoundCollectionExpressionSpreadElement spreadElement:

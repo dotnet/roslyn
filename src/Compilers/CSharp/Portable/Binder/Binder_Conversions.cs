@@ -1132,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 var expressionSyntax = expressionElement.Syntax;
                                 var placeholder = new BoundValuePlaceholder(expressionSyntax, convertedExpression.Type);
-                                convertedElement = new BoundIndexerAssignmentFromExpressionElement(
+                                convertedElement = new BoundKeyValuePairExpressionElement(
                                     expressionSyntax,
                                     expression: convertedExpression,
                                     expressionPlaceholder: placeholder,

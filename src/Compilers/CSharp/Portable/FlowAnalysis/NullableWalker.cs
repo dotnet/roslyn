@@ -3795,8 +3795,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitRvalue(keyValuePair.Value);
                         // PROTOTYPE: Check nullability from conversions of key and value.
                         break;
-                    case BoundIndexerAssignmentFromExpressionElement indexerAssignment:
-                        VisitRvalue(indexerAssignment.Expression);
+                    case BoundKeyValuePairExpressionElement keyValuePairExpressionElement:
+                        VisitRvalue(keyValuePairExpressionElement.Expression);
                         // PROTOTYPE: Check nullability from conversions of key and value.
                         break;
                     default:
