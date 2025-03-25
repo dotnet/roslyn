@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -16,12 +17,15 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
     internal override Type GetSignatureHelpProviderType()
         => typeof(WithElementSignatureHelpProvider);
 
-    [Theory(Skip = "PROTOTYPE: Collection arguments require language version preview")]
+    [Theory]
     [InlineData("IList<int>")]
     [InlineData("ICollection<int>")]
     public async Task TestMutableInterfaces(string type)
     {
         var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
             using System.Collections.Generic;
 
             class C
@@ -30,7 +34,9 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
                 {
                     {{type}} list = [with($$)];
                 }
-            }
+            }]]></Document>
+                </Project>
+            </Workspace>
             """;
 
         await TestAsync(markup, [new("List<int>(int capacity)", string.Empty, null, currentParameterIndex: 0)]);
@@ -59,10 +65,13 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
         await TestAsync(markup, []);
     }
 
-    [Fact(Skip = "PROTOTYPE: Collection arguments require language version preview")]
+    [Fact]
     public async Task TestConstructibleType()
     {
         var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
             using System;
             using System.Collections.Generic;
 
@@ -72,7 +81,9 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
                 {
                     HashSet<int> set = [with($$)];
                 }
-            }
+            }]]></Document>
+                </Project>
+            </Workspace>
             """;
 
         await TestAsync(markup, [
@@ -82,10 +93,13 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
             new("HashSet<int>(IEnumerable<int> collection, IEqualityComparer<int> comparer)", string.Empty, null, currentParameterIndex: 0)]);
     }
 
-    [Fact(Skip = "PROTOTYPE: Collection arguments require language version preview")]
+    [Fact]
     public async Task TestBuilder1()
     {
         var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -124,7 +138,9 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
                 {
                     MyCollection<int> z = [with($$)];
                 }
-            }
+            }]]></Document>
+                </Project>
+            </Workspace>
             """;
         await TestAsync(markup, [
             new("MyCollection<int> MyCollectionBuilder.Create<T>(int capacity, int extra)", string.Empty, null, currentParameterIndex: 0),
