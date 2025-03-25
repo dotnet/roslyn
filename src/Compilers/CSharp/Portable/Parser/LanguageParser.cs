@@ -12764,7 +12764,6 @@ done:
                 this.PeekToken(1).Kind == SyntaxKind.OpenParenToken &&
                 IsFeatureEnabled(MessageID.IDS_FeatureCollectionExpressionArguments))
             {
-                // PROTOTYPE: Document breaking change.
                 return _syntaxFactory.WithElement(this.EatContextualToken(SyntaxKind.WithKeyword), this.ParseParenthesizedArgumentList());
             }
 
