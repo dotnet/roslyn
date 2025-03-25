@@ -120,9 +120,6 @@
   <data name="OutputKindNotSupported" xml:space="preserve">
     <value>Output kind not supported.</value>
   </data>
-  <data name="PathReturnedByResolveMetadataFileMustBeAbsolute" xml:space="preserve">
-    <value>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</value>
-  </data>
   <data name="AssemblyMustHaveAtLeastOneModule" xml:space="preserve">
     <value>Assembly must have at least one module.</value>
   </data>

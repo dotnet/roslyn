@@ -140,10 +140,6 @@
     <value>MSB3081: A problem occurred while trying to set the "{0}" parameter for the IDE's in-process compiler. {1}</value>
     <comment>{StrBegin="MSB3081: "}</comment>
   </data>
-  <data name="General_DuplicateItemsNotSupported" xml:space="preserve">
-    <value>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</value>
-    <comment>{StrBegin="MSB3105: "}</comment>
-  </data>
   <data name="General_DuplicateItemsNotSupportedWithMetadata" xml:space="preserve">
     <value>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</value>
     <comment>{StrBegin="MSB3083: "}</comment>

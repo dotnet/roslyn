@@ -123,9 +123,6 @@
   <data name="CantAssignTo" xml:space="preserve">
     <value>Can't assign '{0}' to '{1}'.</value>
   </data>
-  <data name="ExpectedAnAssemblyReference" xml:space="preserve">
-    <value>Expected an assembly reference.</value>
-  </data>
   <data name="DisplayNameOrPathCannotBe" xml:space="preserve">
     <value>Display name or path cannot be empty.</value>
   </data>

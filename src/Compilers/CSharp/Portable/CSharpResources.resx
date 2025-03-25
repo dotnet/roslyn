@@ -498,9 +498,6 @@
   <data name="WRN_InvalidMainSig" xml:space="preserve">
     <value>'{0}' has the wrong signature to be an entry point</value>
   </data>
-  <data name="WRN_InvalidMainSig_Title" xml:space="preserve">
-    <value>Method has the wrong signature to be an entry point</value>
-  </data>
   <data name="ERR_NoImplicitConv" xml:space="preserve">
     <value>Cannot implicitly convert type '{0}' to '{1}'</value>
   </data>

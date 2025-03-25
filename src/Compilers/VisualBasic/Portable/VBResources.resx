@@ -186,9 +186,6 @@
   <data name="WRN_BadUILang" xml:space="preserve">
     <value>The language name '{0}' is invalid.</value>
   </data>
-  <data name="WRN_BadUILang_Title" xml:space="preserve">
-    <value>The language name for /preferreduilang is invalid</value>
-  </data>
   <data name="ERR_VBCoreNetModuleConflict" xml:space="preserve">
     <value>The options /vbruntime* and /target:module cannot be combined.</value>
   </data>
