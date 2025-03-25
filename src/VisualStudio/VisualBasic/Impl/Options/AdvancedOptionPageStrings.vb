@@ -74,9 +74,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Full_Solution_Tag As CompilerDiagnosticsScope =
             CompilerDiagnosticsScope.FullSolution
 
-        Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
-            ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
-
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             ServicesVSResources.Show_procedure_line_separators
 
@@ -352,15 +349,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Rename_asynchronously_experimental As String =
             ServicesVSResources.Rename_asynchronously_experimental
 
-        Public ReadOnly Property Where_should_the_rename_UI_be_shown As String =
-            ServicesVSResources.Where_should_the_rename_UI_be_shown
-
-        Public ReadOnly Property Option_Show_UI_inline As String =
-            ServicesVSResources.Show_UI_inline
-
-        Public ReadOnly Property Option_Show_UI_as_dashboard_in_top_right As String =
-            ServicesVSResources.Show_UI_as_dashboard_in_top_right
-
         Public ReadOnly Property Document_Outline As String =
             ServicesVSResources.Document_Outline
 
@@ -378,8 +366,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Balanced_Run_generators_after_saving_or_building As String =
             ServicesVSResources.Balanced_Run_generators_after_saving_or_building
-
-        Public ReadOnly Property Option_Automatically_reload_updated_analyzers_and_generators As String =
-            ServicesVSResources.Automatically_reload_updated_analyzers_and_generators
     End Module
 End Namespace

@@ -62,10 +62,8 @@ internal partial class StateResetInProcess
         ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameInComments);
         ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameInStrings);
         ResetOption(globalOptions, InlineRenameSessionOptionsStorage.RenameOverloads);
-        ResetOption(globalOptions, InlineRenameUIOptionsStorage.UseInlineAdornment);
         ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
         ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution);
-        ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
         ResetPerLanguageOption(globalOptions, FormattingOptions2.IndentationSize);
         ResetPerLanguageOption(globalOptions, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened);
         ResetPerLanguageOption(globalOptions, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces);

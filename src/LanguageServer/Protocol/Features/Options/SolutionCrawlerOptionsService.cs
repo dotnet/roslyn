@@ -10,18 +10,10 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.SolutionCrawler;
 
 [ExportWorkspaceService(typeof(ISolutionCrawlerOptionsService)), Shared]
-internal sealed class SolutionCrawlerOptionsService : ISolutionCrawlerOptionsService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SolutionCrawlerOptionsService(IGlobalOptionService globalOptions) : ISolutionCrawlerOptionsService
 {
-    private readonly IGlobalOptionService _globalOptions;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SolutionCrawlerOptionsService(IGlobalOptionService globalOptions)
-    {
-        _globalOptions = globalOptions;
-    }
-
     public bool EnableDiagnosticsInSourceGeneratedFiles
-        => _globalOptions.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles) ??
-        _globalOptions.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag);
+        => globalOptions.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles);
 }

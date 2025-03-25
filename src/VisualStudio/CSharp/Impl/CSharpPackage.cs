@@ -58,13 +58,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private ObjectBrowserLibraryManager? _libraryManager;
         private uint _libraryManagerCookie;
 
-        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        protected override void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
+        {
+            base.RegisterInitializeAsyncWork(packageInitializationTasks);
+
+            packageInitializationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
+        }
+
+        private Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
         {
             try
             {
-                await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
-                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
                 this.RegisterService<ICSharpTempPECompilerService>(async ct =>
                 {
                     var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
@@ -75,6 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
             {
             }
+
+            return Task.CompletedTask;
         }
 
         protected override void RegisterObjectBrowserLibraryManager()
