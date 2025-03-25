@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(CustomMessageUnloadHandler)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(CustomMessageLoadHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
