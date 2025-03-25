@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var outerLocalFunction = _staticLocalOrAnonymousFunction;
             if (node.Symbol.IsStatic)
             {
-                _staticLocalOrAnonymousFunction = node.Symbol;
+                _staticLocalOrAnonymousFunction = (SourceMethodSymbol)node.Symbol;
             }
             var result = base.VisitLocalFunctionStatement(node);
             _staticLocalOrAnonymousFunction = outerLocalFunction;
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
-            if (_inExpressionLambda && node.AddMethod.IsStatic)
+            if (_inExpressionLambda && (node.AddMethod.IsStatic || node.AddMethod.GetIsNewExtensionMember()))
             {
                 Error(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, node);
             }
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var outerLocalFunction = _staticLocalOrAnonymousFunction;
             if (node.Symbol.IsStatic)
             {
-                _staticLocalOrAnonymousFunction = node.Symbol;
+                _staticLocalOrAnonymousFunction = (SourceMethodSymbol)node.Symbol;
             }
             var result = base.VisitLambda(node);
             _staticLocalOrAnonymousFunction = outerLocalFunction;

@@ -101,7 +101,7 @@ internal class SpeculativeTCompletionProvider : LSPCompletionProvider
     {
         var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-        return syntaxTree.IsMemberDeclarationContext(position, context: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken) ||
+        return syntaxTree.IsMemberDeclarationContext(position, context: null, SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.NonEnumTypeDeclarations, canBePartial: true, cancellationToken) ||
                syntaxTree.IsStatementContext(position, token, cancellationToken) ||
                syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||

@@ -1500,7 +1500,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
 
-            var methodGroupResolutionResult = this.BindExtensionMethod(
+            CompoundUseSiteInfo<AssemblySymbol> extensionUseSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
+
+            var methodGroupResolutionResult = this.ResolveExtension(
                 collectionSyntax,
                 methodName,
                 analyzedArguments,
@@ -1509,8 +1511,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options: OverloadResolution.Options.None,
                 returnRefKind: default,
                 returnType: null,
-                withDependencies: diagnostics.AccumulatesDependencies);
+                ref extensionUseSiteInfo,
+                acceptOnlyMethods: true); // PROTOTYPE: Test effect of acceptOnlyMethods value
 
+            diagnostics.Add(syntax, extensionUseSiteInfo);
             diagnostics.AddRange(methodGroupResolutionResult.Diagnostics);
 
             var overloadResolutionResult = methodGroupResolutionResult.OverloadResolutionResult;

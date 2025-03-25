@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var call = (BoundCall)getAwaiterGetResultCall;
             getResultMethod = call.Method;
-            if (getResultMethod.IsExtensionMethod)
+            if (getResultMethod.IsExtensionMethod || getResultMethod.GetIsNewExtensionMember())
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.GetResult);
                 getResultMethod = null;
