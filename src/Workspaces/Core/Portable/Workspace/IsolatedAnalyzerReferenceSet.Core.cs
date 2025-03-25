@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Threading;
@@ -58,6 +59,8 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
     /// </remarks>
     /// <remarks>Guarded by <see cref="s_gate"/></remarks>
     private static IsolatedAnalyzerReferenceSet? s_lastCreatedAnalyzerReferenceSet;
+
+    private static IAnalyzerAssemblyLoader? s_sharedAnalyzerAssemblyLoader;
 
     private static int s_sweepCount = 0;
 
@@ -201,9 +204,10 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         CancellationToken cancellationToken)
     {
         // Fallback to stock behavior if the reloading option is disabled.
+        var assemblyLoaderProvider = solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         var optionsService = solutionServices.GetRequiredService<IWorkspaceConfigurationService>();
         if (!optionsService.Options.ReloadChangedAnalyzerReferences)
-            return await DefaultCreateIsolatedAnalyzerReferencesAsync(references).ConfigureAwait(false);
+            return await DefaultCreateIsolatedAnalyzerReferencesAsync(useAsync, assemblyLoaderProvider, references, cancellationToken).ConfigureAwait(false);
 
         if (references.Length == 0)
             return [];
@@ -219,6 +223,44 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
             cancellationToken).ConfigureAwait(false);
     }
 
+    private static async ValueTask<ImmutableArray<AnalyzerReference>> DefaultCreateIsolatedAnalyzerReferencesAsync(
+        bool useAsync,
+        IAnalyzerAssemblyLoaderProvider analyzerAssemblyLoaderProvider,
+        ImmutableArray<AnalyzerReference> references,
+        CancellationToken cancellationToken)
+    {
+        IAnalyzerAssemblyLoader sharedLoader;
+        using (useAsync
+            ? await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false)
+            : s_gate.DisposableWait(cancellationToken))
+        {
+            if (s_sharedAnalyzerAssemblyLoader is null)
+            {
+                s_sharedAnalyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
+            }
+
+            sharedLoader = s_sharedAnalyzerAssemblyLoader;
+        }
+
+        using var _ = ArrayBuilder<AnalyzerReference>.GetInstance(out var builder);
+        foreach (var ar in builder)
+        {
+            if (ar is AnalyzerFileReference afr)
+            {
+                var fullPath = ((AnalyzerFileReference)ar).FullPath;
+                var newAr = new AnalyzerFileReference(fullPath, sharedLoader);
+                builder.Add(newAr);
+            }
+            else
+            {
+                Debug.Assert(ar is AnalyzerImageReference);
+                builder.Add(ar);
+            }
+        }
+
+        return builder.ToImmutableAndClear();
+    }
+
     public static async partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
         bool useAsync,
         ChecksumCollection analyzerChecksums,
@@ -228,8 +270,13 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
     {
         // Fallback to stock behavior if the reloading option is disabled.
         var optionsService = solutionServices.GetRequiredService<IWorkspaceConfigurationService>();
+        var assemblyLoaderProvider = solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         if (!optionsService.Options.ReloadChangedAnalyzerReferences)
-            return await DefaultCreateIsolatedAnalyzerReferencesAsync(getReferencesAsync).ConfigureAwait(false);
+            return await DefaultCreateIsolatedAnalyzerReferencesAsync(
+                useAsync,
+                assemblyLoaderProvider,
+                await getReferencesAsync().ConfigureAwait(false),
+                cancellationToken).ConfigureAwait(false);
 
         if (analyzerChecksums.Children.Length == 0)
             return [];
@@ -255,7 +302,6 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
 
         // Not already stored.  Fetch the actual references.
         var analyzerReferences = await getReferencesAsync().ConfigureAwait(false);
-        var assemblyLoaderProvider = solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
 
         using (useAsync
            ? await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false)

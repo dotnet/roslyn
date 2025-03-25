@@ -773,12 +773,6 @@ internal sealed partial class ProjectSystemProject
     {
         Contract.ThrowIfTrue(analyzersRemoved.Count == 0 && analyzersAdded.Count == 0, "Should only be called when there is work to do");
 
-        // NOTE: Create the initial AnalyzerFileReferences for the analyzers we're adding with a shared shadow copy
-        // loader.  This is fine as we're just creating these to pass into CreateIsolatedAnalyzerReferencesAsync which
-        // will properly give them an isolated ALC to use instead.
-        var assemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        var sharedShadowCopyLoader = assemblyLoaderProvider.SharedShadowCopyLoader;
-
         var project = solution.GetRequiredProject(projectId);
 
         using var _ = ArrayBuilder<AnalyzerFileReference>.GetInstance(out var initialReferenceList);
@@ -801,7 +795,7 @@ internal sealed partial class ProjectSystemProject
 
         // Now, create an initial analyzer file reference for all the analyzers being added.
         foreach (var analyzer in analyzersAdded)
-            initialReferenceList.Add(new AnalyzerFileReference(analyzer, sharedShadowCopyLoader));
+            initialReferenceList.Add(new AnalyzerFileReference(analyzer, NoLoadAnalyzerAssemblyLoader.Instance));
 
         // We are only updating this state object so that we can ensure we unregister any file watchers for
         // analyzers that are removed, and register new watches for analyzers that are added.  Note that those file
