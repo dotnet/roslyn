@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -18,12 +17,9 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
@@ -106,6 +102,9 @@ internal sealed class RoslynPackage : AbstractPackage
 
         Task OnAfterPackageLoadedBackgroundThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
         {
+            // Ensure the options persisters are loaded since we have to fetch options from the shell
+            _ = ComponentModel.GetService<IGlobalOptionService>();
+
             var colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
             colorSchemeApplier.RegisterInitializationWork(afterPackageLoadedTasks);
 
@@ -114,9 +113,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
             _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
             TrackBulkFileOperations(globalNotificationService);
-
-            // Ensure the options persisters are loaded since we have to fetch options from the shell
-            LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();
 
             return Task.CompletedTask;
         }
@@ -143,21 +139,6 @@ internal sealed class RoslynPackage : AbstractPackage
         serviceBrokerContainer.Proffer(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
             (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
-    }
-
-    private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
-    {
-        // Ensure on a background thread to ensure assembly loads don't show up as UI delays attributed to
-        // InitializeAsync.
-        Contract.ThrowIfTrue(JoinableTaskFactory.Context.IsOnMainThread);
-
-        var listenerProvider = componentModel.GetService<IAsynchronousOperationListenerProvider>();
-        using var token = listenerProvider.GetListener(FeatureAttribute.Workspace).BeginAsyncOperation(nameof(LoadOptionPersistersAsync));
-
-        var persisterProviders = componentModel.GetExtensions<IOptionPersisterProvider>().ToImmutableArray();
-
-        foreach (var provider in persisterProviders)
-            await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
     }
 
     protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
