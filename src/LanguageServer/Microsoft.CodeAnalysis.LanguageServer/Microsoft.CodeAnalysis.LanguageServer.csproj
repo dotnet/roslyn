@@ -73,7 +73,7 @@
   <Target Name="SetCrossgen2ExtraArgs" BeforeTargets="ResolveReadyToRunCompilers" Condition="'$(PublishReadyToRun)' == 'true'">
     <PropertyGroup>
       <!-- Define extra crossgen2 args.  This must be done in a target as TargetName isn't available in evaluation -->
-      <PublishReadyToRunCrossgen2ExtraArgs>$(PublishReadyToRunCrossgen2ExtraArgs);--opt-cross-module:*;--non-local-generics-module:"$(TargetName)"</PublishReadyToRunCrossgen2ExtraArgs>
+      <PublishReadyToRunCrossgen2ExtraArgs>$(PublishReadyToRunCrossgen2ExtraArgs);--non-local-generics-module:"$(TargetName)"</PublishReadyToRunCrossgen2ExtraArgs>
     </PropertyGroup>
   </Target>
 
