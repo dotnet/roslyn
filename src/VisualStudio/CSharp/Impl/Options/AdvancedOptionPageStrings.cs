@@ -76,9 +76,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Always_use_default_symbol_servers_for_navigation
             => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
 
-        public static string Option_analyze_source_generated_files
-            => ServicesVSResources.Analyze_source_generated_files;
-
         public static string Option_Inline_Hints
             => EditorFeaturesResources.Inline_Hints;
 
@@ -369,18 +366,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Go_To_Definition
             => ServicesVSResources.Go_To_Definition;
-
-        public static string Option_Rename
-            => EditorFeaturesResources.Rename;
-
-        public static string Option_Rename_asynchronously_experimental
-            => ServicesVSResources.Rename_asynchronously_experimental;
-
-        public static string Document_Outline
-            => ServicesVSResources.Document_Outline;
-
-        public static string Option_Enable_document_outline_experimental_requires_restart
-            => ServicesVSResources.Enable_document_outline_experimental_requires_restart;
 
         public static string Option_Source_Generators
             => ServicesVSResources.Source_Generators;

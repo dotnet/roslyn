@@ -87,11 +87,6 @@
         <target state="translated">탐색에 항상 기본 기호 서버 사용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Analyze_source_generated_files">
-        <source>Analyze source generated files</source>
-        <target state="translated">소스에서 생성된 파일 분석</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">분석기 기본값</target>
@@ -365,11 +360,6 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">요소가 잘못되었습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_document_outline_experimental_requires_restart">
-        <source>Enable document outline (experimental, requires restart)</source>
-        <target state="translated">문서 개요 사용(실험적, 다시 시작해야 함)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
@@ -1195,11 +1185,6 @@
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">불필요한 Using 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_asynchronously_experimental">
-        <source>Rename asynchronously (experimental)</source>
-        <target state="translated">비동기적으로 이름 바꾸기(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">

@@ -1048,12 +1048,12 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
-    public async Task SourceGeneratorFailures_FSA(bool useVSDiagnostics, bool mutatingLspWorkspace, bool enableDiagnosticsInSourceGeneratedFiles)
+    public async Task SourceGeneratorFailures_FSA(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync(["class C {}"], mutatingLspWorkspace,
-            GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, enableDiagnosticsInSourceGeneratedFiles: enableDiagnosticsInSourceGeneratedFiles));
+            GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics));
 
-        var generator = new Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator()
+        var generator = new TestSourceGenerator()
         {
             ExecuteImpl = context => throw new InvalidOperationException("Source generator failed")
         };

@@ -162,11 +162,12 @@ public class DiagnosticAnalyzerServiceTests
 
         if (enabledWithEditorconfig)
         {
-            var editorconfigText = @$"
-[*.cs]
-dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_syntaxRule.Id}.severity = warning
-dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_semanticRule.Id}.severity = warning
-dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = warning";
+            var editorconfigText = $"""
+                [*.cs]
+                dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_syntaxRule.Id}.severity = warning
+                dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_semanticRule.Id}.severity = warning
+                dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = warning
+                """;
 
             project = project.AddAnalyzerConfigDocument(".editorconfig", filePath: "z:\\.editorconfig", text: SourceText.From(editorconfigText)).Project;
         }
@@ -345,10 +346,10 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
         // Escalating the analyzer to non-hidden effective severity through analyzer config options
         // ensures that analyzer executes in full solution analysis.
-        var analyzerConfigText = $@"
-[*.cs]
-dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
-";
+        var analyzerConfigText = $"""
+            [*.cs]
+            dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
+            """;
 
         project = project.AddAnalyzerConfigDocument(
             ".editorconfig",
@@ -554,36 +555,36 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         string code;
         if (testPragma)
         {
-            code = $@"
-#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary
-#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary
+            code = $$"""
+                #pragma warning disable {{NamedTypeAnalyzer.DiagnosticId}} // Unnecessary
+                #pragma warning disable CS0168 // Variable is declared but never used - Unnecessary
 
-#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Necessary
-class A
-{{
-    void M()
-    {{
-#pragma warning disable CS0168 // Variable is declared but never used - Necessary
-        int x;
-    }}
-}}
-";
+                #pragma warning disable {{NamedTypeAnalyzer.DiagnosticId}} // Necessary
+                class A
+                {
+                    void M()
+                    {
+                #pragma warning disable CS0168 // Variable is declared but never used - Necessary
+                        int x;
+                    }
+                }
+                """;
         }
         else
         {
-            code = $@"
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category1"", ""{NamedTypeAnalyzer.DiagnosticId}"")] // Necessary
-class A
-{{
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""{NamedTypeAnalyzer.DiagnosticId}"")] // Unnecessary
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")] // Unnecessary
-    void M()
-    {{
-#pragma warning disable CS0168 // Variable is declared but never used - Necessary
-        int x;
-    }}
-}}
-";
+            code = $$"""
+                [System.Diagnostics.CodeAnalysis.SuppressMessage("Category1", "{{NamedTypeAnalyzer.DiagnosticId}}")] // Necessary
+                class A
+                {
+                    [System.Diagnostics.CodeAnalysis.SuppressMessage("Category2", "{{NamedTypeAnalyzer.DiagnosticId}}")] // Unnecessary
+                    [System.Diagnostics.CodeAnalysis.SuppressMessage("Category3", "CS0168")] // Unnecessary
+                    void M()
+                    {
+                #pragma warning disable CS0168 // Variable is declared but never used - Necessary
+                        int x;
+                    }
+                }
+                """;
         }
 
         string[] files;
@@ -605,7 +606,6 @@ class A
         using var workspace = new EditorTestWorkspace(composition);
 
         workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
-        workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, isSourceGenerated);
 
         var compilerDiagnosticsScope = analysisScope.ToEquivalentCompilerDiagnosticsScope();
         workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp, compilerDiagnosticsScope);
@@ -714,14 +714,15 @@ class A
     [CombinatorialData]
     public async Task TestFilterSpanOnContextAsync(FilterSpanTestAnalyzer.AnalysisKind kind)
     {
-        var source = @"
-class B
-{
-    void M()
-    {
-        int x = 1;
-    }
-}";
+        var source = """
+            class B
+            {
+                void M()
+                {
+                    int x = 1;
+                }
+            }
+            """;
         var additionalText = @"This is an additional file!";
 
         using var workspace = TestWorkspace.CreateCSharp(source);
@@ -788,14 +789,15 @@ class B
         // NOTE: Unfortunately, we cannot perform an end-to-end OutOfProc test, similar to the InProc test above because AnalyzerImageReference is not serializable.
         //       So, we perform a very targeted test which directly uses the 'DiagnosticComputer' type that is used for all OutOfProc diagnostic computation.
 
-        var source = @"
-class A
-{
-    void M()
-    {
-        int x = 0;
-    }
-}";
+        var source = """
+            class A
+            {
+                void M()
+                {
+                    int x = 0;
+                }
+            }
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(source);
 

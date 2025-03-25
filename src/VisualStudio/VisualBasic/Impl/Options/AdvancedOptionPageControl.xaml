@@ -80,17 +80,6 @@
                                      Content="{x:Static local:AdvancedOptionPageStrings.Option_Balanced_Run_generators_after_saving_or_building}" />
                         </StackPanel>
                     </StackPanel>
-
-                    <CheckBox x:Name="Analyze_source_generated_files"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
-                </StackPanel>
-            </GroupBox>
-
-            <GroupBox x:Uid="RenameGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Rename}">
-                <StackPanel>
-                    <CheckBox x:Name="Rename_asynchronously_exerimental"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Rename_asynchronously_experimental}" />
                 </StackPanel>
             </GroupBox>
             
@@ -338,14 +327,6 @@
                     <CheckBox x:Uid="IncludeGlobalImports"
                               x:Name="IncludeGlobalImports"
                               Content="{x:Static local:AdvancedOptionPageStrings.Include_global_imports}"/>
-                </StackPanel>
-            </GroupBox>
-
-            <GroupBox x:Uid="DocumentOutlineGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Document_Outline}">
-                <StackPanel>
-                    <CheckBox x:Uid="EnableDocumentOutline"
-                              x:Name="EnableDocumentOutline"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_document_outline_experimental_requires_restart}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>
