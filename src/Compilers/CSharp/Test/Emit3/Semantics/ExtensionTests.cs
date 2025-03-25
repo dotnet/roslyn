@@ -22837,7 +22837,7 @@ class MyAttr : System.Attribute
             );
     }
 
-    [Fact(Skip = "Cycle")] // PROTOTYPE: There is a cycle due to the attribute
+    [Fact]
     public void ReceiverParameterScope_07_InAttribute()
     {
         var src = @"
@@ -22845,7 +22845,7 @@ static class Extensions
 {
     extension(int p)
     {
-        [System.Runtime.CompilerServices.IndexerName(nameof(p))]
+        [MyAttr(nameof(p))]
         int this[int y]
         {
             get
@@ -22854,6 +22854,11 @@ static class Extensions
             }
         }
     }
+}
+
+class MyAttr : System.Attribute
+{
+    public MyAttr(string p) {}
 }
 ";
         var comp = CreateCompilation(src);
@@ -22987,13 +22992,13 @@ static class Extensions
             );
     }
 
-    [Fact(Skip = "Cycle")] // PROTOTYPE: There is a cycle due to the attribute
+    [Fact]
     public void CycleInAttribute_01()
     {
         var src = @"
 static class Extensions
 {
-    static const string Str = ""val""
+    const string Str = ""val"";
     extension(string p)
     {
         [System.Runtime.CompilerServices.IndexerName(Str)]
@@ -23009,7 +23014,12 @@ static class Extensions
 ";
         var comp = CreateCompilation(src);
 
-        comp.VerifyEmitDiagnostics();
+        // PROTOTYPE: We do not allow complex forms of IndexerName attribute due to a possible binding cycle
+        comp.VerifyEmitDiagnostics(
+            // (7,54): error CS8078: An expression is too long or complex to compile
+            //         [System.Runtime.CompilerServices.IndexerName(Str)]
+            Diagnostic(ErrorCode.ERR_InsufficientStack, "Str").WithLocation(7, 54)
+            );
     }
 
     [Fact]
