@@ -292,6 +292,25 @@ unsafe record struct R(
 }
 ```
 
+## `with()` as a collection expression element is treated as collection *arguments*
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+`with(...)` when used as an element in a collection expression is bound as arguments passed to constructor or
+factory method used to create the collection, rather than as an invocation expression of a method named `with`.
+
+To bind to a method named `with`, use `@with` instead.
+
+```cs
+object x, y, z = ...;
+object[] items;
+
+items = [with(x, y), z];  // C#13: call to with() method; C#14: error args not supported for object[]
+items = [@with(x, y), z]; // call to with() method
+
+object with(object a, object b) { ... }
+```
+
 ## Collection expression uses indexer rather than `Add()` for `KeyValuePair<K, V>` collections
 
 ***Introduced in Visual Studio 2022 version 17.14***

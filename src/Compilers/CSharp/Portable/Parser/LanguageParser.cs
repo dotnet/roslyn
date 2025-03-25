@@ -12760,10 +12760,12 @@ done:
 
         private CollectionElementSyntax ParseCollectionElement()
         {
-            // PROTOTYPE: Parsing 'with' as a token should be tied to language version.
-            // PROTOTYPE: Document breaking change.
-            if (this.CurrentToken.ContextualKind == SyntaxKind.WithKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+            if (this.CurrentToken.ContextualKind == SyntaxKind.WithKeyword &&
+                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken &&
+                IsFeatureEnabled(MessageID.IDS_FeatureCollectionExpressionArguments))
+            {
                 return _syntaxFactory.WithElement(this.EatContextualToken(SyntaxKind.WithKeyword), this.ParseParenthesizedArgumentList());
+            }
 
             if (this.IsAtDotDotToken())
                 return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());

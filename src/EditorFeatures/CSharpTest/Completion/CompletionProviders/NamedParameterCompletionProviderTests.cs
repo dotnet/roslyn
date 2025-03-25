@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -532,6 +533,9 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     public async Task TestMutableInterfaces(string type)
     {
         var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
             using System.Collections.Generic;
 
             class C
@@ -540,7 +544,9 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 {
                     {{type}} list = [with($$)];
                 }
-            }
+            }]]></Document>
+                </Project>
+            </Workspace>
             """;
 
         await VerifyItemExistsAsync(markup, "capacity", displayTextSuffix: ":");
@@ -554,6 +560,9 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     public async Task TestReadOnlyInterfaces(string type)
     {
         var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
             using System;
             using System.Collections.Generic;
 
@@ -563,7 +572,9 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 {
                     {{type}} list = [with($$)];
                 }
-            }
+            }]]></Document>
+                </Project>
+            </Workspace>
             """;
 
         await VerifyItemIsAbsentAsync(markup, "capacity", displayTextSuffix: ":");
@@ -573,6 +584,9 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     public async Task TestConstructibleType1()
     {
         var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
             using System;
             using System.Collections.Generic;
 
@@ -582,7 +596,9 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 {
                     HashSet<int> set = [with($$)];
                 }
-            }
+            }]]></Document>
+                </Project>
+            </Workspace>
             """;
 
         await VerifyItemExistsAsync(markup, "comparer", displayTextSuffix: ":");
@@ -593,6 +609,9 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     public async Task TestConstructibleType2()
     {
         var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
             using System;
             using System.Collections.Generic;
 
@@ -602,7 +621,9 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 {
                     HashSet<int> set = [with(comparer: null, $$)];
                 }
-            }
+            }]]></Document>
+                </Project>
+            </Workspace>
             """;
 
         await VerifyItemIsAbsentAsync(markup, "comparer", displayTextSuffix: ":");
@@ -613,6 +634,9 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     public async Task TestBuilder1()
     {
         var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -651,7 +675,9 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 {
                     MyCollection<int> z = [with($$)];
                 }
-            }
+            }]]></Document>
+                </Project>
+            </Workspace>
             """;
         await VerifyItemExistsAsync(markup, "capacity", displayTextSuffix: ":");
         await VerifyItemExistsAsync(markup, "extra", displayTextSuffix: ":");

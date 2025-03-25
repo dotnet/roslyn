@@ -50,7 +50,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
         var markup = """
             <Workspace>
                 <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
-                    <Document FilePath="SourceDocument"><![CDATA[
+                    <Document FilePath="SourceDocument">
             class C
             {
                 void M()
@@ -63,12 +63,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
             </Workspace>
             """;
 
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("C()", string.Empty, null, currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+        await TestAsync(markup, [new("C()", string.Empty, null, currentParameterIndex: 0)]);
     }
 
     [Fact]
