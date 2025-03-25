@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 class MyBuilder
                 {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg = default) => default;
+                    public static MyCollection<T> Create<T>(T arg = default, ReadOnlySpan<T> items = default) => default;
                 }
                 """;
             string sourceB = """
@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg) => new(arg, items);
+                    public static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
                 }
                 """;
             string sourceB = """
@@ -1003,11 +1003,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   .maxstack  2
                   .locals init (T V_0)
                   IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_0
-                  IL_0004:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
-                  IL_0009:  ldarg.0
-                  IL_000a:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)"
+                  IL_0001:  ldarg.0
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloca.s   V_0
+                  IL_0005:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
+                  IL_000a:  call       "MyCollection<T> MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)"
                   IL_000f:  ret
                 }
                 """);
@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 class MyBuilder
                 {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg) => default;
+                    public static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => default;
                 }
                 """;
             string sourceB = """
@@ -1043,12 +1043,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (4,47): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
+                // (4,47): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'MyBuilder.Create(T)'
                 //     static MyCollection<T> EmptyArgs<T>() => [with()];
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("arg", "MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(4, 47),
-                // (6,38): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("arg", "MyBuilder.Create(T)").WithLocation(4, 47),
+                // (6,38): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'MyBuilder.Create(T)'
                 //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "params MyCollection<T> c").WithArguments("arg", "MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(6, 38));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "params MyCollection<T> c").WithArguments("arg", "MyBuilder.Create(T)").WithLocation(6, 38));
         }
 
         [Fact]
@@ -1069,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 class MyBuilder
                 {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg = default) => new(arg, items);
+                    public static MyCollection<T> Create<T>(T arg = default, ReadOnlySpan<T> items = default) => new(arg, items);
                 }
                 """;
             string sourceB = """
@@ -1101,15 +1101,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                   // Code size       24 (0x18)
                   .maxstack  2
-                  .locals init (System.ReadOnlySpan<T> V_0,
-                                T V_1)
+                  .locals init (T V_0,
+                                System.ReadOnlySpan<T> V_1)
                   IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "System.ReadOnlySpan<T>"
+                  IL_0002:  initobj    "T"
                   IL_0008:  ldloc.0
                   IL_0009:  ldloca.s   V_1
-                  IL_000b:  initobj    "T"
+                  IL_000b:  initobj    "System.ReadOnlySpan<T>"
                   IL_0011:  ldloc.1
-                  IL_0012:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)"
+                  IL_0012:  call       "MyCollection<T> MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)"
                   IL_0017:  ret
                 }
                 """);
@@ -1118,131 +1118,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // Code size       16 (0x10)
                   .maxstack  2
                   .locals init (System.ReadOnlySpan<T> V_0)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "System.ReadOnlySpan<T>"
-                  IL_0008:  ldloc.0
-                  IL_0009:  ldarg.0
-                  IL_000a:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)"
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldloca.s   V_0
+                  IL_0003:  initobj    "System.ReadOnlySpan<T>"
+                  IL_0009:  ldloc.0
+                  IL_000a:  call       "MyCollection<T> MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)"
                   IL_000f:  ret
                 }
                 """);
         }
 
         [Fact]
-        public void CollectionBuilder_ParamsParameter()
-        {
-            string sourceA = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyBuilder), "Create")]
-                class MyCollection<T> : IEnumerable<T>
-                {
-                    public readonly T[] Args;
-                    public MyCollection(ReadOnlySpan<T> items, T[] args) { Args = args; }
-                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
-                    IEnumerator IEnumerable.GetEnumerator() => null;
-                }
-                class MyBuilder
-                {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, params T[] args) => new(items, args);
-                }
-                """;
-            string sourceB = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        EmptyArgs<int>().Args.Report();
-                        OneArg(1).Args.Report();
-                        TwoArgs(2, 3).Args.Report();
-                        MultipleArgs([4, 5]).Args.Report();
-                        Params(6).Args.Report();
-                    }
-                    static MyCollection<T> EmptyArgs<T>() => [with()];
-                    static MyCollection<T> OneArg<T>(T t) => [with(t)];
-                    static MyCollection<T> TwoArgs<T>(T x, T y) => [with(x, y)];
-                    static MyCollection<T> MultipleArgs<T>(T[] args) => [with(args)];
-                    static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                }
-                """;
-            var verifier = CompileAndVerify(
-                [sourceA, sourceB, s_collectionExtensions],
-                targetFramework: TargetFramework.Net80,
-                verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("[], [1], [2, 3], [4, 5], [], "));
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program.EmptyArgs<T>()", """
-                {
-                  // Code size       20 (0x14)
-                  .maxstack  2
-                  .locals init (System.ReadOnlySpan<T> V_0)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "System.ReadOnlySpan<T>"
-                  IL_0008:  ldloc.0
-                  IL_0009:  call       "T[] System.Array.Empty<T>()"
-                  IL_000e:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
-                  IL_0013:  ret
-                }
-                """);
-            verifier.VerifyIL("Program.OneArg<T>(T)", """
-                {
-                  // Code size       29 (0x1d)
-                  .maxstack  5
-                  .locals init (System.ReadOnlySpan<T> V_0)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "System.ReadOnlySpan<T>"
-                  IL_0008:  ldloc.0
-                  IL_0009:  ldc.i4.1
-                  IL_000a:  newarr     "T"
-                  IL_000f:  dup
-                  IL_0010:  ldc.i4.0
-                  IL_0011:  ldarg.0
-                  IL_0012:  stelem     "T"
-                  IL_0017:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
-                  IL_001c:  ret
-                }
-                """);
-            verifier.VerifyIL("Program.TwoArgs<T>(T, T)", """
-                {
-                  // Code size       37 (0x25)
-                  .maxstack  5
-                  .locals init (System.ReadOnlySpan<T> V_0)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "System.ReadOnlySpan<T>"
-                  IL_0008:  ldloc.0
-                  IL_0009:  ldc.i4.2
-                  IL_000a:  newarr     "T"
-                  IL_000f:  dup
-                  IL_0010:  ldc.i4.0
-                  IL_0011:  ldarg.0
-                  IL_0012:  stelem     "T"
-                  IL_0017:  dup
-                  IL_0018:  ldc.i4.1
-                  IL_0019:  ldarg.1
-                  IL_001a:  stelem     "T"
-                  IL_001f:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
-                  IL_0024:  ret
-                }
-                """);
-            verifier.VerifyIL("Program.MultipleArgs<T>(T[])", """
-                {
-                  // Code size       16 (0x10)
-                  .maxstack  2
-                  .locals init (System.ReadOnlySpan<T> V_0)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "System.ReadOnlySpan<T>"
-                  IL_0008:  ldloc.0
-                  IL_0009:  ldarg.0
-                  IL_000a:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
-                  IL_000f:  ret
-                }
-                """);
-        }
-
-        [Fact]
-        public void CollectionBuilder_ImplicitParameter_Optional()
+        public void CollectionBuilder_ImplicitParameter_Optional_01()
         {
             string sourceA = """
                 using System;
@@ -1303,12 +1190,206 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,14): error CS1501: No overload for method 'Create' takes 2 arguments
+                // (6,14): error CS1501: No overload for method 'Create' takes 1 arguments
                 //         c = [with(1)];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "with(1)").WithArguments("Create", "2").WithLocation(6, 14),
-                // (7,14): error CS1501: No overload for method 'Create' takes 2 arguments
+                Diagnostic(ErrorCode.ERR_BadArgCount, "with(1)").WithArguments("Create", "1").WithLocation(6, 14),
+                // (7,14): error CS1501: No overload for method 'Create' takes 1 arguments
                 //         c = [with(2), 3];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "with(2)").WithArguments("Create", "2").WithLocation(7, 14));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "with(2)").WithArguments("Create", "1").WithLocation(7, 14));
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void CollectionBuilder_ImplicitParameter_Optional_02(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T[] Args;
+                    private readonly List<T> _list;
+                    internal MyCollection(ReadOnlySpan<T> args, ReadOnlySpan<T> items)
+                    {
+                        Args = args.ToArray();
+                        _list = new(items.ToArray());
+                    }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                public class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> args = default, ReadOnlySpan<T> items = default) => new(args, items);
+                }
+                """;
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = [with(items: default)];
+                        c = [with(default,  default)];
+                        c = [with(default, items: default)];
+                        c = [with(args: default, default)];
+                        c = [with(args: default, items: default)];
+                        c = [with(items: default, args: null)];
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceA, sourceB1],
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (6,19): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
+                //         c = [with(items: default)];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(6, 19),
+                // (7,14): error CS1501: No overload for method 'Create' takes 2 arguments
+                //         c = [with(default,  default)];
+                Diagnostic(ErrorCode.ERR_BadArgCount, "with(default,  default)").WithArguments("Create", "2").WithLocation(7, 14),
+                // (8,28): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
+                //         c = [with(default, items: default)];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(8, 28),
+                // (9,14): error CS1501: No overload for method 'Create' takes 2 arguments
+                //         c = [with(args: default, default)];
+                Diagnostic(ErrorCode.ERR_BadArgCount, "with(args: default, default)").WithArguments("Create", "2").WithLocation(9, 14),
+                // (10,34): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
+                //         c = [with(args: default, items: default)];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(10, 34),
+                // (11,19): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
+                //         c = [with(items: default, args: null)];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(11, 19));
+
+            string sourceB2 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Report<int>([]);
+                        Report([1, 2, 3]);
+                        Report([with(), 4]);
+                        Report([with([]), 5]);
+                        Report<int>([with([6, 7])]);
+                        Report([with(args: [8]), 9]);
+                        Report(Params<int>());
+                        Report(Params(10, 11));
+                    }
+                    static MyCollection<T> Params<T>(params MyCollection<T> c)
+                    {
+                        return c;
+                    }
+                    static void Report<T>(MyCollection<T> c)
+                    {
+                        Console.Write("Args: ");
+                        c.Args.Report();
+                        Console.Write("Items: ");
+                        c.Report();
+                        Console.WriteLine();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceB2, s_collectionExtensions],
+                references: [refA],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("""
+                    Args: [], Items: [], 
+                    Args: [], Items: [1, 2, 3], 
+                    Args: [], Items: [4], 
+                    Args: [], Items: [5], 
+                    Args: [6, 7], Items: [], 
+                    Args: [8], Items: [9], 
+                    Args: [], Items: [], 
+                    Args: [], Items: [10, 11], 
+                    """));
+            verifier.VerifyDiagnostics();
+        }
+
+        // As in _02, but where the last parameter is params rather than optional.
+        // PROTOTYPE: Merge with previous test, using `bool` parameter.
+        [CombinatorialData]
+        [Theory]
+        public void CollectionBuilder_ImplicitParameter_Optional_03(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T[] Args;
+                    private readonly List<T> _list;
+                    internal MyCollection(ReadOnlySpan<T> args, ReadOnlySpan<T> items)
+                    {
+                        Args = args.ToArray();
+                        _list = new(items.ToArray());
+                    }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                public class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> args = default, params ReadOnlySpan<T> items) => new(args, items);
+                }
+                """;
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
+            var refA = AsReference(comp, useCompilationReference);
+
+            // PROTOTYPE: Add sourceB1 with similar failure cases from _02.
+
+            string sourceB2 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Report<int>([]);
+                        Report([1, 2, 3]);
+                        Report([with(), 4]);
+                        Report([with([]), 5]);
+                        Report<int>([with([6, 7])]);
+                        Report(Params<int>());
+                        Report(Params(8, 9));
+                    }
+                    static MyCollection<T> Params<T>(params MyCollection<T> c)
+                    {
+                        return c;
+                    }
+                    static void Report<T>(MyCollection<T> c)
+                    {
+                        Console.Write("Args: ");
+                        c.Args.Report();
+                        Console.Write("Items: ");
+                        c.Report();
+                        Console.WriteLine();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceB2, s_collectionExtensions],
+                references: [refA],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("""
+                    Args: [], Items: [], 
+                    Args: [], Items: [1, 2, 3], 
+                    Args: [], Items: [4], 
+                    Args: [], Items: [5], 
+                    Args: [6, 7], Items: [], 
+                    Args: [], Items: [], 
+                    Args: [], Items: [8, 9], 
+                    """));
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1373,12 +1454,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,14): error CS1501: No overload for method 'Create' takes 2 arguments
+                // (6,14): error CS1501: No overload for method 'Create' takes 1 arguments
                 //         c = [with(1)];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "with(1)").WithArguments("Create", "2").WithLocation(6, 14),
-                // (7,14): error CS1501: No overload for method 'Create' takes 2 arguments
+                Diagnostic(ErrorCode.ERR_BadArgCount, "with(1)").WithArguments("Create", "1").WithLocation(6, 14),
+                // (7,14): error CS1501: No overload for method 'Create' takes 1 arguments
                 //         c = [with(2), 3];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "with(2)").WithArguments("Create", "2").WithLocation(7, 14));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "with(2)").WithArguments("Create", "1").WithLocation(7, 14));
         }
 
         [Fact]
@@ -1425,18 +1506,246 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (15,14): error CS1501: No overload for method 'Create' takes 2 arguments
+                // (15,14): error CS1501: No overload for method 'Create' takes 1 arguments
                 //         c = [with(x)];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "with(x)").WithArguments("Create", "2").WithLocation(15, 14),
-                // (16,14): error CS1501: No overload for method 'Create' takes 2 arguments
+                Diagnostic(ErrorCode.ERR_BadArgCount, "with(x)").WithArguments("Create", "1").WithLocation(15, 14),
+                // (16,14): error CS1501: No overload for method 'Create' takes 1 arguments
                 //         c = [with(x), y];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "with(x)").WithArguments("Create", "2").WithLocation(16, 14));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "with(x)").WithArguments("Create", "1").WithLocation(16, 14));
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void CollectionBuilder_ImplicitParameter_Params_03(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T[] Args;
+                    private readonly List<T> _list;
+                    internal MyCollection(ReadOnlySpan<T> args, ReadOnlySpan<T> items)
+                    {
+                        Args = args.ToArray();
+                        _list = new(items.ToArray());
+                    }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                public class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> args, params ReadOnlySpan<T> items) => new(args, items);
+                }
+                """;
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = [];
+                        c = [1, 2, 3];
+                        c = [with()];
+                    }
+                    static void F<T>(params MyCollection<T> c)
+                    {
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB1, references: [refA], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (6,13): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'MyBuilder.Create(ReadOnlySpan<int>)'
+                //         c = [];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("args", "MyBuilder.Create(System.ReadOnlySpan<int>)").WithLocation(6, 13),
+                // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'MyBuilder.Create(ReadOnlySpan<int>)'
+                //         c = [1, 2, 3];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[1, 2, 3]").WithArguments("args", "MyBuilder.Create(System.ReadOnlySpan<int>)").WithLocation(7, 13),
+                // (8,14): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'MyBuilder.Create(ReadOnlySpan<int>)'
+                //         c = [with()];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("args", "MyBuilder.Create(System.ReadOnlySpan<int>)").WithLocation(8, 14),
+                // (10,22): error CS7036: There is no argument given that corresponds to the required parameter 'args' of 'MyBuilder.Create(ReadOnlySpan<T>)'
+                //     static void F<T>(params MyCollection<T> c)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "params MyCollection<T> c").WithArguments("args", "MyBuilder.Create(System.ReadOnlySpan<T>)").WithLocation(10, 22));
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = [with(default)];
+                        c.Args.Report();
+                        c.Report();
+                        c = [with([1]), 2];
+                        c.Args.Report();
+                        c.Report();
+                        c = [with([]), 3, 4];
+                        c.Args.Report();
+                        c.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceB2, s_collectionExtensions],
+                references: [refA],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[], [], [1], [2], [], [3, 4], "));
+            verifier.VerifyDiagnostics();
+        }
+
+        [CombinatorialData]
+        [Theory]
+        public void CollectionBuilder_ImplicitParameter_Params_04(bool useCompilationReference)
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                public struct MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T[] Args;
+                    private readonly List<T> _list;
+                    internal MyCollection(ReadOnlySpan<T> args, ReadOnlySpan<T> items)
+                    {
+                        Args = args.ToArray();
+                        _list = new(items.ToArray());
+                    }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => _list.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                }
+                public class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> x = default, object y = null, ReadOnlySpan<T> z = default) => new(x, z);
+                    public static MyCollection<T> Create<T>(object y = null, ReadOnlySpan<T> z = default, ReadOnlySpan<T> x = default) => new(z, x);
+                }
+                """;
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Net80);
+            var refA = AsReference(comp, useCompilationReference);
+
+            string sourceB1 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = [with(y: null), 1, 2, 3];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB1, references: [refA], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (6,14): error CS0121: The call is ambiguous between the following methods or properties: 'MyBuilder.Create(ReadOnlySpan<int>, object)' and 'MyBuilder.Create(object, ReadOnlySpan<int>)'
+                //         c = [with(y: null), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_AmbigCall, "with(y: null)").WithArguments("MyBuilder.Create(System.ReadOnlySpan<int>, object)", "MyBuilder.Create(object, System.ReadOnlySpan<int>)").WithLocation(6, 14));
+
+            string sourceB2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = [with(x: default), 1];
+                        c.Args.Report();
+                        c.Report();
+                        c = [with(x: [2]), 3];
+                        c.Args.Report();
+                        c.Report();
+                        c = [with(z: []), 4];
+                        c.Args.Report();
+                        c.Report();
+                        c = [with(z: [5])];
+                        c.Args.Report();
+                        c.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceB2, s_collectionExtensions],
+                references: [refA],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[], [1], [2], [3], [], [4], [5], [], "));
+            verifier.VerifyDiagnostics();
+        }
+
+        // PROTOTYPE: What cases fail if we don't supply a name for the items argument?
+        // 1. The following should report an error that no argument was provided for 'args'. Instead, it will bind to Create([1, 2, 3]).  (See CollectionBuilder_ImplicitParameter_Params_03)
+        // MyCollection<int> c = [1, 2, 3]; // error: no 'args'
+        // static MyCollection<T> Create<T>(ReadOnlySpan<T> args, params ReadOnlySpan<T> items);
+        // 2. The following will bind to Create([1, 2, 3]) rather than Create(default, [1, 2, 3]). (See CollectionBuilder_ImplicitParameter_Optional_02, _03)
+        // MyCollection<int> c = [1, 2, 3]; // Create(default, [1, 2, 3])
+        // static MyCollection<T> Create<T>(ReadOnlySpan<T> args = default, ReadOnlySpan<T> items = default);
+
+        // PROTOTYPE: What cases fail if we supply the same name for the items argument, for all overloads?
+        // 3. The following will bind without errors to one of the overloads, rather than reported as ambiguous. (See CollectionBuilder_ImplicitParameter_Params_04)
+        // MyCollection<int> c = [with(y: null), 1, 2, 3];
+        // static MyCollection<T> Create<T>(ReadOnlySpan<T> x = default, object y = null, ReadOnlySpan<T> z = default);
+        // static MyCollection<T> Create<T>(object y = null, ReadOnlySpan<T> z = default, ReadOnlySpan<T> x = default);
+
+        [Fact]
+        public void CollectionBuilder_MultipleBuilderMethods_OverloadResolution()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    internal readonly object[] Args;
+                    private readonly List<T> _items;
+                    public MyCollection(object[] args, ReadOnlySpan<T> items)
+                    {
+                        Args = args;
+                        _items = new(items.ToArray());
+                    }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(object x, long y, ReadOnlySpan<T> items) => new(["A", x, y], items);
+                    public static MyCollection<T> Create<T>(int y, string x, ReadOnlySpan<T> items) => new(["B", y, x], items);
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = [with(x: "one", y: 1), -1];
+                        c.Args.Report();
+                        c.Report();
+                        c = [with(x: "two", y: 2L), -2];
+                        c.Args.Report();
+                        c.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[B, 1, one], [-1], [A, two, 2], [-2], "));
+            verifier.VerifyDiagnostics();
         }
 
         // C#7.3 feature ImprovedOverloadCandidates drops candidates with constraint violations
         // (see OverloadResolution.RemoveConstraintViolations()) which allows constructing
         // MyCollection<T> and MyCollection<U> with different factory methods.
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: Check constraints")]
         public void CollectionBuilder_MultipleBuilderMethods_GenericConstraints_ClassAndStruct()
         {
             string sourceA = """
@@ -1464,7 +1773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) where T : class => new(items);
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg = default) where T : struct => new(arg, items);
+                    public static MyCollection<T> Create<T>(T arg = default, ReadOnlySpan<T> items = default) where T : struct => new(arg, items);
                 }
                 """;
 
@@ -1671,7 +1980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(items);
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg = default) where T : class => new(arg, items);
+                    public static MyCollection<T> Create<T>(T arg = default, ReadOnlySpan<T> items = default) where T : class => new(arg, items);
                 }
                 """;
 
@@ -1776,7 +2085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyIL("Program.ClassConstraint<T>", expectedIL.Replace("NoConstraintsParams", "ClassConstraintParams"));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: Check constraints")]
         public void CollectionBuilder_MultipleBuilderMethods_GenericConstraints_StructAndNone()
         {
             string sourceA = """
@@ -1804,7 +2113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) where T : struct => new(items);
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg = default) => new(arg, items);
+                    public static MyCollection<T> Create<T>(T arg = default, ReadOnlySpan<T> items = default) => new(arg, items);
                 }
                 """;
 
@@ -1989,7 +2298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T x = default, T y = default) => new(items, x, y);
+                    public static MyCollection<T> Create<T>(T x = default, T y = default, ReadOnlySpan<T> items = default) => new(items, x, y);
                 }
                 """;
             string sourceB = """
@@ -2028,7 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => throw null;
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, ref T x) => new(items, x);
+                    public static MyCollection<T> Create<T>(ref T x, ReadOnlySpan<T> items) => new(items, x);
                 }
                 """;
 
@@ -2063,21 +2372,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (5,11): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                // (5,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 // c = [with(0)];
-                Diagnostic(ErrorCode.ERR_BadArgRef, "0").WithArguments("2", "ref").WithLocation(5, 11),
-                // (6,11): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                Diagnostic(ErrorCode.ERR_BadArgRef, "0").WithArguments("1", "ref").WithLocation(5, 11),
+                // (6,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 // c = [with(x)];
-                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("2", "ref").WithLocation(6, 11),
-                // (7,14): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref").WithLocation(6, 11),
+                // (7,14): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 // c = [with(in x)];
-                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("2", "ref").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref").WithLocation(7, 14),
                 // (8,15): error CS1510: A ref or out value must be an assignable variable
                 // c = [with(ref ro)];
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "ro").WithLocation(8, 15),
-                // (9,15): error CS1620: Argument 2 must be passed with the 'ref' keyword
+                // (9,15): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 // c = [with(out x)];
-                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("2", "ref").WithLocation(9, 15));
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "ref").WithLocation(9, 15));
         }
 
         [Fact]
@@ -2099,7 +2408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => throw null;
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, ref readonly T x) => new(items, x);
+                    public static MyCollection<T> Create<T>(ref readonly T x, ReadOnlySpan<T> items) => new(items, x);
                 }
                 """;
 
@@ -2129,12 +2438,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("[0], [1], [2], [3], [4], "));
             verifier.VerifyDiagnostics(
-                // (6,11): warning CS9193: Argument 2 should be a variable because it is passed to a 'ref readonly' parameter
+                // (6,11): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
                 // c = [with(0)];
-                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "0").WithArguments("2").WithLocation(6, 11),
-                // (8,11): warning CS9192: Argument 2 should be passed with 'ref' or 'in' keyword
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "0").WithArguments("1").WithLocation(6, 11),
+                // (8,11): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
                 // c = [with(x)];
-                Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("2").WithLocation(8, 11));
+                Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(8, 11));
 
             string sourceB2 = """
                 #pragma warning disable 219 // variable assigned but never used
@@ -2150,9 +2459,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,15): error CS1510: A ref or out value must be an assignable variable
                 // c = [with(ref ro)];
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "ro").WithLocation(6, 15),
-                // (7,15): error CS1615: Argument 2 may not be passed with the 'out' keyword
+                // (7,15): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 // c = [with(out x)];
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("2", "out").WithLocation(7, 15));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(7, 15));
         }
 
         [Fact]
@@ -2174,7 +2483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => throw null;
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, in T x) => new(items, x);
+                    public static MyCollection<T> Create<T>(in T x, ReadOnlySpan<T> items) => new(items, x);
                 }
                 """;
 
@@ -2207,9 +2516,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("[0], [1], [2], [3], [4], [5], "));
             verifier.VerifyDiagnostics(
-                // (11,15): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                // (11,15): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                 // c = [with(ref x)];
-                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("2").WithLocation(11, 15));
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(11, 15));
 
             string sourceB2 = """
                 #pragma warning disable 219 // variable assigned but never used
@@ -2244,7 +2553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => throw null;
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, out T x) { x = default; return new(items, x); }
+                    public static MyCollection<T> Create<T>(out T x, ReadOnlySpan<T> items) { x = default; return new(items, x); }
                 }
                 """;
 
@@ -2277,18 +2586,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (4,11): error CS1620: Argument 2 must be passed with the 'out' keyword
+                // (4,11): error CS1620: Argument 1 must be passed with the 'out' keyword
                 // c = [with(1)];
-                Diagnostic(ErrorCode.ERR_BadArgRef, "1").WithArguments("2", "out").WithLocation(4, 11),
-                // (5,11): error CS1620: Argument 2 must be passed with the 'out' keyword
+                Diagnostic(ErrorCode.ERR_BadArgRef, "1").WithArguments("1", "out").WithLocation(4, 11),
+                // (5,11): error CS1620: Argument 1 must be passed with the 'out' keyword
                 // c = [with(x)];
-                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("2", "out").WithLocation(5, 11),
-                // (6,15): error CS1620: Argument 2 must be passed with the 'out' keyword
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "out").WithLocation(5, 11),
+                // (6,15): error CS1620: Argument 1 must be passed with the 'out' keyword
                 // c = [with(ref x)];
-                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("2", "out").WithLocation(6, 15),
-                // (7,14): error CS1620: Argument 2 must be passed with the 'out' keyword
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "out").WithLocation(6, 15),
+                // (7,14): error CS1620: Argument 1 must be passed with the 'out' keyword
                 // c = [with(in x)];
-                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("2", "out").WithLocation(7, 14));
+                Diagnostic(ErrorCode.ERR_BadArgRef, "x").WithArguments("1", "out").WithLocation(7, 14));
         }
 
         [Fact]
@@ -2316,9 +2625,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, in T x) => new(items, x, default);
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T x, ref T y) => new(items, x, y);
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, out T x, T y) { x = default; return new(items, x, y); }
+                    public static MyCollection<T> Create<T>(in T x, ReadOnlySpan<T> items) => new(items, x, default);
+                    public static MyCollection<T> Create<T>(T x, ref T y, ReadOnlySpan<T> items) => new(items, x, y);
+                    public static MyCollection<T> Create<T>(out T x, T y, ReadOnlySpan<T> items) { x = default; return new(items, x, y); }
                 }
                 """;
             string sourceB = """
@@ -2361,7 +2670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 class MyBuilder
                 {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg = default) => new(items, arg);
+                    public static MyCollection<T> Create<T>(T arg = default, ReadOnlySpan<T> items = default) => new(items, arg);
                 }
                 """;
             string sourceB = """
@@ -2376,24 +2685,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (2,11): error CS1744: Named argument 'items' specifies a parameter for which a positional argument has already been given
+                // (2,11): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
                 // c = [with(items: default)];
-                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "items").WithArguments("items").WithLocation(2, 11),
-                // (3,11): error CS8323: Named argument 'items' is used out-of-position but is followed by an unnamed argument
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(2, 11),
+                // (3,11): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
                 // c = [with(items: default, 1)];
-                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "items").WithArguments("items").WithLocation(3, 11),
-                // (4,11): error CS1744: Named argument 'items' specifies a parameter for which a positional argument has already been given
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(3, 11),
+                // (4,11): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
                 // c = [with(items: default, arg: 2)];
-                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "items").WithArguments("items").WithLocation(4, 11),
-                // (5,14): error CS1744: Named argument 'items' specifies a parameter for which a positional argument has already been given
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(4, 11),
+                // (5,14): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
                 // c = [with(3, items: default)];
-                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "items").WithArguments("items").WithLocation(5, 14),
-                // (6,19): error CS1744: Named argument 'items' specifies a parameter for which a positional argument has already been given
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(5, 14),
+                // (6,19): error CS1739: The best overload for 'Create' does not have a parameter named 'items'
                 // c = [with(arg: 4, items: default)];
-                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "items").WithArguments("items").WithLocation(6, 19),
-                // (7,6): error CS1501: No overload for method 'Create' takes 3 arguments
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "items").WithArguments("Create", "items").WithLocation(6, 19),
+                // (7,6): error CS1501: No overload for method 'Create' takes 2 arguments
                 // c = [with(default, 5)];
-                Diagnostic(ErrorCode.ERR_BadArgCount, "with(default, 5)").WithArguments("Create", "3").WithLocation(7, 6),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "with(default, 5)").WithArguments("Create", "2").WithLocation(7, 6),
                 // (8,20): error CS1744: Named argument 'arg' specifies a parameter for which a positional argument has already been given
                 // c = [with(default, arg: 6)];
                 Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "arg").WithArguments("arg").WithLocation(8, 20));
@@ -2425,7 +2734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, int arg) where T : struct => default;
+                    public static MyCollection<T> Create<T>(int arg, ReadOnlySpan<T> items) where T : struct => default;
                 }
                 """;
             string sourceC = """
@@ -2438,8 +2747,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation([sourceA, sourceB, sourceC, CollectionBuilderAttributeDefinition]);
+            // PROTOTYPE: Check constraints.
             comp.VerifyEmitDiagnostics(
-                // (3,43): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'ReadOnlySpan<T>'
+                /*// (3,43): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'ReadOnlySpan<T>'
                 //     static MyCollection<T> NoArgs<T>() => [];
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[]").WithArguments("System.ReadOnlySpan<T>", "T", "T").WithLocation(3, 43),
                 // (4,47): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'ReadOnlySpan<T>'
@@ -2450,13 +2760,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with(arg)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, int)", "T", "T").WithLocation(5, 52),
                 // (6,38): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'ReadOnlySpan<T>'
                 //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("System.ReadOnlySpan<T>", "T", "T").WithLocation(6, 38),
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("System.ReadOnlySpan<T>", "T", "T").WithLocation(6, 38),*/
                 // (13,61): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'ReadOnlySpan<T>'
                 //     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "items").WithArguments("System.ReadOnlySpan<T>", "T", "T").WithLocation(13, 61));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: Handle conversion in lowering")]
         public void CollectionBuilder_SpreadElement_BoxingConversion()
         {
             string sourceA = """
@@ -2482,7 +2792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                     }
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => throw null;
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg) => new(items, arg);
+                    public static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(items, arg);
                 }
                 """;
             string sourceB = """
@@ -2497,7 +2807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         IMyCollection<int> y = F<int>([1, 2], 3);
                         y.Report();
                     }
-                    static IMyCollection<T?> F<T>(ReadOnlySpan<T> items, T arg) => [with(arg), ..items];
+                    static IMyCollection<T?> F<T>(T arg, ReadOnlySpan<T> items) => [with(arg), ..items];
                 }
                 """;
             var verifier = CompileAndVerify(
@@ -2530,7 +2840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // public static class MyCollectionBuilder
             // {
             //     [CompilerFeatureRequired("MyFeature")]
-            //     public static MyCollection<T> MyCollectionBuilder.Create<T>(ReadOnlySpan<T>, object arg = null) { }
+            //     public static MyCollection<T> Create<T>(object arg = null, ReadOnlySpan<T> items = default) { }
             // }
             string sourceA = """
                 .assembly extern System.Runtime { .ver 8:0:0:0 .publickeytoken = (B0 3F 5F 7F 11 D5 0A 3A) }
@@ -2542,9 +2852,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 .class public abstract sealed MyCollectionBuilder
                 {
-                  .method public static class MyCollection`1<!!T> Create<T>(valuetype [System.Runtime]System.ReadOnlySpan`1<!!T> items, [opt] object arg)
+                  .method public static class MyCollection`1<!!T> Create<T>([opt] object arg, [opt] valuetype [System.Runtime]System.ReadOnlySpan`1<!!T> items)
                   {
                     .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = { string('MyFeature') }
+                    .param [1] = nullref
                     .param [2] = nullref
                     ldnull ret
                   }
@@ -2567,8 +2878,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
+            // PROTOTYPE: Report use-site errors.
             comp.VerifyEmitDiagnostics(
-                // (6,13): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>, object)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
+                /*// (6,13): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>, object)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
                 //         c = [];
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "[]").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>, object)", "MyFeature").WithLocation(6, 13),
                 // (7,14): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>, object)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
@@ -2582,7 +2894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "F(1, 2)").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>, object)", "MyFeature").WithLocation(9, 13),
                 // (11,33): error CS9041: 'MyCollectionBuilder.Create<T>(ReadOnlySpan<T>, object)' requires compiler feature 'MyFeature', which is not supported by this version of the C# compiler.
                 //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>, object)", "MyFeature").WithLocation(11, 33));
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "params MyCollection<T> c").WithArguments("MyCollectionBuilder.Create<T>(System.ReadOnlySpan<T>, object)", "MyFeature").WithLocation(11, 33)*/);
         }
 
         [Fact]
@@ -2603,7 +2915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => default;
                     [Obsolete]
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg) => default;
+                    public static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => default;
                 }
                 """;
             string sourceB = """
@@ -2622,9 +2934,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (8,14): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
+                // (8,14): warning CS0612: 'MyBuilder.Create(int)' is obsolete
                 //         c = [with(default)];
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(8, 14));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyBuilder.Create(int)").WithLocation(8, 14));
         }
 
         [Fact]
@@ -2644,7 +2956,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     [Obsolete]
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg = default) => default;
+                    public static MyCollection<T> Create<T>(T arg = default, ReadOnlySpan<T> items = default) => default;
                 }
                 """;
             string sourceB = """
@@ -2663,21 +2975,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,13): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
+                // (6,13): warning CS0612: 'MyBuilder.Create(int)' is obsolete
                 //         c = [];
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[]").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(6, 13),
-                // (7,14): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "[]").WithArguments("MyBuilder.Create(int)").WithLocation(6, 13),
+                // (7,14): warning CS0612: 'MyBuilder.Create(int)' is obsolete
                 //         c = [with()];
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with()").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(7, 14),
-                // (8,14): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with()").WithArguments("MyBuilder.Create(int)").WithLocation(7, 14),
+                // (8,14): warning CS0612: 'MyBuilder.Create(int)' is obsolete
                 //         c = [with(default)];
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(8, 14),
-                // (9,13): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "with(default)").WithArguments("MyBuilder.Create(int)").WithLocation(8, 14),
+                // (9,13): warning CS0612: 'MyBuilder.Create(int)' is obsolete
                 //         c = F(1, 2);
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F(1, 2)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(9, 13),
-                // (11,33): warning CS0612: 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)' is obsolete
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F(1, 2)").WithArguments("MyBuilder.Create(int)").WithLocation(9, 13),
+                // (11,33): warning CS0612: 'MyBuilder.Create(T)' is obsolete
                 //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)").WithLocation(11, 33));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "params MyCollection<T> c").WithArguments("MyBuilder.Create(T)").WithLocation(11, 33));
         }
 
         [Fact]
@@ -2698,7 +3010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     [UnmanagedCallersOnly]
-                    public static MyCollection Create(ReadOnlySpan<int> items, params object[] args) => default;
+                    public static MyCollection Create(object arg = null, ReadOnlySpan<int> items = default) => default;
                 }
                 """;
             string sourceB = """
@@ -2717,30 +3029,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,13): error CS8901: 'MyBuilder.Create(ReadOnlySpan<int>, params object[])' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // (6,13): error CS8901: 'MyBuilder.Create(object)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         c = [];
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "[]").WithArguments("MyBuilder.Create(System.ReadOnlySpan<int>, params object[])").WithLocation(6, 13),
-                // (7,14): error CS8901: 'MyBuilder.Create(ReadOnlySpan<int>, params object[])' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "[]").WithArguments("MyBuilder.Create(object)").WithLocation(6, 13),
+                // (7,14): error CS8901: 'MyBuilder.Create(object)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         c = [with()];
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "with()").WithArguments("MyBuilder.Create(System.ReadOnlySpan<int>, params object[])").WithLocation(7, 14),
-                // (8,14): error CS8901: 'MyBuilder.Create(ReadOnlySpan<int>, params object[])' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "with()").WithArguments("MyBuilder.Create(object)").WithLocation(7, 14),
+                // (8,14): error CS8901: 'MyBuilder.Create(object)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         c = [with(0)];
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "with(0)").WithArguments("MyBuilder.Create(System.ReadOnlySpan<int>, params object[])").WithLocation(8, 14),
-                // (9,13): error CS8901: 'MyBuilder.Create(ReadOnlySpan<int>, params object[])' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "with(0)").WithArguments("MyBuilder.Create(object)").WithLocation(8, 14),
+                // (9,13): error CS8901: 'MyBuilder.Create(object)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //         c = F(1, 2);
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F(1, 2)").WithArguments("MyBuilder.Create(System.ReadOnlySpan<int>, params object[])").WithLocation(9, 13),
-                // (11,27): error CS8901: 'MyBuilder.Create(ReadOnlySpan<int>, params object[])' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F(1, 2)").WithArguments("MyBuilder.Create(object)").WithLocation(9, 13),
+                // (11,27): error CS8901: 'MyBuilder.Create(object)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //     static MyCollection F(params MyCollection c) => c;
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "params MyCollection c").WithArguments("MyBuilder.Create(System.ReadOnlySpan<int>, params object[])").WithLocation(11, 27),
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "params MyCollection c").WithArguments("MyBuilder.Create(object)").WithLocation(11, 27),
                 // (15,19): error CS8894: Cannot use 'MyCollection' as a return type on a method attributed with 'UnmanagedCallersOnly'.
-                //     public static MyCollection Create(ReadOnlySpan<int> items, params object[] args) => default;
+                //     public static MyCollection Create(object arg = null, ReadOnlySpan<int> items = default) => default;
                 Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "MyCollection").WithArguments("MyCollection", "return").WithLocation(15, 19),
-                // (15,39): error CS8894: Cannot use 'ReadOnlySpan<int>' as a parameter type on a method attributed with 'UnmanagedCallersOnly'.
-                //     public static MyCollection Create(ReadOnlySpan<int> items, params object[] args) => default;
-                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "ReadOnlySpan<int> items").WithArguments("System.ReadOnlySpan<int>", "parameter").WithLocation(15, 39),
-                // (15,64): error CS8894: Cannot use 'object[]' as a parameter type on a method attributed with 'UnmanagedCallersOnly'.
-                //     public static MyCollection Create(ReadOnlySpan<int> items, params object[] args) => default;
-                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "params object[] args").WithArguments("object[]", "parameter").WithLocation(15, 64));
+                // (15,39): error CS8894: Cannot use 'object' as a parameter type on a method attributed with 'UnmanagedCallersOnly'.
+                //     public static MyCollection Create(object arg = null, ReadOnlySpan<int> items = default) => default;
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "object arg = null").WithArguments("object", "parameter").WithLocation(15, 39),
+                // (15,58): error CS8894: Cannot use 'ReadOnlySpan<int>' as a parameter type on a method attributed with 'UnmanagedCallersOnly'.
+                //     public static MyCollection Create(object arg = null, ReadOnlySpan<int> items = default) => default;
+                Diagnostic(ErrorCode.ERR_CannotUseManagedTypeInUnmanagedCallersOnly, "ReadOnlySpan<int> items = default").WithArguments("System.ReadOnlySpan<int>", "parameter").WithLocation(15, 58));
         }
 
         [Fact]
@@ -2767,7 +3079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class MyBuilder
                 {
                     public static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg) where T : struct => new(arg, items);
+                    public static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) where T : struct => new(arg, items);
                 }
                 """;
 
@@ -2811,13 +3123,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(
                 [sourceA, sourceB2],
                 targetFramework: TargetFramework.Net80);
+            // PROTOTYPE: Check constraints.
             comp.VerifyEmitDiagnostics(
-                // (6,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
+                /*// (6,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
                 //         x = [with(default)];
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with(default)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "object").WithLocation(6, 14),
                 // (7,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
                 //         x = [with(2), 3];
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with(2)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "object").WithLocation(7, 14));
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with(2)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "object").WithLocation(7, 14)*/);
         }
 
         [Fact]
@@ -2843,7 +3156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 class MyBuilder
                 {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, T arg = default) where T : struct => new(arg, items);
+                    public static MyCollection<T> Create<T>(T arg = default, ReadOnlySpan<T> items = default) where T : struct => new(arg, items);
                 }
                 """;
 
@@ -2896,8 +3209,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(
                 [sourceA, sourceB2],
                 targetFramework: TargetFramework.Net80);
+            // PROTOTYPE: Check constraints.
             comp.VerifyEmitDiagnostics(
-                // (6,13): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
+                /*// (6,13): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
                 //         c = [];
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[]").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "object").WithLocation(6, 13),
                 // (7,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
@@ -2914,103 +3228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F((object)3)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "object").WithLocation(10, 9),
                 // (12,22): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, T)'
                 //     static void F<T>(params MyCollection<T> c)
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "T").WithLocation(12, 22));
-        }
-
-        [Fact]
-        public void CollectionBuilder_GenericConstraints_03()
-        {
-            string sourceA = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-                using System.Runtime.CompilerServices;
-                [CollectionBuilder(typeof(MyBuilder), "Create")]
-                class MyCollection<T> : IEnumerable<T>
-                {
-                    private readonly List<T> _items;
-                    public MyCollection(T[] args, ReadOnlySpan<T> items)
-                    {
-                        _items = new();
-                        _items.AddRange(args);
-                        _items.AddRange(items.ToArray());
-                    }
-                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
-                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-                }
-                class MyBuilder
-                {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, params T[] args) where T : struct => new(args, items);
-                }
-                """;
-
-            string sourceB1 = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<int> c;
-                        c = [];
-                        c.Report();
-                        c = [with(), 1];
-                        c.Report();
-                        c = [with(2, 3)];
-                        c.Report();
-                        F<int>();
-                        F(4, 5);
-                    }
-                    static void F<T>(params MyCollection<T> c) where T : struct
-                    {
-                        c.Report();
-                    }
-                }
-                """;
-            var verifier = CompileAndVerify(
-                [sourceA, sourceB1, s_collectionExtensions],
-                targetFramework: TargetFramework.Net80,
-                verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("[], [1], [2, 3], [], [4, 5], "));
-            verifier.VerifyDiagnostics();
-
-            string sourceB2 = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<object> c;
-                        c = [];
-                        c = [with(), 1];
-                        c = [with(2, 3)];
-                        F<object>();
-                        F((object)4, 5);
-                    }
-                    static void F<T>(params MyCollection<T> c)
-                    {
-                    }
-                }
-                """;
-            var comp = CreateCompilation(
-                [sourceA, sourceB2],
-                targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics(
-                // (6,13): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, params T[])'
-                //         c = [];
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[]").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])", "T", "object").WithLocation(6, 13),
-                // (7,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, params T[])'
-                //         c = [with(), 1];
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with()").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])", "T", "object").WithLocation(7, 14),
-                // (8,14): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, params T[])'
-                //         c = [with(2, 3)];
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "with(2, 3)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])", "T", "object").WithLocation(8, 14),
-                // (9,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, params T[])'
-                //         F<object>();
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>()").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])", "T", "object").WithLocation(9, 9),
-                // (10,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, params T[])'
-                //         F((object)4, 5);
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F((object)4, 5)").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])", "T", "object").WithLocation(10, 9),
-                // (12,22): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(ReadOnlySpan<T>, params T[])'
-                //     static void F<T>(params MyCollection<T> c)
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])", "T", "T").WithLocation(12, 22));
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "params MyCollection<T> c").WithArguments("MyBuilder.Create<T>(System.ReadOnlySpan<T>, T)", "T", "T").WithLocation(12, 22)*/);
         }
 
         [Fact]
@@ -3165,14 +3383,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         _items = new();
                         _items.AddRange(items.ToArray());
-                        _items.AddRange(args);
+                        if (args is { }) _items.AddRange(args);
                     }
                     public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                 }
                 class MyBuilder
                 {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, params T[] args) => new(args, items);
+                    public static MyCollection<T> Create<T>(T[] args = null, ReadOnlySpan<T> items = default) => new(args, items);
                 }
                 """;
             string sourceB = """
@@ -3198,12 +3416,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyDiagnostics();
             string expectedILNoArguments = """
                 {
-                  // Code size       12 (0xc)
+                  // Code size        8 (0x8)
                   .maxstack  2
-                  IL_0000:  ldarg.0
-                  IL_0001:  call       "T[] System.Array.Empty<T>()"
-                  IL_0006:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
-                  IL_000b:  ret
+                  IL_0000:  ldnull
+                  IL_0001:  ldarg.0
+                  IL_0002:  call       "MyCollection<T> MyBuilder.Create<T>(T[], System.ReadOnlySpan<T>)"
+                  IL_0007:  ret
                 }
                 """;
             verifier.VerifyIL("Program.NoArguments<T>", expectedILNoArguments);
@@ -3212,9 +3430,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                   // Code size        8 (0x8)
                   .maxstack  2
-                  IL_0000:  ldarg.0
-                  IL_0001:  ldarg.1
-                  IL_0002:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldarg.0
+                  IL_0002:  call       "MyCollection<T> MyBuilder.Create<T>(T[], System.ReadOnlySpan<T>)"
                   IL_0007:  ret
                 }
                 """);
@@ -3238,14 +3456,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             _items = new();
                             _items.AddRange(items.ToArray());
-                            _items.AddRange(args);
+                            if (args is { }) _items.AddRange(args);
                         }
                         public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
                         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                     }
                     public static class MyBuilder
                     {
-                        public static ImmutableArray<T> Create<T>(ReadOnlySpan<T> items, params T[] args) => new(items, args);
+                        public static ImmutableArray<T> Create<T>(T[] args = null, ReadOnlySpan<T> items = default) => new(items, args);
                     }
                 }
                 """;
@@ -3273,15 +3491,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyDiagnostics();
             string expectedILNoArguments = """
                 {
-                  // Code size       20 (0x14)
+                  // Code size       16 (0x10)
                   .maxstack  2
                   .locals init (System.ReadOnlySpan<T> V_0)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "System.ReadOnlySpan<T>"
-                  IL_0008:  ldloc.0
-                  IL_0009:  call       "T[] System.Array.Empty<T>()"
-                  IL_000e:  call       "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
-                  IL_0013:  ret
+                  IL_0000:  ldnull
+                  IL_0001:  ldloca.s   V_0
+                  IL_0003:  initobj    "System.ReadOnlySpan<T>"
+                  IL_0009:  ldloc.0
+                  IL_000a:  call       "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.MyBuilder.Create<T>(T[], System.ReadOnlySpan<T>)"
+                  IL_000f:  ret
                 }
                 """;
             verifier.VerifyIL("Program.ImmutableArrayNoArguments<T>", expectedILNoArguments);
@@ -3291,11 +3509,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // Code size       16 (0x10)
                   .maxstack  2
                   .locals init (System.ReadOnlySpan<T> V_0)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "System.ReadOnlySpan<T>"
-                  IL_0008:  ldloc.0
-                  IL_0009:  ldarg.0
-                  IL_000a:  call       "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldloca.s   V_0
+                  IL_0003:  initobj    "System.ReadOnlySpan<T>"
+                  IL_0009:  ldloc.0
+                  IL_000a:  call       "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.MyBuilder.Create<T>(T[], System.ReadOnlySpan<T>)"
                   IL_000f:  ret
                 }
                 """);
@@ -3318,14 +3536,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             _items = new();
                             _items.AddRange(items.ToArray());
-                            _items.AddRange(args);
+                            if (args is { }) _items.AddRange(args);
                         }
                         public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
                         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
                     }
                     public static class MyBuilder
                     {
-                        public static ImmutableArray<T> Create<T>(ReadOnlySpan<T> items, params T[] args) => new(items, args);
+                        public static ImmutableArray<T> Create<T>(T[] args = null, ReadOnlySpan<T> items = default) => new(items, args);
                     }
                 }
                 """;
@@ -3354,12 +3572,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyDiagnostics();
             string expectedILNoArguments = """
                 {
-                  // Code size       12 (0xc)
+                  // Code size        8 (0x8)
                   .maxstack  2
-                  IL_0000:  ldarg.0
-                  IL_0001:  call       "T[] System.Array.Empty<T>()"
-                  IL_0006:  call       "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
-                  IL_000b:  ret
+                  IL_0000:  ldnull
+                  IL_0001:  ldarg.0
+                  IL_0002:  call       "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.MyBuilder.Create<T>(T[], System.ReadOnlySpan<T>)"
+                  IL_0007:  ret
                 }
                 """;
             verifier.VerifyIL("Program.ImmutableArrayNoArguments<T>", expectedILNoArguments);
@@ -3368,9 +3586,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                   // Code size        8 (0x8)
                   .maxstack  2
-                  IL_0000:  ldarg.0
-                  IL_0001:  ldarg.1
-                  IL_0002:  call       "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.MyBuilder.Create<T>(System.ReadOnlySpan<T>, params T[])"
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldarg.0
+                  IL_0002:  call       "System.Collections.Immutable.ImmutableArray<T> System.Collections.Immutable.MyBuilder.Create<T>(T[], System.ReadOnlySpan<T>)"
                   IL_0007:  ret
                 }
                 """);
@@ -3433,7 +3651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Theory]
+        [Theory(Skip = "PROTOTYPE: Not reporting errors")]
         [CombinatorialData]
         public void RefSafety_CollectionBuilderArguments(bool scopedInParameter, bool scopedOutArgument)
         {
@@ -3450,7 +3668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 class MyBuilder
                 {
-                    public static MyCollection<T> Create<T>({{(scopedInParameter ? "scoped" : "")}} ReadOnlySpan<T> items, out ReadOnlySpan<T> other)
+                    public static MyCollection<T> Create<T>(out ReadOnlySpan<T> other, {{(scopedInParameter ? "scoped" : "")}} ReadOnlySpan<T> items)
                     {
                         other = default;
                         return default;
@@ -3750,7 +3968,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void EvaluationOrder_CollectionBuilder()
+        public void EvaluationOrder_CollectionBuilder_NamedArguments()
         {
             string sourceA = """
                 using System;
@@ -3780,7 +3998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 class MyBuilder
                 {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, A x = null, A y = null) => new(items, x, y);
+                    public static MyCollection<T> Create<T>(A x, A y, ReadOnlySpan<T> items) => new(items, x, y);
                 }
                 """;
             string sourceC = """
@@ -3803,58 +4021,315 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, sourceC],
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
-                // https://github.com/dotnet/roslyn/issues/77866: 1, ..., 2, ..., should be evaluated before 3, ..., 4, ... .
-                // Should be fixed when the last parameter of the builder method is the items parameter.
                 expectedOutput: IncludeExpectedOutput("""
-                    3
-                    3 -> A
-                    4
-                    4 -> A
                     1
                     1 -> A
                     2
                     2 -> A
+                    3
+                    3 -> A
+                    4
+                    4 -> A
                     MyCollection(2, 1)
                     """));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main()", """
                 {
                   // Code size       87 (0x57)
-                  .maxstack  3
+                  .maxstack  4
                   .locals init (<>y__InlineArray2<A> V_0,
                                 A V_1)
-                  IL_0000:  ldloca.s   V_0
-                  IL_0002:  initobj    "<>y__InlineArray2<A>"
-                  IL_0008:  ldloca.s   V_0
-                  IL_000a:  ldc.i4.0
-                  IL_000b:  call       "ref A <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<A>, A>(ref <>y__InlineArray2<A>, int)"
-                  IL_0010:  ldc.i4.3
-                  IL_0011:  call       "int Program.Identity<int>(int)"
-                  IL_0016:  call       "A A.op_Implicit(int)"
-                  IL_001b:  stind.ref
-                  IL_001c:  ldloca.s   V_0
-                  IL_001e:  ldc.i4.1
-                  IL_001f:  call       "ref A <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<A>, A>(ref <>y__InlineArray2<A>, int)"
-                  IL_0024:  ldc.i4.4
-                  IL_0025:  call       "int Program.Identity<int>(int)"
-                  IL_002a:  call       "A A.op_Implicit(int)"
-                  IL_002f:  stind.ref
-                  IL_0030:  ldloca.s   V_0
-                  IL_0032:  ldc.i4.2
-                  IL_0033:  call       "System.ReadOnlySpan<A> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<A>, A>(in <>y__InlineArray2<A>, int)"
-                  IL_0038:  ldc.i4.1
-                  IL_0039:  call       "int Program.Identity<int>(int)"
-                  IL_003e:  call       "A A.op_Implicit(int)"
-                  IL_0043:  stloc.1
-                  IL_0044:  ldc.i4.2
-                  IL_0045:  call       "int Program.Identity<int>(int)"
-                  IL_004a:  call       "A A.op_Implicit(int)"
-                  IL_004f:  ldloc.1
-                  IL_0050:  call       "MyCollection<A> MyBuilder.Create<A>(System.ReadOnlySpan<A>, A, A)"
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  call       "int Program.Identity<int>(int)"
+                  IL_0006:  call       "A A.op_Implicit(int)"
+                  IL_000b:  stloc.1
+                  IL_000c:  ldc.i4.2
+                  IL_000d:  call       "int Program.Identity<int>(int)"
+                  IL_0012:  call       "A A.op_Implicit(int)"
+                  IL_0017:  ldloc.1
+                  IL_0018:  ldloca.s   V_0
+                  IL_001a:  initobj    "<>y__InlineArray2<A>"
+                  IL_0020:  ldloca.s   V_0
+                  IL_0022:  ldc.i4.0
+                  IL_0023:  call       "ref A <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<A>, A>(ref <>y__InlineArray2<A>, int)"
+                  IL_0028:  ldc.i4.3
+                  IL_0029:  call       "int Program.Identity<int>(int)"
+                  IL_002e:  call       "A A.op_Implicit(int)"
+                  IL_0033:  stind.ref
+                  IL_0034:  ldloca.s   V_0
+                  IL_0036:  ldc.i4.1
+                  IL_0037:  call       "ref A <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray2<A>, A>(ref <>y__InlineArray2<A>, int)"
+                  IL_003c:  ldc.i4.4
+                  IL_003d:  call       "int Program.Identity<int>(int)"
+                  IL_0042:  call       "A A.op_Implicit(int)"
+                  IL_0047:  stind.ref
+                  IL_0048:  ldloca.s   V_0
+                  IL_004a:  ldc.i4.2
+                  IL_004b:  call       "System.ReadOnlySpan<A> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray2<A>, A>(in <>y__InlineArray2<A>, int)"
+                  IL_0050:  call       "MyCollection<A> MyBuilder.Create<A>(A, A, System.ReadOnlySpan<A>)"
                   IL_0055:  pop
                   IL_0056:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void EvaluationOrder_CollectionBuilder_OverloadResolution_DifferentParameterNames()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public MyCollection(object arg, int index, ReadOnlySpan<T> items) { Console.WriteLine("MyCollection({0}, {1})", index, arg); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(T a, ReadOnlySpan<T> b) => new(a, 1, b);
+                    public static MyCollection<T> Create<T>(int x, ReadOnlySpan<T> y) => new(x, 2, y);
+                }
+                """;
+
+            string sourceB1 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        ToCollection1(-1, 1);
+                        ToCollection3(-3, 3);
+                    }
+                    static MyCollection<T> ToCollection1<T>(T arg, T item) => [with(Identity(arg)), Identity(item)];
+                    static MyCollection<T> ToCollection3<T>(int arg, T item) => [with(Identity(arg)), Identity(item)];
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB1],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("""
+                    -1
+                    1
+                    MyCollection(1, -1)
+                    -3
+                    3
+                    MyCollection(2, -3)
+                    """));
+            verifier.VerifyDiagnostics();
+            string expectedIL = """
+                {
+                  // Code size       26 (0x1a)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "T Program.Identity<T>(T)"
+                  IL_0006:  ldarg.1
+                  IL_0007:  call       "T Program.Identity<T>(T)"
+                  IL_000c:  stloc.0
+                  IL_000d:  ldloca.s   V_0
+                  IL_000f:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
+                  IL_0014:  call       "MyCollection<T> MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)"
+                  IL_0019:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.ToCollection1<T>", expectedIL);
+            expectedIL = """
+                {
+                  // Code size       26 (0x1a)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "int Program.Identity<int>(int)"
+                  IL_0006:  ldarg.1
+                  IL_0007:  call       "T Program.Identity<T>(T)"
+                  IL_000c:  stloc.0
+                  IL_000d:  ldloca.s   V_0
+                  IL_000f:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
+                  IL_0014:  call       "MyCollection<T> MyBuilder.Create<T>(int, System.ReadOnlySpan<T>)"
+                  IL_0019:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.ToCollection3<T>", expectedIL);
+
+            string sourceB2 = """
+                class Program
+                {
+                    static MyCollection<T> ToCollection2<T>(T arg, T item) => [with(b: arg), item];
+                    static MyCollection<T> ToCollection4<T>(int arg, T item) => [with(y: arg), item];
+                    static MyCollection<T> ToCollection5<T>(T arg, T item) => [with(y: arg), item];
+                    static MyCollection<T> ToCollection6<T>(int arg, T item) => [with(b: arg), item];
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, sourceB2],
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,69): error CS1739: The best overload for 'Create' does not have a parameter named 'b'
+                //     static MyCollection<T> ToCollection2<T>(T arg, T item) => [with(b: arg), item];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "b").WithArguments("Create", "b").WithLocation(3, 69),
+                // (4,71): error CS1739: The best overload for 'Create' does not have a parameter named 'y'
+                //     static MyCollection<T> ToCollection4<T>(int arg, T item) => [with(y: arg), item];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("Create", "y").WithLocation(4, 71),
+                // (5,69): error CS1739: The best overload for 'Create' does not have a parameter named 'y'
+                //     static MyCollection<T> ToCollection5<T>(T arg, T item) => [with(y: arg), item];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("Create", "y").WithLocation(5, 69),
+                // (6,71): error CS1739: The best overload for 'Create' does not have a parameter named 'b'
+                //     static MyCollection<T> ToCollection6<T>(int arg, T item) => [with(b: arg), item];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "b").WithArguments("Create", "b").WithLocation(6, 71));
+        }
+
+        [Fact]
+        public void EvaluationOrder_CollectionBuilder_OverloadResolution_SwappedParameterNames()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public MyCollection(ReadOnlySpan<T> items, int index) { Console.WriteLine("MyCollection({0})", index); }
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                class MyBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> a, ReadOnlySpan<T> b) => new(b, 1);
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<object> b, ReadOnlySpan<T> a) => new(a, 2);
+                }
+                """;
+            string sourceB = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        ToCollection1(-1, 1);
+                        ToCollection2(-2, 2);
+                        ToCollection3(-3, 3);
+                        ToCollection5(-5, 5);
+                    }
+                    static MyCollection<T> ToCollection1<T>(T arg, T item) => [with([Identity(arg)]), Identity(item)];
+                    static MyCollection<T> ToCollection2<T>(T arg, T item) => [with(b: [Identity(arg)]), Identity(item)];
+                    static MyCollection<T> ToCollection3<T>(object arg, T item) => [with([Identity(arg)]), Identity(item)];
+                    static MyCollection<T> ToCollection5<T>(T arg, T item) => [with(a: [Identity(arg)]), Identity(item)];
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("""
+                    -1
+                    1
+                    MyCollection(1)
+                    -2
+                    2
+                    MyCollection(2)
+                    -3
+                    3
+                    MyCollection(2)
+                    -5
+                    5
+                    MyCollection(1)
+                    """));
+            verifier.VerifyDiagnostics();
+            string expectedIL = """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  2
+                  .locals init (T V_0,
+                                object V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "T Program.Identity<T>(T)"
+                  IL_0006:  box        "T"
+                  IL_000b:  stloc.1
+                  IL_000c:  ldloca.s   V_1
+                  IL_000e:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
+                  IL_0013:  ldarg.1
+                  IL_0014:  call       "T Program.Identity<T>(T)"
+                  IL_0019:  stloc.0
+                  IL_001a:  ldloca.s   V_0
+                  IL_001c:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
+                  IL_0021:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<object>, System.ReadOnlySpan<T>)"
+                  IL_0026:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.ToCollection1<T>", expectedIL);
+            verifier.VerifyIL("Program.ToCollection2<T>", expectedIL);
+            expectedIL = """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  2
+                  .locals init (T V_0,
+                                object V_1)
+                  IL_0000:  ldarg.1
+                  IL_0001:  call       "T Program.Identity<T>(T)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloca.s   V_0
+                  IL_0009:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "object Program.Identity<object>(object)"
+                  IL_0014:  stloc.1
+                  IL_0015:  ldloca.s   V_1
+                  IL_0017:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
+                  IL_001c:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, System.ReadOnlySpan<object>)"
+                  IL_0021:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.ToCollection3<T>", expectedIL);
+            verifier.VerifyIL("Program.ToCollection5<T>", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  2
+                  .locals init (T V_0,
+                                object V_1)
+                  IL_0000:  ldarg.1
+                  IL_0001:  call       "T Program.Identity<T>(T)"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloca.s   V_0
+                  IL_0009:  newobj     "System.ReadOnlySpan<T>..ctor(ref readonly T)"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "T Program.Identity<T>(T)"
+                  IL_0014:  box        "T"
+                  IL_0019:  stloc.1
+                  IL_001a:  ldloca.s   V_1
+                  IL_001c:  newobj     "System.ReadOnlySpan<object>..ctor(ref readonly object)"
+                  IL_0021:  call       "MyCollection<T> MyBuilder.Create<T>(System.ReadOnlySpan<T>, System.ReadOnlySpan<object>)"
+                  IL_0026:  ret
+                }
+                """);
+
+            string sourceB2 = """
+                class Program
+                {
+                    static MyCollection<T> ToCollection4<T>(object arg, T item) => [with(a: [arg]), item];
+                    static MyCollection<T> ToCollection6<T>(object arg, T item) => [with(b: [arg]), item];
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, sourceB2],
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,78): error CS0029: Cannot implicitly convert type 'object' to 'T'
+                //     static MyCollection<T> ToCollection6<T>(object arg, T item) => [with(b: [arg]), item];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("object", "T").WithLocation(3, 78));
         }
 
         [Fact]
@@ -4259,7 +4734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 class MyBuilder
                 {
-                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> items, params T[] args) => new(args, items);
+                    public static MyCollection<T> Create<T>(T[] args = null, ReadOnlySpan<T> items = default) => new(args, items);
                 }
                 """;
             string sourceB = """

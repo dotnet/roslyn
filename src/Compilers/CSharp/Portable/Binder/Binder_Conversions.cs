@@ -862,7 +862,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elements = node.Elements;
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
-            BoundValuePlaceholder? collectionBuilderSpanPlaceholder = null;
             MethodSymbol? setMethod = null;
 
             // Verify the existence of the well-known members that may be used in lowering, even
@@ -895,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (element is BoundCollectionExpressionWithElement withElement)
                     {
                         var analyzedArguments = AnalyzedArguments.GetInstance();
-                        withElement.AddToArguments(analyzedArguments);
+                        withElement.GetArguments(analyzedArguments);
                         var collectionWithArguments = BindCollectionExpressionConstructor(syntax, targetType, constructor, analyzedArguments, diagnostics);
                         analyzedArguments.Free();
                         collectionCreation ??= collectionWithArguments;
@@ -974,9 +973,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(syntax, useSiteInfo);
 
                 var candidateMethodGroup = BindCollectionBuilderMethodGroup(syntax, methodName, typeArguments, collectionBuilderCandidates);
-                collectionBuilderSpanPlaceholder = new BoundValuePlaceholder(syntax, GetWellKnownType(WellKnownType.System_ReadOnlySpan_T, diagnostics, syntax).Construct(elementType)) { WasCompilerGenerated = true };
 
                 // Bind collection creation with arguments.
+                // PROTOTYPE: Can this loop be shared with interface target types?
                 foreach (var element in elements)
                 {
                     if (element is BoundCollectionExpressionWithElement withElement)
@@ -984,8 +983,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var collectionWithArguments = BindCollectionBuilderCreate(
                             withElement.Syntax,
                             candidateMethodGroup,
-                            collectionBuilderSpanPlaceholder,
                             withElement,
+                            targetType,
                             diagnostics);
                         collectionCreation ??= collectionWithArguments;
                     }
@@ -997,8 +996,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectionCreation = BindCollectionBuilderCreate(
                         syntax,
                         candidateMethodGroup,
-                        collectionBuilderSpanPlaceholder,
                         withElement: null,
+                        targetType,
                         diagnostics);
                 }
 
@@ -1020,7 +1019,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind,
                 implicitReceiver,
                 collectionCreation,
-                collectionBuilderSpanPlaceholder,
                 setMethod,
                 wasTargetTyped: true,
                 node,
@@ -1263,11 +1261,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(collectionBuilderCandidates.All(c => c.IsDefinition));
 
+            var methods = collectionBuilderCandidates.SelectAsArray(
+                    static (method, typeArguments) => (MethodSymbol)new CollectionBuilderArgumentsOnlyMethodSymbol(
+                        typeArguments.IsEmpty ? method : method.Construct(typeArguments)),
+                    typeArguments);
+
+            // PROTOTYPE: If the target type has type arguments that are type parameters from the current method,
+            // then the signature method will reference type parameters that are not in scope. Does that break any
+            // compiler invariant? If so, we could create a synthesized generic type for the signature methods where
+            // the synthesized type has type parameters for the type arguments at the call-site.
             return new BoundMethodGroup(
                 syntax,
-                typeArgumentsOpt: typeArguments,
+                typeArgumentsOpt: default,
                 name: methodName,
-                methods: collectionBuilderCandidates,
+                methods,
                 lookupSymbolOpt: null,
                 lookupError: null,
                 flags: BoundMethodGroupFlags.None,
@@ -1276,30 +1283,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind: LookupResultKind.Viable);
         }
 
+        // PROTOTYPE: This is identical to BindInterfaceTargetCollectionArguments() and should be shared.
         internal BoundExpression BindCollectionBuilderCreate(
             SyntaxNode syntax,
-            BoundMethodGroup candidateMethodGroup,
-            BoundExpression spanArgument,
+            BoundExpression methodGroup,
             BoundCollectionExpressionWithElement? withElement,
+            TypeSymbol targetType,
             BindingDiagnosticBag diagnostics)
         {
-            var analyzedArguments = AnalyzedArguments.GetInstance();
-            analyzedArguments.Arguments.Add(spanArgument);
-            withElement?.AddToArguments(analyzedArguments);
-            var collectionCreation = BindMethodGroupInvocation(
-                syntax,
-                expression: syntax,
-                methodName: candidateMethodGroup.Name,
-                candidateMethodGroup,
-                analyzedArguments,
-                diagnostics,
-                queryClause: null,
-                ignoreNormalFormIfHasValidParamsParameter: false,
-                out _,
-                disallowExpandedNonArrayParams: true,
-                acceptOnlyMethods: true).MakeCompilerGenerated();
-            analyzedArguments.Free();
-            return collectionCreation;
+            Debug.Assert(methodGroup.Kind is BoundKind.MethodGroup or BoundKind.BadExpression);
+            if (methodGroup is BoundMethodGroup group)
+            {
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                withElement?.GetArguments(analyzedArguments);
+                var result = BindMethodGroupInvocation(
+                    syntax,
+                    expression: syntax,
+                    group.Name,
+                    group,
+                    analyzedArguments,
+                    diagnostics,
+                    queryClause: null,
+                    ignoreNormalFormIfHasValidParamsParameter: false,
+                    out _,
+                    disallowExpandedNonArrayParams: true,
+                    acceptOnlyMethods: true).MakeCompilerGenerated();
+                analyzedArguments.Free();
+                Debug.Assert(result.Kind != BoundKind.DynamicInvocation);
+                return result;
+            }
+            else
+            {
+                // PROTOTYPE: Test this case. We should hit this with dynamic arguments.
+                return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [methodGroup], targetType);
+            }
         }
 
         private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)
@@ -1362,7 +1379,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(node.CollectionCreation is { });
-            return getMethodFromExpression(node.CollectionCreation);
+            var method = getMethodFromExpression(node.CollectionCreation);
+            return method is CollectionBuilderArgumentsOnlyMethodSymbol argsOnlyMethod ?
+                argsOnlyMethod.UnderlyingMethod :
+                method;
 
             static MethodSymbol? getMethodFromExpression(BoundExpression? expr)
             {
@@ -2115,7 +2135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionTypeKind: CollectionExpressionTypeKind.None,
                 placeholder: null,
                 collectionCreation: null,
-                collectionBuilderSpanPlaceholder: null,
                 indexerSetMethod: null,
                 wasTargetTyped: inConversion,
                 node,
@@ -2350,7 +2369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (method.Parameters is not [{ RefKind: RefKind.None, Type: var parameterType }, ..]
+                if (method.Parameters is not [.., { RefKind: RefKind.None, Type: var parameterType }]
                     || !readOnlySpanType.Equals(parameterType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
                 {
                     continue;
@@ -2360,7 +2379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method :
                     method.Construct(allTypeParameters);
 
-                var spanTypeArg = ((NamedTypeSymbol)methodWithTargetTypeParameters.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+                var spanTypeArg = ((NamedTypeSymbol)methodWithTargetTypeParameters.Parameters[^1].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
                 var conversion = Conversions.ClassifyImplicitConversionFromType(elementType, spanTypeArg, ref candidateUseSiteInfo);
                 if (!conversion.IsIdentity)
                 {

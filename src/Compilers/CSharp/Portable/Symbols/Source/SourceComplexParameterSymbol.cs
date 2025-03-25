@@ -1642,15 +1642,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (candidateMethods.Any())
                             {
                                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
-                                var spanType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct(elementType);
                                 var typeArguments = targetType.GetAllTypeArguments(ref useSiteInfo);
                                 diagnostics.Add(syntax, useSiteInfo);
                                 var candidateMethodGroup = binder.BindCollectionBuilderMethodGroup(syntax, methodName, typeArguments, candidateMethods);
                                 var collectionCreation = binder.BindCollectionBuilderCreate(
                                     syntax,
                                     candidateMethodGroup,
-                                    spanArgument: new BoundDefaultExpression(syntax, spanType),
-                                    withElement: null, diagnostics);
+                                    withElement: null,
+                                    targetType,
+                                    diagnostics);
 
                                 if (collectionCreation is BoundCall { Method: var collectionBuilderMethod } &&
                                     ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
