@@ -427,11 +427,6 @@
         <target state="translated">更新歸併時發生錯誤: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Experimental_feature">
-        <source>Experimental feature</source>
-        <target state="translated">實驗性功能</target>
-        <note />
-      </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
         <target state="translated">外部來源</target>
@@ -1989,11 +1984,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 使用下拉式清單可以檢視並切換至這個檔案所屬的其他專案。</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted">
-        <source>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</source>
-        <target state="translated">分析器組件 '{0}' 已變更。可能造成診斷錯誤，直到 Visual Studio 重新啟動為止。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">全部取消選取(_D)</target>
@@ -2239,11 +2229,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">正在與 {0} 同步...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Studio_has_suspended_some_advanced_features_to_improve_performance">
-        <source>Visual Studio has suspended some advanced features to improve performance.</source>
-        <target state="translated">Visual Studio 已暫止部分進階功能以改善效能。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Installing_0">
         <source>Installing '{0}'</source>
         <target state="translated">正在安裝 '{0}'</target>
@@ -2436,11 +2421,6 @@ Additional information: {1}</source>
         <source>Restore {0}</source>
         <target state="translated">還原 {0}</target>
         <note>{0} is a parameter description</note>
-      </trans-unit>
-      <trans-unit id="Re_enable">
-        <source>Re-enable</source>
-        <target state="translated">重新啟用</target>
-        <note />
       </trans-unit>
       <trans-unit id="Learn_more">
         <source>Learn more</source>

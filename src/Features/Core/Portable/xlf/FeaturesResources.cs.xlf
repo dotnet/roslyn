@@ -320,11 +320,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Očekávaná úloha nevrací žádnou hodnotu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Built_in_Copilot_analysis">
-        <source>Built-in Copilot analysis</source>
-        <target state="translated">Integrovaná analýza Copilot</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
         <target state="translated">Reference pro C# a Visual Basic</target>
@@ -505,7 +500,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Komentáře nejsou povolené</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group number_0">
+      <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0">
         <source>Conditional alternation is missing a closing parenthesis after the group number {0}</source>
         <target state="new">Conditional alternation is missing a closing parenthesis after the group number {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
@@ -1333,11 +1328,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Pull_selected_members_up">
         <source>Pull selected members up</source>
         <target state="translated">Stáhnout vybrané členy nahoru</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_selected_members_up_to_0">
-        <source>Pull selected members up to {0}</source>
-        <target state="translated">Vyžádat vybrané členy až do {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_0_following_nothing">
@@ -2749,11 +2739,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <source>Too many )'s</source>
         <target state="translated">Příliš mnoho znaků )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
-      </trans-unit>
-      <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
-        <source>Top-level function '{0}' must have a single parameter</source>
-        <target state="new">Top-level function '{0}' must have a single parameter</target>
-        <note />
       </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>

@@ -320,11 +320,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">La tarea esperada no devuelve ningún valor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Built_in_Copilot_analysis">
-        <source>Built-in Copilot analysis</source>
-        <target state="translated">Análisis integrado de Copilot</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
         <source>C# and Visual Basic References</source>
         <target state="translated">Referencias de C# y Visual Basic</target>
@@ -505,7 +500,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Comentarios no permitidos</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group number_0">
+      <trans-unit id="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0">
         <source>Conditional alternation is missing a closing parenthesis after the group number {0}</source>
         <target state="new">Conditional alternation is missing a closing parenthesis after the group number {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</note>
@@ -1333,11 +1328,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="Pull_selected_members_up">
         <source>Pull selected members up</source>
         <target state="translated">Subir miembros seleccionados</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_selected_members_up_to_0">
-        <source>Pull selected members up to {0}</source>
-        <target state="translated">Subir miembros seleccionados hasta {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_0_following_nothing">
@@ -2749,11 +2739,6 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <source>Too many )'s</source>
         <target state="translated">Demasiados )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
-      </trans-unit>
-      <trans-unit id="Top_level_function_0_must_have_a_single_parameter">
-        <source>Top-level function '{0}' must have a single parameter</source>
-        <target state="new">Top-level function '{0}' must have a single parameter</target>
-        <note />
       </trans-unit>
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
