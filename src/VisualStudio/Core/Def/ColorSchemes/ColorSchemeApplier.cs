@@ -57,7 +57,7 @@ internal sealed partial class ColorSchemeApplier
             threadingContext.DisposalToken);
     }
 
-    public void RegisterInitializationWork(PackageRegistrationTasks packageRegistrationTasks)
+    public void RegisterInitializationWork(PackageLoadTasks packageInitializationTasks)
     {
         lock (_gate)
         {
@@ -67,12 +67,12 @@ internal sealed partial class ColorSchemeApplier
             _isInitialized = true;
         }
 
-        packageRegistrationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
+        packageInitializationTasks.AddTask(isMainThreadTask: false, task: AfterPackageLoadedBackgroundThreadAsync);
     }
 
-    private async Task PackageInitializationBackgroundThreadAsync(IProgress<ServiceProgressData> progress, PackageRegistrationTasks packageRegistrationTasks, CancellationToken cancellationToken)
+    private async Task AfterPackageLoadedBackgroundThreadAsync(PackageLoadTasks afterPackageLoadedTasks, CancellationToken cancellationToken)
     {
-        var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+        var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(cancellationToken).ConfigureAwait(false);
 
         // We need to update the theme whenever the Editor Color Scheme setting changes.
         settingsManager.GetSubset(ColorSchemeOptionsStorage.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
