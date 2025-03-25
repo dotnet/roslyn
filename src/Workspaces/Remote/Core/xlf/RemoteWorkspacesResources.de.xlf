@@ -92,6 +92,11 @@
         <target state="translated">Lösungsereignisse</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_MissingImportDiscovery">
+        <source>Missing import discovery</source>
+        <target state="translated">Fehlende Importermittlung</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_NavigateToSearch">
         <source>Navigate to</source>
         <target state="translated">Navigieren zu</target>

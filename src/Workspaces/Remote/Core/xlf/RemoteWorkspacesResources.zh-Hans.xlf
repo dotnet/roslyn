@@ -92,6 +92,11 @@
         <target state="translated">解决方案事件</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_MissingImportDiscovery">
+        <source>Missing import discovery</source>
+        <target state="translated">缺少导入发现</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_NavigateToSearch">
         <source>Navigate to</source>
         <target state="translated">导航到</target>
