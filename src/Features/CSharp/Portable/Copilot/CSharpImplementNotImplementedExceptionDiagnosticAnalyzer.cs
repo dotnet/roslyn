@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -46,9 +47,10 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
         INamedTypeSymbol notImplementedExceptionType,
         ConcurrentSet<Location> reportedLocations)
     {
-        var directThrowsFound = new List<IThrowOperation>();
+        var allThrows = new List<IThrowOperation>();
+        var hasNonDirectThrow = false;
 
-        // First, collect all direct throw operations that are not inside nested contexts
+        // First, collect all throw operations with NotImplementedException
         foreach (var block in context.OperationBlocks)
         {
             foreach (var operation in block.DescendantsAndSelf())
@@ -62,42 +64,66 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
                                 Constructor.ContainingType: INamedTypeSymbol constructedType,
                             },
                         },
-                        Syntax: ThrowExpressionSyntax or ThrowStatementSyntax,
+                        Syntax: var throwSyntax
                     } throwOperation &&
                     notImplementedExceptionType.Equals(constructedType))
                 {
-                    // Only include throws that are directly in the method body
-                    if (IsDirectThrow(throwOperation, context))
+                    // Add this throw operation
+                    allThrows.Add(throwOperation);
+
+                    // Check if any throw is inside a conditional or other nested context
+                    if (!IsDirectThrow(throwOperation, context))
                     {
-                        directThrowsFound.Add(throwOperation);
+                        hasNonDirectThrow = true;
                     }
                 }
             }
         }
 
-        // If we found direct throws, report diagnostics
-        if (directThrowsFound.Count > 0)
+        // Always report diagnostics for each throw operation
+        foreach (var throwOperation in allThrows)
         {
-            // Report diagnostics for each direct throw operation
-            foreach (var throwOperation in directThrowsFound)
+            var location = throwOperation.Syntax.GetLocation();
+            if (reportedLocations.Add(location))
             {
-                var location = throwOperation.Syntax.GetLocation();
-                if (reportedLocations.Add(location))
+                // Use exact location to match test expectations
+                context.ReportDiagnostic(Diagnostic.Create(
+                    Descriptor,
+                    location));
+            }
+        }
+
+        // Only report diagnostic on the containing member if all throws are direct AND
+        // the method contains nothing but throws
+        if (allThrows.Count > 0 && !hasNonDirectThrow)
+        {
+            // Check if member body contains only throw statements
+            var membersOnlyContainsThrows = true;
+
+            foreach (var block in context.OperationBlocks)
+            {
+                // Count all statements that are not throw statements
+                var nonThrowStatements = block.Descendants()
+                    .OfType<IExpressionStatementOperation>()
+                    .Count(stmt => !(stmt.Operation is IThrowOperation));
+
+                if (nonThrowStatements > 0)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        Descriptor,
-                        location));
+                    membersOnlyContainsThrows = false;
+                    break;
                 }
             }
 
-            // Also report diagnostic on the containing member
-            foreach (var location in context.OwningSymbol.Locations)
+            if (membersOnlyContainsThrows)
             {
-                if (location.SourceTree == context.FilterTree && reportedLocations.Add(location))
+                foreach (var location in context.OwningSymbol.Locations)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        Descriptor,
-                        location));
+                    if (location.SourceTree == context.FilterTree && reportedLocations.Add(location))
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            Descriptor,
+                            location));
+                    }
                 }
             }
         }

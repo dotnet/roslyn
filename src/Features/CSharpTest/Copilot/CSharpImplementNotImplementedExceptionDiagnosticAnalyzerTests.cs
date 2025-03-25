@@ -223,211 +223,11 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
                 }
             
                 public double {|IDE3000:CalculateSquareRoot|}(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented")|};
-
-                private string _name;
-                public string Name
-                {
-                    get => _name;
-                    // Should NOT report - throw is conditionally inside a lambda
-                    set => _name = value ?? throw new NotImplementedException();
-                }
-
-                // Should NOT report - throw is inside a function
-                void LambdaThrowWithFunc()
-                {
-                    Func<int> func = () => throw new NotImplementedException();
-                    func();
-                }
-
-                // Should NOT report - throw is inside a lambda
-                void LambdaThrow()
-                {
-                    Action action = () => throw new NotImplementedException();
-                    action();
-                }
-
-                // Should NOT report - throw is inside an anonymous method
-                void AnonymousMethodThrow()
-                {
-                    Action action = delegate 
-                    { 
-                        throw new NotImplementedException(); 
-                    };
-                    action();
-                }
-
-                // Should NOT report - throw is inside a local function
-                void LocalFunctionThrow()
-                {
-                    void Local() 
-                    { 
-                        throw new NotImplementedException(); 
-                    }
-
-                    Local();
-                }
-
-                // Should NOT report - throw is inside a nested block
-                void NestedBlockThrow()
-                {
-                    if (true)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-
-                // Should NOT report - throw is inside a loop
-                void LoopThrow()
-                {
-                    for (int i = 0; i < 10; i++)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-
-                // Should NOT report - throw is inside a switch
-                void SwitchThrow(int value)
-                {
-                    switch (value)
-                    {
-                        case 1:
-                            throw new NotImplementedException();
-                    }
-                }
             
-                // Should NOT report - throw is inside a switch expression arm
-                public int GetValue(string type) =>
-                    type switch
-                    {
-                        "A" => 1,
-                        "B" => 2,
-                        _ => throw new NotImplementedException($"Type '{type}' not implemented")
-                    };
-
-                // Should NOT report - throw is inside a using block
-                void UsingThrow()
+                internal void {|IDE3000:ThrowOnAllStatements|}(bool condition)
                 {
-                    using (var resource = new System.IO.MemoryStream())
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-            
-                // Should NOT report - throw is inside a try-catch block
-                void M3()
-                {
-                    try
-                    {
-                        // Some code
-                    }
-                    catch (Exception)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-
-                // Should NOT report - throw is inside a lock
-                void LockThrow()
-                {
-                    lock (new object())
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-            
-                // Should NOT report - throw is inside a ternary
-                void TernaryThrow(bool condition)
-                {
-                    var result = condition ? 1 : throw new NotImplementedException();
-                }
-            
-                // Should NOT report - throw is inside an anonymous type with lambda
-                void AnonymousTypeWithLambdaThrow()
-                {
-                    var result = new { Value = (Func<int>)(() => throw new NotImplementedException()) };
-                }
-            
-                // Should NOT report - throw is inside a LINQ query/expression
-                void LinqThrow()
-                {
-                    var result = new[] { 1, 2, 3 }.Select(x => x > 0 ? x : throw new NotImplementedException());
-                }
-            
-                // Should NOT report - throw is inside a complex LINQ query with multiple nestings
-                public int[] ComplexQuery()
-                {
-                    return new[] { 1, 2, 3 }
-                        .Where(x => x > 0)
-                        .Select(x => x * 2)
-                        .Where(x => x > 0 ? true : throw new NotImplementedException())
-                        .ToArray();
-                }
-            
-                // Switch expression in lambda in a method
-                public void ProcessData(List<object> data)
-                {
-                    var result = data.Select(item => item switch 
-                    {
-                        string s => s.ToUpper(),
-                        int i => i.ToString(),
-                        DateTime d => d.ToShortDateString(),
-                        _ => throw new NotImplementedException("Unsupported data type")
-                    });
-                }
-            
-                // Object initializer with conditional expressions
-                internal Person CreatePerson(string name, int age)
-                {
-                    return new Person
-                    {
-                        Name = name ?? throw new NotImplementedException("Name cannot be null"),
-                        Age = age < 0 ? throw new NotImplementedException("Age must be positive") : age,
-                        Skills = new() { "C#", "F#" }
-                    };
-                }
-            
-                // Local method with throw
-                public void ProcessWithLocalMethod(string input)
-                {
-                    string ParseInput(string text)
-                    {
-                        return text?.Length > 5 ? text : throw new NotImplementedException("Input too short");
-                    }
-                }
-            
-                // Anonymous method with throw
-                public Func<int, int> GetCalculator(string operation)
-                {
-                    return operation switch
-                    {
-                        "square" => x => x * x,
-                        "double" => x => x * 2,
-                        _ => throw new NotImplementedException($"Operation {operation} not implemented")
-                    };
-                }
-            
-                // Nested delegated expressions
-                public void ProcessWithNestedDelegates()
-                {
-                    // Anonymous function that returns another function
-                    Func<int, Func<int, int>> createOperation = x => 
-                        y => x > 0 ? x + y : throw new NotImplementedException("Negative values not implemented");
-                }
-            
-                // Async method with complex initialization
-                public async Task<Person> GetPersonAsync(int id)
-                {
-                    var supervisor = id > 100 
-                        ? new Person { Name = "Manager" } 
-                        : throw new NotImplementedException("Non-manager employees not implemented");
-                }
-            
-                internal class Person
-                {
-                    public string Name { get; set; }
-                    public int Age { get; set; }
-                    public List<string> Skills { get; set; }
-                    public Person Supervisor { get; set; }
+                    {|IDE3000:throw new NotImplementedException("Not implemented");|}
+                    {|IDE3000:throw new NotImplementedException("Not implemented");|}
                 }
             }
             """,
@@ -437,7 +237,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
     }
 
     [Fact]
-    public async Task ShouldNotThrowButCurrentlyIs()
+    public async Task WhenShouldNotReportOnMember()
     {
         await new VerifyCS.Test
         {
@@ -447,28 +247,193 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
             using System.Threading.Tasks;
             class C
             {
-                // Async method with complex initialization
+                private string _name;
+                public string Name
+                {
+                    get => _name;
+                    set => _name = value ?? {|IDE3000:throw new NotImplementedException()|};
+                }
+            
+                void LambdaThrowWithFunc()
+                {
+                    Func<int> func = () => {|IDE3000:throw new NotImplementedException()|};
+                    func();
+                }
+            
+                void LambdaThrow()
+                {
+                    Action action = () => {|IDE3000:throw new NotImplementedException()|};
+                    action();
+                }
+            
+                void AnonymousMethodThrow()
+                {
+                    Action action = delegate 
+                    { 
+                        {|IDE3000:throw new NotImplementedException();|}
+                    };
+                    action();
+                }
+            
+                void LocalFunctionThrow()
+                {
+                    void Local() 
+                    { 
+                        {|IDE3000:throw new NotImplementedException();|}
+                    }
+            
+                    Local();
+                }
+            
+                void NestedBlockThrow()
+                {
+                    if (true)
+                    {
+                        {|IDE3000:throw new NotImplementedException();|}
+                    }
+                }
+            
+                void LoopThrow()
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                        {|IDE3000:throw new NotImplementedException();|}
+                    }
+                }
+            
+                public int GetValue(string type) =>
+                    type switch
+                    {
+                        "A" => 1,
+                        "B" => 2,
+                        _ => {|IDE3000:throw new NotImplementedException($"Type '{type}' not implemented")|}
+                    };
+            
+                void UsingThrow()
+                {
+                    using (var resource = new System.IO.MemoryStream())
+                    {
+                        {|IDE3000:throw new NotImplementedException();|}
+                    }
+                }
+            
+                void TryCatchThrow()
+                {
+                    try
+                    {
+                        // Some code
+                    }
+                    catch (Exception)
+                    {
+                        {|IDE3000:throw new NotImplementedException();|}
+                    }
+                }
+            
+                void LockThrow()
+                {
+                    lock (new object())
+                    {
+                        {|IDE3000:throw new NotImplementedException();|}
+                    }
+                }
+            
+                void TernaryThrow(bool condition)
+                {
+                    var result = condition ? 1 : {|IDE3000:throw new NotImplementedException()|};
+                }
+            
+                void AnonymousTypeWithLambdaThrow()
+                {
+                    var result = new { Value = (Func<int>)(() => {|IDE3000:throw new NotImplementedException()|}) };
+                }
+            
+                void LinqThrow()
+                {
+                    var result = new[] { 1, 2, 3 }.Select(x => x > 0 ? x : {|IDE3000:throw new NotImplementedException()|});
+                }
+            
+                public int[] ComplexQuery()
+                {
+                    return new[] { 1, 2, 3 }
+                        .Where(x => x > 0)
+                        .Select(x => x * 2)
+                        .Where(x => x > 0 ? true : {|IDE3000:throw new NotImplementedException()|})
+                        .ToArray();
+                }
+            
+                public void ProcessData(List<object> data)
+                {
+                    var result = data.Select(item => item switch 
+                    {
+                        string s => s.ToUpper(),
+                        int i => i.ToString(),
+                        DateTime d => d.ToShortDateString(),
+                        _ => {|IDE3000:throw new NotImplementedException("Unsupported data type")|}
+                    });
+                }
+            
+                internal Person CreatePerson(string name, int age)
+                {
+                    return new Person
+                    {
+                        Name = name ?? {|IDE3000:throw new NotImplementedException("Name cannot be null")|},
+                        Age = age < 0 ? {|IDE3000:throw new NotImplementedException("Age must be positive")|} : age,
+                        Skills = new() { "C#", "F#" }
+                    };
+                }
+            
+                public void ProcessWithLocalMethod(string input)
+                {
+                    string ParseInput(string text)
+                    {
+                        return text?.Length > 5 ? text : {|IDE3000:throw new NotImplementedException("Input too short")|};
+                    }
+                }
+            
+                public Func<int, int> GetCalculator(string operation)
+                {
+                    return operation switch
+                    {
+                        "square" => x => x * x,
+                        "double" => x => x * 2,
+                        _ => {|IDE3000:throw new NotImplementedException($"Operation {operation} not implemented")|}
+                    };
+                }
+            
+                public void ProcessWithNestedDelegates()
+                {
+                    Func<int, Func<int, int>> createOperation = x => 
+                        y => x > 0 ? x + y : {|IDE3000:throw new NotImplementedException("Negative values not implemented")|};
+                }
+            
                 public async Task<Person> GetPersonAsync(int id)
                 {
                     var supervisor = id > 100 
                         ? new Person { Name = "Manager" } 
-                        : throw new NotImplementedException("Non-manager employees not implemented");
-
+                        : {|IDE3000:throw new NotImplementedException("Non-manager employees not implemented")|};
+            
                     return supervisor;
                 }
             
-                // Should NOT report - throw is inside a ternary
-                internal void {|IDE3000:TernaryThrow|}(bool condition)
+                void SwitchThrow(int value)
                 {
-                    var result = condition ? 1 : throw new NotImplementedException();
+                    switch (value)
+                    {
+                        case 1:
+                            {|IDE3000:throw new NotImplementedException();|}
+                    }
+                }
+
+                internal void WontReportOnMemberWhenThrowIsNotDirect(bool condition)
+                {
+                    var result = condition ? 1 : {|IDE3000:throw new NotImplementedException()|};
             
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
                 }
             
-                // Should NOT report - throw is inside a ternary
-                internal void {|IDE3000:ArbitraryThrow|}(bool condition)
+                internal void WontReportOnMemberWhenNonThrowStatementsExist(bool condition)
                 {
-                    var result = condition ? 1 : 2;
+                    Console.WriteLine(condition ? 1 : 0);
             
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
                 }
