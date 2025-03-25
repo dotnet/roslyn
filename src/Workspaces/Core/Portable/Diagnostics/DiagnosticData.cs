@@ -248,7 +248,7 @@ internal sealed class DiagnosticData(
     private static ImmutableDictionary<string, string?>? GetAdditionalProperties(TextDocument document, Diagnostic diagnostic)
     {
         var service = document.Project.GetLanguageService<IDiagnosticPropertiesService>();
-        return service?.GetAdditionalProperties(diagnostic);
+        return service?.GetAdditionalProperties(diagnostic)!;
     }
 
     private static ImmutableArray<DiagnosticDataLocation> GetAdditionalLocations(TextDocument document, Diagnostic diagnostic)

@@ -302,7 +302,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         }
         else
         {
-            return _projectCodeModelFactory.Value.GetOrCreateFileCodeModel(documentId.ProjectId, document.FilePath);
+            return _projectCodeModelFactory.Value.GetOrCreateFileCodeModel(documentId.ProjectId, document.FilePath!);
         }
     }
 
@@ -490,7 +490,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         var originalProject = CurrentSolution.GetRequiredProject(projectId);
         var compilationOptionsService = originalProject.Services.GetRequiredService<ICompilationOptionsChangingService>();
-        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
+        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId)!, ServiceProvider.GlobalProvider);
         compilationOptionsService.Apply(originalProject.CompilationOptions!, options, storage);
     }
 
@@ -507,7 +507,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         }
 
         var parseOptionsService = CurrentSolution.GetRequiredProject(projectId).Services.GetRequiredService<IParseOptionsChangingService>();
-        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
+        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId)!, ServiceProvider.GlobalProvider);
         parseOptionsService.Apply(options, storage);
     }
 

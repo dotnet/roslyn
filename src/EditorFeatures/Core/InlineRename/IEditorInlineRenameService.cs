@@ -160,7 +160,7 @@ internal interface IInlineRenameInfo
     /// Provides the reason that can be displayed to the user if the entity at the selected 
     /// location cannot be renamed.
     /// </summary>
-    string LocalizedErrorMessage { get; }
+    string? LocalizedErrorMessage { get; }
 
     /// <summary>
     /// The span of the entity that is being renamed.

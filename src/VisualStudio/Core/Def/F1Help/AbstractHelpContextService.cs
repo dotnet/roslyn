@@ -43,5 +43,5 @@ internal abstract class AbstractHelpContextService : IHelpContextService
 
     public abstract Task<string> GetHelpTermAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
-    public abstract string FormatSymbol(ISymbol symbol);
+    public abstract string? FormatSymbol(ISymbol symbol);
 }

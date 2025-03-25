@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 internal interface IVsLanguageDebugInfo
 {
     [PreserveSig]
-    int GetProximityExpressions(IVsTextBuffer pBuffer, int iLine, int iCol, int cLines, out IVsEnumBSTR ppEnum);
+    int GetProximityExpressions(IVsTextBuffer pBuffer, int iLine, int iCol, int cLines, out IVsEnumBSTR? ppEnum);
 
     [PreserveSig]
     int ValidateBreakpointLocation(
@@ -24,16 +24,16 @@ internal interface IVsLanguageDebugInfo
         [In, Out, MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.Struct)] TextSpan[] pCodeSpan);
 
     [PreserveSig]
-    int GetNameOfLocation(IVsTextBuffer pBuffer, int iLine, int iCol, [MarshalAs(UnmanagedType.BStr)] out string pbstrName, out int piLineOffset);
+    int GetNameOfLocation(IVsTextBuffer pBuffer, int iLine, int iCol, [MarshalAs(UnmanagedType.BStr)] out string? pbstrName, out int piLineOffset);
 
     [PreserveSig]
     int GetLocationOfName(
         [MarshalAs(UnmanagedType.LPWStr)] string pszName,
-        [MarshalAs(UnmanagedType.BStr)] out string pbstrMkDoc,
+        [MarshalAs(UnmanagedType.BStr)] out string? pbstrMkDoc,
         out TextSpan pspanLocation);
 
     [PreserveSig]
-    int ResolveName([MarshalAs(UnmanagedType.LPWStr)] string pszName, uint dwFlags, out IVsEnumDebugName ppNames);
+    int ResolveName([MarshalAs(UnmanagedType.LPWStr)] string? pszName, uint dwFlags, out IVsEnumDebugName? ppNames);
 
     [PreserveSig]
     int GetLanguageID(IVsTextBuffer pBuffer, int iLine, int iCol, out Guid pguidLanguageID);

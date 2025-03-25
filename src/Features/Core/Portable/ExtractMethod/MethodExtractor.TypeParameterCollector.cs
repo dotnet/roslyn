@@ -19,10 +19,10 @@ internal abstract partial class AbstractExtractMethodService<
         {
             private readonly List<ITypeParameterSymbol> _typeParameters = [];
 
-            public static IEnumerable<ITypeParameterSymbol> Collect(ITypeSymbol typeSymbol)
+            public static IEnumerable<ITypeParameterSymbol> Collect(ITypeSymbol? typeSymbol)
             {
                 var collector = new TypeParameterCollector();
-                typeSymbol.Accept(collector);
+                typeSymbol?.Accept(collector);
 
                 return collector._typeParameters;
             }

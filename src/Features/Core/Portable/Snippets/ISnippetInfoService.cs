@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.Snippets;
 internal interface ISnippetInfoService : ILanguageService
 {
     IEnumerable<SnippetInfo> GetSnippetsIfAvailable();
-    bool SnippetShortcutExists_NonBlocking(string shortcut);
+    bool SnippetShortcutExists_NonBlocking(string? shortcut);
     bool ShouldFormatSnippet(SnippetInfo snippetInfo);
 }

@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 internal sealed class RenameActionAnnotation(
     TextSpan originalSpan,
     bool isRenameLocation,
-    string prefix,
-    string suffix,
+    string? prefix,
+    string? suffix,
     bool isOriginalTextLocation,
     RenameDeclarationLocationReference[] renameDeclarationLocations,
     bool isNamespaceDeclarationReference,
@@ -42,13 +42,13 @@ internal sealed class RenameActionAnnotation(
     /// When replacing the annotated token this string will be prepended to the token's value. This is used when renaming compiler 
     /// generated fields and methods backing properties (e.g. "get_X" or "_X" for property "X").
     /// </summary>
-    public readonly string Prefix = prefix;
+    public readonly string? Prefix = prefix;
 
     /// <summary>
     /// When replacing the annotated token this string will be appended to the token's value. This is used when renaming compiler 
     /// generated types whose names are derived from user given names (e.g. "XEventHandler" for event "X").
     /// </summary>
-    public readonly string Suffix = suffix;
+    public readonly string? Suffix = suffix;
 
     /// <summary>
     /// A single dimensional array of annotations to verify after rename.

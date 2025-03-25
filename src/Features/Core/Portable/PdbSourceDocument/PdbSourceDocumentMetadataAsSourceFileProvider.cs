@@ -300,7 +300,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
             sourceDescription);
         var documentTooltip = navigateDocument.FilePath + Environment.NewLine + dllPath;
 
-        return new MetadataAsSourceFile(navigateDocument.FilePath, navigateLocation, documentName, documentTooltip);
+        return new MetadataAsSourceFile(navigateDocument.FilePath!, navigateLocation, documentName, documentTooltip);
     }
 
     private ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName, string assemblyVersion, SourceHashAlgorithm checksumAlgorithm)

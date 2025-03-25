@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 internal sealed partial class OperationStatus
 {
-    public OperationStatus(bool succeeded, string reason)
+    public OperationStatus(bool succeeded, string? reason)
     {
         Succeeded = succeeded;
         Reasons = reason == null ? [] : [reason];

@@ -23,6 +23,6 @@ internal interface ISyntaxWrapper
     /// Returns the <see cref="ICodeActionComputer"/> that produces wrapping code actions for the  
     /// node passed in.  Returns <see langword="null"/> if this Wrapper cannot wrap this node.
     /// </summary>
-    Task<ICodeActionComputer> TryCreateComputerAsync(
+    Task<ICodeActionComputer?> TryCreateComputerAsync(
         Document document, int position, SyntaxNode node, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken);
 }

@@ -15,7 +15,7 @@ internal sealed class CodeFixCollection(
     object provider,
     TextSpan span,
     ImmutableArray<CodeFix> fixes,
-    FixAllState fixAllState,
+    FixAllState? fixAllState,
     ImmutableArray<FixAllScope> supportedScopes,
     Diagnostic firstDiagnostic)
 {
@@ -26,7 +26,7 @@ internal sealed class CodeFixCollection(
     /// <summary>
     /// Optional fix all context, which is non-null if the given <see cref="Provider"/> supports fix all occurrences code fix.
     /// </summary>
-    public FixAllState FixAllState { get; } = fixAllState;
+    public FixAllState? FixAllState { get; } = fixAllState;
     public ImmutableArray<FixAllScope> SupportedScopes { get; } = supportedScopes.NullToEmpty();
     public Diagnostic FirstDiagnostic { get; } = firstDiagnostic;
 }

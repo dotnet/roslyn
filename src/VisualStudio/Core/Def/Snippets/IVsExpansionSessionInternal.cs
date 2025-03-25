@@ -30,7 +30,7 @@ internal interface IVsExpansionSessionInternal
     /// before leaving the calling method.
     /// </summary>
     [PreserveSig]
-    int GetSnippetNode([MarshalAs(UnmanagedType.BStr)] string bstrNode, out IntPtr pNode);
+    int GetSnippetNode([MarshalAs(UnmanagedType.BStr)] string? bstrNode, out IntPtr pNode);
 
     void Reserved9();
     void Reserved10();

@@ -19,7 +19,7 @@ internal sealed class CSharpCommandLineParserService : ICommandLineParserService
     {
     }
 
-    public CommandLineArguments Parse(IEnumerable<string> arguments, string baseDirectory, bool isInteractive, string sdkDirectory)
+    public CommandLineArguments Parse(IEnumerable<string> arguments, string? baseDirectory, bool isInteractive, string? sdkDirectory)
     {
 #if SCRIPTING
         var parser = isInteractive ? CSharpCommandLineParser.Interactive : CSharpCommandLineParser.Default;

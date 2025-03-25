@@ -27,11 +27,11 @@ internal interface IReplaceMethodWithPropertyService : ILanguageService
 }
 
 internal readonly struct GetAndSetMethods(
-    IMethodSymbol getMethod, IMethodSymbol setMethod,
-    SyntaxNode getMethodDeclaration, SyntaxNode setMethodDeclaration)
+    IMethodSymbol getMethod, IMethodSymbol? setMethod,
+    SyntaxNode getMethodDeclaration, SyntaxNode? setMethodDeclaration)
 {
     public readonly IMethodSymbol GetMethod = getMethod;
-    public readonly IMethodSymbol SetMethod = setMethod;
+    public readonly IMethodSymbol? SetMethod = setMethod;
     public readonly SyntaxNode GetMethodDeclaration = getMethodDeclaration;
-    public readonly SyntaxNode SetMethodDeclaration = setMethodDeclaration;
+    public readonly SyntaxNode? SetMethodDeclaration = setMethodDeclaration;
 }

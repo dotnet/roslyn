@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 internal sealed class CodeGenerationOperatorSymbol(
-    INamedTypeSymbol containingType,
+    INamedTypeSymbol? containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility accessibility,
     DeclarationModifiers modifiers,
@@ -21,7 +21,7 @@ internal sealed class CodeGenerationOperatorSymbol(
     CodeGenerationOperatorKind operatorKind,
     ImmutableArray<IParameterSymbol> parameters,
     ImmutableArray<AttributeData> returnTypeAttributes,
-    string documentationCommentXml) : CodeGenerationMethodSymbol(containingType,
+    string? documentationCommentXml) : CodeGenerationMethodSymbol(containingType,
          attributes,
          accessibility,
          modifiers,

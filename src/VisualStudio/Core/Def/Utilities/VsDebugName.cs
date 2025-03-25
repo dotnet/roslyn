@@ -8,11 +8,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 internal class VsDebugName : IVsDebugName
 {
-    private readonly string _name;
+    private readonly string? _name;
     private readonly string _document;
     private readonly TextSpan _textSpan;
 
-    public VsDebugName(string name, string document, TextSpan textSpan)
+    public VsDebugName(string? name, string document, TextSpan textSpan)
     {
         _name = name;
         _document = document;
@@ -31,7 +31,7 @@ internal class VsDebugName : IVsDebugName
         return VSConstants.S_OK;
     }
 
-    public int GetName(out string pbstrName)
+    public int GetName(out string? pbstrName)
     {
         pbstrName = _name;
         return VSConstants.S_OK;

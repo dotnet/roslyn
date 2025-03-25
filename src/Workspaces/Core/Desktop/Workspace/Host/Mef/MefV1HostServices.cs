@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// This delegate allows test code to override the behavior of <see cref="Create(IEnumerable{Assembly})"/>.
         /// </summary>
         /// <seealso cref="TestAccessor.HookServiceCreation"/>
-        private static CreationHook s_CreationHook;
+        private static CreationHook? s_CreationHook;
 
         // the export provider for the MEF composition
         private readonly ExportProvider _exportProvider;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// </summary>
         public IEnumerable<Lazy<TExtension, TMetadata>> GetExports<TExtension, TMetadata>()
         {
-            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName, typeof(TMetadata).AssemblyQualifiedName);
+            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName!, typeof(TMetadata).AssemblyQualifiedName!);
             if (!_exportsMap.TryGetValue(key, out var exports))
             {
                 exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         /// </summary>
         public IEnumerable<Lazy<TExtension>> GetExports<TExtension>()
         {
-            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName, "");
+            var key = new ExportKey(typeof(TExtension).AssemblyQualifiedName!, "");
             if (!_exportsMap.TryGetValue(key, out var exports))
             {
                 exports = ImmutableInterlocked.GetOrAdd(ref _exportsMap, key, _ =>
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                     && string.Compare(this.MetadataTypeName, other.MetadataTypeName, StringComparison.OrdinalIgnoreCase) == 0;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
                 => obj is ExportKey exportKey && this.Equals(exportKey);
 
             public override int GetHashCode()

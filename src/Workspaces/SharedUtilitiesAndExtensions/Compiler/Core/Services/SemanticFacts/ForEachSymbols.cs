@@ -4,25 +4,16 @@
 
 namespace Microsoft.CodeAnalysis.LanguageService;
 
-internal readonly struct ForEachSymbols
+internal readonly struct ForEachSymbols(
+    IMethodSymbol? getEnumeratorMethod,
+    IMethodSymbol? moveNextMethod,
+    IPropertySymbol? currentProperty,
+    IMethodSymbol? disposeMethod,
+    ITypeSymbol? elementType)
 {
-    public readonly IMethodSymbol GetEnumeratorMethod;
-    public readonly IMethodSymbol MoveNextMethod;
-    public readonly IPropertySymbol CurrentProperty;
-    public readonly IMethodSymbol DisposeMethod;
-    public readonly ITypeSymbol ElementType;
-
-    internal ForEachSymbols(IMethodSymbol getEnumeratorMethod,
-                            IMethodSymbol moveNextMethod,
-                            IPropertySymbol currentProperty,
-                            IMethodSymbol disposeMethod,
-                            ITypeSymbol elementType)
-        : this()
-    {
-        this.GetEnumeratorMethod = getEnumeratorMethod;
-        this.MoveNextMethod = moveNextMethod;
-        this.CurrentProperty = currentProperty;
-        this.DisposeMethod = disposeMethod;
-        this.ElementType = elementType;
-    }
+    public readonly IMethodSymbol? GetEnumeratorMethod = getEnumeratorMethod;
+    public readonly IMethodSymbol? MoveNextMethod = moveNextMethod;
+    public readonly IPropertySymbol? CurrentProperty = currentProperty;
+    public readonly IMethodSymbol? DisposeMethod = disposeMethod;
+    public readonly ITypeSymbol? ElementType = elementType;
 }

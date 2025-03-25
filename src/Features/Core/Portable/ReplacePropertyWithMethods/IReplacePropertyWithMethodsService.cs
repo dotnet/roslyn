@@ -13,19 +13,19 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
 
 internal interface IReplacePropertyWithMethodsService : ILanguageService
 {
-    Task<SyntaxNode> GetPropertyDeclarationAsync(CodeRefactoringContext context);
+    Task<SyntaxNode?> GetPropertyDeclarationAsync(CodeRefactoringContext context);
 
     Task ReplaceReferenceAsync(
         Document document,
         SyntaxEditor editor, SyntaxNode identifierName,
-        IPropertySymbol property, IFieldSymbol propertyBackingField,
+        IPropertySymbol property, IFieldSymbol? propertyBackingField,
         string desiredGetMethodName, string desiredSetMethodName,
         CancellationToken cancellationToken);
 
     Task<ImmutableArray<SyntaxNode>> GetReplacementMembersAsync(
         Document document,
         IPropertySymbol property, SyntaxNode propertyDeclaration,
-        IFieldSymbol propertyBackingField,
+        IFieldSymbol? propertyBackingField,
         string desiredGetMethodName,
         string desiredSetMethodName,
         CancellationToken cancellationToken);

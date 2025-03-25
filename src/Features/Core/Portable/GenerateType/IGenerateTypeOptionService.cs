@@ -15,7 +15,7 @@ internal interface IGenerateTypeOptionsService : IWorkspaceService
         string className,
         GenerateTypeDialogOptions generateTypeDialogOptions,
         Document document,
-        INotificationService notificationService,
-        IProjectManagementService projectManagementService,
+        INotificationService? notificationService,
+        IProjectManagementService? projectManagementService,
         ISyntaxFactsService syntaxFactsService);
 }

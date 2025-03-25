@@ -22,8 +22,8 @@ internal interface IIntPtrReturningVsInvisibleEditorManager
 {
     int RegisterInvisibleEditor(
         [MarshalAs(UnmanagedType.LPWStr)] string pszMkDocument,
-        IVsProject pProject,
+        IVsProject? pProject,
         uint dwFlags,
-        IVsSimpleDocFactory pFactory,
+        IVsSimpleDocFactory? pFactory,
         out IntPtr ppEditor);
 }
