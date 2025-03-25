@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (child.Kind != BoundKind.BinaryOperator)
             {
-                return base.VisitBinaryOperator(node);
+                return node.Update(node.OperatorKind, VisitBinaryOperatorData(node), node.ResultKind, (BoundExpression)this.Visit(node.Left), (BoundExpression)this.Visit(node.Right), this.VisitType(node.Type));
             }
 
             var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var right = (BoundExpression?)this.Visit(binary.Right);
                 Debug.Assert(right is { });
                 var type = this.VisitType(binary.Type);
-                left = binary.Update(binary.OperatorKind, binary.Data, binary.ResultKind, left, right, type);
+                left = binary.Update(binary.OperatorKind, VisitBinaryOperatorData(binary), binary.ResultKind, left, right, type);
             }
             while (stack.Count > 0);
 
@@ -287,6 +287,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             stack.Free();
 
             return left;
+        }
+
+        protected virtual BoundBinaryOperator.UncommonData? VisitBinaryOperatorData(BoundBinaryOperator node)
+        {
+            return node.Data;
         }
 
         public sealed override BoundNode? VisitIfStatement(BoundIfStatement node)

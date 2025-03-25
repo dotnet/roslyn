@@ -36,16 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.DefaultVisit(node);
         }
 
-#if DEBUG
-        [return: NotNullIfNotNull(nameof(node))]
-        public override BoundNode? Visit(BoundNode? node)
-        {
-            // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
-            Debug.Assert(node is not BoundBinaryOperator { InterpolatedStringHandlerData: not null });
-            return base.Visit(node);
-        }
-#endif
-
         protected void RewriteLocals(ImmutableArray<LocalSymbol> locals, ArrayBuilder<LocalSymbol> newLocals)
         {
             foreach (var local in locals)
@@ -119,6 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override TypeSymbol? VisitType(TypeSymbol? type)
         {
             return TypeMap.SubstituteType(type).Type;
+        }
+
+        protected override BoundBinaryOperator.UncommonData? VisitBinaryOperatorData(BoundBinaryOperator node)
+        {
+            // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
+            Debug.Assert(node.InterpolatedStringHandlerData is null);
+
+            return BoundBinaryOperator.UncommonData.CreateIfNeeded(node.ConstantValueOpt, VisitMethodSymbol(node.Method), VisitType(node.ConstrainedToType), node.OriginalUserDefinedOperatorsOpt);
         }
 
         public override BoundNode? VisitConversion(BoundConversion node)
