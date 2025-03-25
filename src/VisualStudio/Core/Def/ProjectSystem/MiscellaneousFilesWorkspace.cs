@@ -123,6 +123,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     private IEnumerable<MetadataReference> CreateMetadataReferences()
     {
         // VisualStudioMetadataReferenceManager construction requires the main thread
+        // TODO: Determine if main thread affinity can be removed: https://github.com/dotnet/roslyn/issues/77791
         _threadingContext.ThrowIfNotOnUIThread();
 
         var manager = this.Services.GetService<VisualStudioMetadataReferenceManager>();
@@ -286,6 +287,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     private ProjectInfo CreateProjectInfoForDocument(string filePath)
     {
         // Potential calculation of _metadataReferences requires being on the main thread
+        // TODO: Determine if main thread affinity can be removed: https://github.com/dotnet/roslyn/issues/77791
         _threadingContext.ThrowIfNotOnUIThread();
 
         // This should always succeed since we only got here if we already confirmed the moniker is acceptable
