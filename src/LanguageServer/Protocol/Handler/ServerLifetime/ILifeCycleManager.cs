@@ -6,6 +6,7 @@
 #nullable enable
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -13,7 +14,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// An optional component to run additional logic when LSP shutdown and exit are called,
 /// for example logging messages, cleaning up custom resources, etc.
 /// </summary>
-internal interface ILifeCycleManager
+internal interface ILifeCycleManager : ILspService
 {
     /// <summary>
     /// Called when the server recieves the LSP exit notification.

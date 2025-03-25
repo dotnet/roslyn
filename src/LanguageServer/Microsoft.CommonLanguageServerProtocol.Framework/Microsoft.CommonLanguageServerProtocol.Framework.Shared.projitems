@@ -19,7 +19,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Handlers\InitializedHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Handlers\InitializeHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IInitializeManager.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ILifeCycleManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ILspLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ILspServices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IMethodHandler.cs" />
