@@ -3181,9 +3181,18 @@ outerDefault:
 
         private BetterResult BetterParamsCollectionType(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var syntax = CSharpSyntaxTree.Dummy.GetRoot();
-            ConversionsBase.TryGetCollectionExpressionTypeKind(_binder, syntax, t1, out CollectionExpressionTypeKind kind1, out TypeWithAnnotations elementType1);
-            ConversionsBase.TryGetCollectionExpressionTypeKind(_binder, syntax, t2, out CollectionExpressionTypeKind kind2, out TypeWithAnnotations elementType2);
+            CollectionExpressionTypeKind kind1 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t1, out TypeWithAnnotations elementType1);
+            CollectionExpressionTypeKind kind2 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t2, out TypeWithAnnotations elementType2);
+
+            if (kind1 is CollectionExpressionTypeKind.CollectionBuilder or CollectionExpressionTypeKind.ImplementsIEnumerable)
+            {
+                _binder.TryGetCollectionIterationType(CSharpSyntaxTree.Dummy.GetRoot(), t1, out elementType1);
+            }
+
+            if (kind2 is CollectionExpressionTypeKind.CollectionBuilder or CollectionExpressionTypeKind.ImplementsIEnumerable)
+            {
+                _binder.TryGetCollectionIterationType(CSharpSyntaxTree.Dummy.GetRoot(), t2, out elementType2);
+            }
 
             return BetterCollectionExpressionConversion(
                 collectionExpressionElements: [],

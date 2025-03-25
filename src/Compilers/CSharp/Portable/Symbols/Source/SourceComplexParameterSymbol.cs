@@ -1559,9 +1559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void validateParamsType(BindingDiagnosticBag diagnostics)
             {
-                var syntax = ParameterSyntax;
-                var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
-                ConversionsBase.TryGetCollectionExpressionTypeKind(binder, syntax, Type, out var collectionTypeKind, out TypeWithAnnotations elementTypeWithAnnotations);
+                var collectionTypeKind = ConversionsBase.GetCollectionExpressionTypeKind(DeclaringCompilation, Type, out TypeWithAnnotations elementTypeWithAnnotations);
 
                 var elementType = elementTypeWithAnnotations.Type;
                 switch (collectionTypeKind)
@@ -1571,8 +1569,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return;
 
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    case CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer:
                         {
+                            var syntax = ParameterSyntax;
+                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
+
+                            binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
                             elementType = elementTypeWithAnnotations.Type;
                             if (elementType is null)
                             {
@@ -1590,7 +1591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 checkIsAtLeastAsVisible(syntax, binder, constructor, diagnostics);
                             }
 
-                            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
+                            if (binder.GetCollectionExpressionApplicableIndexer(syntax, Type, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is null)
                             {
                                 if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
                                 {
@@ -1631,6 +1632,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         {
+                            var syntax = ParameterSyntax;
+                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
+
+                            binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
                             elementType = elementTypeWithAnnotations.Type;
                             if (elementType is null)
                             {
@@ -1671,7 +1676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (collectionTypeKind != CollectionExpressionTypeKind.Array)
                 {
-                    MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, syntax);
+                    MessageID.IDS_FeatureParamsCollections.CheckFeatureAvailability(diagnostics, ParameterSyntax);
                 }
             }
 

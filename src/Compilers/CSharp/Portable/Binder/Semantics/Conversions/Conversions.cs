@@ -160,30 +160,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var syntax = node.Syntax;
-            if (!TryGetCollectionExpressionTypeKind(_binder, syntax, targetType, out var collectionTypeKind, out TypeWithAnnotations elementTypeWithAnnotations))
+            var collectionTypeKind = GetCollectionExpressionTypeKind(Compilation, targetType, out TypeWithAnnotations elementTypeWithAnnotations);
+            var elementType = elementTypeWithAnnotations.Type;
+            switch (collectionTypeKind)
             {
-                return Conversion.NoConversion;
+                case CollectionExpressionTypeKind.None:
+                    return Conversion.NoConversion;
+
+                case CollectionExpressionTypeKind.ImplementsIEnumerable:
+                case CollectionExpressionTypeKind.CollectionBuilder:
+                    {
+                        _binder.TryGetCollectionIterationType(syntax, targetType, out elementTypeWithAnnotations);
+                        elementType = elementTypeWithAnnotations.Type;
+                        if (elementType is null)
+                        {
+                            return Conversion.NoConversion;
+                        }
+                    }
+                    break;
             }
 
-            var elementType = elementTypeWithAnnotations.Type;
             Debug.Assert(elementType is { });
-            Debug.Assert(collectionTypeKind != CollectionExpressionTypeKind.None);
             var elements = node.Elements;
 
             MethodSymbol? constructor = null;
             bool isExpanded = false;
 
-            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer &&
-                !_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
+            if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
-                return Conversion.NoConversion;
-            }
+                if (!_binder.HasCollectionExpressionApplicableConstructor(syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
+                {
+                    return Conversion.NoConversion;
+                }
 
-            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable &&
-                elements.Length > 0 &&
-                !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
-            {
-                return Conversion.NoConversion;
+                if (_binder.GetCollectionExpressionApplicableIndexer(syntax, targetType, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is { })
+                {
+                    collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
+                }
+                else if (elements.Length > 0 &&
+                    !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
+                {
+                    return Conversion.NoConversion;
+                }
             }
 
             ImmutableArray<Conversion> elementConversions;

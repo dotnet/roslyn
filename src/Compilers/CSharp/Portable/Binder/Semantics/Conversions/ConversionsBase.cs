@@ -1650,38 +1650,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination, compilation) == LambdaConversionResult.Success;
         }
 
-        internal static bool TryGetCollectionExpressionTypeKind(
-            Binder binder,
-            SyntaxNode syntax,
-            TypeSymbol targetType,
-            out CollectionExpressionTypeKind collectionTypeKind,
-            out TypeWithAnnotations elementTypeWithAnnotations)
-        {
-            collectionTypeKind = GetCollectionExpressionTypeKind(binder.Compilation, targetType, out elementTypeWithAnnotations);
-            if (collectionTypeKind == CollectionExpressionTypeKind.None)
-            {
-                return false;
-            }
-
-            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.CollectionBuilder)
-            {
-                binder.TryGetCollectionIterationType(syntax, targetType, out elementTypeWithAnnotations);
-                if (!elementTypeWithAnnotations.HasType)
-                {
-                    return false;
-                }
-
-                if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable &&
-                    binder.GetCollectionExpressionApplicableIndexer(syntax, targetType, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is { })
-                {
-                    collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
-                }
-            }
-
-            Debug.Assert(elementTypeWithAnnotations.HasType);
-            return true;
-        }
-
         internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeWithAnnotations elementType)
         {
             Debug.Assert(compilation is { });
