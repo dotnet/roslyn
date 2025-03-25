@@ -242,8 +242,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         private void GetOutline(out IntPtr phwnd)
         {
-            phwnd = default;
-
             var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
             threadingContext.ThrowIfNotOnUIThread();
 
