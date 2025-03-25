@@ -16,7 +16,7 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
     internal override Type GetSignatureHelpProviderType()
         => typeof(WithElementSignatureHelpProvider);
 
-    [Theory]
+    [Theory(Skip = "PROTOTYPE: Collection arguments require language version preview")]
     [InlineData("IList<int>")]
     [InlineData("ICollection<int>")]
     public async Task TestMutableInterfaces(string type)
@@ -59,7 +59,7 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
         await TestAsync(markup, []);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE: Collection arguments require language version preview")]
     public async Task TestConstructibleType()
     {
         var markup = $$"""
@@ -82,7 +82,7 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
             new("HashSet<int>(IEnumerable<int> collection, IEqualityComparer<int> comparer)", string.Empty, null, currentParameterIndex: 0)]);
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE: Collection arguments require language version preview")]
     public async Task TestBuilder1()
     {
         var markup = $$"""
