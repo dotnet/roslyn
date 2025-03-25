@@ -43,14 +43,14 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
     }
 
     private void AnalyzeBlock(
-        OperationBlockAnalysisContext context,
-        INamedTypeSymbol notImplementedExceptionType,
-        ConcurrentSet<Location> reportedLocations)
+    OperationBlockAnalysisContext context,
+    INamedTypeSymbol notImplementedExceptionType,
+    ConcurrentSet<Location> reportedLocations)
     {
-        using var _ = ArrayBuilder<IThrowOperation>.GetInstance(out var allThrows);
+        var throwCount = 0;
         var hasNonDirectThrow = false;
 
-        // First, collect all throw operations with NotImplementedException
+        // Analyze all throw operations with NotImplementedException
         foreach (var block in context.OperationBlocks)
         {
             foreach (var operation in block.DescendantsAndSelf())
@@ -68,8 +68,16 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
                     } throwOperation &&
                     notImplementedExceptionType.Equals(constructedType))
                 {
-                    // Add this throw operation
-                    allThrows.Add(throwOperation);
+                    throwCount++;
+
+                    // Report diagnostic for each throw operation
+                    var location = throwOperation.Syntax.GetLocation();
+                    if (reportedLocations.Add(location))
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            Descriptor,
+                            location));
+                    }
 
                     // Check if any throw is inside a conditional or other nested context
                     if (!IsDirectThrow(throwOperation, context))
@@ -80,22 +88,9 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
             }
         }
 
-        // Always report diagnostics for each throw operation
-        foreach (var throwOperation in allThrows)
-        {
-            var location = throwOperation.Syntax.GetLocation();
-            if (reportedLocations.Add(location))
-            {
-                // Use exact location to match test expectations
-                context.ReportDiagnostic(Diagnostic.Create(
-                    Descriptor,
-                    location));
-            }
-        }
-
         // Only report diagnostic on the containing member if all throws are direct AND
         // the method contains nothing but throws
-        if (allThrows.Count > 0 && !hasNonDirectThrow)
+        if (throwCount > 0 && !hasNonDirectThrow)
         {
             // Check if member body contains only throw statements
             var membersOnlyContainsThrows = true;
