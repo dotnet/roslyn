@@ -218,11 +218,6 @@
         <target state="translated">출력 종류가 지원되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
-        <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
-        <target state="translated">{0}.ResolveMetadataFile에서 반환한 경로는 절대 경로여야 합니다. '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AssemblyMustHaveAtLeastOneModule">
         <source>Assembly must have at least one module.</source>
         <target state="translated">어셈블리에는 모듈이 하나 이상 있어야 합니다.</target>

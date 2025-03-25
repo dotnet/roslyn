@@ -17,11 +17,6 @@
         <target state="translated">Nie można przypisać „{0}” do „{1}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExpectedAnAssemblyReference">
-        <source>Expected an assembly reference.</source>
-        <target state="translated">Oczekiwano odwołania do zestawu.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisplayNameOrPathCannotBe">
         <source>Display name or path cannot be empty.</source>
         <target state="translated">Ścieżka lub nazwa wyświetlana nie może być pusta.</target>

@@ -5738,11 +5738,6 @@
         <target state="translated">'{0}' で間違った認証が使われています。エントリ ポイントとして使用することはできません</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_InvalidMainSig_Title">
-        <source>Method has the wrong signature to be an entry point</source>
-        <target state="translated">メソッドに、エントリ ポイントになる不適切な署名があります</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NoImplicitConv">
         <source>Cannot implicitly convert type '{0}' to '{1}'</source>
         <target state="translated">型 '{0}' を '{1}' に暗黙的に変換できません</target>

@@ -42,11 +42,6 @@
         <target state="translated">MSB3081: возникла проблема при установке параметра "{0}" для компилятора интегрированной среды разработки внутри процесса. {1}</target>
         <note>{StrBegin="MSB3081: "}</note>
       </trans-unit>
-      <trans-unit id="General_DuplicateItemsNotSupported">
-        <source>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</source>
-        <target state="translated">MSB3105: элемент "{0}" указан в параметре "{1}" более одного раза. Дублированные элементы не поддерживаются параметром "{1}".</target>
-        <note>{StrBegin="MSB3105: "}</note>
-      </trans-unit>
       <trans-unit id="General_DuplicateItemsNotSupportedWithMetadata">
         <source>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</source>
         <target state="translated">MSB3083: элемент "{0}" указан в параметре "{1}" более одного раза, и оба элемента имеют одинаковое значение "{2}" для метаданных "{3}". Дублирование элементов с одинаковыми значениями для метаданных "{3}" в параметре "{1}" не поддерживается.</target>

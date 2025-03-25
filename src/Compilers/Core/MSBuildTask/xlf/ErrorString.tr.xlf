@@ -42,11 +42,6 @@
         <target state="translated">MSB3081: IDE'nin işlem içi derleyicisi için "{0}" parametresi ayarlanmaya çalışılırken bir sorunla karşılaşıldı. {1}</target>
         <note>{StrBegin="MSB3081: "}</note>
       </trans-unit>
-      <trans-unit id="General_DuplicateItemsNotSupported">
-        <source>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</source>
-        <target state="translated">MSB3105: "{0}" öğesi, "{1}" parametresinde bir kereden fazla belirtildi. "{1}" parametresi yinelenen öğeleri desteklemez.</target>
-        <note>{StrBegin="MSB3105: "}</note>
-      </trans-unit>
       <trans-unit id="General_DuplicateItemsNotSupportedWithMetadata">
         <source>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</source>
         <target state="translated">MSB3083: "{1}" parametresinde "{0}" öğesi birden çok kez belirtildi ve her iki öğe de "{3}" meta verisi için aynı "{2}" değerini içeriyordu. "{1}" parametresi, "{3}" meta verisi için farklı değerlere sahip olmayan yinelenen öğeleri desteklemez.</target>

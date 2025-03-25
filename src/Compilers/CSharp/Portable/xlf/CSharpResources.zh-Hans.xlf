@@ -5738,11 +5738,6 @@
         <target state="translated">“{0}”的签名错误，不能作为入口点</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_InvalidMainSig_Title">
-        <source>Method has the wrong signature to be an entry point</source>
-        <target state="translated">方法的签名错误，不能作为入口点</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NoImplicitConv">
         <source>Cannot implicitly convert type '{0}' to '{1}'</source>
         <target state="translated">无法将类型“{0}”隐式转换为“{1}”</target>

@@ -17,11 +17,6 @@
         <target state="translated">無法將 '{0}' 指派給 '{1}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExpectedAnAssemblyReference">
-        <source>Expected an assembly reference.</source>
-        <target state="translated">必須是組件參考。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisplayNameOrPathCannotBe">
         <source>Display name or path cannot be empty.</source>
         <target state="translated">顯示名稱或路徑不可為空白。</target>

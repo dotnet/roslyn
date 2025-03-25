@@ -17,11 +17,6 @@
         <target state="translated">'{0}' を '{1}' に割り当てられません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExpectedAnAssemblyReference">
-        <source>Expected an assembly reference.</source>
-        <target state="translated">アセンブリ参照が必要です。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisplayNameOrPathCannotBe">
         <source>Display name or path cannot be empty.</source>
         <target state="translated">表示名またはパスを空にはできません。</target>

@@ -17,11 +17,6 @@
         <target state="translated">"{0}" kann "{1}" nicht zugewiesen werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExpectedAnAssemblyReference">
-        <source>Expected an assembly reference.</source>
-        <target state="translated">Ein Assemblyverweis wurde erwartet.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisplayNameOrPathCannotBe">
         <source>Display name or path cannot be empty.</source>
         <target state="translated">Der Anzeigename oder Pfad darf nicht leer sein.</target>

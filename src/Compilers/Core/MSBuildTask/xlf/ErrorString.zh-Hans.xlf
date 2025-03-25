@@ -42,11 +42,6 @@
         <target state="translated">MSB3081: 尝试设置 IDE 的进程内编译器的“{0}”参数时出现问题。{1}</target>
         <note>{StrBegin="MSB3081: "}</note>
       </trans-unit>
-      <trans-unit id="General_DuplicateItemsNotSupported">
-        <source>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</source>
-        <target state="translated">MSB3105: 在“{1}”参数中指定了项“{0}”多次。“{1}”参数不支持重复项。</target>
-        <note>{StrBegin="MSB3105: "}</note>
-      </trans-unit>
       <trans-unit id="General_DuplicateItemsNotSupportedWithMetadata">
         <source>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</source>
         <target state="translated">MSB3083: 在参数“{1}”中指定了项“{0}”多次，并且这两个项对于元数据“{3}”具有相同的值“{2}”。参数“{1}”不支持重复项，除非这些项具有不同的“{3}”元数据值。</target>

@@ -5738,11 +5738,6 @@
         <target state="translated">'{0}' giriş noktası olacak yanlış imzaya sahip</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_InvalidMainSig_Title">
-        <source>Method has the wrong signature to be an entry point</source>
-        <target state="translated">Yöntemin imzası giriş noktası olmak için yanlış</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NoImplicitConv">
         <source>Cannot implicitly convert type '{0}' to '{1}'</source>
         <target state="translated">'{0}' türü örtülü olarak '{1}' türüne dönüştürülemez</target>

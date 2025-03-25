@@ -218,11 +218,6 @@
         <target state="translated">输出类型不受支持。</target>
         <note />
       </trans-unit>
-      <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
-        <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
-        <target state="translated">由 {0}.ResolveMetadataFile 返回的路径必须是绝对路径:“{1}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AssemblyMustHaveAtLeastOneModule">
         <source>Assembly must have at least one module.</source>
         <target state="translated">程序集必须有至少一个模块。</target>

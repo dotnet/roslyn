@@ -218,11 +218,6 @@
         <target state="translated">Tipo de salida no admitida.</target>
         <note />
       </trans-unit>
-      <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
-        <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
-        <target state="translated">La ruta de acceso devuelta por {0}.ResolveMetadataFile debe ser absoluta: '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AssemblyMustHaveAtLeastOneModule">
         <source>Assembly must have at least one module.</source>
         <target state="translated">El ensamblado debe tener al menos un módulo.</target>

@@ -5738,11 +5738,6 @@ target:module               Compila un modulo che può essere aggiunto ad altro
         <target state="translated">'{0}' non può essere un punto di ingresso perché la firma è errata</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_InvalidMainSig_Title">
-        <source>Method has the wrong signature to be an entry point</source>
-        <target state="translated">Il metodo non può essere un punto di ingresso perché la firma è errata</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NoImplicitConv">
         <source>Cannot implicitly convert type '{0}' to '{1}'</source>
         <target state="translated">Non è possibile convertire in modo implicito il tipo '{0}' in '{1}'</target>

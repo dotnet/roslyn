@@ -5738,11 +5738,6 @@
         <target state="translated">'{0}'의 시그니처가 잘못되어 진입점이 될 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_InvalidMainSig_Title">
-        <source>Method has the wrong signature to be an entry point</source>
-        <target state="translated">메서드의 서명이 잘못되어 진입점이 될 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NoImplicitConv">
         <source>Cannot implicitly convert type '{0}' to '{1}'</source>
         <target state="translated">암시적으로 '{0}' 형식을 '{1}' 형식으로 변환할 수 없습니다.</target>

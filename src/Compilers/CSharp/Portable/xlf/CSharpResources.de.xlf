@@ -5738,11 +5738,6 @@
         <target state="translated">"{0}" hat die falsche Signatur, um ein Einstiegspunkt zu sein.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_InvalidMainSig_Title">
-        <source>Method has the wrong signature to be an entry point</source>
-        <target state="translated">Methode weist als Einstiegspunkt die falsche Signatur auf</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NoImplicitConv">
         <source>Cannot implicitly convert type '{0}' to '{1}'</source>
         <target state="translated">Der Typ "{0}" kann nicht implizit in "{1}" konvertiert werden.</target>

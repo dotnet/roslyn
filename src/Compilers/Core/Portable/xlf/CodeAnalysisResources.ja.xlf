@@ -218,11 +218,6 @@
         <target state="translated">出力の種類がサポートされていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
-        <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
-        <target state="translated">{0}.ResolveMetadataFile は絶対パスを返す必要があります: '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AssemblyMustHaveAtLeastOneModule">
         <source>Assembly must have at least one module.</source>
         <target state="translated">アセンブリには、1 つ以上のモジュールが必要です。</target>

@@ -218,11 +218,6 @@
         <target state="translated">Druh výstupu se nepodporuje.</target>
         <note />
       </trans-unit>
-      <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
-        <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
-        <target state="translated">Cesta vrácená procedurou {0}.ResolveMetadataFile musí být absolutní: {1}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AssemblyMustHaveAtLeastOneModule">
         <source>Assembly must have at least one module.</source>
         <target state="translated">Sestavení musí mít nejmíň jeden modul.</target>

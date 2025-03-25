@@ -42,11 +42,6 @@
         <target state="translated">MSB3081: Un problème s'est produit durant la tentative de définition du paramètre "{0}" pour le compilateur in-process de l'IDE. {1}</target>
         <note>{StrBegin="MSB3081: "}</note>
       </trans-unit>
-      <trans-unit id="General_DuplicateItemsNotSupported">
-        <source>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</source>
-        <target state="translated">MSB3105: L'élément "{0}" a été spécifié plus d'une fois dans le paramètre "{1}". Les éléments dupliqués ne sont pas pris en charge par le paramètre "{1}".</target>
-        <note>{StrBegin="MSB3105: "}</note>
-      </trans-unit>
       <trans-unit id="General_DuplicateItemsNotSupportedWithMetadata">
         <source>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</source>
         <target state="translated">MSB3083: L'élément "{0}" a été spécifié plusieurs fois dans le paramètre "{1}". Les deux éléments avaient la même valeur "{2}" pour les métadonnées "{3}". Les éléments dupliqués ne sont pas pris en charge par le paramètre "{1}" à moins qu'ils n'aient des valeurs différentes pour les métadonnées "{3}".</target>

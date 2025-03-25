@@ -42,11 +42,6 @@
         <target state="translated">MSB3081: IDE의 In-Process 컴파일러에 "{0}" 매개 변수를 설정하는 동안 문제가 발생했습니다. {1}</target>
         <note>{StrBegin="MSB3081: "}</note>
       </trans-unit>
-      <trans-unit id="General_DuplicateItemsNotSupported">
-        <source>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</source>
-        <target state="translated">MSB3105: "{0}" 항목을 "{1}" 매개 변수에 두 번 이상 지정했습니다.  "{1}" 매개 변수는 중복 항목을 지원하지 않습니다.</target>
-        <note>{StrBegin="MSB3105: "}</note>
-      </trans-unit>
       <trans-unit id="General_DuplicateItemsNotSupportedWithMetadata">
         <source>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</source>
         <target state="translated">MSB3083: "{0}" 항목이 "{1}" 매개 변수에 두 번 이상 지정되었으며 두 항목이 "{3}" 메타데이터에 대해 동일한 값 "{2}"을(를) 가지고 있습니다.  "{3}" 메타데이터에 대한 값이 같으면 "{1}" 매개 변수는 중복 항목을 지원하지 않습니다.</target>

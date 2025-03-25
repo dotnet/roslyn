@@ -218,11 +218,6 @@
         <target state="translated">Çıkış türü desteklenmiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
-        <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
-        <target state="translated">{0}.ResolveMetadataFile tarafından döndürülen yol mutlak olmalıdır: '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AssemblyMustHaveAtLeastOneModule">
         <source>Assembly must have at least one module.</source>
         <target state="translated">Derleme en az bir modüle sahip olmalıdır.</target>

@@ -17,11 +17,6 @@
         <target state="translated">Не удается назначить "{0}" для "{1}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExpectedAnAssemblyReference">
-        <source>Expected an assembly reference.</source>
-        <target state="translated">Ожидалась ссылка на сборку.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisplayNameOrPathCannotBe">
         <source>Display name or path cannot be empty.</source>
         <target state="translated">Отображаемое имя или путь не могут быть пустыми.</target>

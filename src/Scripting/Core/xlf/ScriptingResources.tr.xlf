@@ -17,11 +17,6 @@
         <target state="translated">'{1}' öğesine '{0}' atanamıyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExpectedAnAssemblyReference">
-        <source>Expected an assembly reference.</source>
-        <target state="translated">Bir derleme başvurusu bekleniyordu.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisplayNameOrPathCannotBe">
         <source>Display name or path cannot be empty.</source>
         <target state="translated">Görünen ad veya yol boş olamaz.</target>

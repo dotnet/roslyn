@@ -17,11 +17,6 @@
         <target state="translated">Não foi possível atribuir '{0}' a '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ExpectedAnAssemblyReference">
-        <source>Expected an assembly reference.</source>
-        <target state="translated">Referência de assembly esperado.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisplayNameOrPathCannotBe">
         <source>Display name or path cannot be empty.</source>
         <target state="translated">Nome de exibição ou caminho não pode estar vazio.</target>

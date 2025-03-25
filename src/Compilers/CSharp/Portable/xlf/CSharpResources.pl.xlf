@@ -5738,11 +5738,6 @@
         <target state="translated">'Element „{0}” ma nieprawidłową sygnaturę i nie może być punktem wejścia</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_InvalidMainSig_Title">
-        <source>Method has the wrong signature to be an entry point</source>
-        <target state="translated">Metoda ma nieprawidłową sygnaturę i nie może być punktem wejścia</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NoImplicitConv">
         <source>Cannot implicitly convert type '{0}' to '{1}'</source>
         <target state="translated">Nie można niejawnie przekonwertować typu „{0}” na „{1}”.</target>

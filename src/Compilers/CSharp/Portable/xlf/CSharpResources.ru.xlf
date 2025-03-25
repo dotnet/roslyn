@@ -5739,11 +5739,6 @@
         <target state="translated">"{0}" имеет неправильную сигнатуру и не может быть точкой входа</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_InvalidMainSig_Title">
-        <source>Method has the wrong signature to be an entry point</source>
-        <target state="translated">Метод содержит неправильную подпись и не может быть точкой входа</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NoImplicitConv">
         <source>Cannot implicitly convert type '{0}' to '{1}'</source>
         <target state="translated">Не удается неявно преобразовать тип "{0}" в "{1}".</target>

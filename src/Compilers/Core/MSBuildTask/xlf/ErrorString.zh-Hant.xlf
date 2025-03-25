@@ -42,11 +42,6 @@
         <target state="translated">MSB3081: 嘗試設定 IDE 同處理序編譯器的 "{0}" 參數時發生問題。{1}</target>
         <note>{StrBegin="MSB3081: "}</note>
       </trans-unit>
-      <trans-unit id="General_DuplicateItemsNotSupported">
-        <source>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</source>
-        <target state="translated">MSB3105: 項目 "{0}" 在 "{1}" 參數中指定了一次以上。"{1}" 參數不支援重複的項目。</target>
-        <note>{StrBegin="MSB3105: "}</note>
-      </trans-unit>
       <trans-unit id="General_DuplicateItemsNotSupportedWithMetadata">
         <source>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</source>
         <target state="translated">MSB3083: 項目 "{0}" 在 "{1}" 參數中指定了一次以上，而且這兩個項目對於 "{3}" 中繼資料都擁有相同的值 "{2}"。"{1}" 參數不支援重複的項目，除非它們對於 "{3}" 中繼資料擁有不同的值。</target>

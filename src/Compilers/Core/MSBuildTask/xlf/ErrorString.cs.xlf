@@ -42,11 +42,6 @@
         <target state="translated">MSB3081: Při pokusu o nastavení parametru {0} pro vnitroprocesový kompilátor prostředí IDE došlo k potížím. {1}</target>
         <note>{StrBegin="MSB3081: "}</note>
       </trans-unit>
-      <trans-unit id="General_DuplicateItemsNotSupported">
-        <source>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</source>
-        <target state="translated">MSB3105: Položka {0} byla v parametru {1} uvedená víc než jednou. Parametr {1} nepodporuje duplicitní položky.</target>
-        <note>{StrBegin="MSB3105: "}</note>
-      </trans-unit>
       <trans-unit id="General_DuplicateItemsNotSupportedWithMetadata">
         <source>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</source>
         <target state="translated">MSB3083: Položka {0} byla v parametru {1} uvedená víc než jednou a oba výskyty obsahují stejnou hodnotu {2} metadat {3}. Duplicitní položky se u parametru {1} nepodporují, pokud neobsahují různé hodnoty metadat {3}.</target>

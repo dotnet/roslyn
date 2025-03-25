@@ -42,11 +42,6 @@
         <target state="translated">MSB3081: IDE のインプロセス コンパイラの "{0}" パラメーターを設定しようとしたときに問題が発生しました。{1}</target>
         <note>{StrBegin="MSB3081: "}</note>
       </trans-unit>
-      <trans-unit id="General_DuplicateItemsNotSupported">
-        <source>MSB3105: The item "{0}" was specified more than once in the "{1}" parameter.  Duplicate items are not supported by the "{1}" parameter.</source>
-        <target state="translated">MSB3105: 項目 "{0}" は "{1}" パラメーターで 1 度以上指定されました。重複した項目は "{1}" パラメーターではサポートされていません。</target>
-        <note>{StrBegin="MSB3105: "}</note>
-      </trans-unit>
       <trans-unit id="General_DuplicateItemsNotSupportedWithMetadata">
         <source>MSB3083: The item "{0}" was specified more than once in the "{1}" parameter and both items had the same value "{2}" for the "{3}" metadata.  Duplicate items are not supported by the "{1}" parameter unless they have different values for the "{3}" metadata.</source>
         <target state="translated">MSB3083: 項目 "{0}" は "{1}" パラメーターで複数回指定されており、いずれも "{3}" メタデータの値は "{2}" になっています。"{3}" メタデータの値が別でない限り、"{1}" パラメーターで重複した項目はサポートされません。</target>
