@@ -55,7 +55,7 @@ internal sealed class CustomMessageHandlerFactory() : ICustomMessageHandlerFacto
         foreach (var i in candidateType.GetInterfaces())
         {
             if (i.IsGenericType &&
-                i.IsGenericTypeDefinition &&
+                !i.IsGenericTypeDefinition &&
                 i.GetGenericTypeDefinition() == unboundInterfaceType)
             {
                 if (boundInterfaceType is not null)
