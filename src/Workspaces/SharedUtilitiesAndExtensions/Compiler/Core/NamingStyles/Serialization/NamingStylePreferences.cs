@@ -85,9 +85,6 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
         Rules = new NamingStyleRules(namingRules);
     }
 
-    public static NamingStylePreferences Default { get; } = FromXElement(XElement.Parse(DefaultNamingPreferencesString));
-    public static NamingStylePreferences Empty { get; } = new([], [], ImmutableArray<NamingRule>.Empty);
-
     public static string DefaultNamingPreferencesString { get; } = $@"
 <NamingPreferencesInfo SerializationVersion=""{s_serializationVersion}"">
   <SymbolSpecifications>
@@ -334,6 +331,9 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
   </NamingRules>
 </NamingPreferencesInfo>
 ";
+
+    public static NamingStylePreferences Default { get; } = FromXElement(XElement.Parse(DefaultNamingPreferencesString));
+    public static NamingStylePreferences Empty { get; } = new([], [], ImmutableArray<NamingRule>.Empty);
 
     public bool IsEmpty
         => Rules.NamingRules.IsEmpty;

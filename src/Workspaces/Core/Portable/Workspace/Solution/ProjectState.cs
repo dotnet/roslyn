@@ -329,7 +329,9 @@ internal sealed partial class ProjectState
                 optionsProvider: new ProjectAnalyzerConfigOptionsProvider(self)),
             this);
 
-    public AnalyzerOptions HostAnalyzerOptions { get => InterlockedOperations.Initialize(
+    public AnalyzerOptions HostAnalyzerOptions
+    {
+        get => InterlockedOperations.Initialize(
             ref field,
             static self => new AnalyzerOptions(
                 additionalFiles: self.AdditionalFiles,

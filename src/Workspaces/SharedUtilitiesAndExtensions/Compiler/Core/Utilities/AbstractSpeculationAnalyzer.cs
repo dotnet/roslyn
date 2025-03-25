@@ -85,7 +85,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         _failOnOverloadResolutionFailuresInOriginalCode = failOnOverloadResolutionFailuresInOriginalCode;
         _isNewSemanticModelSpeculativeModel = true;
         _lazyReplacedExpression = null;
-        SemanticRootOfOriginalExpression = null;
+        SemanticRootOfOriginalExpression = null!;
         _lazySemanticRootOfReplacedExpression = null;
         _lazySpeculativeSemanticModel = null;
     }

@@ -128,7 +128,9 @@ internal sealed class AnalysisResultPair
         }
     }
 
-    public ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> MergedAnalyzerTelemetryInfo { get
+    public ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> MergedAnalyzerTelemetryInfo
+    {
+        get
         {
             return InterlockedOperations.Initialize(
                 ref field,
