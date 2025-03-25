@@ -138,5 +138,4 @@ internal sealed class SemanticSearchQueryExecutor(
             map["EmitTime"] = (long)result.EmitTime.TotalMilliseconds;
         }));
     }
-
 }
