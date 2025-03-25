@@ -924,7 +924,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             return false;
 
         // All checks pass, so let's treat this special.
-        var dte = _threadingContext.JoinableTaskFactory.Run(() => _asyncServiceProvider.GetServiceAsync<SDTE, EnvDTE.DTE>(_threadingContext.JoinableTaskFactory));
+        var dte = _threadingContext.JoinableTaskFactory.Run(() => _asyncServiceProvider.GetServiceAsync<SDTE, EnvDTE.DTE>(_threadingContext.DisposalToken));
 
         const string SolutionItemsFolderName = "Solution Items";
 

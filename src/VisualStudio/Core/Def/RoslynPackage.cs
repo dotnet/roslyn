@@ -133,9 +133,9 @@ internal sealed class RoslynPackage : AbstractPackage
     private async Task ProfferServiceBrokerServicesAsync(CancellationToken cancellationToken)
     {
         // Proffer in-process service broker services
-        var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(throwOnFailure: true, cancellationToken).ConfigureAwait(false);
+        var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(cancellationToken).ConfigureAwait(false);
 
-        serviceBrokerContainer!.Proffer(
+        serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new WorkspaceProjectFactoryService(this.ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
 
@@ -172,7 +172,7 @@ internal sealed class RoslynPackage : AbstractPackage
 
         // we need to load it as early as possible since we can have errors from
         // package from each language very early
-        await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this).ConfigureAwait(false);
+        await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
         await this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);

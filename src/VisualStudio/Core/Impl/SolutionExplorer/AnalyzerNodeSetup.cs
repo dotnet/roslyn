@@ -7,7 +7,6 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 
@@ -16,18 +15,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export(typeof(IAnalyzerNodeSetup))]
     internal sealed class AnalyzerNodeSetup : IAnalyzerNodeSetup
     {
-        private readonly IThreadingContext _threadingContext;
         private readonly AnalyzerItemsTracker _analyzerTracker;
         private readonly AnalyzersCommandHandler _analyzerCommandHandler;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AnalyzerNodeSetup(
-            IThreadingContext threadingContext,
             AnalyzerItemsTracker analyzerTracker,
             AnalyzersCommandHandler analyzerCommandHandler)
         {
-            _threadingContext = threadingContext;
             _analyzerTracker = analyzerTracker;
             _analyzerCommandHandler = analyzerCommandHandler;
         }
@@ -36,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             await _analyzerTracker.RegisterAsync(serviceProvider, cancellationToken).ConfigureAwait(false);
             await _analyzerCommandHandler.InitializeAsync(
-                await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false),
+                await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(throwOnFailure: false, cancellationToken).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
         }
 
