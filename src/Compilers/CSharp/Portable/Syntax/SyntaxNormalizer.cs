@@ -94,14 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                 var depth = GetDeclarationDepth(token);
 
-                var lineBreaksAfterLeading = LineBreaksAfterLeading(token);
                 tk = tk.WithLeadingTrivia(RewriteTrivia(
                     token.LeadingTrivia,
                     depth,
                     isTrailing: false,
                     indentAfterLineBreak: NeedsIndentAfterLineBreak(token),
                     mustHaveSeparator: false,
-                    lineBreaksAfter: lineBreaksAfterLeading));
+                    lineBreaksAfter: lineBreaksAfterLeading(token)));
 
                 var nextToken = this.GetNextRelevantToken(token);
 
