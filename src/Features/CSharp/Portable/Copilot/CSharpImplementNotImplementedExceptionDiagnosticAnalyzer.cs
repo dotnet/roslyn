@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
@@ -47,7 +47,7 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
         INamedTypeSymbol notImplementedExceptionType,
         ConcurrentSet<Location> reportedLocations)
     {
-        var allThrows = new List<IThrowOperation>();
+        using var _ = ArrayBuilder<IThrowOperation>.GetInstance(out var allThrows);
         var hasNonDirectThrow = false;
 
         // First, collect all throw operations with NotImplementedException
