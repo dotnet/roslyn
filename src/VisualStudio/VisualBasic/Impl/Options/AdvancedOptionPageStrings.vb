@@ -337,18 +337,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Go_To_Definition As String =
             ServicesVSResources.Go_To_Definition
 
-        Public ReadOnly Property Option_Rename As String =
-            EditorFeaturesResources.Rename
-
-        Public ReadOnly Property Where_should_the_rename_UI_be_shown As String =
-            ServicesVSResources.Where_should_the_rename_UI_be_shown
-
-        Public ReadOnly Property Option_Show_UI_inline As String =
-            ServicesVSResources.Show_UI_inline
-
-        Public ReadOnly Property Option_Show_UI_as_dashboard_in_top_right As String =
-            ServicesVSResources.Show_UI_as_dashboard_in_top_right
-
         Public ReadOnly Property Option_Source_Generators As String =
             ServicesVSResources.Source_Generators
 

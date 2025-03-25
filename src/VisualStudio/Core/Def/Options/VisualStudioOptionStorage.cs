@@ -337,7 +337,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchArgumentName")},
         {"dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent")},
         {"dotnet_collapse_inline_rename_ui", new RoamingProfileStorage("TextEditor.CollapseRenameUI")},
-        {"dotnet_rename_use_inline_adornment", new RoamingProfileStorage("TextEditor.RenameUseInlineAdornment")},
         {"dotnet_preview_inline_rename_changes", new RoamingProfileStorage("TextEditor.Specific.PreviewRename")},
         {"dotnet_collapse_suggestions_in_inline_rename_ui", new RoamingProfileStorage("TextEditor.CollapseRenameSuggestionsUI")},
         {"dotnet_commit_rename_asynchronously", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "DotnetCommitRenameAsynchronously")},

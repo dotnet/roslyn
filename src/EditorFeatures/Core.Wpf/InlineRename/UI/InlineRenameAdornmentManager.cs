@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -20,7 +19,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal class InlineRenameAdornmentManager : IDisposable
+    internal sealed class InlineRenameAdornmentManager : IDisposable
     {
         private readonly IWpfTextView _textView;
         private readonly IGlobalOptionService _globalOptionService;
@@ -28,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly InlineRenameService _renameService;
-        private readonly IEditorFormatMapService _editorFormatMapService;
         private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;
         private readonly IThreadingContext _threadingContext;
 #pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
@@ -42,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public InlineRenameAdornmentManager(
             InlineRenameService renameService,
-            IEditorFormatMapService editorFormatMapService,
             IInlineRenameColorUpdater? dashboardColorUpdater,
             IWpfTextView textView,
             IGlobalOptionService globalOptionService,
@@ -55,7 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 #pragma warning restore CS0618
         {
             _renameService = renameService;
-            _editorFormatMapService = editorFormatMapService;
             _dashboardColorUpdater = dashboardColorUpdater;
             _textView = textView;
             _globalOptionService = globalOptionService;
@@ -118,59 +114,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return null;
             }
 
-            var useInlineAdornment = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.UseInlineAdornment);
-            LogAdornmentChoice(useInlineAdornment);
-            if (useInlineAdornment)
+            if (!_textView.HasAggregateFocus)
             {
-                if (!_textView.HasAggregateFocus)
-                {
-                    // For the rename flyout, the adornment is dismissed on focus lost. There's
-                    // no need to keep an adornment on every textview for show/hide behaviors
-                    return null;
-                }
-
-                // Get the active selection to make sure the rename text is selected in the same way
-                var originalSpan = _renameService.ActiveSession.TriggerSpan;
-                var selectionSpan = _textView.Selection.SelectedSpans.First();
-
-                var start = selectionSpan.IsEmpty
-                    ? 0
-                    : selectionSpan.Start - originalSpan.Start; // The length from the identifier to the start of selection
-
-                var length = selectionSpan.IsEmpty
-                    ? originalSpan.Length
-                    : selectionSpan.Length;
-
-                var identifierSelection = new TextSpan(start, length);
-
-                var adornment = new RenameFlyout(
-                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(
-                        _renameService.ActiveSession,
-                        session => new RenameFlyoutViewModel(session,
-                            identifierSelection,
-                            registerOleComponent: true,
-                            _globalOptionService,
-                            _threadingContext,
-                            _listenerProvider,
-                            _smartRenameSessionFactory)),
-                    _textView,
-                    _themeService,
-                    _asyncQuickInfoBroker,
-                    _editorFormatMapService,
-                    _threadingContext,
-                    _listenerProvider);
-
-                return adornment;
+                // For the rename flyout, the adornment is dismissed on focus lost. There's
+                // no need to keep an adornment on every textview for show/hide behaviors
+                return null;
             }
-            else
-            {
-                var newAdornment = new RenameDashboard(
-                    (RenameDashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameDashboardViewModel(session, _threadingContext, _textView)),
-                    _editorFormatMapService,
-                    _textView);
 
-                return newAdornment;
-            }
+            // Get the active selection to make sure the rename text is selected in the same way
+            var originalSpan = _renameService.ActiveSession.TriggerSpan;
+            var selectionSpan = _textView.Selection.SelectedSpans.First();
+
+            var start = selectionSpan.IsEmpty
+                ? 0
+                : selectionSpan.Start - originalSpan.Start; // The length from the identifier to the start of selection
+
+            var length = selectionSpan.IsEmpty
+                ? originalSpan.Length
+                : selectionSpan.Length;
+
+            var identifierSelection = new TextSpan(start, length);
+
+            var adornment = new RenameFlyout(
+                (RenameFlyoutViewModel)s_createdViewModels.GetValue(
+                    _renameService.ActiveSession,
+                    session => new RenameFlyoutViewModel(session,
+                        identifierSelection,
+                        registerOleComponent: true,
+                        _globalOptionService,
+                        _threadingContext,
+                        _listenerProvider,
+                        _smartRenameSessionFactory)),
+                _textView,
+                _asyncQuickInfoBroker,
+                _threadingContext,
+                _listenerProvider);
+
+            return adornment;
         }
 
         private static bool ViewIncludesBufferFromWorkspace(IWpfTextView textView, Workspace workspace)
@@ -183,14 +163,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             Workspace.TryGetWorkspace(textContainer, out var workspace);
             return workspace;
-        }
-
-        private static void LogAdornmentChoice(bool useInlineAdornment)
-        {
-            TelemetryLogging.Log(FunctionId.InlineRenameAdornmentChoice, KeyValueLogMessage.Create(m =>
-            {
-                m[nameof(useInlineAdornment)] = useInlineAdornment;
-            }));
         }
     }
 }

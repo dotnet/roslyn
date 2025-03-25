@@ -1327,16 +1327,6 @@
         <target state="translated">ソリューション エクスプローラーで [未使用の参照を削除する] コマンドを表示する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_UI_as_dashboard_in_top_right">
-        <source>Show UI as a dashboard in top right</source>
-        <target state="translated">右上にダッシュボードとして UI を表示する</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
-      <trans-unit id="Show_UI_inline">
-        <source>Show UI Inline</source>
-        <target state="translated">UI インラインの表示</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
         <target state="translated">次のコンパイラ エラーと警告を表示する:</target>
@@ -1711,11 +1701,6 @@
         <source>When types loosely match</source>
         <target state="translated">型が緩やかに一致する場合</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Where_should_the_rename_UI_be_shown">
-        <source>Where should the rename UI be shown?</source>
-        <target state="translated">名前変更 UI はどこに表示されますか?</target>
-        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>

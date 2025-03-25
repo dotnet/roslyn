@@ -1327,16 +1327,6 @@
         <target state="translated">Mostra il comando "Rimuovi riferimenti inutilizzati" in Esplora soluzioni</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_UI_as_dashboard_in_top_right">
-        <source>Show UI as a dashboard in top right</source>
-        <target state="translated">Mostra l'interfaccia utente come dashboard in alto a destra</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
-      <trans-unit id="Show_UI_inline">
-        <source>Show UI Inline</source>
-        <target state="translated">Mostra interfaccia utente inline</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
         <target state="translated">Mostra errori e avvisi del compilatore per:</target>
@@ -1711,11 +1701,6 @@
         <source>When types loosely match</source>
         <target state="translated">Quando i tipi corrispondono liberamente</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Where_should_the_rename_UI_be_shown">
-        <source>Where should the rename UI be shown?</source>
-        <target state="translated">Dove deve essere visualizzata l'interfaccia utente di ridenominazione?</target>
-        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>

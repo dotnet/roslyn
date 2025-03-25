@@ -1327,16 +1327,6 @@
         <target state="translated">在方案總管中顯示「移除未使用的參考」命令</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_UI_as_dashboard_in_top_right">
-        <source>Show UI as a dashboard in top right</source>
-        <target state="translated">將 UI 顯示為右上方的儀表板</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
-      <trans-unit id="Show_UI_inline">
-        <source>Show UI Inline</source>
-        <target state="translated">顯示 UI 內嵌</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
         <target state="translated">顯示編譯器錯誤和警告:</target>
@@ -1711,11 +1701,6 @@
         <source>When types loosely match</source>
         <target state="translated">當類型鬆散相符時</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Where_should_the_rename_UI_be_shown">
-        <source>Where should the rename UI be shown?</source>
-        <target state="translated">重新命名 UI 應該顯示在何處?</target>
-        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>

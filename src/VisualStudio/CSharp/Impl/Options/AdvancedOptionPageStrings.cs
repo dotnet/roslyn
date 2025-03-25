@@ -367,18 +367,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Go_To_Definition
             => ServicesVSResources.Go_To_Definition;
 
-        public static string Option_Rename
-            => EditorFeaturesResources.Rename;
-
-        public static string Where_should_the_rename_UI_be_shown
-            => ServicesVSResources.Where_should_the_rename_UI_be_shown;
-
-        public static string Option_Show_UI_inline
-            => ServicesVSResources.Show_UI_inline;
-
-        public static string Option_Show_UI_as_dashboard_in_top_right
-            => ServicesVSResources.Show_UI_as_dashboard_in_top_right;
-
         public static string Option_Source_Generators
             => ServicesVSResources.Source_Generators;
 

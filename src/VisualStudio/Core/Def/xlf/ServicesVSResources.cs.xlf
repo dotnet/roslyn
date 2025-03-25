@@ -1327,16 +1327,6 @@
         <target state="translated">Zobrazit příkaz Odebrat nepoužívané odkazy v Průzkumníkovi řešení</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_UI_as_dashboard_in_top_right">
-        <source>Show UI as a dashboard in top right</source>
-        <target state="translated">Zobrazit uživatelské rozhraní jako řídicí panel v pravém horním rohu</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
-      <trans-unit id="Show_UI_inline">
-        <source>Show UI Inline</source>
-        <target state="translated">Zobrazit vložené uživatelské rozhraní</target>
-        <note>"UI" is an acronym for "User Interface"</note>
-      </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
         <target state="translated">Zobrazit chyby a upozornění kompilátoru pro:</target>
@@ -1711,11 +1701,6 @@
         <source>When types loosely match</source>
         <target state="translated">Když se typy volně shodují</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Where_should_the_rename_UI_be_shown">
-        <source>Where should the rename UI be shown?</source>
-        <target state="translated">Kde by se mělo zobrazit uživatelské rozhraní pro přejmenování?</target>
-        <note>"UI" is an acronym for "User Interface"</note>
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>
