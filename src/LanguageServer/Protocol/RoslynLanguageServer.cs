@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -77,13 +76,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var baseServiceMap = new Dictionary<string, object>();
 
             var clientLanguageServerManager = new ClientLanguageServerManager(jsonRpc);
-            var lifeCycleManager = new LspServiceLifeCycleManager(clientLanguageServerManager);
 
             AddService<IClientLanguageServerManager>(clientLanguageServerManager);
             AddService<ILspLogger>(logger);
             AddService<AbstractLspLogger>(logger);
             AddService<ICapabilitiesProvider>(capabilitiesProvider);
-            AddService<ILifeCycleManager>(lifeCycleManager);
             AddService(new ServerInfoProvider(serverKind, supportedLanguages));
             AddLazyService<AbstractRequestContextFactory<RequestContext>>((lspServices) => new RequestContextFactory(lspServices));
             AddLazyService<AbstractTelemetryService>((lspServices) => new TelemetryService(lspServices));
