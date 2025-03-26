@@ -66,7 +66,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {|IDE3000:throw new NotImplementedException("Factorial method not implemented");|}
                 }
         
-                public int ConstantValue => {|IDE3000:{|IDE3000:throw new NotImplementedException("Property not implemented")|}|};
+                public int ConstantValue => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
         
                 public {|IDE3000:MathService|}()
                 {
@@ -244,7 +244,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
 
-                public int DataCount => {|IDE3000:{|IDE3000:throw new NotImplementedException("Property not implemented")|}|};
+                public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
 
             public interface IDataService
@@ -294,7 +294,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
             
-                public int DataCount => {|IDE3000:{|IDE3000:throw new NotImplementedException("Property not implemented")|}|};
+                public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
 
             public interface IDataService
@@ -349,7 +349,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 }
             
                 /* {{copilotErrorMessage}} */
-                public int DataCount => {|IDE3000:{|IDE3000:throw new NotImplementedException("Property not implemented")|}|};
+                public int DataCount => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
             }
 
             public interface IDataService

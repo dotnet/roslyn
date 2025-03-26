@@ -74,7 +74,8 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
                     {
                         foreach (var location in context.OwningSymbol.Locations)
                         {
-                            if (location.SourceTree == context.FilterTree)
+                            if (location.SourceTree == context.FilterTree &&
+                                location != throwOperation.Syntax.GetLocation())
                             {
                                 context.ReportDiagnostic(Diagnostic.Create(
                                     Descriptor,

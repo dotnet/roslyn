@@ -46,7 +46,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                int P => {|IDE3000:{|IDE3000:throw new NotImplementedException()|}|};
+                int P => {|IDE3000:throw new NotImplementedException()|};
             }
             """,
             LanguageVersion = LanguageVersion.CSharp11,
