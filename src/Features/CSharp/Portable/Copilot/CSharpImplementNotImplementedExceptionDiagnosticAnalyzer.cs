@@ -103,7 +103,7 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
                 // Excluding property declarations with expression bodies
                 // Because their location is an exact match with the throw operation
                 // and we don't want to report the same location twice
-                !(operation.Syntax.Parent is ArrowExpressionClauseSyntax { Parent: PropertyDeclarationSyntax }))
+                operation.Syntax.Parent is not ArrowExpressionClauseSyntax { Parent: PropertyDeclarationSyntax })
             {
                 // Include expression-bodied methods and get accessors
                 return true;
