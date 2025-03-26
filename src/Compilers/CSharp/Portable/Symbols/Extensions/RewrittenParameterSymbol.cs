@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override int CallerArgumentExpressionParameterIndex => _underlyingParameter.CallerArgumentExpressionParameterIndex;
 
-        internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable(); // PROTOTYPE: Follow up
+        internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();
 
-        internal sealed override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable(); // PROTOTYPE: Follow up
+        internal sealed override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
     }
 }

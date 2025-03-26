@@ -3905,7 +3905,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // PROTOTYPE consider removing or adjusting the reported argument position
                 var argNumber = invokedAsExtensionMethod ? arg : arg + 1;
 
                 // Warn for `ref`/`in` or None/`ref readonly` mismatch.
@@ -8016,7 +8015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(typeArgumentsOpt.IsDefault);
                 if (!receiver.HasErrors)
                 {
-                    diagnostics.AddRange(resolution.Diagnostics); // PROTOTYPE test dependencies/diagnostics
+                    diagnostics.AddRange(resolution.Diagnostics);
                 }
 
                 resolution.Free();
@@ -8045,7 +8044,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
 
                 case ExtendedErrorTypeSymbol errorTypeSymbol:
-                    // PROTOTYPE we should likely reduce (ie. do type inference and substitute) the candidates (like ToBadExpression)
                     return new BoundBadExpression(syntax, LookupResultKind.Viable, errorTypeSymbol.CandidateSymbols!, [receiver], CreateErrorType());
 
                 default:
@@ -8629,7 +8627,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // 3. resolve properties
                 Debug.Assert(arity == 0 || lookupResult.Symbols.All(s => s.Kind != SymbolKind.Property));
 
-                // PROTOTYPE: Regarding 'acceptOnlyMethods', consider if it would be better to add a special 'LookupOptions' value to filter out properties during lookup
                 OverloadResolutionResult<PropertySymbol>? propertyResult = arity != 0 || acceptOnlyMethods ? null : resolveProperties(left, lookupResult, binder, ref actualReceiverArguments, ref useSiteInfo);
 
                 // 4. determine member kind
@@ -8686,7 +8683,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // ambiguous between multiple applicable properties
                 propertyResult.Free();
-                // PROTOTYPE consider using the property overload resolution result in the result to improve reported diagnostics
                 result = makeErrorResult(left.Type, memberName, arity, lookupResult, expression, diagnostics);
                 return true;
             }
@@ -8816,7 +8812,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static MethodGroupResolution makeErrorResult(TypeSymbol receiverType, string memberName, int arity, LookupResult lookupResult, SyntaxNode expression, BindingDiagnosticBag diagnostics)
             {
-                // PROTOTYPE we'll want to describe what went wrong in a useful way (see OverloadResolutionResult.ReportDiagnostics)
                 var errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_ExtensionResolutionFailed, receiverType, memberName);
                 diagnostics.Add(errorInfo, expression.Location);
                 var resultSymbol = new ExtendedErrorTypeSymbol(containingSymbol: null, lookupResult.Symbols.ToImmutable(), LookupResultKind.OverloadResolutionFailure, errorInfo, arity);
@@ -10501,7 +10496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 indexerOrSliceAccess = BindMethodGroupInvocation(syntax, syntax, method.Name, boundMethodGroup, analyzedArguments,
                     diagnostics, queryClause: null, ignoreNormalFormIfHasValidParamsParameter: true, anyApplicableCandidates: out bool _,
                     disallowExpandedNonArrayParams: false,
-                    acceptOnlyMethods: true).MakeCompilerGenerated(); // PROTOTYPE: Test effect of acceptOnlyMethods value
+                    acceptOnlyMethods: true).MakeCompilerGenerated();
 
                 analyzedArguments.Free();
             }
@@ -10630,7 +10625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ResolveMethodGroup(
                 node, node.Syntax, node.Name, analyzedArguments, ref useSiteInfo,
                 options,
-                acceptOnlyMethods: true, // PROTOTYPE: Confirm this value is appropriate for all consumers of the enclosing method and test effect of this value for all of them
+                acceptOnlyMethods: true,
                 returnRefKind: returnRefKind, returnType: returnType,
                 callingConventionInfo: callingConventionInfo);
         }

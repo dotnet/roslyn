@@ -19,7 +19,6 @@ public class ExtensionsParsingTests : ParsingTests
     [Fact]
     public void LangVer13()
     {
-        // PROTOTYPE consider giving a LangVer error to trigger UpgradeProject
         UsingTree("""
 class C
 {
@@ -752,7 +751,6 @@ class extension
         }
         EOF();
 
-        // PROTOTYPE report error for declaring type named "extension"
         // Note: break from C# 13
         UsingTree("""
 class extension

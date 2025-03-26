@@ -600,7 +600,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
                 }
-                // PROTOTYPE should register the extension parameter
 
                 makeNotNullMembersMaybeNull();
                 // We need to create a snapshot even of the first node, because we want to have the state of the initial parameters.
@@ -4468,7 +4467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(reinferredMethod is object);
                 if (node.ImplicitReceiverOpt != null)
                 {
-                    //Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ObjectOrCollectionValuePlaceholder); // PROTOTYPE the receiver may be converted now
+                    //Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ObjectOrCollectionValuePlaceholder);
                     SetAnalyzedNullability(node.ImplicitReceiverOpt, new VisitResult(node.ImplicitReceiverOpt.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
                 }
                 SetUnknownResultNullability(node);
@@ -6709,7 +6708,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parameter.ContainingSymbol is TypeSymbol { IsExtension: true })
             {
-                // PROTOTYPE revisit when doing nullability analysis
                 return FlowAnalysisAnnotations.None;
             }
 
@@ -7990,7 +7988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds,
                 arguments,
                 ref discardedUseSiteInfo,
-                new MethodInferenceExtensions(this)); // PROTOTYPE we may need to override ordinals here
+                new MethodInferenceExtensions(this));
 
             if (!result.Success)
             {
@@ -8370,7 +8368,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // PROTOTYPE The assert below fails for an instance call on a generic extension.
             //Debug.Assert(false); // If this assert fails, add an appropriate test.
             return symbol;
 

@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        argumentRefKinds = argumentRefKinds.Insert(0, argumentRefKindFromReceiverRefKind(receiverRefKind)); // PROTOTYPE: Test this code path
+                        argumentRefKinds = argumentRefKinds.Insert(0, argumentRefKindFromReceiverRefKind(receiverRefKind));
                     }
 
                     invokedAsExtensionMethod = true;
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
             MethodSymbol method = node.Method;
-            Debug.Assert(method.IsDefinition); // PROTOTYPE: From the code coverage and other instrumentations perspective, should we remap the index to the implementation symbol? 
+            Debug.Assert(method.IsDefinition);
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(method, type);
         }

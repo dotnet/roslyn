@@ -1512,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnRefKind: default,
                 returnType: null,
                 ref extensionUseSiteInfo,
-                acceptOnlyMethods: true); // PROTOTYPE: Test effect of acceptOnlyMethods value
+                acceptOnlyMethods: true);
 
             diagnostics.Add(syntax, extensionUseSiteInfo);
             diagnostics.AddRange(methodGroupResolutionResult.Diagnostics);

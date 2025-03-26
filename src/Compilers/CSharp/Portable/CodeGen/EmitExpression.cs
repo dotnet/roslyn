@@ -3588,7 +3588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (node.HoistedField is null)
             {
-                _builder.EmitIntConstant(node.Parameter.Ordinal); // PROTOTYPE: Follow up
+                _builder.EmitIntConstant(node.Parameter.Ordinal);
             }
             else
             {

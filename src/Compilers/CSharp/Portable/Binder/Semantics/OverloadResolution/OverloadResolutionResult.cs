@@ -1156,7 +1156,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TMember method,
             int arg)
         {
-            // PROTOTYPE consider adjusting or removing the argument index for displaying in diagnostic
             BoundExpression argument = arguments.Argument(arg);
             if (argument.HasAnyErrors)
             {

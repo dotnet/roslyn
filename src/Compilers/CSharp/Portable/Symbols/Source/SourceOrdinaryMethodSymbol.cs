@@ -204,7 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
-                // PROTOTYPE these validation rules should also be applied to extension declarations
                 var syntax = GetSyntax();
                 var parameter0Type = this.Parameters[0].TypeWithAnnotations;
                 var parameter0RefKind = this.Parameters[0].RefKind;
