@@ -3255,7 +3255,7 @@ Keyword("async"));
             }
             """,
             testHost,
-            ParseOptions(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext)),
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext),
             Keyword("static"),
             Keyword("class"),
             Class("C"),

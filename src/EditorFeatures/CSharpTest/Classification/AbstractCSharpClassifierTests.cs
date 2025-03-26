@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
@@ -17,6 +18,23 @@ public abstract class AbstractCSharpClassifierTests : AbstractClassifierTests
     {
         var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
         return EditorTestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition, isMarkup: false);
+    }
+
+    protected new Task TestAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        TestHost testHost,
+        params FormattedClassification[] expected)
+    {
+        return base.TestAsync(code, testHost, expected);
+    }
+
+    protected new Task TestAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        TestHost testHost,
+        ParseOptions? parseOptions,
+        params FormattedClassification[] expected)
+    {
+        return base.TestAsync(code, testHost, parseOptions, expected);
     }
 
     protected override async Task DefaultTestAsync(string code, string allCode, TestHost testHost, FormattedClassification[] expected)

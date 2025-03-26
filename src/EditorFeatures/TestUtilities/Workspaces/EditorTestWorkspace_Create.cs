@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Host;
 
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         #region C#
 
         public static EditorTestWorkspace CreateCSharp(
-            string file,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string file,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             TestComposition composition = null,

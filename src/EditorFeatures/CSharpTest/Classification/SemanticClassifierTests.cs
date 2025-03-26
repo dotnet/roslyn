@@ -40,14 +40,6 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
         return await GetSemanticClassificationsAsync(document, spans);
     }
 
-    private new Task TestAsync(
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
-        TestHost testHost,
-        params FormattedClassification[] expected)
-    {
-        return base.TestAsync(code, testHost, expected);
-    }
-
     [Theory, CombinatorialData]
     public async Task GenericClassDeclaration(TestHost testHost)
     {
