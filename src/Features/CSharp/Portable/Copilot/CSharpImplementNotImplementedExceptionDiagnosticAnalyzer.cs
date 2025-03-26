@@ -47,8 +47,6 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
 
         void AnalyzeBlock(IOperation block)
         {
-            var singularBlockOperation = block is IBlockOperation { Operations: [var child] } ? child : null;
-
             foreach (var operation in block.DescendantsAndSelf())
             {
                 if (operation is IThrowOperation
