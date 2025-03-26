@@ -55,7 +55,7 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
         return container;
     }
 
-    private sealed class NoOpAuthorizationService : IAuthorizationService
+    private class NoOpAuthorizationService : IAuthorizationService
     {
         public event EventHandler? CredentialsChanged;
 

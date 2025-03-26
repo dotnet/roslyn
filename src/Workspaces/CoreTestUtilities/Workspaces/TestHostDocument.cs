@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public sealed class TestHostDocument
+    public class TestHostDocument
     {
         protected HostLanguageServices? LanguageServiceProvider;
         protected readonly string InitialText;

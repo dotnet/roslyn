@@ -17,7 +17,7 @@ internal sealed record UnifiedSettingsEnumOption : UnifiedSettingsOption<string>
     [JsonConverter(typeof(ResourceStringArrayConverter))]
     public required string[] EnumItemLabels { get; init; }
 
-    public virtual bool Equals(UnifiedSettingsEnumOption? other)
+    public bool Equals(UnifiedSettingsEnumOption? other)
     {
         if (other is null)
             return false;

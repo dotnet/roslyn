@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
         where TCodeRefactoring : CodeRefactoringProvider, new()
     {
-        public sealed class Test : VisualBasicCodeRefactoringTest<TCodeRefactoring, DefaultVerifier>
+        public class Test : VisualBasicCodeRefactoringTest<TCodeRefactoring, DefaultVerifier>
         {
             private readonly SharedVerifierState _sharedState;
 

@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal sealed class OrderableContentTypeMetadata(IDictionary<string, object> data) : OrderableMetadata(data), IContentTypeMetadata
+    internal class OrderableContentTypeMetadata(IDictionary<string, object> data) : OrderableMetadata(data), IContentTypeMetadata
     {
         public IEnumerable<string> ContentTypes { get; } = (IEnumerable<string>?)data.GetValueOrDefault("ContentTypes") ?? [];
     }

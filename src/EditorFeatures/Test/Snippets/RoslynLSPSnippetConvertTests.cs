@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
-public sealed class RoslynLSPSnippetConvertTests
+public class RoslynLSPSnippetConvertTests
 {
     #region Edgecase extend TextChange tests
 

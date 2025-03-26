@@ -17,7 +17,7 @@ public sealed class TextLoaderTests
     {
     }
 
-    private sealed class LoaderNoOverride2 : TextLoader
+    private class LoaderNoOverride2 : TextLoader
     {
         public new virtual Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             => Task.FromResult((TextAndVersion?)null!);

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
-internal sealed class NamingStyleSetting
+internal class NamingStyleSetting
 {
     private NamingStyle[] _allStyles;
     private readonly NamingStyleSettingsUpdater? _settingsUpdater;

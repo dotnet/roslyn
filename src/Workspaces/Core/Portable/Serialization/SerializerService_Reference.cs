@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Serialization;
 using static Microsoft.CodeAnalysis.Serialization.SerializerService.TestAccessor;
 using static TemporaryStorageService;
 
-internal sealed partial class SerializerService
+internal partial class SerializerService
 {
     private const int MetadataFailed = int.MaxValue;
 

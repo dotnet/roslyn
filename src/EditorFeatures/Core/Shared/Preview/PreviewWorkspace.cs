@@ -11,10 +11,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Preview;
 
-internal sealed class PreviewWorkspace : Workspace
+internal class PreviewWorkspace : Workspace
 {
     public PreviewWorkspace()
-    : base(MefHostServices.DefaultHost, WorkspaceKind.Preview)
+        : base(MefHostServices.DefaultHost, WorkspaceKind.Preview)
     {
     }
 

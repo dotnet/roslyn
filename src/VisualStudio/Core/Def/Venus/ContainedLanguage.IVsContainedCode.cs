@@ -16,7 +16,7 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 
-internal sealed partial class ContainedLanguage : IVsContainedCode
+internal partial class ContainedLanguage : IVsContainedCode
 {
     public int HostSpansUpdated()
         => VSConstants.S_OK;

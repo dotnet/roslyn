@@ -3213,7 +3213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return GetEncompassingSpan(root, startToken, endToken);
         }
 
-        protected SyntaxNode InsertMemberNodeIntoContainerCore(int index, SyntaxNode member, SyntaxNode container)
+        private static SyntaxNode InsertMemberNodeIntoContainerCore(int index, SyntaxNode member, SyntaxNode container)
         {
             if (container is CompilationUnitSyntax compilationUnit)
             {
