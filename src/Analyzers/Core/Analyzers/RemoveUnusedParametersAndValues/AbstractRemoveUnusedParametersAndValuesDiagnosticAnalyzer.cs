@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -197,7 +196,12 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
             compilationContext => SymbolStartAnalyzer.CreateAndRegisterActions(compilationContext, this));
     }
 
-    private bool TryGetOptions(SyntaxTree syntaxTree, AnalyzerOptions analyzerOptions, CompilationOptions compilationOptions, CancellationToken cancellationToken, out Options options)
+    private bool TryGetOptions(
+        SyntaxTree syntaxTree,
+        AnalyzerOptions analyzerOptions,
+        CompilationOptions compilationOptions,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out Options? options)
     {
         options = null;
 
@@ -219,22 +223,21 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
         // Local functions.
         (UnusedValuePreference preference, NotificationOption2 notification) GetPreferenceAndSeverity(CodeStyleOption2<UnusedValuePreference> option)
         {
-            var preferenceOpt = option?.Value;
-            if (preferenceOpt == null ||
-                option.Notification.Severity == ReportDiagnostic.Suppress)
+            if (option.Notification.Severity == ReportDiagnostic.Suppress)
             {
                 // Prefer does not matter as the severity is suppressed - we will never report this diagnostic.
                 return (default(UnusedValuePreference), NotificationOption2.None);
             }
 
             // If language or language version does not support discard, fall back to prefer unused local variable.
-            if (preferenceOpt.Value == UnusedValuePreference.DiscardVariable &&
+            var preference = option.Value;
+            if (preference == UnusedValuePreference.DiscardVariable &&
                 !SupportsDiscard(syntaxTree))
             {
-                preferenceOpt = UnusedValuePreference.UnusedLocalVariable;
+                preference = UnusedValuePreference.UnusedLocalVariable;
             }
 
-            return (preferenceOpt.Value, option.Notification);
+            return (preference, option.Notification);
         }
     }
 
