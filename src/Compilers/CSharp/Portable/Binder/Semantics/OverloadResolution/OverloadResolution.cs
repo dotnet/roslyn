@@ -1889,7 +1889,7 @@ outerDefault:
                     continue;
                 }
 
-                var containingType = result.MemberWithPriority.ContainingType; // PROTOTYPE how should ORPA apply to new extension methods?
+                var containingType = result.MemberWithPriority.ContainingType; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : how should ORPA apply to new extension methods?
                 if (resultsByContainingType.TryGetValue(containingType, out var previousResults))
                 {
                     var previousPriority = previousResults.First().MemberWithPriority.GetOverloadResolutionPriority();

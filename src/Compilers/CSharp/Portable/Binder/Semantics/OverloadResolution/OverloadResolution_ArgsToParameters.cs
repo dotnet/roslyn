@@ -58,14 +58,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ImmutableArray<ParameterSymbol> GetParametersIncludingReceiver(Symbol symbol)
         {
             Debug.Assert(symbol.GetIsNewExtensionMember());
-            // PROTOTYPE consider optimizing
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider optimizing
             return [symbol.ContainingType.ExtensionParameter, .. symbol.GetParameters()];
         }
 
         private static ImmutableArray<TypeWithAnnotations> GetParameterTypesIncludingReceiver(Symbol symbol)
         {
             Debug.Assert(symbol.GetIsNewExtensionMember());
-            // PROTOTYPE consider optimizing
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider optimizing
             return [symbol.ContainingType.ExtensionParameter.TypeWithAnnotations, .. symbol.GetParameterTypes()];
         }
 

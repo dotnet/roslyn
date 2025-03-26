@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             missingSyntaxKinds.Add(SyntaxKind.CollectionExpression);
             missingSyntaxKinds.Add(SyntaxKind.ExpressionElement);
             missingSyntaxKinds.Add(SyntaxKind.SpreadElement);
-            // PROTOTYPE Add to all-in-one
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Add to all-in-one
             missingSyntaxKinds.Add(SyntaxKind.ExtensionDeclaration);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();

@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
                 }
-                // PROTOTYPE should register the extension parameter
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : should register the extension parameter
 
                 makeNotNullMembersMaybeNull();
                 // We need to create a snapshot even of the first node, because we want to have the state of the initial parameters.
@@ -4468,7 +4468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(reinferredMethod is object);
                 if (node.ImplicitReceiverOpt != null)
                 {
-                    //Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ObjectOrCollectionValuePlaceholder); // PROTOTYPE the receiver may be converted now
+                    //Debug.Assert(node.ImplicitReceiverOpt.Kind == BoundKind.ObjectOrCollectionValuePlaceholder); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : the receiver may be converted now
                     SetAnalyzedNullability(node.ImplicitReceiverOpt, new VisitResult(node.ImplicitReceiverOpt.Type, NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
                 }
                 SetUnknownResultNullability(node);
@@ -4517,7 +4517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // PROTOTYPE: Do we need to do anything special for new extensions here?
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130: Do we need to do anything special for new extensions here?
                     method = (MethodSymbol)AsMemberOfType(containingType, method);
                 }
 
@@ -6330,7 +6330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Only instance receivers go through VisitRvalue; arguments go through VisitArgumentEvaluate.
                     if (node.ReceiverOpt is not null)
                     {
-                        // PROTOTYPE: Do we need to do anything special for new extensions here?
+                        // Tracked by https://github.com/dotnet/roslyn/issues/76130: Do we need to do anything special for new extensions here?
                         VisitRvalueEpilogue(receiver); // VisitRvalue does this after visiting each node
                         receiverType = ResultType;
                         CheckCallReceiver(receiver, receiverType, node.Method);
@@ -6396,7 +6396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reinferMethodAndVisitArguments(BoundCall node, TypeWithState receiverType, VisitResult? firstArgumentResult = null)
             {
-                // PROTOTYPE: Do we need to do anything special for new extensions here?
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130: Do we need to do anything special for new extensions here?
                 var method = node.Method;
                 ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
                 if (!receiverType.HasNullType)
@@ -6712,7 +6712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parameter.ContainingSymbol is TypeSymbol { IsExtension: true })
             {
-                // PROTOTYPE revisit when doing nullability analysis
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when doing nullability analysis
                 return FlowAnalysisAnnotations.None;
             }
 
@@ -7993,7 +7993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds,
                 arguments,
                 ref discardedUseSiteInfo,
-                new MethodInferenceExtensions(this)); // PROTOTYPE we may need to override ordinals here
+                new MethodInferenceExtensions(this)); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we may need to override ordinals here
 
             if (!result.Success)
             {
@@ -8373,7 +8373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // PROTOTYPE The assert below fails for an instance call on a generic extension.
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : The assert below fails for an instance call on a generic extension.
             //Debug.Assert(false); // If this assert fails, add an appropriate test.
             return symbol;
 
@@ -8984,12 +8984,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 VisitLocalFunctionUse(localFunc);
                             }
-                            // PROTOTYPE: Do we need to do anything special for new extensions here?
+                            // Tracked by https://github.com/dotnet/roslyn/issues/76130: Do we need to do anything special for new extensions here?
                             method = CheckMethodGroupReceiverNullability(group, parameters, method, conversion.IsExtensionMethod);
                         }
                         if (reportRemainingWarnings && invokeSignature != null)
                         {
-                            // PROTOTYPE: Do we need to do anything special for new extensions here?
+                            // Tracked by https://github.com/dotnet/roslyn/issues/76130: Do we need to do anything special for new extensions here?
                             ReportNullabilityMismatchWithTargetDelegate(getDiagnosticLocation(), targetType, invokeSignature, method, conversion.IsExtensionMethod);
                         }
                     }
@@ -9946,7 +9946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverOpt = group.ReceiverOpt;
             if (TryGetMethodGroupReceiverNullability(receiverOpt, out TypeWithState receiverType))
             {
-                // PROTOTYPE: Do we need to do anything special for new extensions here?
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130: Do we need to do anything special for new extensions here?
                 var syntax = group.Syntax;
                 if (!invokedAsExtensionMethod)
                 {
@@ -10318,7 +10318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int n = variables.Count;
                 if (!invocation.InvokedAsExtensionMethod)
                 {
-                    // PROTOTYPE: Do we need to do anything special for new extensions here?
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130: Do we need to do anything special for new extensions here?
                     _ = CheckPossibleNullReceiver(right);
 
                     // update the deconstruct method with any inferred type parameters of the containing type
@@ -10352,7 +10352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int offset = invocation.InvokedAsExtensionMethod ? 1 : 0;
                 Debug.Assert(parameters.Length - offset == n);
 
-                if (invocation.InvokedAsExtensionMethod) // PROTOTYPE: Do we need to do anything special for new extensions here?
+                if (invocation.InvokedAsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Do we need to do anything special for new extensions here?
                 {
                     // Check nullability for `this` parameter
                     var argConversion = RemoveConversion(invocation.Arguments[0], includeExplicitConversions: false).conversion;
@@ -11049,7 +11049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol? reinferredGetEnumeratorMethod = null;
 
-            if (enumeratorInfoOpt?.GetEnumeratorInfo is { Method: { IsExtensionMethod: true, Parameters: var parameters } } enumeratorMethodInfo) // PROTOTYPE: Test this code path with new extensions
+            if (enumeratorInfoOpt?.GetEnumeratorInfo is { Method: { IsExtensionMethod: true, Parameters: var parameters } } enumeratorMethodInfo) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
             {
                 // this is case 7
                 // We do not need to do this same analysis for non-extension methods because they do not have generic parameters that
@@ -11116,7 +11116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: false,
                 AssignmentKind.Assignment);
 
-            bool reportedDiagnostic = enumeratorInfoOpt?.GetEnumeratorInfo.Method is { IsExtensionMethod: true } // PROTOTYPE: Test this code path with new extensions
+            bool reportedDiagnostic = enumeratorInfoOpt?.GetEnumeratorInfo.Method is { IsExtensionMethod: true } // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
                 ? false
                 : CheckPossibleNullReceiver(expr);
 

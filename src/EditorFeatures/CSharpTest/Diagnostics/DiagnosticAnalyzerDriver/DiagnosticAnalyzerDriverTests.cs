@@ -50,7 +50,7 @@ public class DiagnosticAnalyzerDriverTests
             SyntaxKind.CollectionExpression,
             SyntaxKind.ExpressionElement,
             SyntaxKind.SpreadElement,
-            // PROTOTYPE Add to all-in-one
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 Add to all-in-one
             SyntaxKind.ExtensionDeclaration,
         };
 

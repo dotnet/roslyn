@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(((Cci.ITypeReference)this).AsTypeDefinition(context) != null);
             NamedTypeSymbol baseType = AdaptedNamedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
 
-            if (AdaptedNamedTypeSymbol.IsScriptClass || AdaptedNamedTypeSymbol.IsExtension) // PROTOTYPE we should have checked the presence of System.Object
+            if (AdaptedNamedTypeSymbol.IsScriptClass || AdaptedNamedTypeSymbol.IsExtension) // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should have checked the presence of System.Object
             {
                 // although submission and scripts semantically doesn't have a base we need to emit one into metadata:
                 Debug.Assert((object)baseType == null);

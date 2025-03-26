@@ -1545,7 +1545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var scope in new ExtensionScopes(this))
                 {
                     lookupResult ??= LookupResult.GetInstance();
-                    LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo); // PROTOTYPE account for new extension members
+                    LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : account for new extension members
 
                     if (lookupResult.IsMultiViable)
                     {

@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
                 {
-                    var extensionIdentifier = underlyingTypeSymbol!.ExtensionName; // PROTOTYPE use public API once it's available
+                    var extensionIdentifier = underlyingTypeSymbol!.ExtensionName; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : use public API once it's available
                     Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, extensionIdentifier));
                 }
                 else

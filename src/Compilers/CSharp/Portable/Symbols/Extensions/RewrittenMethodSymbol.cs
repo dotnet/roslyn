@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(originalMethod.ExplicitInterfaceImplementations.IsEmpty);
 
             _originalMethod = originalMethod;
-            // PROTOTYPE: Are we creating type parameters with the right emit behavior? Attributes, etc.
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Are we creating type parameters with the right emit behavior? Attributes, etc.
             _typeMap = typeMap.WithAlphaRename(typeParametersToAlphaRename, this, out _typeParameters);
         }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
         {
-            // PROTOTYPE: Test this code path
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
             return _originalMethod.HasAsyncMethodBuilderAttribute(out builderArgument);
         }
 
