@@ -68,8 +68,8 @@ namespace Roslyn.LanguageServer.Protocol
 
             set
             {
-                if (value == null || // Null is accepted since for non-definition references
-                    (value is ImageElement || value is ContainerElement || value is ClassifiedTextElement || value is string))
+                // Null is accepted since for non-definition references
+                if (value is null or ImageElement or ContainerElement or ClassifiedTextElement or string)
                 {
                     this.definitionTextValue = value;
                 }
