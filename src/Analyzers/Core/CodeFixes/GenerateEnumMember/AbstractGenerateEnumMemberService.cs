@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -17,7 +18,9 @@ internal abstract partial class AbstractGenerateEnumMemberService<TService, TSim
     where TExpressionSyntax : SyntaxNode
 {
     protected abstract bool IsIdentifierNameGeneration(SyntaxNode node);
-    protected abstract bool TryInitializeIdentifierNameState(SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression);
+    protected abstract bool TryInitializeIdentifierNameState(
+        SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken,
+        out SyntaxToken identifierToken, [NotNullWhen(true)] out TExpressionSyntax? simpleNameOrMemberAccessExpression);
 
     public async Task<ImmutableArray<CodeAction>> GenerateEnumMemberAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
