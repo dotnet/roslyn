@@ -19796,7 +19796,11 @@ static class E
 
         // PROTOTYPE confirm when spec'ing pattern-based await
         var comp = CreateCompilation(text);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS0117: 'D' does not contain a definition for 'IsCompleted'
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "IsCompleted").WithLocation(5, 9)
+            );
         // PROTOTYPE metadata is undone
     }
 
@@ -30830,5 +30834,380 @@ public static class Extensions
                 // (7,27): error CS1510: A ref or out value must be an assignable variable
                 //         foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new C()").WithLocation(7, 27));
+    }
+
+    [Fact]
+    public void ExpressionTrees_01_InstanceMethod()
+    {
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public string M(string s) => o + s;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var e = Test();
+        System.Console.Write(e.Compile().Invoke("1", "2"));
+        System.Console.Write(": ");
+        System.Console.Write(e);
+    }
+
+    static Expression<Func<object, string, string>> Test()
+    {
+        return (o, s) => o.M(s);
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: @"12: (o, s) => o.M(s)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExpressionTrees_02_StaticMethod()
+    {
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public static string M(string s) => s;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var e = Test();
+        System.Console.Write(e.Compile().Invoke("1"));
+        System.Console.Write(": ");
+        System.Console.Write(e);
+    }
+
+    static Expression<Func<string, string>> Test()
+    {
+        return (s) => object.M(s);
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: @"1: s => M(s)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExpressionTrees_03_InstanceIndexer()
+    {
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public string this[string s] => o + s;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var e = Test();
+        System.Console.Write(e.Compile().Invoke("1", "2"));
+        System.Console.Write(": ");
+        System.Console.Write(e);
+    }
+
+    static Expression<Func<object, string, string>> Test()
+    {
+        return (o, s) => o[s];
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (24,26): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+            //         return (o, s) => o[s];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "o[s]").WithArguments("object").WithLocation(24, 26)
+            );
+    }
+
+    [Fact]
+    public void ExpressionTrees_04_InstanceProperty()
+    {
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public string P => (string)o;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var e = Test();
+        System.Console.Write(e.Compile().Invoke("1"));
+        System.Console.Write(": ");
+        System.Console.Write(e);
+    }
+
+    static Expression<Func<object, string>> Test()
+    {
+        return (o) => o.P;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (24,23): error CS9296: An expression tree may not contain an extension property access
+            //         return (o) => o.P;
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, "o.P").WithLocation(24, 23)
+            );
+    }
+
+    [Fact]
+    public void ExpressionTrees_05_InstanceProperty()
+    {
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public string P { get => (string)o; set {}}
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var e = Test();
+        System.Console.Write(e.Compile().Invoke("1"));
+        System.Console.Write(": ");
+        System.Console.Write(e);
+    }
+
+    static Expression<Func<string, object>> Test()
+    {
+        return (s) => new object() { P = s };
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (24,38): error CS9296: An expression tree may not contain an extension property access
+            //         return (s) => new object() { P = s };
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, "P").WithLocation(24, 38)
+            );
+    }
+
+    [Fact]
+    public void ExpressionTrees_06_InstanceProperty()
+    {
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public C P { get => default; }
+    }
+}
+
+public class C
+{
+    public string F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var e = Test();
+        System.Console.Write(e.Compile().Invoke("1"));
+        System.Console.Write(": ");
+        System.Console.Write(e);
+    }
+
+    static Expression<Func<string, object>> Test()
+    {
+        return (s) => new object() { P = { F = s } };
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (29,38): error CS9296: An expression tree may not contain an extension property access
+            //         return (s) => new object() { P = { F = s } };
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, "P").WithLocation(29, 38)
+            );
+    }
+
+    [Fact]
+    public void ExpressionTrees_07_InstanceProperty()
+    {
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public string P { get => default; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+    }
+
+    static Expression<Func<object, bool>> Test()
+    {
+        return (o) => o is object { P: "s" };
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (20,23): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
+            //         return (o) => o is object { P: "s" };
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsIsMatch, @"o is object { P: ""s"" }").WithLocation(20, 23)
+            );
+    }
+
+    [Fact]
+    public void ExpressionTrees_08_StaticProperty()
+    {
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public static string P => "o";
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var e = Test();
+        System.Console.Write(e.Compile().Invoke());
+        System.Console.Write(": ");
+        System.Console.Write(e);
+    }
+
+    static Expression<Func<string>> Test()
+    {
+        return () => object.P;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (24,22): error CS9296: An expression tree may not contain an extension property access
+            //         return () => object.P;
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, "object.P").WithLocation(24, 22)
+            );
+    }
+
+    [Fact]
+    public void ExpressionTrees_09_DelegateCreation_InstanceMethod()
+    {
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public string M(string s) => o + s;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var e = Test();
+        System.Console.Write(e.Compile().Invoke("1").Invoke("2"));
+        System.Console.Write(": ");
+        System.Console.Write(e);
+    }
+
+    static Expression<Func<object, Func<string, string>>> Test()
+    {
+        return (o) => o.M;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: @"12: o => Convert(System.String M(System.Object, System.String).CreateDelegate(System.Func`2[System.String,System.String], o)" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", Func`2)" : ")")).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExpressionTrees_10_DelegateCreation_StaticMethod()
+    {
+        var src = """
+using System;
+using System.Linq.Expressions;
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public static string M(string s) => s;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var e = Test();
+        System.Console.Write(e.Compile().Invoke().Invoke("1"));
+        System.Console.Write(": ");
+        System.Console.Write(e);
+    }
+
+    static Expression<Func<Func<string, string>>> Test()
+    {
+        return () => object.M;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: @"1: () => Convert(System.String M(System.String).CreateDelegate(System.Func`2[System.String,System.String], null)" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", Func`2)" : ")")).VerifyDiagnostics();
     }
 }

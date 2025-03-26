@@ -236,5 +236,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.VisitBinaryOperatorData(node);
         }
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        public override PropertySymbol? VisitPropertySymbol(PropertySymbol? symbol)
+        {
+            Debug.Assert(symbol?.GetIsNewExtensionMember() != true);
+            return base.VisitPropertySymbol(symbol);
+        }
     }
 }

@@ -722,6 +722,11 @@
         <target state="translated">Drzewo wyrażenia nie może zawierać wyrażenia kolekcji.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
+        <source>An expression tree may not contain an extension property access</source>
+        <target state="new">An expression tree may not contain an extension property access</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
         <target state="translated">Drzewo wyrażeń nie może zawierać wyrażenia „od końca indeksu” („^”).</target>
