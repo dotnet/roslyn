@@ -15121,11 +15121,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             glyph: Glyph.ExtensionMethodPublic);
     }
 
-    private static string MakeMarkup([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source, LanguageVersion languageVersion = LanguageVersion.Preview)
+    private static string MakeMarkup(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
+        LanguageVersion languageVersion = LanguageVersion.Preview)
     {
         return $$"""
 <Workspace>
-    <Project Language="C#" AssemblyName="Assembly" CommonReferencesNet6="true" LanguageVersion="{{languageVersion}}">
+    <Project Language="C#" AssemblyName="Assembly" CommonReferencesNet6="true" LanguageVersion="{{languageVersion.ToDisplayString()}}">
         <Document FilePath="Test.cs">
 {{source}}
         </Document>
