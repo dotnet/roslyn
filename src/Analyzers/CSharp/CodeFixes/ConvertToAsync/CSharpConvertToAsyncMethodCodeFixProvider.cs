@@ -25,6 +25,8 @@ internal sealed class CSharpConvertToAsyncMethodCodeFixProvider() : AbstractConv
     /// </summary>
     private const string CS4008 = nameof(CS4008);
 
+    public override FixAllProvider? GetFixAllProvider() => base.GetFixAllProvider();
+
     public override ImmutableArray<string> FixableDiagnosticIds => [CS4008];
 
     protected override async Task<string> GetDescriptionAsync(
