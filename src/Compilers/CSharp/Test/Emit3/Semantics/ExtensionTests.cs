@@ -400,10 +400,10 @@ public static class Extensions
             // (3,21): error CS0229: Ambiguity between 'T' and 'T'
             //     extension<T, T>(T) { }
             Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(3, 21),
-            // (3,21): error CS9514: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
+            // (3,21): error CS9295: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, T>(T) { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T").WithArguments("T", "T").WithLocation(3, 21),
-            // (3,21): error CS9514: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
+            // (3,21): error CS9295: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, T>(T) { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T").WithArguments("T", "T").WithLocation(3, 21));
 
@@ -433,10 +433,10 @@ class C<T> { }
             // (3,18): error CS0692: Duplicate type parameter 'T'
             //     extension<T, T>(C<T>) { }
             Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(3, 18),
-            // (3,21): error CS9514: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
+            // (3,21): error CS9295: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, T>(C<T>) { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C<T>").WithArguments("C<T>", "T").WithLocation(3, 21),
-            // (3,21): error CS9514: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
+            // (3,21): error CS9295: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, T>(C<T>) { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C<T>").WithArguments("C<T>", "T").WithLocation(3, 21),
             // (3,23): error CS0229: Ambiguity between 'T' and 'T'
@@ -465,7 +465,7 @@ public static class Extensions<T>
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,5): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             //     extension<T>(object) { }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5),
             // (3,15): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Extensions<T>'
@@ -616,7 +616,7 @@ public static class Extensions<T>
             // (1,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8),
-            // (5,5): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (5,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             //     extension(object) { public static void M() { } }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(5, 5));
 
@@ -644,7 +644,7 @@ extension(object) { public static void M() { } }
             // (1,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8),
-            // (3,1): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (3,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             // extension(object) { public static void M() { } }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 1));
 
@@ -685,7 +685,7 @@ public static class Extensions
             // (7,16): error CS0117: 'object' does not contain a definition for 'M'
             //         object.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(7, 16),
-            // (12,9): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (12,9): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             //         extension(object) { public static void M() { } }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(12, 9));
 
@@ -735,7 +735,7 @@ public static class Extensions
             // (14,20): error CS0117: 'string' does not contain a definition for 'M'
             //             string.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("string", "M").WithLocation(14, 20),
-            // (17,9): error CS9501: Extension declarations can include only methods or properties
+            // (17,9): error CS9282: Extension declarations can include only methods or properties
             //         extension(string) { public static void M() { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(17, 9));
 
@@ -768,7 +768,7 @@ public static struct Extensions
             // (3,22): error CS0106: The modifier 'static' is not valid for this item
             // public static struct Extensions
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "Extensions").WithArguments("static").WithLocation(3, 22),
-            // (5,5): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (5,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             //     extension(object) { public static void M() { } }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(5, 5));
     }
@@ -789,7 +789,7 @@ public class Extensions
             // (1,8): error CS0117: 'object' does not contain a definition for 'M'
             // object.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("object", "M").WithLocation(1, 8),
-            // (5,5): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (5,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             //     extension(object) { public static void M() { } }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(5, 5));
     }
@@ -988,10 +988,10 @@ extension<T>(T) { }
 
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (1,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             // extension<T>(object) { }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1),
-            // (3,1): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (3,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             // extension<T>(object) { }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 1));
 
@@ -1317,10 +1317,10 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,16): error CS9508: Type parameter 'T' has the same name as an extension container type parameter
+            // (5,16): error CS9289: Type parameter 'T' has the same name as an extension container type parameter
             //         void M<T>() { }
             Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(5, 16),
-            // (6,21): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            // (6,21): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //         void M2(int T) { }
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(6, 21)
             );
@@ -1451,7 +1451,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,13): error CS9501: Extension declarations can include only methods or properties
+            // (5,13): error CS9282: Extension declarations can include only methods or properties
             //         int Property { get; set; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Property").WithLocation(5, 13));
 
@@ -1610,7 +1610,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,20): error CS9501: Extension declarations can include only methods or properties
+            // (5,20): error CS9282: Extension declarations can include only methods or properties
             //         static int Property { get; set; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Property").WithLocation(5, 20));
 
@@ -1798,7 +1798,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,15): error CS9501: Extension declarations can include only methods or properties
+            // (5,15): error CS9282: Extension declarations can include only methods or properties
             //         class Nested { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(5, 15));
 
@@ -1827,7 +1827,7 @@ public static class Extensions
             // (3,25): error CS1520: Method must have a return type
             //     extension(object) { Extensions() { } }
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "Extensions").WithLocation(3, 25),
-            // (3,25): error CS9501: Extension declarations can include only methods or properties
+            // (3,25): error CS9282: Extension declarations can include only methods or properties
             //     extension(object) { Extensions() { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Extensions").WithLocation(3, 25));
 
@@ -1855,7 +1855,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,26): error CS9501: Extension declarations can include only methods or properties
+            // (3,26): error CS9282: Extension declarations can include only methods or properties
             //     extension(object) { ~Extensions() { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Extensions").WithLocation(3, 26));
 
@@ -1886,7 +1886,7 @@ public static class Extensions
             // (1,18): error CS1061: 'object' does not contain a definition for 'field' and no accessible extension method 'field' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // _ = new object().field;
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("object", "field").WithLocation(1, 18),
-            // (5,31): error CS9501: Extension declarations can include only methods or properties
+            // (5,31): error CS9282: Extension declarations can include only methods or properties
             //     extension(object o) { int field = 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "field").WithLocation(5, 31),
             // (5,31): warning CS0169: The field 'Extensions.extension(object).field' is never used
@@ -1915,7 +1915,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,35): error CS9501: Extension declarations can include only methods or properties
+            // (3,35): error CS9282: Extension declarations can include only methods or properties
             //     extension(object) { const int i = 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "i").WithLocation(3, 35));
 
@@ -1951,13 +1951,13 @@ public static class Extensions
             // (9,31): error CS0541: 'Extensions.extension(object).E': explicit interface declaration can only be declared in a class, record, struct or interface
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "E").WithArguments("Extensions.extension(object).E").WithLocation(9, 31),
-            // (9,31): error CS9501: Extension declarations can include only methods or properties
+            // (9,31): error CS9282: Extension declarations can include only methods or properties
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "E").WithLocation(9, 31),
-            // (9,35): error CS9501: Extension declarations can include only methods or properties
+            // (9,35): error CS9282: Extension declarations can include only methods or properties
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "add").WithLocation(9, 35),
-            // (9,43): error CS9501: Extension declarations can include only methods or properties
+            // (9,43): error CS9282: Extension declarations can include only methods or properties
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "remove").WithLocation(9, 43));
     }
@@ -2121,10 +2121,10 @@ class C { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,22): error CS9504: An extension container can have only one receiver parameter
+            // (3,22): error CS9285: An extension container can have only one receiver parameter
             //     extension(int i, int j, C c) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "int j").WithLocation(3, 22),
-            // (3,29): error CS9504: An extension container can have only one receiver parameter
+            // (3,29): error CS9285: An extension container can have only one receiver parameter
             //     extension(int i, int j, C c) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "C c").WithLocation(3, 29));
 
@@ -2159,7 +2159,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,22): error CS9504: An extension container can have only one receiver parameter
+            // (3,22): error CS9285: An extension container can have only one receiver parameter
             //     extension(int i, Type) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "Type").WithLocation(3, 22));
     }
@@ -2196,7 +2196,7 @@ public static class Extensions<T>
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,5): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             //     extension(T) { }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
 
@@ -2254,7 +2254,7 @@ public static class Extensions
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
-            // (5,18): error CS9514: The extended type 'int' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
+            // (5,18): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T>(int) 
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "int").WithArguments("int", "T").WithLocation(5, 18));
     }
@@ -2278,7 +2278,7 @@ public static class Extensions
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
-            // (5,23): error CS9514: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is not referenced.
+            // (5,23): error CS9295: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is not referenced.
             //     extension<T1, T2>(T1) 
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "T2").WithLocation(5, 23));
     }
@@ -2302,7 +2302,7 @@ public static class Extensions
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
-            // (5,23): error CS9514: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is not referenced.
+            // (5,23): error CS9295: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is not referenced.
             //     extension<T1, T2>(T1) where T1 : class
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "T2").WithLocation(5, 23));
     }
@@ -2380,7 +2380,7 @@ public static class Extensions
             // (3,15): error CS1670: params is not valid in this context
             //     extension(params int[] i, int j) { }
             Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(3, 15),
-            // (3,31): error CS9504: An extension container can have only one receiver parameter
+            // (3,31): error CS9285: An extension container can have only one receiver parameter
             //     extension(params int[] i, int j) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "int j").WithLocation(3, 31));
     }
@@ -2421,7 +2421,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            // (3,15): error CS9284: The receiver parameter of an extension cannot have a default value
             //     extension(int i = 0) { }
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "int i = 0").WithLocation(3, 15));
 
@@ -2443,10 +2443,10 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            // (3,15): error CS9284: The receiver parameter of an extension cannot have a default value
             //     extension(int i = 0, object) { }
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "int i = 0").WithLocation(3, 15),
-            // (3,26): error CS9504: An extension container can have only one receiver parameter
+            // (3,26): error CS9285: An extension container can have only one receiver parameter
             //     extension(int i = 0, object) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "object").WithLocation(3, 26));
     }
@@ -2462,7 +2462,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            // (3,15): error CS9284: The receiver parameter of an extension cannot have a default value
             //     extension(int i = null) { }
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "int i = null").WithLocation(3, 15));
     }
@@ -2478,7 +2478,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            // (3,15): error CS9284: The receiver parameter of an extension cannot have a default value
             //     extension(ref readonly int x = 2) { }
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "ref readonly int x = 2").WithLocation(3, 15));
     }
@@ -2494,7 +2494,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            // (3,15): error CS9284: The receiver parameter of an extension cannot have a default value
             //     extension([System.Runtime.InteropServices.DefaultParameterValue(1)] int o = 2) { }
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "[System.Runtime.InteropServices.DefaultParameterValue(1)] int o = 2").WithLocation(3, 15),
             // (3,16): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
@@ -2551,7 +2551,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            // (3,15): error CS9284: The receiver parameter of an extension cannot have a default value
             //     extension([System.Runtime.CompilerServices.CallerLineNumber] int x = 2) { }
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "[System.Runtime.CompilerServices.CallerLineNumber] int x = 2").WithLocation(3, 15));
     }
@@ -2624,7 +2624,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,22): error CS9504: An extension container can have only one receiver parameter
+            // (3,22): error CS9285: An extension container can have only one receiver parameter
             //     extension(int i, this int j) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "this int j").WithLocation(3, 22));
     }
@@ -2733,7 +2733,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,22): error CS9504: An extension container can have only one receiver parameter
+            // (3,22): error CS9285: An extension container can have only one receiver parameter
             //     extension(int i, out int j) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "out int j").WithLocation(3, 22));
     }
@@ -2933,7 +2933,7 @@ public static class Extensions
             // (3,15): error CS1669: __arglist is not valid in this context
             //     extension(__arglist, int i) { }
             Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15),
-            // (3,26): error CS9504: An extension container can have only one receiver parameter
+            // (3,26): error CS9285: An extension container can have only one receiver parameter
             //     extension(__arglist, int i) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "int i").WithLocation(3, 26));
     }
@@ -2962,7 +2962,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,25): error CS9504: An extension container can have only one receiver parameter
+            // (3,25): error CS9285: An extension container can have only one receiver parameter
             //     extension(object o, Extensions e) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "Extensions e").WithLocation(3, 25));
     }
@@ -2993,10 +2993,10 @@ public static class C { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (1,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             // extension(C) { }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 1),
-            // (2,1): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (2,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             // extension(C c) { }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(2, 1),
             // (2,11): error CS0721: 'C': static types cannot be used as parameters
@@ -3048,7 +3048,7 @@ public static class Extensions<T>
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,5): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             //     extension(object T) { }
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
     }
@@ -3099,7 +3099,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,22): error CS9504: An extension container can have only one receiver parameter
+            // (3,22): error CS9285: An extension container can have only one receiver parameter
             //     extension(int i, scoped int j) { }
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "scoped int j").WithLocation(3, 22));
     }
@@ -3719,7 +3719,7 @@ public static class Extensions
         var m = ext.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
         model.GetDiagnostics(ext.ParameterList.Span).Verify(
-            // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            // (3,15): error CS9284: The receiver parameter of an extension cannot have a default value
             //     extension(object o = null)
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "object o = null").WithLocation(3, 15)
             );
@@ -3731,7 +3731,7 @@ public static class Extensions
             );
 
         comp.VerifyDiagnostics(
-            // (3,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            // (3,15): error CS9284: The receiver parameter of an extension cannot have a default value
             //     extension(object o = null)
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "object o = null").WithLocation(3, 15),
             // (7,20): error CS0029: Cannot implicitly convert type 'string' to 'int'
@@ -3759,16 +3759,16 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,31): error CS9512: Cannot use extension parameter 'object o' in this context.
+            // (5,31): error CS9293: Cannot use extension parameter 'object o' in this context.
             //         static object M1() => o;
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(5, 31),
-            // (6,37): error CS9512: Cannot use extension parameter 'object o' in this context.
+            // (6,37): error CS9293: Cannot use extension parameter 'object o' in this context.
             //         static object M2() { return o; }
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(6, 37),
-            // (7,29): error CS9512: Cannot use extension parameter 'object o' in this context.
+            // (7,29): error CS9293: Cannot use extension parameter 'object o' in this context.
             //         static object P1 => o;
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(7, 29),
-            // (8,41): error CS9512: Cannot use extension parameter 'object o' in this context.
+            // (8,41): error CS9293: Cannot use extension parameter 'object o' in this context.
             //         static object P2 { get { return o; } }
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(8, 41)
             );
@@ -10514,7 +10514,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS9505: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,5): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // _ = object.P;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.P").WithArguments("object", "P").WithLocation(1, 5));
 
@@ -12705,7 +12705,7 @@ static class E
             // (1,14): error CS1061: 'C<int>' does not contain a definition for 'StaticType' and no accessible extension method 'StaticType' accepting a first argument of type 'C<int>' could be found (are you missing a using directive or an assembly reference?)
             // new C<int>().StaticType<string>();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "StaticType<string>").WithArguments("C<int>", "StaticType").WithLocation(1, 14),
-            // (9,29): error CS9501: Extension declarations can include only methods or properties
+            // (9,29): error CS9282: Extension declarations can include only methods or properties
             //         public static class StaticType<U> { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "StaticType").WithLocation(9, 29));
 
@@ -13491,7 +13491,7 @@ static class E
             // (4,1): error CS1929: 'IEnumerable<object>' does not contain a definition for 'M' and the best extension method overload 'E.extension(IEnumerable<string>).M()' requires a receiver of type 'System.Collections.Generic.IEnumerable<string>'
             // i.M();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("System.Collections.Generic.IEnumerable<object>", "M", "E.extension(System.Collections.Generic.IEnumerable<string>).M()", "System.Collections.Generic.IEnumerable<string>").WithLocation(4, 1),
-            // (5,5): error CS9505: 'IEnumerable<object>' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'IEnumerable<object>' could be found (are you missing a using directive or an assembly reference?)
+            // (5,5): error CS9286: 'IEnumerable<object>' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'IEnumerable<object>' could be found (are you missing a using directive or an assembly reference?)
             // _ = i.P;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.P").WithArguments("System.Collections.Generic.IEnumerable<object>", "P").WithLocation(5, 5)
             );
@@ -13580,10 +13580,10 @@ static class E
             // (2,1): error CS1929: 'int' does not contain a definition for 'M2' and the best extension method overload 'E.M2(int?)' requires a receiver of type 'int?'
             // 42.M2();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "42").WithArguments("int", "M2", "E.M2(int?)", "int?").WithLocation(2, 1),
-            // (4,5): error CS9505: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (4,5): error CS9286: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // _ = int.P;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "int.P").WithArguments("int", "P").WithLocation(4, 5),
-            // (5,5): error CS9505: 'int' does not contain a definition for 'P2' and no accessible extension member 'P2' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (5,5): error CS9286: 'int' does not contain a definition for 'P2' and no accessible extension member 'P2' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // _ = 42.P2;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "42.P2").WithArguments("int", "P2").WithLocation(5, 5));
     }
@@ -14173,7 +14173,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9505: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // System.Console.Write(new object().P);
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().P").WithArguments("object", "P").WithLocation(1, 22));
 
@@ -14351,7 +14351,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9505: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // System.Console.Write(new object().P);
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().P").WithArguments("object", "P").WithLocation(1, 22));
 
@@ -14508,10 +14508,10 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (2,16): error CS9505: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (2,16): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
             // string x = b ? D.f : D.f;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 16),
-            // (2,22): error CS9505: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (2,22): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
             // string x = b ? D.f : D.f;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 22));
     }
@@ -14544,10 +14544,10 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (2,23): error CS9505: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (2,23): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
             // System.Action x = b ? D.f : D.f;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 23),
-            // (2,29): error CS9505: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (2,29): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
             // System.Action x = b ? D.f : D.f;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 29));
     }
@@ -14606,7 +14606,7 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,17): error CS9505: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,17): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
             // var x = (string)D.f;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 17));
     }
@@ -14638,10 +14638,10 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,24): error CS9505: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,24): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
             // var x = (System.Action)D.f;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 24),
-            // (2,19): error CS9505: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (2,19): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
             // System.Action a = D.f;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(2, 19));
 
@@ -15777,7 +15777,7 @@ public static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS9505: 'object' does not contain a definition for 'Member' and no accessible extension member 'Member' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (2,5): error CS9286: 'object' does not contain a definition for 'Member' and no accessible extension member 'Member' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // C.M(o.Member);
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "o.Member").WithArguments("object", "Member").WithLocation(2, 5));
 
@@ -15848,10 +15848,10 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,10): error CS9505: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,10): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
             // bool b = D.f + D.f;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 10),
-            // (1,16): error CS9505: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,16): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
             // bool b = D.f + D.f;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 16));
     }
@@ -15881,7 +15881,7 @@ static class E2
         // PROTOTYPE the diagnostic should describe what went wrong
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,38): error CS9505: 'object' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,38): error CS9286: 'object' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // System.Func<System.Action> l = () => object.f;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.f").WithArguments("object", "f").WithLocation(1, 38)
             );
@@ -15911,7 +15911,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,43): error CS9505: 'object' does not contain a definition for 'Member' and no accessible extension member 'Member' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,43): error CS9286: 'object' does not contain a definition for 'Member' and no accessible extension member 'Member' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // System.Func<System.Action> lambda = () => new object().Member;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().Member").WithArguments("object", "Member").WithLocation(1, 43));
 
@@ -15971,7 +15971,7 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,29): error CS9505: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,29): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
             // var l = System.Action () => D.f;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 29)
             );
@@ -16003,7 +16003,7 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,38): error CS9505: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (1,38): error CS9286: 'D' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'D' could be found (are you missing a using directive or an assembly reference?)
             // System.Func<System.Action> l = () => D.f;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "D.f").WithArguments("D", "f").WithLocation(1, 38)
             );
@@ -16552,10 +16552,10 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (2,13): error CS9505: 'object' does not contain a definition for 'StaticProperty' and no accessible extension member 'StaticProperty' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (2,13): error CS9286: 'object' does not contain a definition for 'StaticProperty' and no accessible extension member 'StaticProperty' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // var x = b ? object.StaticProperty : object.StaticProperty;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.StaticProperty").WithArguments("object", "StaticProperty").WithLocation(2, 13),
-            // (2,37): error CS9505: 'object' does not contain a definition for 'StaticProperty' and no accessible extension member 'StaticProperty' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (2,37): error CS9286: 'object' does not contain a definition for 'StaticProperty' and no accessible extension member 'StaticProperty' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // var x = b ? object.StaticProperty : object.StaticProperty;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.StaticProperty").WithArguments("object", "StaticProperty").WithLocation(2, 37));
 
@@ -18396,10 +18396,10 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9505: 'int' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (1,1): error CS9286: 'int' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // 1.Property = 42;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "1.Property").WithArguments("int", "Property").WithLocation(1, 1),
-            // (2,5): error CS9505: 'int' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (2,5): error CS9286: 'int' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // _ = 2.Property;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "2.Property").WithArguments("int", "Property").WithLocation(2, 5));
 
@@ -18738,10 +18738,10 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9505: '(int, int)' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+            // (1,1): error CS9286: '(int, int)' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
             // (1, 1).Property = 1;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "(1, 1).Property").WithArguments("(int, int)", "Property").WithLocation(1, 1),
-            // (2,5): error CS9505: '(int, int)' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+            // (2,5): error CS9286: '(int, int)' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
             // _ = (2, 2).Property;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "(2, 2).Property").WithArguments("(int, int)", "Property").WithLocation(2, 5));
 
@@ -18783,7 +18783,7 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9505: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // System.Console.Write(object.M);
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(1, 22));
 
@@ -18820,7 +18820,7 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9505: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // System.Console.Write(object.M);
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(1, 22));
 
@@ -18957,7 +18957,7 @@ class C { }
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9505: 'C' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9286: 'C' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'C' could be found (are you missing a using directive or an assembly reference?)
             // System.Console.Write(C.M());
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "C.M").WithArguments("C", "M").WithLocation(1, 22));
     }
@@ -20521,7 +20521,7 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS9505: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,9): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // int i = object.P;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.P").WithArguments("object", "P").WithLocation(1, 9));
 
@@ -20803,7 +20803,7 @@ static class E2
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (1,22): error CS9505: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,22): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // System.Console.Write(object.M());
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(1, 22));
 
@@ -21002,7 +21002,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,29): error CS9505: 'C' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,29): error CS9286: 'C' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'C' could be found (are you missing a using directive or an assembly reference?)
             // System.Console.Write(nameof(C.Property));
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "C.Property").WithArguments("C", "Property").WithLocation(1, 29));
 
@@ -21461,7 +21461,7 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (7,22): error CS9506: 'T': a receiver parameter cannot have the same name as an extension container type parameter
+            // (7,22): error CS9287: 'T': a receiver parameter cannot have the same name as an extension container type parameter
             //     extension<T>(T[] T)
             Diagnostic(ErrorCode.ERR_ReceiverParameterSameNameAsTypeParameter, "T").WithArguments("T").WithLocation(7, 22)
             );
@@ -21485,13 +21485,13 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (14,21): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            // (14,21): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //         void M2(int T){}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(14, 21),
-            // (15,28): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            // (15,28): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //         static void M3(int T){}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(15, 28),
-            // (16,22): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            // (16,22): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //         int this[int T] => 0;
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(16, 22)
             );
@@ -21520,7 +21520,7 @@ static class Extensions
             // (4,15): warning CS8981: The type name 'value' only contains lower-cased ascii characters. Such names may become reserved for the language.
             //     extension<value>(value[] p)
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "value").WithArguments("value").WithLocation(4, 15),
-            // (7,18): error CS9513: 'value': an automatically-generated parameter name conflicts with an extension type parameter name
+            // (7,18): error CS9294: 'value': an automatically-generated parameter name conflicts with an extension type parameter name
             //         int P11 {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter, "set").WithLocation(7, 18)
             );
@@ -21545,7 +21545,7 @@ static class Extensions
             // (4,15): warning CS8981: The type name 'value' only contains lower-cased ascii characters. Such names may become reserved for the language.
             //     extension<value>(value[] p)
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "value").WithArguments("value").WithLocation(4, 15),
-            // (6,26): error CS9513: 'value': an automatically-generated parameter name conflicts with an extension type parameter name
+            // (6,26): error CS9294: 'value': an automatically-generated parameter name conflicts with an extension type parameter name
             //         int this[int i] {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter, "set").WithLocation(6, 26)
             );
@@ -21671,16 +21671,16 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (19,17): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            // (19,17): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //             int T = 0;
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(19, 17),
-            // (24,17): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            // (24,17): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //             int T() => 0;
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(24, 17),
-            // (31,21): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            // (31,21): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //                 int T = 0;
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(31, 21),
-            // (39,21): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            // (39,21): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //                 int T() => 0;
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(39, 21)
             );
@@ -21824,10 +21824,10 @@ static class Extensions
             // (55,21): error CS0229: Ambiguity between 'T' and 'T'
             //     extension<T, T>(T[] p)
             Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(55, 21),
-            // (55,25): error CS9514: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
+            // (55,25): error CS9295: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, T>(T[] p)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "p").WithArguments("T[]", "T").WithLocation(55, 25),
-            // (55,25): error CS9514: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
+            // (55,25): error CS9295: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, T>(T[] p)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "p").WithArguments("T[]", "T").WithLocation(55, 25)
             );
@@ -21857,13 +21857,13 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (60,17): error CS9508: Type parameter 'T' has the same name as an extension container type parameter
+            // (60,17): error CS9289: Type parameter 'T' has the same name as an extension container type parameter
             //         void M9<T>(){}
             Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(60, 17),
-            // (61,18): error CS9508: Type parameter 'T' has the same name as an extension container type parameter
+            // (61,18): error CS9289: Type parameter 'T' has the same name as an extension container type parameter
             //         void M10<T, T>(){}
             Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(61, 18),
-            // (61,21): error CS9508: Type parameter 'T' has the same name as an extension container type parameter
+            // (61,21): error CS9289: Type parameter 'T' has the same name as an extension container type parameter
             //         void M10<T, T>(){}
             Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(61, 21)
             );
@@ -22115,10 +22115,10 @@ static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (42,23): error CS9512: Cannot use extension parameter 'short M1' in this context.
+            // (42,23): error CS9293: Cannot use extension parameter 'short M1' in this context.
             //             short x = M1;
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "M1").WithArguments("short M1").WithLocation(42, 23),
-            // (53,17): error CS9512: Cannot use extension parameter 'string P1' in this context.
+            // (53,17): error CS9293: Cannot use extension parameter 'string P1' in this context.
             //                 P1 = "val";
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "P1").WithArguments("string P1").WithLocation(53, 17)
             );
@@ -22144,7 +22144,7 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (5,17): error CS9511: Type parameter 'T' has the same name as an extension parameter
+            // (5,17): error CS9292: Type parameter 'T' has the same name as an extension parameter
             //         void M1<T>(){}
             Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionParameter, "T").WithArguments("T").WithLocation(5, 17)
             );
@@ -22234,13 +22234,13 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (5,21): error CS9509: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
+            // (5,21): error CS9290: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         void M2(int p){}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(5, 21),
-            // (6,28): error CS9509: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
+            // (6,28): error CS9290: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         static void M3(int p){}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(6, 28),
-            // (7,22): error CS9509: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
+            // (7,22): error CS9290: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         int this[int p] => 0;
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(7, 22),
             // (8,29): error CS0100: The parameter name 'p2' is a duplicate
@@ -22270,22 +22270,22 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (6,17): error CS9510: 'value': an automatically-generated parameter name conflicts with an extension parameter name
+            // (6,17): error CS9291: 'value': an automatically-generated parameter name conflicts with an extension parameter name
             //         int P2 {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(6, 17),
-            // (8,27): error CS9510: 'value': an automatically-generated parameter name conflicts with an extension parameter name
+            // (8,27): error CS9291: 'value': an automatically-generated parameter name conflicts with an extension parameter name
             //         int this[long x] {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(8, 27),
-            // (9,30): error CS9509: 'value': a parameter, local variable, or local function cannot have the same name as an extension parameter
+            // (9,30): error CS9290: 'value': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         int this[long x, int value] {set{}}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "value").WithArguments("value").WithLocation(9, 30),
             // (9,30): error CS0316: The parameter name 'value' conflicts with an automatically-generated parameter name
             //         int this[long x, int value] {set{}}
             Diagnostic(ErrorCode.ERR_DuplicateGeneratedName, "value").WithArguments("value").WithLocation(9, 30),
-            // (9,38): error CS9510: 'value': an automatically-generated parameter name conflicts with an extension parameter name
+            // (9,38): error CS9291: 'value': an automatically-generated parameter name conflicts with an extension parameter name
             //         int this[long x, int value] {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(9, 38),
-            // (11,24): error CS9510: 'value': an automatically-generated parameter name conflicts with an extension parameter name
+            // (11,24): error CS9291: 'value': an automatically-generated parameter name conflicts with an extension parameter name
             //         static int P7 {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(11, 24)
             );
@@ -22564,22 +22564,22 @@ public static class E
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (9,39): error CS9512: Cannot use extension parameter 'T[] ts' in this context.
+            // (9,39): error CS9293: Cannot use extension parameter 'T[] ts' in this context.
             //         public static bool M2(T t) => ts.Contains(t); // Error: Cannot refer to `ts` from static context
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "ts").WithArguments("T[] ts").WithLocation(9, 39),
-            // (10,28): error CS9507: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
+            // (10,28): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //         public void M3(int T, string ts) { }          // Error: Cannot reuse names `T` and `ts`
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(10, 28),
-            // (10,38): error CS9509: 'ts': a parameter, local variable, or local function cannot have the same name as an extension parameter
+            // (10,38): error CS9290: 'ts': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         public void M3(int T, string ts) { }          // Error: Cannot reuse names `T` and `ts`
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "ts").WithArguments("ts").WithLocation(10, 38),
-            // (11,24): error CS9508: Type parameter 'T' has the same name as an extension container type parameter
+            // (11,24): error CS9289: Type parameter 'T' has the same name as an extension container type parameter
             //         public void M4<T, ts>(string s) { }           // Error: Cannot reuse names `T` and `ts`
             Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(11, 24),
             // (11,27): warning CS8981: The type name 'ts' only contains lower-cased ascii characters. Such names may become reserved for the language.
             //         public void M4<T, ts>(string s) { }           // Error: Cannot reuse names `T` and `ts`
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "ts").WithArguments("ts").WithLocation(11, 27),
-            // (11,27): error CS9511: Type parameter 'ts' has the same name as an extension parameter
+            // (11,27): error CS9292: Type parameter 'ts' has the same name as an extension parameter
             //         public void M4<T, ts>(string s) { }           // Error: Cannot reuse names `T` and `ts`
             Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionParameter, "ts").WithArguments("ts").WithLocation(11, 27)
             );
@@ -22681,19 +22681,19 @@ public static class E<T>
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (4,5): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (4,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             //     extension(int p)
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(4, 5),
             // (6,24): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'E<T>'
             //         public void M1<T>() {}
             Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "E<T>").WithLocation(6, 24),
-            // (9,5): error CS9502: Extensions must be declared in a top-level, non-generic, static class
+            // (9,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             //     extension<T>(T[] p)
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(9, 5),
             // (9,15): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'E<T>'
             //     extension<T>(T[] p)
             Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "E<T>").WithLocation(9, 15),
-            // (11,24): error CS9508: Type parameter 'T' has the same name as an extension container type parameter
+            // (11,24): error CS9289: Type parameter 'T' has the same name as an extension container type parameter
             //         public void M2<T>() {}
             Diagnostic(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(11, 24)
             );
@@ -22718,10 +22718,10 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (5,32): error CS9512: Cannot use extension parameter 'int p' in this context.
+            // (5,32): error CS9293: Cannot use extension parameter 'int p' in this context.
             //         static int P1 { get => p; }
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(5, 32),
-            // (8,20): error CS9512: Cannot use extension parameter 'int p' in this context.
+            // (8,20): error CS9293: Cannot use extension parameter 'int p' in this context.
             //             return p;
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(8, 20)
             );
@@ -22754,10 +22754,10 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (9,32): error CS9512: Cannot use extension parameter 'int p' in this context.
+            // (9,32): error CS9293: Cannot use extension parameter 'int p' in this context.
             //                 int local() => p;
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(9, 32),
-            // (15,28): error CS9512: Cannot use extension parameter 'int p' in this context.
+            // (15,28): error CS9293: Cannot use extension parameter 'int p' in this context.
             //             int local() => p;
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(15, 28)
             );
@@ -22881,13 +22881,13 @@ class MyAttr : System.Attribute
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (6,17): error CS9512: Cannot use extension parameter 'int p' in this context.
+            // (6,17): error CS9293: Cannot use extension parameter 'int p' in this context.
             //         [MyAttr(p)]
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(6, 17),
             // (6,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
             //         [MyAttr(p)]
             Diagnostic(ErrorCode.ERR_BadAttributeArgument, "p").WithLocation(6, 17),
-            // (9,17): error CS9512: Cannot use extension parameter 'int p' in this context.
+            // (9,17): error CS9293: Cannot use extension parameter 'int p' in this context.
             //         [MyAttr(p)]
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(9, 17),
             // (9,17): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -22947,7 +22947,7 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (6,54): error CS9512: Cannot use extension parameter 'string p' in this context.
+            // (6,54): error CS9293: Cannot use extension parameter 'string p' in this context.
             //         [System.Runtime.CompilerServices.IndexerName(p)]
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("string p").WithLocation(6, 54),
             // (6,54): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -23002,7 +23002,7 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (6,24): error CS9512: Cannot use extension parameter 'int p' in this context.
+            // (6,24): error CS9293: Cannot use extension parameter 'int p' in this context.
             //         int M2(int x = p)
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(6, 24),
             // (6,24): error CS1736: Default parameter value for 'x' must be a compile-time constant
@@ -23042,10 +23042,10 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (6,15): error CS9501: Extension declarations can include only methods or properties
+            // (6,15): error CS9282: Extension declarations can include only methods or properties
             //         class Nested
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(6, 15),
-            // (11,24): error CS9512: Cannot use extension parameter 'int p' in this context.
+            // (11,24): error CS9293: Cannot use extension parameter 'int p' in this context.
             //                 return p;
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("int p").WithLocation(11, 24)
             );
@@ -24601,10 +24601,10 @@ public static class Extensions2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (8,23): error CS9514: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'U1' is not referenced.
+            // (8,23): error CS9295: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'U1' is not referenced.
             //     extension<T1, U1>(T1)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "U1").WithLocation(8, 23),
-            // (16,23): error CS9514: The extended type 'T2' must reference all the type parameters declared by the extension, but type parameter 'U2' is not referenced.
+            // (16,23): error CS9295: The extended type 'T2' must reference all the type parameters declared by the extension, but type parameter 'U2' is not referenced.
             //     extension<T2, U2>(T2)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T2").WithArguments("T2", "U2").WithLocation(16, 23));
     }
@@ -25976,7 +25976,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,15): error CS9503: The receiver parameter of an extension cannot have a default value
+            // (5,15): error CS9284: The receiver parameter of an extension cannot have a default value
             //     extension(int i = 0)
             Diagnostic(ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue, "int i = 0").WithLocation(5, 15));
     }
@@ -26039,7 +26039,7 @@ class A
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,5): error CS9505: 'A.C' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'A.C' could be found (are you missing a using directive or an assembly reference?)
+            // (1,5): error CS9286: 'A.C' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'A.C' could be found (are you missing a using directive or an assembly reference?)
             // _ = new A.C().P;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new A.C().P").WithArguments("A.C", "P").WithLocation(1, 5));
     }
@@ -26409,7 +26409,7 @@ static class E2
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (5,13): error CS9505: 'Color' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'Color' could be found (are you missing a using directive or an assembly reference?)
+            // (5,13): error CS9286: 'Color' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'Color' could be found (are you missing a using directive or an assembly reference?)
             //         _ = Color.P;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "Color.P").WithArguments("Color", "P").WithLocation(5, 13));
 
@@ -27005,7 +27005,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS9505: 'string' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // (2,1): error CS9286: 'string' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'string' could be found (are you missing a using directive or an assembly reference?)
             // s.M();
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "s.M").WithArguments("string", "M").WithLocation(2, 1));
 
@@ -27036,7 +27036,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,1): error CS9505: 'string' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // (1,1): error CS9286: 'string' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'string' could be found (are you missing a using directive or an assembly reference?)
             // string.M();
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "string.M").WithArguments("string", "M").WithLocation(1, 1));
 
@@ -27070,7 +27070,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS9505: 'I<string>' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'I<string>' could be found (are you missing a using directive or an assembly reference?)
+            // (2,1): error CS9286: 'I<string>' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'I<string>' could be found (are you missing a using directive or an assembly reference?)
             // i.M();
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.M").WithArguments("I<string>", "M").WithLocation(2, 1));
 
@@ -27108,7 +27108,7 @@ static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (2,1): error CS9505: 'I<string>' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'I<string>' could be found (are you missing a using directive or an assembly reference?)
+            // (2,1): error CS9286: 'I<string>' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'I<string>' could be found (are you missing a using directive or an assembly reference?)
             // i.M();
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.M").WithArguments("I<string>", "M").WithLocation(2, 1));
 
@@ -27548,7 +27548,7 @@ public static class E2
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,9): error CS9505: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (1,9): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // int x = new object().M;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "new object().M").WithArguments("object", "M").WithLocation(1, 9));
     }
@@ -27572,7 +27572,7 @@ static class E
             // (1,9): error CS0117: 'int' does not contain a definition for 'Const'
             // _ = int.Const;
             Diagnostic(ErrorCode.ERR_NoSuchMember, "Const").WithArguments("int", "Const").WithLocation(1, 9),
-            // (7,26): error CS9501: Extension declarations can include only methods or properties
+            // (7,26): error CS9282: Extension declarations can include only methods or properties
             //         public const int Const = 42;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Const").WithLocation(7, 26));
     }
@@ -27705,7 +27705,7 @@ _ = i.P;
 """;
         comp = CreateCompilationWithIL(src, ilSrc);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS9505: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // (2,5): error CS9286: 'int' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // _ = i.P;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "i.P").WithArguments("int", "P").WithLocation(2, 5));
 
@@ -28089,7 +28089,7 @@ public static class E
             // (1,1): error CS1929: 'object' does not contain a definition for 'M' and the best extension method overload 'E.extension(string).M()' requires a receiver of type 'string'
             // object.M();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "object").WithArguments("object", "M", "E.extension(string).M()", "string").WithLocation(1, 1),
-            // (2,5): error CS9505: 'object' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // (2,5): error CS9286: 'object' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // _ = object.Property;
             Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.Property").WithArguments("object", "Property").WithLocation(2, 5));
 
@@ -28296,7 +28296,7 @@ public static class E
 
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (6,22): error CS9501: Extension declarations can include only methods or properties
+            // (6,22): error CS9282: Extension declarations can include only methods or properties
             //         static class Nested { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(6, 22));
 
@@ -29337,7 +29337,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,13): error CS9512: Cannot use extension parameter 'object o' in this context.
+            // (7,13): error CS9293: Cannot use extension parameter 'object o' in this context.
             //             o.M2();
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "o").WithArguments("object o").WithLocation(7, 13));
     }
@@ -29383,7 +29383,7 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,25): error CS9504: An extension container can have only one receiver parameter
+            // (3,25): error CS9285: An extension container can have only one receiver parameter
             //     extension(object o, object o2)
             Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "object o2").WithLocation(3, 25),
             // (7,13): error CS0103: The name 'o2' does not exist in the current context
@@ -29441,10 +29441,10 @@ static class E
             // (1,11): error CS0117: 'C' does not contain a definition for 'P'
             // int i = C.P;
             Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("C", "P").WithLocation(1, 11),
-            // (7,21): error CS9514: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
+            // (7,21): error CS9295: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
             //     extension<T, U>(C)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C").WithArguments("C", "T").WithLocation(7, 21),
-            // (7,21): error CS9514: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'U' is not referenced.
+            // (7,21): error CS9295: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'U' is not referenced.
             //     extension<T, U>(C)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C").WithArguments("C", "U").WithLocation(7, 21));
     }
