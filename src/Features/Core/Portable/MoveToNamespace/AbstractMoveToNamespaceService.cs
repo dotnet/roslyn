@@ -316,7 +316,7 @@ internal abstract class AbstractMoveToNamespaceService<TCompilationUnitSyntax, T
         string defaultNamespace,
         ImmutableArray<string> namespaces)
     {
-        var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+        var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         return OptionsService.GetChangeNamespaceOptions(
             defaultNamespace,

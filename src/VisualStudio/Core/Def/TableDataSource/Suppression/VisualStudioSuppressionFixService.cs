@@ -265,9 +265,9 @@ internal sealed class VisualStudioSuppressionFixService(
                 if (!documentDiagnosticsPerLanguage.IsEmpty)
                 {
                     var suppressionFixer = GetSuppressionFixer(documentDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
-                    if (suppressionFixer != null)
+                    var suppressionFixAllProvider = suppressionFixer?.GetFixAllProvider();
+                    if (suppressionFixer != null && suppressionFixAllProvider != null)
                     {
-                        var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
                         newSolution = await _fixMultipleOccurencesService.GetFixAsync(
                             documentDiagnosticsPerLanguage,
                             _workspace,
@@ -290,9 +290,9 @@ internal sealed class VisualStudioSuppressionFixService(
                 if (!projectDiagnosticsPerLanguage.IsEmpty)
                 {
                     var suppressionFixer = GetSuppressionFixer(projectDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
-                    if (suppressionFixer != null)
+                    var suppressionFixAllProvider = suppressionFixer?.GetFixAllProvider();
+                    if (suppressionFixer != null && suppressionFixAllProvider != null)
                     {
-                        var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
                         newSolution = await _fixMultipleOccurencesService.GetFixAsync(
                              projectDiagnosticsPerLanguage,
                              _workspace,

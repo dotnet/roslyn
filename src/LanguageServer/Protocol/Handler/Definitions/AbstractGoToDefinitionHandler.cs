@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     locations.Add(new LSP.Location
                     {
-                        Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath),
+                        Uri = ProtocolConversions.CreateAbsoluteUri(declarationFile.FilePath!),
                         Range = ProtocolConversions.LinePositionToRange(linePosSpan),
                     });
                 }
