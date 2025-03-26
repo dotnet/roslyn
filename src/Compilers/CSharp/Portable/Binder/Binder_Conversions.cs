@@ -1601,7 +1601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodResult = result.ValidResult;
                 var method = methodResult.Member;
 
-                // PROTOTYPE: It looks like we added a bunch of code in BindInvocationExpressionContinued at this position
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130: It looks like we added a bunch of code in BindInvocationExpressionContinued at this position
                 //            that specifically deals with new extension methods. It adjusts analyzedArguments, etc.
                 //            It is very likely we need to do the same here. 
 
@@ -1663,7 +1663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Add methods. This case can be hit for spreads and non-spread elements.
                         Debug.Assert(call.HasErrors);
                         Debug.Assert(call.Method.Name == "Add");
-                        return call.Arguments[call.InvokedAsExtensionMethod ? 1 : 0]; // PROTOTYPE: Add test coverage for new extensions
+                        return call.Arguments[call.InvokedAsExtensionMethod ? 1 : 0]; // Tracked by https://github.com/dotnet/roslyn/issues/76130: Add test coverage for new extensions
                     case BoundBadExpression badExpression:
                         Debug.Assert(false); // Add test if we hit this assert.
                         return badExpression;
@@ -1712,7 +1712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out iterationType,
                 builder: out var builder);
             // Collection expression target types require instance method GetEnumerator.
-            if (result && builder.ViaExtensionMethod) // PROTOTYPE: Add test coverage for new extensions
+            if (result && builder.ViaExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Add test coverage for new extensions
             {
                 iterationType = default;
                 return false;

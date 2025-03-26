@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // lookup via "using static" ignores extension methods and non-static methods
                 case SymbolKind.Method:
-                    if (!symbol.IsStatic || ((MethodSymbol)symbol).IsExtensionMethod) // PROTOTYPE: Test this code path with new extensions
+                    if (!symbol.IsStatic || ((MethodSymbol)symbol).IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
                     {
                         return false;
                     }
