@@ -1,0 +1,8 @@
+<Solution>
+    <Path>TestSolution.sln</Path>
+    <Projects>
+        <Project>
+            <Path>InvalidPath/InvalidProject.csproj</Path>
+        </Project>
+    </Projects>
+</Solution>
