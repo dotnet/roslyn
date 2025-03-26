@@ -406,13 +406,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var methodSymbol = getMarkerMethodSymbol(@this, uncommon);
 
+                    // PROTOTYPE: do we want to tighten the flags check further? (require that type be sealed?)
                     if (methodSymbol.DeclaredAccessibility != Accessibility.Private ||
                         methodSymbol.IsGenericMethod ||
                         !methodSymbol.IsStatic ||
                         !methodSymbol.ReturnsVoid ||
-                        methodSymbol.ParameterCount != 1)
+                        methodSymbol.ParameterCount != 1) // PROTOTYPE: Should we accept more than one parameter (in case new versions add more info)?
                     {
-                        return null;
+                        return null; // PROTOTYPE: Test this code path
                     }
 
                     return new ReceiverParameterSymbol(@this, methodSymbol.Parameters[0]);
@@ -443,12 +444,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (this.ContainingType is null)
             {
-                return null;
+                return null; // PROTOTYPE: Test this code path
             }
 
             if (!method.IsStatic && ExtensionParameter is null)
             {
-                return null;
+                return null; // PROTOTYPE: Test this code path
             }
 
             var uncommon = GetUncommonProperties().lazyExtensionInfo;
@@ -468,18 +469,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     if (member is not MethodSymbol { HasSpecialName: true, IsStatic: true } candidate)
                     {
-                        continue;
+                        continue; // PROTOTYPE: Test this code path
                     }
+
+                    // PROTOTYPE: Consider comparing accessibility as well
 
                     if (candidate.Arity != @this.Arity + method.Arity)
                     {
-                        continue;
+                        continue; // PROTOTYPE: Test this code path
                     }
 
                     int additionalParameterCount = method.IsStatic ? 0 : 1;
                     if (additionalParameterCount + method.ParameterCount != candidate.ParameterCount)
                     {
-                        continue;
+                        continue; // PROTOTYPE: Test this code path
                     }
 
                     ImmutableArray<TypeParameterSymbol> combinedTypeParameters = @this.TypeParameters.Concat(method.TypeParameters);
@@ -492,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             typeMap,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue;
+                        continue; // PROTOTYPE: Test this code path
                     }
 
                     if (!method.IsStatic &&
@@ -505,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             considerDefaultValues: false,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue;
+                        continue; // PROTOTYPE: Test this code path
                     }
 
                     if (!MemberSignatureComparer.HaveSameParameterTypes(
@@ -517,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             considerDefaultValues: false,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue;
+                        continue; // PROTOTYPE: Test this code path
                     }
 
                     if (MemberSignatureComparer.HaveSameConstraints(
@@ -529,10 +532,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         return candidate;
                     }
 
-                    break;
+                    break; // PROTOTYPE: Test this code path
                 }
 
-                return null;
+                return null; // PROTOTYPE: Test this code path
             }
         }
 
@@ -2037,7 +2040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         if (!foundMarkerMethod.IsNil)
                         {
-                            return default;
+                            return default; // PROTOTYPE: Test this code path
                         }
 
                         foundMarkerMethod = methodHandle;
@@ -2555,7 +2558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal override string ExtensionName
-            => Name;
+            => Name; // PROTOTYPE: Confirm implementation
 
         public override bool IsReadOnly
         {

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceExtensionImplementationMethodSymbol : RewrittenMethodSymbol
+    internal sealed class SourceExtensionImplementationMethodSymbol : RewrittenMethodSymbol // PROTOTYPE: Do we need to implement ISynthesizedMethodBodyImplementationSymbol?
     {
         public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod)
             : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(sourceMethod.IsStatic || sourceMethod.ContainingType.ExtensionParameter is not null);
             Debug.Assert(!sourceMethod.IsExtern);
             Debug.Assert(!sourceMethod.IsExternal);
+
+            // PROTOTYPE: Are we creating type parameters with the right emit behavior? Attributes, etc.
+            //            Also, they should be IsImplicitlyDeclared
         }
 
         public override int Arity => TypeParameters.Length;
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override MethodKind MethodKind => MethodKind.Ordinary;
         public override bool IsImplicitlyDeclared => true;
 
-        internal override bool HasSpecialName => true;
+        internal override bool HasSpecialName => true; // PROTOTYPE: reconcile with spec
 
         internal override int ParameterCount
         {
@@ -53,6 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsExtern => false;
         public sealed override DllImportData? GetDllImportData() => null;
         internal sealed override bool IsExternal => false;
+
+        // PROTOTYPE: How doc comments are supposed to work? GetDocumentationCommentXml
 
         internal sealed override bool IsDeclaredReadOnly => false;
 
@@ -85,6 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_originalMethod.IsStatic)
             {
+                // PROTOTYPE: Need to confirm if this rewrite going to break LocalStateTracingInstrumenter
+                //            Specifically BoundParameterId, etc.   
                 parameters.Add(new ExtensionMetadataMethodParameterSymbol(this, ((SourceNamedTypeSymbol)_originalMethod.ContainingType).ExtensionParameter!));
             }
 

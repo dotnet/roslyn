@@ -80,12 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (containingType is null)
             {
-                return null;
+                return null; // PROTOTYPE: Test this code path
             }
 
             if (_lazyExtensionInfo is null)
             {
-                Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
+                Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null); // PROTOTYPE: Test this code path
             }
 
             if (_lazyExtensionInfo.LazyImplementationMap is null)

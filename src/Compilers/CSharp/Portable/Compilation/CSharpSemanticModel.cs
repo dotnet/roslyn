@@ -3369,6 +3369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyGroup:
                     symbols = GetPropertyGroupSemanticSymbols((BoundPropertyGroup)boundNode, boundNodeForSyntacticParent, binderOpt, out resultKind, out memberGroup);
                     break;
+                // PROTOTYPE handle BoundPropertyAccess (which now may have a member group)
 
                 case BoundKind.BadExpression:
                     {

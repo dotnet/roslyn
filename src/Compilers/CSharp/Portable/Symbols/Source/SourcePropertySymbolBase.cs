@@ -501,6 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 static bool isPossibleIndexerNameAttributeInExtension(AttributeSyntax node, Binder? rootBinderOpt)
                 {
+                    // PROTOTYPE: Temporarily limit binding to a string literal argument in order to avoid a binding cycle.
                     if (node.ArgumentList?.Arguments is not [{ NameColon: null, NameEquals: null, Expression: LiteralExpressionSyntax { RawKind: (int)SyntaxKind.StringLiteralExpression } }])
                     {
                         return false;
@@ -1719,6 +1720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (this.GetIsNewExtensionMember() && SourceName != indexerName)
                 {
+                    // PROTOTYPE: Report more descriptive error
                     // error CS8078: An expression is too long or complex to compile
                     diagnostics.Add(ErrorCode.ERR_InsufficientStack, node.ArgumentList.Arguments[0].Location);
                 }

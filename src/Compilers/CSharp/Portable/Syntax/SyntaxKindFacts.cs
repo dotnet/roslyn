@@ -829,6 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return kind == SyntaxKind.EnumKeyword ? SyntaxKind.EnumDeclaration : GetTypeDeclarationKind(kind);
         }
 
+        // PROTOTYPE decide what we want for extension declaration
         public static SyntaxKind GetTypeDeclarationKind(SyntaxKind kind)
         {
             switch (kind)

@@ -97,6 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
+                // PROTOTYPE: Test this method
+
                 if (_lazyExtensionParameter is null)
                 {
                     var extensionParameter = _underlyingType.ExtensionParameter is { } receiverParameter ? new RetargetingExtensionReceiverParameterSymbol(this, receiverParameter) : null;
@@ -109,6 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         public override MethodSymbol TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
         {
+            // PROTOTYPE: Test this method
+
             Debug.Assert(this.IsExtension);
             Debug.Assert(method.IsDefinition);
             Debug.Assert(method.ContainingType == (object)this);

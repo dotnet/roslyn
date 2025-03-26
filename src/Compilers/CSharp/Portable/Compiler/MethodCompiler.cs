@@ -1161,6 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             });
                             }
 
+                            // PROTOTYPE: Ensure we are not messing up relative order of events for extension members (with relation to events for enclosing types, etc.)
                             _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(
                                 _compilation, methodSymbol, semanticModelWithCachedBoundNodes));
                         }
@@ -1396,6 +1397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Emit methods in extensions as skeletons:
             // => throw null;
+            // PROTOTYPE: Should we throw NotSupportedException instead?
             builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Ldnull);
             builder.EmitThrow(isRethrow: false);
             builder.Realize();

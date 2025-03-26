@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (IsUnfixedTypeParameter(target) && !target.NullableAnnotation.IsAnnotated() && kind is ExactOrBoundsKind.LowerBound)
                 {
-                    var ordinal = GetOrdinal((TypeParameterSymbol)target.Type);
+                    var ordinal = GetOrdinal((TypeParameterSymbol)target.Type); // PROTOTYPE test nullability scenario where the override of ordinals matters
                     _nullableAnnotationLowerBounds[ordinal] = _nullableAnnotationLowerBounds[ordinal].Join(argumentType.NullableAnnotation);
                 }
             }
