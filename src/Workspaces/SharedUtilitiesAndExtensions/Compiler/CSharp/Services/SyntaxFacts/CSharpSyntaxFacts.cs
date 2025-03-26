@@ -104,7 +104,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 
         return
             (SyntaxFacts.IsAnyUnaryExpression(kind) &&
-                (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
+                (token.Parent is PrefixUnaryExpressionSyntax or PostfixUnaryExpressionSyntax or OperatorDeclarationSyntax)) ||
             (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax or OperatorDeclarationSyntax or RelationalPatternSyntax)) ||
             (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
     }
