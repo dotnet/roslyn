@@ -1708,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out iterationType,
                 builder: out var builder);
             // Collection expression target types require instance method GetEnumerator.
-            if (result && builder.ViaExtensionMethod)
+            if (result && builder.ViaExtensionMethod) // PROTOTYPE: Add test coverage for new extensions
             {
                 iterationType = default;
                 return false;

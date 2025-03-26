@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static ParameterSymbol? tryGetThisParameter(MethodSymbol method)
             {
-                if (method.IsExtensionMethod)
+                if (method.IsExtensionMethod) // PROTOTYPE: Test this code path with new extensions
                 {
                     return method.Parameters is [{ } firstParameter, ..] ? firstParameter : null;
                 }

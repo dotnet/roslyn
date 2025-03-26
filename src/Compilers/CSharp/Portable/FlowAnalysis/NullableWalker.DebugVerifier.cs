@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void VisitForEachEnumeratorInfo(ForEachEnumeratorInfo enumeratorInfo)
             {
                 Visit(enumeratorInfo.DisposeAwaitableInfo);
-                if (enumeratorInfo.GetEnumeratorInfo.Method.IsExtensionMethod)
+                if (enumeratorInfo.GetEnumeratorInfo.Method.IsExtensionMethod) // PROTOTYPE: Test this code path with new extensions
                 {
                     foreach (var arg in enumeratorInfo.GetEnumeratorInfo.Arguments)
                     {
