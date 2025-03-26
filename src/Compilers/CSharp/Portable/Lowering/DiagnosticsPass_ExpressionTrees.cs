@@ -441,7 +441,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.MemberSymbol is PropertySymbol property)
             {
-                CheckRefReturningPropertyAccess(node, property);
+                if (_inExpressionLambda && property.GetIsNewExtensionMember())
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, node);
+                }
+                else
+                {
+                    CheckRefReturningPropertyAccess(node, property);
+                }
             }
 
             return base.VisitObjectInitializerMember(node);
@@ -549,9 +556,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckRefReturningPropertyAccess(node, property);
             CheckReceiverIfField(node.ReceiverOpt);
 
-            if (_inExpressionLambda && (property.IsAbstract || property.IsVirtual) && property.IsStatic)
+            if (_inExpressionLambda)
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                if ((property.IsAbstract || property.IsVirtual) && property.IsStatic)
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                }
+                else if (property.GetIsNewExtensionMember())
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, node);
+                }
             }
 
             return base.VisitPropertyAccess(node);
