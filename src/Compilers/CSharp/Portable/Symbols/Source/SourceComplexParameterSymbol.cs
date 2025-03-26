@@ -1591,38 +1591,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 checkIsAtLeastAsVisible(syntax, binder, constructor, diagnostics);
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
+                            // PROTOTYPE: Should we report diagnostics when GetCollectionExpressionApplicableIndexer() returns non-null?
+                            if (binder.GetCollectionExpressionApplicableIndexer(syntax, Type, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is null)
                             {
-                                return;
-                            }
-
-                            Debug.Assert(!addMethods.IsDefaultOrEmpty);
-
-                            if (addMethods[0].IsStatic) // No need to check other methods, extensions are never mixed with instance methods
-                            {
-                                Debug.Assert(addMethods[0].IsExtensionMethod);
-                                diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
-                                return;
-                            }
-
-                            MethodSymbol? reportAsLessVisible = null;
-
-                            foreach (var addMethod in addMethods)
-                            {
-                                if (isAtLeastAsVisible(syntax, binder, addMethod, diagnostics))
+                                if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))
                                 {
-                                    reportAsLessVisible = null;
-                                    break;
+                                    return;
                                 }
-                                else
-                                {
-                                    reportAsLessVisible ??= addMethod;
-                                }
-                            }
 
-                            if (reportAsLessVisible is not null)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, syntax, reportAsLessVisible, ContainingSymbol);
+                                Debug.Assert(!addMethods.IsDefaultOrEmpty);
+
+                                if (addMethods[0].IsStatic) // No need to check other methods, extensions are never mixed with instance methods
+                                {
+                                    Debug.Assert(addMethods[0].IsExtensionMethod);
+                                    diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
+                                    return;
+                                }
+
+                                MethodSymbol? reportAsLessVisible = null;
+
+                                foreach (var addMethod in addMethods)
+                                {
+                                    if (isAtLeastAsVisible(syntax, binder, addMethod, diagnostics))
+                                    {
+                                        reportAsLessVisible = null;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        reportAsLessVisible ??= addMethod;
+                                    }
+                                }
+
+                                if (reportAsLessVisible is not null)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember, syntax, reportAsLessVisible, ContainingSymbol);
+                                }
                             }
                         }
                         break;

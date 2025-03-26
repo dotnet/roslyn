@@ -1920,7 +1920,7 @@
     <Field Name="CollectionTypeKind" Type="CollectionExpressionTypeKind"/>
     <!-- An expression placeholder value representing the initialized collection. -->
     <Field Name="Placeholder" Type="BoundObjectOrCollectionValuePlaceholder?" Null="allow" SkipInVisitor="true"/>
-    <!-- Constructor call to create the empty collection type. -->
+    <!-- Constructor or factory method call to create the collection instance. -->
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Placeholder for collection builder elements span. -->
     <Field Name="CollectionBuilderSpanPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
@@ -1950,8 +1950,26 @@
 
   <!-- A key:value pair element within a collection expression. -->
   <Node Name="BoundKeyValuePairElement" Base="BoundNode">
+    <!-- Key expression. -->
     <Field Name="Key" Type="BoundExpression"/>
+    <!-- Value expression. -->
     <Field Name="Value" Type="BoundExpression"/>
+    <!-- Placeholder for Key in assignment. -->
+    <Field Name="KeyPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Placeholder for Value in assignment. -->
+    <Field Name="ValuePlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Indexer assignment of key:value pair to containing dictionary. -->
+    <Field Name="IndexerAssignment" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+  </Node>
+
+  <!-- An expression element of KeyValuePair&lt;,&gt; type in a collection expression where the target type is a collection of KeyValuePair&lt;,&gt;. -->
+  <Node Name="BoundKeyValuePairExpressionElement" Base="BoundNode">
+    <!-- Expression. -->
+    <Field Name="Expression" Type="BoundExpression"/>
+    <!-- Placeholder for Expression in assignment. -->
+    <Field Name="ExpressionPlaceholder" Type="BoundValuePlaceholder" SkipInVisitor="true"/>
+    <!-- Indexer assignment of Key and Value properties of Expression to containing dictionary. -->
+    <Field Name="IndexerAssignment" Type="BoundExpression" SkipInVisitor="true"/>
   </Node>
 
   <!-- Unconverted collection expression arguments. -->
@@ -1961,7 +1979,7 @@
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Binder" Type="Binder" Null="disallow"/>
   </Node>
-  
+
   <!-- 
   Tuple literals can exist in two forms - literal and converted literal.
   This is the base node for both forms.

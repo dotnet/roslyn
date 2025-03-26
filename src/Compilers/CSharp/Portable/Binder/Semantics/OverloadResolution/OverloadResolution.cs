@@ -1340,12 +1340,21 @@ outerDefault:
 
                         if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                         {
+                            if (binder.HasParamsCollectionTypeApplicableIndexerInProgress(syntax, type))
+                            {
+                                // We are in a cycle. Optimistically assume the type has an applicable indexer.
+                                break;
+                            }
+
+                            binder = new ParamsCollectionTypeApplicableIndexerInProgress(syntax, type, binder);
+
                             if (!binder.HasCollectionExpressionApplicableConstructor(syntax, type, constructor: out _, isExpanded: out _, BindingDiagnosticBag.Discarded))
                             {
                                 return false;
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, type, addMethods: out _, BindingDiagnosticBag.Discarded))
+                            if (binder.GetCollectionExpressionApplicableIndexer(syntax, type, elementType.Type, BindingDiagnosticBag.Discarded) is null &&
+                                !binder.HasCollectionExpressionApplicableAddMethod(syntax, type, addMethods: out _, BindingDiagnosticBag.Discarded))
                             {
                                 return false;
                             }

@@ -825,6 +825,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: false, diagnostics);
             }
 
+            Debug.Assert(elementType is { });
+
             var syntax = node.Syntax;
             if (LocalRewriter.IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType, Compilation))
             {
@@ -858,13 +860,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var elements = node.Elements;
-            var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
             BoundExpression? collectionCreation = null;
             BoundObjectOrCollectionValuePlaceholder? implicitReceiver = null;
             BoundValuePlaceholder? collectionBuilderSpanPlaceholder = null;
+            MethodSymbol? getKeyMethod = null;
+            MethodSymbol? getValueMethod = null;
+            MethodSymbol? setMethod = null;
 
-            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
+            // Verify the existence of the well-known members that may be used in lowering, even
+            // though not all will be used for any particular collection expression. Checking all
+            // gives a consistent behavior, regardless of collection expression elements.
+
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
             {
+                getKeyMethod = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
+                getValueMethod = (MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
+            }
+
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
+            {
+                if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
+                {
+                    // PROTOTYPE: Should we return a BoundIndexerAccess from GetCollectionExpressionApplicableIndexer() and
+                    // use existing lowering for a property assignment rather than generating a call to the setter directly? And
+                    // for CollectionExpressionTypeKind.DictionaryInterface, should we generate a BoundIndexerAccess using the
+                    // Dictionary<K, V> indexer rather than using the System_Collections_Generic_Dictionary_KV__set_Item accessor?
+                    var indexer = GetCollectionExpressionApplicableIndexer(syntax, targetType, elementType, diagnostics);
+                    setMethod = indexer?.GetOwnOrInheritedSetMethod();
+                    Debug.Assert(setMethod is { });
+                }
+
                 if (targetType is NamedTypeSymbol namedType &&
                     HasParamsCollectionTypeInProgress(namedType, out NamedTypeSymbol? inProgress, out MethodSymbol? inProgressConstructor))
                 {
@@ -910,7 +935,130 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, syntax, targetType);
                     return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
                 }
+            }
+            else if (collectionTypeKind is CollectionExpressionTypeKind.DictionaryInterface)
+            {
+                var dictionaryType = GetWellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV, diagnostics, syntax).
+                    Construct(((NamedTypeSymbol)targetType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var dictionaryConversion = Conversions.ClassifyConversionFromType(dictionaryType, targetType, isChecked: false, ref useSiteInfo);
+                diagnostics.Add(syntax, useSiteInfo);
+                if (!dictionaryConversion.IsImplicit)
+                {
+                    GenerateImplicitConversionError(diagnostics, Compilation, syntax, dictionaryConversion, dictionaryType, targetType);
+                }
 
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, diagnostics, syntax: syntax);
+
+                implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, dictionaryType) { WasCompilerGenerated = true };
+                setMethod = ((MethodSymbol)GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, diagnostics, syntax: syntax))?.AsMember(dictionaryType);
+            }
+            else if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
+                node.HasSpreadElements(out _, out _))
+            {
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
+            }
+
+            if (collectionTypeKind is CollectionExpressionTypeKind.CollectionBuilder)
+            {
+                Debug.Assert(elementType is { });
+
+                ((NamedTypeSymbol)targetType).HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
+
+                var collectionBuilderCandidates = GetAndValidateCollectionBuilderMethods(syntax, ((NamedTypeSymbol)targetType).OriginalDefinition, builderType, methodName, diagnostics);
+                if (collectionBuilderCandidates.IsEmpty)
+                {
+                    return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
+                }
+
+                Debug.Assert(builderType is { });
+                Debug.Assert(!string.IsNullOrEmpty(methodName));
+
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var typeArguments = ((NamedTypeSymbol)targetType).GetAllTypeArguments(ref useSiteInfo);
+                diagnostics.Add(syntax, useSiteInfo);
+
+                var candidateMethodGroup = BindCollectionBuilderMethodGroup(syntax, methodName, typeArguments, collectionBuilderCandidates);
+                collectionBuilderSpanPlaceholder = new BoundValuePlaceholder(syntax, GetWellKnownType(WellKnownType.System_ReadOnlySpan_T, diagnostics, syntax).Construct(elementType)) { WasCompilerGenerated = true };
+
+                // Bind collection creation with arguments.
+                foreach (var element in elements)
+                {
+                    if (element is BoundCollectionExpressionWithElement withElement)
+                    {
+                        // PROTOTYPE: If there are multiple with() elements, should with() elements after
+                        // the first be bound for error recovery only rather than as a factory method call?
+                        var collectionWithArguments = BindCollectionBuilderCreate(
+                            withElement.Syntax,
+                            candidateMethodGroup,
+                            collectionBuilderSpanPlaceholder,
+                            withElement,
+                            diagnostics);
+                        collectionCreation ??= collectionWithArguments;
+                    }
+                }
+
+                if (collectionCreation is null)
+                {
+                    // Bind collection creation with no arguments.
+                    // PROTOTYPE: Should we require a factory method callable with no arguments even if arguments are provided
+                    // at the call-site, or is this requirement for 'params' parameter types only? Either way, make it clear in the spec.
+                    collectionCreation = BindCollectionBuilderCreate(
+                        syntax,
+                        candidateMethodGroup,
+                        collectionBuilderSpanPlaceholder,
+                        withElement: null,
+                        diagnostics);
+                }
+
+                collectionCreation = CreateConversion(collectionCreation, targetType, diagnostics);
+            }
+
+            if (collectionTypeKind is not
+                (CollectionExpressionTypeKind.CollectionBuilder or CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer))
+            {
+                var withElement = elements.FirstOrDefault(e => e is BoundCollectionExpressionWithElement { Arguments.Length: > 0 });
+                if (withElement is { })
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, ((WithElementSyntax)withElement.Syntax).WithKeyword, targetType);
+                }
+            }
+
+            return new BoundCollectionExpression(
+                syntax,
+                collectionTypeKind,
+                implicitReceiver,
+                collectionCreation,
+                collectionBuilderSpanPlaceholder,
+                wasTargetTyped: true,
+                node,
+                ConvertCollectionExpressionElements(node, targetType, conversion, collectionTypeKind, elementType, implicitReceiver, getKeyMethod, getValueMethod, setMethod, diagnostics),
+                targetType)
+            { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
+        }
+
+        private ImmutableArray<BoundNode> ConvertCollectionExpressionElements(
+            BoundUnconvertedCollectionExpression node,
+            TypeSymbol targetType,
+            Conversion conversion,
+            CollectionExpressionTypeKind collectionTypeKind,
+            TypeSymbol? elementType,
+            BoundObjectOrCollectionValuePlaceholder? implicitReceiver,
+            MethodSymbol? getKeyMethod,
+            MethodSymbol? getValueMethod,
+            MethodSymbol? setMethod,
+            BindingDiagnosticBag diagnostics)
+        {
+            var syntax = node.Syntax;
+            var elements = node.Elements;
+            var builder = ArrayBuilder<BoundNode>.GetInstance(elements.Length);
+
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
+            {
+                Debug.Assert(implicitReceiver is { });
                 var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, targetType, this);
                 foreach (var element in elements)
                 {
@@ -918,117 +1066,152 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (element)
                     {
                         case BoundCollectionExpressionWithElement:
-                            // Handled above.
                             continue;
                         case BoundCollectionExpressionSpreadElement spreadElement:
-                            convertedElement = BindCollectionExpressionSpreadElementAddMethod(
+                            convertedElement = BindCollectionExpressionSpreadElement(
                                 (SpreadElementSyntax)spreadElement.Syntax,
                                 spreadElement,
-                                collectionInitializerAddMethodBinder,
                                 implicitReceiver,
+                                static (binder, syntax, element, implicitReceiver, collectionInitializerAddMethodBinder, diagnostics) =>
+                                    binder.BindCollectionInitializerElementAddMethod(
+                                        syntax,
+                                        [element],
+                                        hasEnumerableInitializerType: true,
+                                        collectionInitializerAddMethodBinder,
+                                        diagnostics,
+                                        implicitReceiver),
+                                collectionInitializerAddMethodBinder,
                                 diagnostics);
                             break;
-                        case BoundKeyValuePairElement:
-                            throw ExceptionUtilities.UnexpectedValue(element);
-                        default:
+                        case BoundExpression expressionElement:
                             convertedElement = BindCollectionInitializerElementAddMethod(
                                 element.Syntax,
-                                ImmutableArray.Create((BoundExpression)element),
+                                [expressionElement],
                                 hasEnumerableInitializerType: true,
                                 collectionInitializerAddMethodBinder,
                                 diagnostics,
                                 implicitReceiver);
                             break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(element);
                     }
                     builder.Add(convertedElement);
                 }
             }
+            else if (elementType is { } && ConversionsBase.CollectionUsesKeyValuePairs(Compilation, collectionTypeKind, elementType, out var elementKeyType, out var elementValueType))
+            {
+                var elementConversions = conversion.UnderlyingConversions;
+
+                Debug.Assert(elementType is { });
+                Debug.Assert(elementConversions.All(c => c.Exists));
+                Debug.Assert(implicitReceiver is { });
+                Debug.Assert(elementKeyType is { });
+                Debug.Assert(elementValueType is { });
+
+                int conversionIndex = 0;
+                foreach (var element in elements)
+                {
+                    BoundNode convertedElement;
+                    switch (element)
+                    {
+                        case BoundCollectionExpressionWithElement:
+                            continue;
+                        case BoundExpression expressionElement:
+                            {
+                                BoundExpression convertedExpression;
+                                Conversion keyConversion;
+                                Conversion valueConversion;
+                                if (expressionElement.Type is { })
+                                {
+                                    Debug.Assert(ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out _, out _));
+                                    convertedExpression = BindToNaturalType(expressionElement, diagnostics);
+                                    keyConversion = elementConversions[conversionIndex++];
+                                    valueConversion = elementConversions[conversionIndex++];
+                                }
+                                else
+                                {
+                                    convertedExpression = CreateConversion(expressionElement, elementConversions[conversionIndex++], elementType, diagnostics);
+                                    keyConversion = Conversion.Identity;
+                                    valueConversion = Conversion.Identity;
+                                }
+                                var expressionSyntax = expressionElement.Syntax;
+                                var placeholder = new BoundValuePlaceholder(expressionSyntax, convertedExpression.Type);
+                                convertedElement = new BoundKeyValuePairExpressionElement(
+                                    expressionSyntax,
+                                    expression: convertedExpression,
+                                    expressionPlaceholder: placeholder,
+                                    BindDictionaryItemAssignment(
+                                        expressionSyntax,
+                                        implicitReceiver,
+                                        getKeyMethod,
+                                        getValueMethod,
+                                        setMethod,
+                                        expr: placeholder,
+                                        keyConversion: keyConversion,
+                                        destinationKeyType: elementKeyType,
+                                        valueConversion: valueConversion,
+                                        destinationValueType: elementValueType,
+                                        diagnostics));
+                            }
+                            break;
+                        case BoundCollectionExpressionSpreadElement spreadElement:
+                            convertedElement = BindCollectionExpressionSpreadElement(
+                                (SpreadElementSyntax)spreadElement.Syntax,
+                                spreadElement,
+                                implicitReceiver,
+                                static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
+                                {
+                                    Debug.Assert(ConversionsBase.IsKeyValuePairType(binder.Compilation, item.Type, out _, out _));
+                                    return binder.BindDictionaryItemAssignment(
+                                        syntax,
+                                        implicitReceiver,
+                                        arg.getKeyMethod,
+                                        arg.getValueMethod,
+                                        arg.setMethod,
+                                        item,
+                                        arg.keyConversion,
+                                        arg.elementKeyType,
+                                        arg.valueConversion,
+                                        arg.elementValueType,
+                                        diagnostics);
+                                },
+                                (getKeyMethod, getValueMethod, setMethod, keyConversion: elementConversions[conversionIndex], elementKeyType, valueConversion: elementConversions[conversionIndex + 1], elementValueType),
+                                diagnostics);
+                            conversionIndex += 2;
+                            break;
+                        case BoundKeyValuePairElement keyValuePairElement:
+                            {
+                                var keyValuePairSyntax = (KeyValuePairElementSyntax)keyValuePairElement.Syntax;
+                                var key = keyValuePairElement.Key;
+                                var value = keyValuePairElement.Value;
+                                var keyPlaceholder = new BoundValuePlaceholder(keyValuePairSyntax.KeyExpression, elementKeyType);
+                                var valuePlaceholder = new BoundValuePlaceholder(keyValuePairSyntax.ValueExpression, elementValueType);
+                                convertedElement = new BoundKeyValuePairElement(
+                                    keyValuePairSyntax,
+                                    CreateConversion(key, elementConversions[conversionIndex], elementKeyType, diagnostics),
+                                    CreateConversion(value, elementConversions[conversionIndex + 1], elementValueType, diagnostics),
+                                    keyPlaceholder,
+                                    valuePlaceholder,
+                                    BindDictionaryItemAssignment(
+                                        keyValuePairSyntax,
+                                        implicitReceiver,
+                                        setMethod,
+                                        keyPlaceholder,
+                                        valuePlaceholder));
+                                conversionIndex += 2;
+                            }
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(element);
+                    }
+                    builder.Add(convertedElement);
+                }
+
+                Debug.Assert(conversionIndex == elementConversions.Length);
+                conversion.MarkUnderlyingConversionsChecked();
+            }
             else
             {
-                // Verify the existence of the well-known members that may be used in lowering, even
-                // though not all will be used for any particular collection expression. Checking all
-                // gives a consistent behavior, regardless of collection expression elements.
-                if (collectionTypeKind is CollectionExpressionTypeKind.DictionaryInterface)
-                {
-                    var dictionaryType = GetWellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV, diagnostics, syntax).
-                        Construct(((NamedTypeSymbol)targetType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
-                    var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    var dictionaryConversion = Conversions.ClassifyConversionFromType(dictionaryType, targetType, isChecked: false, ref useSiteInfo);
-                    diagnostics.Add(syntax, useSiteInfo);
-                    if (!dictionaryConversion.IsImplicit)
-                    {
-                        GenerateImplicitConversionError(diagnostics, Compilation, syntax, dictionaryConversion, dictionaryType, targetType);
-                    }
-
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor, diagnostics, syntax: syntax);
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item, diagnostics, syntax: syntax);
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key, diagnostics, syntax: syntax);
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value, diagnostics, syntax: syntax);
-                }
-                else if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
-                    node.HasSpreadElements(out _, out _))
-                {
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
-                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
-                }
-
-                if (collectionTypeKind is CollectionExpressionTypeKind.CollectionBuilder)
-                {
-                    Debug.Assert(elementType is { });
-
-                    ((NamedTypeSymbol)targetType).HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName);
-
-                    var collectionBuilderCandidates = GetAndValidateCollectionBuilderMethods(syntax, ((NamedTypeSymbol)targetType).OriginalDefinition, builderType, methodName, diagnostics);
-                    if (collectionBuilderCandidates.IsEmpty)
-                    {
-                        return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
-                    }
-
-                    Debug.Assert(builderType is { });
-                    Debug.Assert(!string.IsNullOrEmpty(methodName));
-
-                    var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    var typeArguments = ((NamedTypeSymbol)targetType).GetAllTypeArguments(ref useSiteInfo);
-                    diagnostics.Add(syntax, useSiteInfo);
-
-                    var candidateMethodGroup = BindCollectionBuilderMethodGroup(syntax, methodName, typeArguments, collectionBuilderCandidates);
-                    collectionBuilderSpanPlaceholder = new BoundValuePlaceholder(syntax, GetWellKnownType(WellKnownType.System_ReadOnlySpan_T, diagnostics, syntax).Construct(elementType)) { WasCompilerGenerated = true };
-
-                    // Bind collection creation with arguments.
-                    foreach (var element in elements)
-                    {
-                        if (element is BoundCollectionExpressionWithElement withElement)
-                        {
-                            // PROTOTYPE: If there are multiple with() elements, should with() elements after
-                            // the first be bound for error recovery only rather than as a factory method call?
-                            var collectionWithArguments = BindCollectionBuilderCreate(
-                                withElement.Syntax,
-                                candidateMethodGroup,
-                                collectionBuilderSpanPlaceholder,
-                                withElement,
-                                diagnostics);
-                            collectionCreation ??= collectionWithArguments;
-                        }
-                    }
-
-                    if (collectionCreation is null)
-                    {
-                        // Bind collection creation with no arguments.
-                        // PROTOTYPE: Should we require a factory method callable with no arguments even if arguments are provided
-                        // at the call-site, or is this requirement for 'params' parameter types only? Either way, make it clear in the spec.
-                        collectionCreation = BindCollectionBuilderCreate(
-                            syntax,
-                            candidateMethodGroup,
-                            collectionBuilderSpanPlaceholder,
-                            withElement: null,
-                            diagnostics);
-                    }
-
-                    collectionCreation = CreateConversion(collectionCreation, targetType, diagnostics);
-                }
-
                 var elementConversions = conversion.UnderlyingConversions;
 
                 Debug.Assert(elementType is { });
@@ -1041,11 +1224,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (element)
                     {
                         case BoundCollectionExpressionWithElement withElement:
-                            if (collectionTypeKind != CollectionExpressionTypeKind.CollectionBuilder &&
-                                withElement.Arguments.Length > 0)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, ((WithElementSyntax)withElement.Syntax).WithKeyword, targetType);
-                            }
                             continue;
                         case BoundCollectionExpressionSpreadElement spreadElement:
                             convertedElement = bindSpreadElement(
@@ -1054,43 +1232,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 elementConversions[conversionIndex++],
                                 diagnostics);
                             break;
-                        case BoundKeyValuePairElement keyValuePairElement:
-                            convertedElement = bindKeyValuePairElement(
-                                keyValuePairElement,
-                                elementType,
-                                elementConversions[conversionIndex],
-                                elementConversions[conversionIndex + 1],
-                                diagnostics);
-                            conversionIndex += 2;
-                            break;
-                        default:
+                        case BoundExpression expressionElement:
                             convertedElement = CreateConversion(
                                 element.Syntax,
-                                (BoundExpression)element,
+                                expressionElement,
                                 elementConversions[conversionIndex++],
                                 isCast: false,
                                 conversionGroupOpt: null,
                                 destination: elementType,
                                 diagnostics);
                             break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(element);
                     }
                     builder.Add(convertedElement!);
                 }
+
                 Debug.Assert(conversionIndex == elementConversions.Length);
                 conversion.MarkUnderlyingConversionsChecked();
             }
 
-            return new BoundCollectionExpression(
-                syntax,
-                collectionTypeKind,
-                implicitReceiver,
-                collectionCreation,
-                collectionBuilderSpanPlaceholder,
-                wasTargetTyped: true,
-                node,
-                builder.ToImmutableAndFree(),
-                targetType)
-            { WasCompilerGenerated = node.IsParamsArrayOrCollection, IsParamsArrayOrCollection = node.IsParamsArrayOrCollection };
+            return builder.ToImmutableAndFree();
 
             BoundNode bindSpreadElement(BoundCollectionExpressionSpreadElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
             {
@@ -1117,30 +1279,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementPlaceholder: elementPlaceholder,
                     iteratorBody: new BoundExpressionStatement(expressionSyntax, convertElement) { WasCompilerGenerated = true },
                     lengthOrCount: element.LengthOrCount);
-            }
-
-            BoundNode bindKeyValuePairElement(BoundKeyValuePairElement element, TypeSymbol elementType, Conversion keyConversion, Conversion valueConversion, BindingDiagnosticBag diagnostics)
-            {
-                Debug.Assert(ReferenceEquals(elementType.OriginalDefinition, Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)));
-
-                var typeArguments = ((NamedTypeSymbol)elementType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-                var convertedKey = CreateConversion(
-                    element.Key.Syntax,
-                    element.Key,
-                    keyConversion,
-                    isCast: false,
-                    conversionGroupOpt: null,
-                    destination: typeArguments[0].Type,
-                    diagnostics);
-                var convertedValue = CreateConversion(
-                    element.Value.Syntax,
-                    element.Value,
-                    valueConversion,
-                    isCast: false,
-                    conversionGroupOpt: null,
-                    destination: typeArguments[1].Type,
-                    diagnostics);
-                return element.Update(convertedKey, convertedValue);
             }
         }
 
@@ -1425,6 +1563,65 @@ namespace Microsoft.CodeAnalysis.CSharp
             inProgress = null;
             constructor = null;
             return false;
+        }
+
+        internal bool HasParamsCollectionTypeApplicableIndexerInProgress(SyntaxNode syntax, TypeSymbol targetType)
+        {
+            Binder? current = this;
+            do
+            {
+                if (current is ParamsCollectionTypeApplicableIndexerInProgress binder &&
+                    binder.Syntax == syntax &&
+                    object.ReferenceEquals(binder.CollectionType.OriginalDefinition, targetType.OriginalDefinition))
+                {
+                    return true;
+                }
+                current = current.Next;
+            } while (current is { });
+
+            return false;
+        }
+
+        internal PropertySymbol? GetCollectionExpressionApplicableIndexer(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
+        {
+            if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions))
+            {
+                return null;
+            }
+
+            if (!ConversionsBase.IsKeyValuePairType(Compilation, elementType, out var keyType, out var valueType))
+            {
+                return null;
+            }
+
+            var receiver = new BoundValuePlaceholder(syntax, targetType);
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            analyzedArguments.Arguments.Add(new BoundValuePlaceholder(syntax, keyType));
+            var indexerAccess = BindIndexerAccess(syntax, receiver, analyzedArguments, diagnostics);
+            analyzedArguments.Free();
+
+            if (indexerAccess is BoundIndexerAccess { Indexer: { } indexer })
+            {
+                var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                indexer = indexer.GetLeastOverriddenProperty(accessingTypeOpt: null);
+                if (indexer is
+                    {
+                        IsStatic: false,
+                        DeclaredAccessibility: Accessibility.Public,
+                        RefKind: RefKind.None,
+                        GetMethod: { DeclaredAccessibility: Accessibility.Public },
+                        SetMethod: { DeclaredAccessibility: Accessibility.Public },
+                        Parameters: [{ RefKind: RefKind.None or RefKind.In } parameter]
+                    } &&
+                    Conversions.ClassifyImplicitConversionFromType(parameter.Type, keyType, ref useSiteInfo).IsIdentity &&
+                    Conversions.ClassifyImplicitConversionFromType(indexer.Type, valueType, ref useSiteInfo).IsIdentity)
+                {
+                    diagnostics.Add(syntax, useSiteInfo);
+                    return indexer;
+                }
+            }
+
+            return null;
         }
 
         internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, out ImmutableArray<MethodSymbol> addMethods, BindingDiagnosticBag diagnostics)
@@ -1917,7 +2114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundKeyValuePairElement keyValuePairElement =>
                         keyValuePairElement.Update(
                             BindToNaturalType(keyValuePairElement.Key, diagnostics, reportNoTargetType),
-                            BindToNaturalType(keyValuePairElement.Value, diagnostics, reportNoTargetType)),
+                            BindToNaturalType(keyValuePairElement.Value, diagnostics, reportNoTargetType),
+                            keyPlaceholder: null,
+                            valuePlaceholder: null,
+                            indexerAssignment: null),
                     BoundCollectionExpressionWithElement withElement => bindArgumentsToNaturalType(withElement, diagnostics, reportNoTargetType),
                     _ => BindToNaturalType((BoundExpression)element, diagnostics, reportNoTargetType)
                 };
@@ -1993,7 +2193,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         reportedErrors = true;
                     }
 
-                    if (elements.Length > 0 &&
+                    // PROTOTYPE: Should we report diagnostics when GetCollectionExpressionApplicableIndexer() returns non-null?
+                    if (GetCollectionExpressionApplicableIndexer(node.Syntax, targetType, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is { })
+                    {
+                        collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
+                    }
+                    else if (elements.Length > 0 &&
                         !HasCollectionExpressionApplicableAddMethod(node.Syntax, targetType, addMethods: out _, diagnostics))
                     {
                         reportedErrors = true;
@@ -2009,20 +2214,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundCollectionExpressionWithElement:
                             // Collection arguments do not affect convertibility.
                             break;
+                        case BoundExpression expressionElement:
+                            if (usesKeyValuePairs && expressionElement.Type is { })
+                            {
+                                generateImplicitConversionFromTypeToKeyValuePairTypeErrors(diagnostics, expressionElement.Syntax, expressionElement.Type, elementType, ref useSiteInfo, ref reportedErrors);
+                            }
+                            else
+                            {
+                                generateImplicitConversionFromExpressionError(diagnostics, expressionElement, elementType, ref useSiteInfo, ref reportedErrors);
+                            }
+                            break;
                         case BoundCollectionExpressionSpreadElement spreadElement:
                             {
+                                var expressionSyntax = spreadElement.Expression.Syntax;
                                 var enumeratorInfo = spreadElement.EnumeratorInfoOpt;
                                 if (enumeratorInfo is null)
                                 {
-                                    Error(diagnostics, ErrorCode.ERR_NoImplicitConv, spreadElement.Expression.Syntax, spreadElement.Expression.Display, elementType);
+                                    Error(diagnostics, ErrorCode.ERR_NoImplicitConv, expressionSyntax, spreadElement.Expression.Display, elementType);
                                     reportedErrors = true;
+                                }
+                                else if (usesKeyValuePairs && enumeratorInfo.ElementType is { })
+                                {
+                                    generateImplicitConversionFromTypeToKeyValuePairTypeErrors(diagnostics, expressionSyntax, enumeratorInfo.ElementType, elementType, ref useSiteInfo, ref reportedErrors);
                                 }
                                 else
                                 {
                                     Conversion elementConversion = Conversions.GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo);
                                     if (!elementConversion.Exists)
                                     {
-                                        GenerateImplicitConversionError(diagnostics, this.Compilation, spreadElement.Expression.Syntax, elementConversion, enumeratorInfo.ElementType, elementType);
+                                        GenerateImplicitConversionError(diagnostics, this.Compilation, expressionSyntax, elementConversion, enumeratorInfo.ElementType, elementType);
                                         reportedErrors = true;
                                     }
                                 }
@@ -2031,8 +2251,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundKeyValuePairElement keyValuePairElement:
                             if (usesKeyValuePairs)
                             {
-                                generateImplicitConversionError(diagnostics, keyValuePairElement.Key, keyType.Type, ref useSiteInfo, ref reportedErrors);
-                                generateImplicitConversionError(diagnostics, keyValuePairElement.Value, valueType.Type, ref useSiteInfo, ref reportedErrors);
+                                Debug.Assert(keyType is { });
+                                Debug.Assert(valueType is { });
+                                generateImplicitConversionFromExpressionError(diagnostics, keyValuePairElement.Key, keyType, ref useSiteInfo, ref reportedErrors);
+                                generateImplicitConversionFromExpressionError(diagnostics, keyValuePairElement.Value, valueType, ref useSiteInfo, ref reportedErrors);
                             }
                             else
                             {
@@ -2041,7 +2263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
                         default:
-                            generateImplicitConversionError(diagnostics, (BoundExpression)element, elementType, ref useSiteInfo, ref reportedErrors);
+                            Debug.Assert(false);
                             break;
                     }
                 }
@@ -2055,7 +2277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return;
 
-            void generateImplicitConversionError(
+            void generateImplicitConversionFromExpressionError(
                 BindingDiagnosticBag diagnostics,
                 BoundExpression expression,
                 TypeSymbol targetType,
@@ -2066,6 +2288,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!elementConversion.Exists)
                 {
                     GenerateImplicitConversionError(diagnostics, expression.Syntax, elementConversion, expression, targetType);
+                    reportedErrors = true;
+                }
+            }
+
+            void generateImplicitConversionFromTypeError(
+                BindingDiagnosticBag diagnostics,
+                SyntaxNode syntax,
+                TypeSymbol sourceType,
+                TypeSymbol targetType,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+                ref bool reportedErrors)
+            {
+                Conversion elementConversion = Conversions.ClassifyImplicitConversionFromType(sourceType, targetType, ref useSiteInfo);
+                if (!elementConversion.Exists)
+                {
+                    GenerateImplicitConversionError(diagnostics, Compilation, syntax, elementConversion, sourceType, targetType);
+                    reportedErrors = true;
+                }
+            }
+
+            void generateImplicitConversionFromTypeToKeyValuePairTypeErrors(
+                BindingDiagnosticBag diagnostics,
+                SyntaxNode syntax,
+                TypeSymbol sourceType,
+                TypeSymbol targetType,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+                ref bool reportedErrors)
+            {
+                if (ConversionsBase.IsKeyValuePairType(Compilation, sourceType, out var elementKeyType, out var elementValueType))
+                {
+                    ConversionsBase.IsKeyValuePairType(Compilation, targetType, out var keyType, out var valueType);
+                    Debug.Assert(keyType is { });
+                    Debug.Assert(valueType is { });
+                    generateImplicitConversionFromTypeError(diagnostics, syntax, elementKeyType, keyType, ref useSiteInfo, ref reportedErrors);
+                    generateImplicitConversionFromTypeError(diagnostics, syntax, elementValueType, valueType, ref useSiteInfo, ref reportedErrors);
+                }
+                else
+                {
+                    // PROTOTYPE: We should use a specific error here, to avoid confusion in cases where there
+                    // actually is a user-defined conversion from the source type to KeyValuePair<,>.
+                    Error(diagnostics, ErrorCode.ERR_NoImplicitConv, syntax, sourceType, targetType);
                     reportedErrors = true;
                 }
             }
