@@ -19797,9 +19797,9 @@ static class E
         // PROTOTYPE confirm when spec'ing pattern-based await
         var comp = CreateCompilation(text);
         comp.VerifyEmitDiagnostics(
-            // (5,9): error CS1061: 'D' does not contain a definition for 'IsCompleted' and no accessible extension method 'IsCompleted' accepting a first argument of type 'D' could be found (are you missing a using directive or an assembly reference?)
+            // (5,9): error CS0117: 'D' does not contain a definition for 'IsCompleted'
             // int i = await new C();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "await new C()").WithArguments("D", "IsCompleted").WithLocation(5, 9)
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "IsCompleted").WithLocation(5, 9)
             );
         // PROTOTYPE metadata is undone
     }
