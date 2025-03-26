@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         bool ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, CommandExecutionContext context)
         {
             var window = OpenInteractiveWindow(focus: false);
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesWpfResources.Executing_selection_in_Interactive_Window))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Executing_selection_in_Interactive_Window))
             {
                 var submission = GetSelectedText(args, context.OperationContext.UserCancellationToken);
                 if (!string.IsNullOrWhiteSpace(submission))
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             using (var edit = buffer.CreateEdit())
             using (var waitScope = context.OperationContext.AddScope(allowCancellation: true,
-                EditorFeaturesWpfResources.Copying_selection_to_Interactive_Window))
+                EditorFeaturesResources.Copying_selection_to_Interactive_Window))
             {
                 var text = GetSelectedText(args, context.OperationContext.UserCancellationToken);
 
