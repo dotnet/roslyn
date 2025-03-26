@@ -8119,4 +8119,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnderspecifiedExtension" xml:space="preserve">
     <value>The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsExtensionPropertyAccess" xml:space="preserve">
+    <value>An expression tree may not contain an extension property access</value>
+  </data>
 </root>

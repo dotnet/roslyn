@@ -187,5 +187,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return ExtensionMethodReferenceRewriter.VisitFunctionPointerLoad(this, node);
         }
+
+        [return: NotNullIfNotNull(nameof(symbol))]
+        public override PropertySymbol? VisitPropertySymbol(PropertySymbol? symbol)
+        {
+            Debug.Assert(symbol?.GetIsNewExtensionMember() != true);
+            return base.VisitPropertySymbol(symbol);
+        }
     }
 }

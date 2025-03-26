@@ -2384,6 +2384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidExtensionParameterReference = 9293,
         ERR_ValueParameterSameNameAsExtensionTypeParameter = 9294,
         ERR_UnderspecifiedExtension = 9295,
+        ERR_ExpressionTreeContainsExtensionPropertyAccess = 9296,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
