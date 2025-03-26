@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 [Trait(Traits.Feature, Traits.Features.Classification)]
 public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTests
 {
-    protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, ImmutableArray<TextSpan> spans, ParseOptions? options, TestHost testHost)
+    protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(
+        string code, ImmutableArray<TextSpan> spans, ParseOptions? options, TestHost testHost)
     {
         using var workspace = CreateWorkspace(code, options, testHost);
         var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
@@ -40,7 +41,7 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
     }
 
     private new Task TestAsync(
-        [StringSyntax("C#-Test")] string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
         TestHost testHost,
         params FormattedClassification[] expected)
     {
