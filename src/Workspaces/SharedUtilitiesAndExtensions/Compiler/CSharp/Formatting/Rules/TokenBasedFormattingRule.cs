@@ -527,7 +527,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
         }
 
         // ~ * case
-        if (previousToken.Kind() == SyntaxKind.TildeToken && (previousToken.Parent is PrefixUnaryExpressionSyntax || previousToken.Parent is DestructorDeclarationSyntax))
+        if (previousToken.Kind() == SyntaxKind.TildeToken && (previousToken.Parent is PrefixUnaryExpressionSyntax or DestructorDeclarationSyntax))
         {
             return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
         }
