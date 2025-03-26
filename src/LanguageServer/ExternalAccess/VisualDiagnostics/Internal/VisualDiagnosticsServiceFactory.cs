@@ -42,7 +42,7 @@ internal sealed class VisualDiagnosticsServiceFactory(
         _OnInitializedService.Value.OnServiceBrokerInitialized(serviceBroker);
     }
 
-    private sealed class OnInitializedService : ILspService, IOnInitialized, IOnServiceBrokerInitialized, IDisposable
+    private class OnInitializedService : ILspService, IOnInitialized, IOnServiceBrokerInitialized, IDisposable
     {
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
         private IVisualDiagnosticsLanguageService? _visualDiagnosticsLanguageService;

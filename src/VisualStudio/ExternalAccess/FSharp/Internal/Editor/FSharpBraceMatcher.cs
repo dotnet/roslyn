@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
     [ExportBraceMatcher(LanguageNames.FSharp), Shared]
-    internal sealed class FSharpBraceMatcher : IBraceMatcher
+    internal class FSharpBraceMatcher : IBraceMatcher
     {
         private readonly IFSharpBraceMatcher _braceMatcher;
 

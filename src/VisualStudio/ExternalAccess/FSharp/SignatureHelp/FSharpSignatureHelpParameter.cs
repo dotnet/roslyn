@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp
 {
-    internal sealed class FSharpSignatureHelpParameter
+    internal class FSharpSignatureHelpParameter
     {
         /// <summary>
         /// The name of this parameter.

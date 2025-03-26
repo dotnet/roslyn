@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 [ExportWorkspaceService(typeof(IFSharpDocumentNavigationService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class FSharpDocumentNavigationService(IThreadingContext threadingContext)
+internal class FSharpDocumentNavigationService(IThreadingContext threadingContext)
     : IFSharpDocumentNavigationService
 {
     public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)

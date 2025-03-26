@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
     [Shared]
     [ExportLanguageService(typeof(IFormattingInteractionService), LanguageNames.FSharp)]
-    internal sealed class FSharpEditorFormattingService : IFormattingInteractionService
+    internal class FSharpEditorFormattingService : IFormattingInteractionService
     {
         private readonly IFSharpEditorFormattingService _service;
         private readonly IGlobalOptionService _globalOptions;

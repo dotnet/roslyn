@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
 {
-    public sealed class FSharpGlyphTests
+    public class FSharpGlyphTests
     {
         public static IEnumerable<object[]> enumValues()
         {

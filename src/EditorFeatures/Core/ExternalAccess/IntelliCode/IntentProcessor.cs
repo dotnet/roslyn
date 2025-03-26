@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode;
 [Export(typeof(IIntentSourceProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class IntentSourceProvider(
+internal class IntentSourceProvider(
     [ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders) : IIntentSourceProvider
 {
     private readonly ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> _lazyIntentProviders = CreateProviderMap(lazyIntentProviders);

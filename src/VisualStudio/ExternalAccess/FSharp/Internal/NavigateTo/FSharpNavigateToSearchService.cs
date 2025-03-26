@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 {
     [Shared]
     [ExportLanguageService(typeof(INavigateToSearchService), LanguageNames.FSharp)]
-    internal sealed class FSharpNavigateToSearchService : INavigateToSearchService
+    internal class FSharpNavigateToSearchService : INavigateToSearchService
     {
         private readonly IFSharpNavigateToSearchService _service;
 

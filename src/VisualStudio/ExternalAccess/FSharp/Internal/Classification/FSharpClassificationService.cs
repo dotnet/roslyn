@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
 {
     [Shared]
     [ExportLanguageService(typeof(IClassificationService), LanguageNames.FSharp)]
-    internal sealed class FSharpClassificationService : IClassificationService
+    internal class FSharpClassificationService : IClassificationService
     {
         private readonly IFSharpClassificationService _service;
         private readonly ObjectPool<List<ClassifiedSpan>> s_listPool = new(() => new());

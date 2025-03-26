@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.CodeLens;
 
 namespace Microsoft.CodeAnalysis.UnitTesting.ExternalAccess;
 
-internal sealed class UnitTestingReferencesService
+internal class UnitTestingReferencesService
 {
     private static readonly IEnumerable<(string MethodFullyQualifedName, string MethodFilePath, string MethodOutputFilePath)> Empty =
         [];

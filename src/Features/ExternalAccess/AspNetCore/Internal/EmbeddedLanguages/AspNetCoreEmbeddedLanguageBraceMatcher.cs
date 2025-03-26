@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
         supportsUnannotatedAPIs: false,
         // Add more syntax names here in the future if there are additional cases ASP.Net would like to light up on.
         identifiers: ["Route"]), Shared]
-    internal sealed class AspNetCoreEmbeddedLanguageBraceMatcher : IEmbeddedLanguageBraceMatcher
+    internal class AspNetCoreEmbeddedLanguageBraceMatcher : IEmbeddedLanguageBraceMatcher
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

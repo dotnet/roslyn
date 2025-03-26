@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
     }
 
     [Obsolete]
-    internal sealed class FSharpInlineRenameReplacementInfoLegacyWrapper : IInlineRenameReplacementInfo
+    internal class FSharpInlineRenameReplacementInfoLegacyWrapper : IInlineRenameReplacementInfo
     {
         private readonly IFSharpInlineRenameReplacementInfo _info;
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
     }
 
     [Obsolete]
-    internal sealed class FSharpInlineRenameLocationSetLegacyWrapper : IInlineRenameLocationSet
+    internal class FSharpInlineRenameLocationSetLegacyWrapper : IInlineRenameLocationSet
     {
         private readonly IFSharpInlineRenameLocationSet _set;
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
     }
 
     [Obsolete]
-    internal sealed class FSharpInlineRenameInfoLegacyWrapper : IInlineRenameInfo
+    internal class FSharpInlineRenameInfoLegacyWrapper : IInlineRenameInfo
     {
         private readonly IFSharpInlineRenameInfo _info;
 
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 #nullable enable
     [Shared]
     [ExportLanguageService(typeof(IEditorInlineRenameService), LanguageNames.FSharp)]
-    internal sealed class FSharpEditorInlineRenameService : IEditorInlineRenameService
+    internal class FSharpEditorInlineRenameService : IEditorInlineRenameService
     {
         [Obsolete]
         private readonly IFSharpEditorInlineRenameService? _legacyService;

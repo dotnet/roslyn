@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
 {
-    public sealed class FSharpSignatureHelpTriggerReasonTests
+    public class FSharpSignatureHelpTriggerReasonTests
     {
         public static IEnumerable<object[]> enumValues()
         {

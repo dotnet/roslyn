@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers
             bool selectAll = true);
     }
 
-    internal sealed class OmniSharpPickMembersOption
+    internal class OmniSharpPickMembersOption
     {
         internal readonly PickMembersOption PickMembersOptionInternal;
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.PickMembers
         public bool Value { get => PickMembersOptionInternal.Value; set => PickMembersOptionInternal.Value = value; }
     }
 
-    internal sealed class OmniSharpPickMembersResult
+    internal class OmniSharpPickMembersResult
     {
         public readonly ImmutableArray<ISymbol> Members;
         public readonly ImmutableArray<OmniSharpPickMembersOption> Options;

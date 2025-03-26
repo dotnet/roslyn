@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTestGenerator.Api;
 [Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class UnitTestGeneratorAddMissingImportsFeatureServiceAccessor()
+internal class UnitTestGeneratorAddMissingImportsFeatureServiceAccessor()
 {
 #pragma warning disable CA1822 // Mark members as static
     internal async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)

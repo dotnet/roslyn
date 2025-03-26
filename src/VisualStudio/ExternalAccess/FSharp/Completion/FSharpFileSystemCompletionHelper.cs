@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
 {
-    internal sealed class FSharpFileSystemCompletionHelper
+    internal class FSharpFileSystemCompletionHelper
     {
         private readonly FileSystemCompletionHelper _fileSystemCompletionHelper;
 

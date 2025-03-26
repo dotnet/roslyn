@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.PickMembers
 {
     [Shared]
     [ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Host)]
-    internal sealed class OmniSharpPickMembersService : IPickMembersService
+    internal class OmniSharpPickMembersService : IPickMembersService
     {
         private readonly IOmniSharpPickMembersService _omniSharpPickMembersService;
 

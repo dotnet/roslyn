@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages
 {
-    internal sealed class FSharpDefinitionItem
+    internal class FSharpDefinitionItem
     {
         private FSharpDefinitionItem(DefinitionItem roslynDefinitionItem)
         {

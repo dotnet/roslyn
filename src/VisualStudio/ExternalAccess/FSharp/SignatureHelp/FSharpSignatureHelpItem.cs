@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp
 {
-    internal sealed class FSharpSignatureHelpItem
+    internal class FSharpSignatureHelpItem
     {
         /// <summary>
         /// True if this signature help item can have an unbounded number of arguments passed to it.

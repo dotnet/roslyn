@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
-internal sealed class VSTypescriptNavigationBarItem(
+internal class VSTypescriptNavigationBarItem(
     string text,
     VSTypeScriptGlyph glyph,
     ImmutableArray<TextSpan> spans,

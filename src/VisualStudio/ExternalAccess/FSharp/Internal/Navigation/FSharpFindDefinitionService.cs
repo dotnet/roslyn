@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
 [ExportLanguageService(typeof(INavigableItemsService), LanguageNames.FSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class FSharpNavigableItemsService(IFSharpFindDefinitionService service) : INavigableItemsService
+internal class FSharpNavigableItemsService(IFSharpFindDefinitionService service) : INavigableItemsService
 {
     public async Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(Document document, int position, CancellationToken cancellationToken)
     {

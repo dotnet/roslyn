@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp
 {
     [Shared]
     [ExportSignatureHelpProvider(nameof(FSharpSignatureHelpProvider), LanguageNames.FSharp)]
-    internal sealed class FSharpSignatureHelpProvider : ISignatureHelpProvider
+    internal class FSharpSignatureHelpProvider : ISignatureHelpProvider
     {
         private readonly IFSharpSignatureHelpProvider _provider;
 
