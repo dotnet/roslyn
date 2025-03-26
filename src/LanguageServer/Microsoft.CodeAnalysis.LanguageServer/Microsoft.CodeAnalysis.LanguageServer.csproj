@@ -44,7 +44,6 @@
     <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
     <PublishDir Condition="'$(RuntimeIdentifier)' == ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/neutral</PublishDir>
 
-
     <!-- List of runtime identifiers that we want to publish an executable for. -->
     <!-- When building a VMR vertical, we don't need to pack everything. Just pack the passed in TargetRid or BaseOS.
          TargetRid and BaseOS are provided to roslyn via the build arguments passed in the VMR orchestrator's repo project.
@@ -57,7 +56,7 @@
     <!-- These indicate that the runtime/apphost packages should not be downloaded as part of build/restore -->
     <EnableRuntimePackDownload>false</EnableRuntimePackDownload>
     <EnableAppHostPackDownload>false</EnableAppHostPackDownload>
-    
+
     <!-- Publish ready to run executables when we're publishing platform specific executables. -->
     <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != '' AND '$(Configuration)' == 'Release' ">true</PublishReadyToRun>
 
