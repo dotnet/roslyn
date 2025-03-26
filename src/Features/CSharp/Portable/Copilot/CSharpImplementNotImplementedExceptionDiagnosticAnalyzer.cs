@@ -67,7 +67,7 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
                     // If the throw is the top-level operation in the containing symbol, report a diagnostic on the
                     // symbol as well. Note: consider reporting on the entire symbol, instead of just the name.  And in
                     // this case, do not report directly on the throw as well.
-                    if (IsTopLevel(block, operation))
+                    if (ShouldReportAsTopLevel(block, operation))
                     {
                         foreach (var location in context.OwningSymbol.Locations)
                         {
@@ -84,7 +84,7 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
         }
     }
 
-    private static bool IsTopLevel(IOperation block, IOperation operation)
+    private static bool ShouldReportAsTopLevel(IOperation block, IOperation operation)
     {
         if (block is IBlockOperation { Operations: [var child] })
         {
@@ -93,17 +93,20 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
                 return true;
 
             // Handle: => throw new NotImplementedException();
-            if (child is IReturnOperation { ReturnedValue: IConversionOperation { Operand: var operand } } && operand == operation)
-            {
-                if (operation.Syntax is ThrowExpressionSyntax throwExpression)
+            if (child is IReturnOperation
                 {
-                    // Exclude property declarations with expression bodies
-                    if (throwExpression.Parent is ArrowExpressionClauseSyntax { Parent: PropertyDeclarationSyntax })
-                        return false;
-
-                    // Include expression-bodied methods and get accessors
-                    return true;
-                }
+                    ReturnedValue: IConversionOperation
+                    {
+                        Operand: var operand
+                    }
+                } && operand == operation &&
+                // Excluding property declarations with expression bodies
+                // Because their location is an exact match with the throw operation
+                // and we don't want to report the same location twice
+                !(operation.Syntax.Parent is ArrowExpressionClauseSyntax { Parent: PropertyDeclarationSyntax }))
+            {
+                // Include expression-bodied methods and get accessors
+                return true;
             }
 
             // Handle expression-bodied set accessors
