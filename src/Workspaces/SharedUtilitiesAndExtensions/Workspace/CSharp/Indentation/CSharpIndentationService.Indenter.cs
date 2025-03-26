@@ -217,8 +217,7 @@ internal partial class CSharpIndentationService
             token.IsCloseBraceOfEmbeddedBlock())
         {
             RoslynDebug.Assert(
-                token.Parent != null &&
-                (token.Parent.Parent is StatementSyntax || token.Parent.Parent is ElseClauseSyntax));
+                token.Parent?.Parent is StatementSyntax or ElseClauseSyntax);
 
             var embeddedStatementOwner = token.Parent.Parent;
             while (embeddedStatementOwner.IsEmbeddedStatement())

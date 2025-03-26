@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -49,8 +48,8 @@ internal sealed class CSharpGenerateMethodService() :
         SyntaxNode node,
         CancellationToken cancellationToken,
         out SyntaxToken identifierToken,
-        out IMethodSymbol methodSymbol,
-        out INamedTypeSymbol typeToGenerateIn)
+        [NotNullWhen(true)] out IMethodSymbol? methodSymbol,
+        [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn)
     {
         var methodDeclaration = (MethodDeclarationSyntax)node;
         identifierToken = methodDeclaration.Identifier;
@@ -60,7 +59,7 @@ internal sealed class CSharpGenerateMethodService() :
             !methodDeclaration.ParameterList.CloseParenToken.IsMissing)
         {
             var semanticModel = document.SemanticModel;
-            methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken);
+            methodSymbol = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
             if (methodSymbol != null && !methodSymbol.ExplicitInterfaceImplementations.Any())
             {
                 var semanticInfo = semanticModel.GetTypeInfo(methodDeclaration.ExplicitInterfaceSpecifier.Name, cancellationToken);
@@ -80,14 +79,14 @@ internal sealed class CSharpGenerateMethodService() :
         SimpleNameSyntax simpleName,
         CancellationToken cancellationToken,
         out SyntaxToken identifierToken,
-        out ExpressionSyntax simpleNameOrMemberAccessExpression,
-        out InvocationExpressionSyntax invocationExpressionOpt,
+        [NotNullWhen(true)] out ExpressionSyntax? simpleNameOrMemberAccessExpression,
+        out InvocationExpressionSyntax? invocationExpressionOpt,
         out bool isInConditionalAccessExpression)
     {
         identifierToken = simpleName.Identifier;
 
-        var memberAccess = simpleName?.Parent as MemberAccessExpressionSyntax;
-        var conditionalMemberAccess = simpleName?.Parent?.Parent?.Parent as ConditionalAccessExpressionSyntax;
+        var memberAccess = simpleName.GetRequiredParent() as MemberAccessExpressionSyntax;
+        var conditionalMemberAccess = simpleName.GetRequiredParent()?.Parent?.Parent as ConditionalAccessExpressionSyntax;
         var inConditionalMemberAccess = conditionalMemberAccess != null;
         if (memberAccess != null)
         {
@@ -95,7 +94,7 @@ internal sealed class CSharpGenerateMethodService() :
         }
         else if (inConditionalMemberAccess)
         {
-            simpleNameOrMemberAccessExpression = conditionalMemberAccess;
+            simpleNameOrMemberAccessExpression = conditionalMemberAccess!;
         }
         else
         {
@@ -114,12 +113,18 @@ internal sealed class CSharpGenerateMethodService() :
             //    ->  InvocationExpressionSyntax
             //          ->   MemberBindingExpressionSyntax
             // and that the name at the end of this expression matches the simple name we were given
-            else if ((((simpleNameOrMemberAccessExpression as ConditionalAccessExpressionSyntax)
-                       ?.WhenNotNull as InvocationExpressionSyntax)
-                            ?.Expression as MemberBindingExpressionSyntax)
-                                ?.Name == simpleName)
+            else if (simpleNameOrMemberAccessExpression is ConditionalAccessExpressionSyntax
             {
-                invocationExpressionOpt = (InvocationExpressionSyntax)((ConditionalAccessExpressionSyntax)simpleNameOrMemberAccessExpression).WhenNotNull;
+                WhenNotNull: InvocationExpressionSyntax
+                {
+                    Expression: MemberBindingExpressionSyntax
+                    {
+                        Name: var bindingName
+                    }
+                } invocationExpression
+            } && bindingName == simpleName)
+            {
+                invocationExpressionOpt = invocationExpression;
                 isInConditionalAccessExpression = inConditionalMemberAccess;
                 return !invocationExpressionOpt.ArgumentList.CloseParenToken.IsMissing;
             }
@@ -147,7 +152,7 @@ internal sealed class CSharpGenerateMethodService() :
         return false;
     }
 
-    protected override ITypeSymbol DetermineReturnTypeForSimpleNameOrMemberAccessExpression(
+    protected override ITypeSymbol? DetermineReturnTypeForSimpleNameOrMemberAccessExpression(
         ITypeInferenceService typeInferenceService,
         SemanticModel semanticModel,
         ExpressionSyntax expression,
