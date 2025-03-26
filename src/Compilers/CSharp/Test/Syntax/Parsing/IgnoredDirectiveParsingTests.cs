@@ -337,6 +337,101 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
     }
 
     [Fact]
+    public void AfterComment()
+    {
+        var source = """
+            #:x
+            // comment
+            #:y
+            """;
+
+        VerifyTrivia();
+        UsingTree(source, TestOptions.Regular.WithFeature(FeatureName));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.EndOfFileToken);
+            {
+                L(SyntaxKind.IgnoredDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        L(SyntaxKind.PreprocessingMessageTrivia, "x");
+                        T(SyntaxKind.EndOfLineTrivia, "\n");
+                    }
+                }
+                L(SyntaxKind.SingleLineCommentTrivia);
+                L(SyntaxKind.EndOfLineTrivia, "\n");
+                L(SyntaxKind.IgnoredDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        L(SyntaxKind.PreprocessingMessageTrivia, "y");
+                    }
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void AfterDefine()
+    {
+        var source = """
+            #:x
+            #define y
+            #:y
+            """;
+
+        VerifyTrivia();
+        UsingTree(source, TestOptions.Regular.WithFeature(FeatureName));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.EndOfFileToken);
+            {
+                L(SyntaxKind.IgnoredDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        L(SyntaxKind.PreprocessingMessageTrivia, "x");
+                        T(SyntaxKind.EndOfLineTrivia, "\n");
+                    }
+                }
+                L(SyntaxKind.DefineDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.DefineKeyword);
+                    {
+                        T(SyntaxKind.WhitespaceTrivia, " ");
+                    }
+                    N(SyntaxKind.IdentifierToken, "y");
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        T(SyntaxKind.EndOfLineTrivia, "\n");
+                    }
+                }
+                L(SyntaxKind.IgnoredDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        L(SyntaxKind.PreprocessingMessageTrivia, "y");
+                    }
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
     public void SpaceBeforeHash()
     {
         var source = """

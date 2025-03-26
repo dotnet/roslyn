@@ -249,12 +249,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        /// <summary>
+        /// Asserts leading trivia.
+        /// </summary>
         [DebuggerHidden]
         protected SyntaxTrivia L(SyntaxKind kind, string? value = null)
         {
             return Trivia(kind, value, trailing: false);
         }
 
+        /// <summary>
+        /// Asserts trailing trivia.
+        /// </summary>
         [DebuggerHidden]
         protected SyntaxTrivia T(SyntaxKind kind, string? value = null)
         {
@@ -415,6 +421,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static bool ShouldIncludeText(SyntaxKind kind)
         {
+            // This can be changed without failing existing tests,
+            // it only affects the baseline output printed when a test fails.
             return kind
                 is SyntaxKind.IdentifierToken
                 or SyntaxKind.NumericLiteralToken
