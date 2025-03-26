@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This prevents, for example, an unused params parameter after the out parameters.
                 var deconstructMethod = ((BoundCall)result).Method;
                 var parameters = deconstructMethod.Parameters;
-                for (int i = (deconstructMethod.IsExtensionMethod ? 1 : 0); i < parameters.Length; i++)
+                for (int i = (deconstructMethod.IsExtensionMethod ? 1 : 0); i < parameters.Length; i++) // PROTOTYPE: Test this code path with new extensions
                 {
                     if (parameters[i].RefKind != RefKind.Out)
                     {

@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundExpression? ExtractCastInvocation(BoundCall invocation)
         {
-            int index = invocation.InvokedAsExtensionMethod ? 1 : 0;
+            int index = invocation.InvokedAsExtensionMethod ? 1 : 0; // PROTOTYPE: Add test coverage for his code path
             var c1 = invocation.Arguments[index] as BoundConversion;
             var l1 = c1 != null ? c1.Operand as BoundLambda : null;
             var r1 = l1 != null ? l1.Body.Statements[0] as BoundReturnStatement : null;

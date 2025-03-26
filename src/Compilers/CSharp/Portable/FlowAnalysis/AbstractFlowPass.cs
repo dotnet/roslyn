@@ -1642,7 +1642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool ignoreReceiver(MethodSymbol method)
             {
                 // static methods that aren't extensions get an implicit `this` receiver that should be ignored
-                return method.IsStatic && !method.IsExtensionMethod;
+                return method.IsStatic && !method.IsExtensionMethod; // PROTOTYPE: Test this code path with new extensions
             }
         }
 
