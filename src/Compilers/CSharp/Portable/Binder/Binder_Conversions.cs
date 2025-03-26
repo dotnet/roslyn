@@ -881,6 +881,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer)
                 {
+                    // PROTOTYPE: Should we return a BoundIndexerAccess from GetCollectionExpressionApplicableIndexer() and
+                    // use existing lowering for a property assignment rather than generating a call to the setter directly? And
+                    // for CollectionExpressionTypeKind.DictionaryInterface, should we generate a BoundIndexerAccess using the
+                    // Dictionary<K, V> indexer rather than using the System_Collections_Generic_Dictionary_KV__set_Item accessor?
                     var indexer = GetCollectionExpressionApplicableIndexer(syntax, targetType, elementType, diagnostics);
                     setMethod = indexer?.GetOwnOrInheritedSetMethod();
                     Debug.Assert(setMethod is { });
