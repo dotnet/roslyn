@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
 
 // Map from different combinations of diagnostic properties to a properties map that gets added to each diagnostic instance.
 using PropertiesMap = ImmutableDictionary<(UnusedValuePreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment),
-                                          ImmutableDictionary<string, string>>;
+                                          ImmutableDictionary<string, string?>>;
 
 /// <summary>
 /// Analyzer to report unused expression values and parameters:
@@ -110,7 +110,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
     protected abstract bool SupportsDiscard(SyntaxTree tree);
     protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
     protected abstract bool IsIfConditionalDirective(SyntaxNode node);
-    protected abstract bool ReturnsThrow(SyntaxNode node);
+    protected abstract bool ReturnsThrow([NotNullWhen(true)] SyntaxNode? node);
     protected abstract CodeStyleOption2<UnusedValuePreference> GetUnusedValueExpressionStatementOption(AnalyzerOptionsProvider provider);
     protected abstract CodeStyleOption2<UnusedValuePreference> GetUnusedValueAssignmentOption(AnalyzerOptionsProvider provider);
 
@@ -148,7 +148,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
     private static PropertiesMap CreatePropertiesMap()
     {
         var builder = ImmutableDictionary.CreateBuilder<(UnusedValuePreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment),
-                                                        ImmutableDictionary<string, string>>();
+                                                        ImmutableDictionary<string, string?>>();
         AddEntries(UnusedValuePreference.DiscardVariable);
         AddEntries(UnusedValuePreference.UnusedLocalVariable);
         return builder.ToImmutable();
@@ -167,7 +167,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
 
         void AddEntryCore(UnusedValuePreference preference, bool isUnusedLocalAssignment, bool isRemovableAssignment)
         {
-            var propertiesBuilder = ImmutableDictionary.CreateBuilder<string, string>();
+            var propertiesBuilder = ImmutableDictionary.CreateBuilder<string, string?>();
 
             propertiesBuilder.Add(UnusedValuePreferenceKey, preference.ToString());
             if (isUnusedLocalAssignment)

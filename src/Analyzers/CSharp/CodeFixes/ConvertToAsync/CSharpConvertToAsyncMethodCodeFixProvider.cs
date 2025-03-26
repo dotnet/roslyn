@@ -40,7 +40,7 @@ internal sealed class CSharpConvertToAsyncMethodCodeFixProvider() : AbstractConv
         return string.Format(CSharpCodeFixesResources.Make_0_return_Task_instead_of_void, methodNode!.WithBody(null));
     }
 
-    protected override async Task<Tuple<SyntaxTree, SyntaxNode>?> GetRootInOtherSyntaxTreeAsync(
+    protected override async Task<(SyntaxTree syntaxTree, SyntaxNode root)?> GetRootInOtherSyntaxTreeAsync(
         SyntaxNode node,
         SemanticModel semanticModel,
         Diagnostic diagnostic,
@@ -48,13 +48,11 @@ internal sealed class CSharpConvertToAsyncMethodCodeFixProvider() : AbstractConv
     {
         var methodDeclaration = await GetMethodDeclarationAsync(node, semanticModel, cancellationToken).ConfigureAwait(false);
         if (methodDeclaration == null)
-        {
             return null;
-        }
 
         var oldRoot = await methodDeclaration.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         var newRoot = oldRoot.ReplaceNode(methodDeclaration, ConvertToAsyncFunction(methodDeclaration));
-        return Tuple.Create(oldRoot.SyntaxTree, newRoot);
+        return (oldRoot.SyntaxTree, newRoot);
     }
 
     private static async Task<MethodDeclarationSyntax?> GetMethodDeclarationAsync(
