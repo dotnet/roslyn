@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
-            Debug.Assert(node.CollectionCreation is { });
+            Debug.Assert(node.CollectionCreation is BoundCall or BoundConversion { Operand: BoundCall });
             Debug.Assert(node.Placeholder is null);
             Debug.Assert(node.CollectionBuilderSpanPlaceholder is { Type: NamedTypeSymbol { } });
 
@@ -519,9 +519,89 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]);
 
             AddPlaceholderReplacement(spanPlaceholder, span);
-            var result = VisitExpression(node.CollectionCreation);
+            var result = RewriteCollectionBuilderCreate(node.CollectionCreation);
             RemovePlaceholderReplacement(spanPlaceholder);
             return result;
+        }
+
+        private BoundExpression RewriteCollectionBuilderCreate(BoundExpression collectionCreation)
+        {
+            Debug.Assert(collectionCreation is BoundCall or BoundConversion { Operand: BoundCall });
+
+            if (collectionCreation is BoundConversion conversion)
+            {
+                return MakeConversionNode(
+                    conversion,
+                    conversion.Syntax,
+                    RewriteCollectionBuilderCreate(conversion.Operand),
+                    conversion.Conversion,
+                    conversion.Checked,
+                    conversion.ExplicitCastInCode,
+                    conversion.ConstantValueOpt,
+                    conversion.Type);
+            }
+
+            var call = (BoundCall)collectionCreation;
+            BoundExpression? rewrittenReceiver = null;
+            ArrayBuilder<LocalSymbol>? temps = null;
+            var method = call.Method;
+            var argsToParamsOpt = call.ArgsToParamsOpt;
+            var argRefKindsOpt = call.ArgumentRefKindsOpt;
+            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverMode: ReceiverCaptureMode.Default,
+                call.Arguments,
+                method,
+                argsToParamsOpt,
+                argRefKindsOpt,
+                storesOpt: null,
+                ref temps);
+
+            int nArgs = rewrittenArguments.Length;
+            if (nArgs > 1)
+            {
+                rewrittenArguments = reorderFirstItemLast(rewrittenArguments, nArgs, static (items, i) => items[i]);
+                argsToParamsOpt = reorderFirstItemLast(
+                    argsToParamsOpt,
+                    nArgs,
+                    static (items, i) => items.IsDefaultOrEmpty ? i : items[i]);
+                if (!argRefKindsOpt.IsDefaultOrEmpty)
+                {
+                    argRefKindsOpt = reorderFirstItemLast(argRefKindsOpt, nArgs, static (items, i) => items[i]);
+                }
+            }
+
+            rewrittenArguments = MakeArguments(
+                rewrittenArguments,
+                method,
+                expanded: call.Expanded,
+                argsToParamsOpt,
+                ref argRefKindsOpt,
+                ref temps,
+                invokedAsExtensionMethod: false);
+
+            return MakeCall(
+                call,
+                call.Syntax,
+                rewrittenReceiver,
+                method,
+                rewrittenArguments,
+                argRefKindsOpt,
+                call.ResultKind,
+                temps.ToImmutableAndFree());
+
+            static ImmutableArray<T> reorderFirstItemLast<T>(ImmutableArray<T> items, int n, Func<ImmutableArray<T>, int, T> getValue)
+            {
+                Debug.Assert(n > 0);
+                Debug.Assert(items.IsDefaultOrEmpty || items.Length == n);
+                var builder = ArrayBuilder<T>.GetInstance(n);
+                for (int i = 1; i < n; i++)
+                {
+                    builder.Add(getValue(items, i));
+                }
+                builder.Add(getValue(items, 0));
+                return builder.ToImmutableAndFree();
+            }
         }
 
         internal static bool IsAllocatingRefStructCollectionExpression(BoundCollectionExpressionBase node, CollectionExpressionTypeKind collectionKind, TypeSymbol? elementType, CSharpCompilation compilation)
