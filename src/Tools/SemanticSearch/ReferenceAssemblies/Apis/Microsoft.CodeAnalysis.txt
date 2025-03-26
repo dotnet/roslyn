@@ -1,4 +1,4 @@
-# Generated, do not update manually
+﻿# Generated, do not update manually
 Microsoft.CodeAnalysis.Accessibility
 Microsoft.CodeAnalysis.Accessibility.Friend
 Microsoft.CodeAnalysis.Accessibility.Internal

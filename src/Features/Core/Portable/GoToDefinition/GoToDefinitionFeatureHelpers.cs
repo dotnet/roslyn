@@ -18,6 +18,9 @@ internal static class GoToDefinitionFeatureHelpers
     public static ISymbol? TryGetPreferredSymbol(
         Solution solution, ISymbol? symbol, CancellationToken cancellationToken)
     {
+        if (symbol is null)
+            return null;
+
         // VB global import aliases have a synthesized SyntaxTree.
         // We can't go to the definition of the alias, so use the target type.
 
