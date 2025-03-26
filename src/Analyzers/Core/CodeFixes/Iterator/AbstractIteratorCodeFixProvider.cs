@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Iterator;
 
 internal abstract class AbstractIteratorCodeFixProvider : CodeFixProvider
 {
-    protected abstract Task<CodeAction> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken);
+    protected abstract Task<CodeAction?> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken);
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {

@@ -37,8 +37,8 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
     internal Task TestAllOptionsOffAsync(
         string initialMarkup,
         string expectedMarkup,
-        OptionsCollection options = null,
-        ParseOptions parseOptions = null)
+        OptionsCollection? options = null,
+        ParseOptions? parseOptions = null)
     {
         options ??= new OptionsCollection(GetLanguage());
         options.AddRange(AllOptionsOff);
