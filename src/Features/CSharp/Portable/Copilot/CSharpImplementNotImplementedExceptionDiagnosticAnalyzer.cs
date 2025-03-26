@@ -72,7 +72,7 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
                     // If the throw is the top-level operation in the containing symbol, report a diagnostic on the
                     // symbol as well. Note: consider reporting on the entire symbol, instead of just the name.  And in
                     // this case, do not report directly on the throw as well.
-                    if (operation == singularBlockOperation)
+                    if (IsTopLevel(block, operation))
                     {
                         foreach (var location in context.OwningSymbol.Locations)
                         {
@@ -87,5 +87,19 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
                 }
             }
         }
+    }
+
+    private static bool IsTopLevel(IOperation block, IOperation operation)
+    {
+        if (block is IBlockOperation { Operations: [var child] })
+        {
+            if (child == operation)
+                return true;
+
+            if (child is IReturnOperation { ReturnedValue: IConversionOperation { Operand: var operand } } && operand == operation)
+                return true;
+        }
+
+        return false;
     }
 }
