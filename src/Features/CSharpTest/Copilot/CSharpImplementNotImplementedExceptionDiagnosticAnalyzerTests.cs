@@ -46,7 +46,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                int P => {|IDE3000:throw new NotImplementedException()|};
+                int P => {|IDE3000:{|IDE3000:throw new NotImplementedException()|}|};
             }
             """,
             LanguageVersion = LanguageVersion.CSharp11,
@@ -224,7 +224,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
                 public double {|IDE3000:CalculateSquareRoot|}(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented")|};
 
-                internal void {|IDE3000:ThrowOnAllStatements|}(bool condition)
+                internal void ThrowOnAllStatements(bool condition)
                 {
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
