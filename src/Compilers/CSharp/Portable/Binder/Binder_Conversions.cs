@@ -1111,26 +1111,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int conversionIndex = 0;
                 foreach (var element in elements)
                 {
+                    if (element is BoundCollectionExpressionWithElement)
+                    {
+                        continue;
+                    }
+                    var elementConversion = elementConversions[conversionIndex++];
                     BoundNode convertedElement;
                     switch (element)
                     {
-                        case BoundCollectionExpressionWithElement:
-                            continue;
                         case BoundExpression expressionElement:
                             {
                                 BoundExpression convertedExpression;
-                                Conversion keyConversion;
-                                Conversion valueConversion;
-                                if (expressionElement.Type is { })
+                                if (elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
                                 {
                                     Debug.Assert(ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out _, out _));
                                     convertedExpression = BindToNaturalType(expressionElement, diagnostics);
-                                    keyConversion = elementConversions[conversionIndex++];
-                                    valueConversion = elementConversions[conversionIndex++];
                                 }
                                 else
                                 {
-                                    convertedExpression = CreateConversion(expressionElement, elementConversions[conversionIndex++], elementType, diagnostics);
+                                    convertedExpression = CreateConversion(expressionElement, elementConversion, elementType, diagnostics);
                                     keyConversion = Conversion.Identity;
                                     valueConversion = Conversion.Identity;
                                 }
@@ -1161,26 +1160,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 implicitReceiver,
                                 static (binder, syntax, item, implicitReceiver, arg, diagnostics) =>
                                 {
-                                    Debug.Assert(ConversionsBase.IsKeyValuePairType(binder.Compilation, item.Type, out _, out _));
+                                    BoundExpression convertedExpression;
+                                    if (arg.elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
+                                    {
+                                        Debug.Assert(ConversionsBase.IsKeyValuePairType(binder.Compilation, item.Type, out _, out _));
+                                        convertedExpression = item;
+                                    }
+                                    else
+                                    {
+                                        convertedExpression = binder.CreateConversion(item, arg.elementConversion, arg.elementType, diagnostics);
+                                        keyConversion = Conversion.Identity;
+                                        valueConversion = Conversion.Identity;
+                                    }
                                     return binder.BindDictionaryItemAssignment(
                                         syntax,
                                         implicitReceiver,
                                         arg.getKeyMethod,
                                         arg.getValueMethod,
                                         arg.setMethod,
-                                        item,
-                                        arg.keyConversion,
+                                        convertedExpression,
+                                        keyConversion,
                                         arg.elementKeyType,
-                                        arg.valueConversion,
+                                        valueConversion,
                                         arg.elementValueType,
                                         diagnostics);
                                 },
-                                (getKeyMethod, getValueMethod, setMethod, keyConversion: elementConversions[conversionIndex], elementKeyType, valueConversion: elementConversions[conversionIndex + 1], elementValueType),
+                                (getKeyMethod, getValueMethod, setMethod, elementType, elementConversion: elementConversion, elementKeyType, elementValueType),
                                 diagnostics);
-                            conversionIndex += 2;
                             break;
                         case BoundKeyValuePairElement keyValuePairElement:
                             {
+                                if (!elementConversion.TryGetKeyValueConversions(out var keyConversion, out var valueConversion))
+                                {
+                                    throw ExceptionUtilities.UnexpectedValue(elementConversion);
+                                }
                                 var keyValuePairSyntax = (KeyValuePairElementSyntax)keyValuePairElement.Syntax;
                                 var key = keyValuePairElement.Key;
                                 var value = keyValuePairElement.Value;
@@ -1188,8 +1201,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var valuePlaceholder = new BoundValuePlaceholder(keyValuePairSyntax.ValueExpression, elementValueType);
                                 convertedElement = new BoundKeyValuePairElement(
                                     keyValuePairSyntax,
-                                    CreateConversion(key, elementConversions[conversionIndex], elementKeyType, diagnostics),
-                                    CreateConversion(value, elementConversions[conversionIndex + 1], elementValueType, diagnostics),
+                                    CreateConversion(key, keyConversion, elementKeyType, diagnostics),
+                                    CreateConversion(value, valueConversion, elementValueType, diagnostics),
                                     keyPlaceholder,
                                     valuePlaceholder,
                                     BindDictionaryItemAssignment(
@@ -1198,7 +1211,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         setMethod,
                                         keyPlaceholder,
                                         valuePlaceholder));
-                                conversionIndex += 2;
                             }
                             break;
                         default:
@@ -2205,25 +2217,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                // Compare with similar loop in Conversions.GetCollectionExpressionConversion().
                 bool usesKeyValuePairs = ConversionsBase.CollectionUsesKeyValuePairs(Compilation, collectionTypeKind, elementType, out var keyType, out var valueType);
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 foreach (var element in elements)
                 {
                     switch (element)
                     {
-                        case BoundCollectionExpressionWithElement:
-                            // Collection arguments do not affect convertibility.
-                            break;
-                        case BoundExpression expressionElement:
-                            if (usesKeyValuePairs && expressionElement.Type is { })
-                            {
-                                generateImplicitConversionFromTypeToKeyValuePairTypeErrors(diagnostics, expressionElement.Syntax, expressionElement.Type, elementType, ref useSiteInfo, ref reportedErrors);
-                            }
-                            else
-                            {
-                                generateImplicitConversionFromExpressionError(diagnostics, expressionElement, elementType, ref useSiteInfo, ref reportedErrors);
-                            }
-                            break;
                         case BoundCollectionExpressionSpreadElement spreadElement:
                             {
                                 var expressionSyntax = spreadElement.Expression.Syntax;
@@ -2233,16 +2233,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     Error(diagnostics, ErrorCode.ERR_NoImplicitConv, expressionSyntax, spreadElement.Expression.Display, elementType);
                                     reportedErrors = true;
                                 }
-                                else if (usesKeyValuePairs && enumeratorInfo.ElementType is { })
-                                {
-                                    generateImplicitConversionFromTypeToKeyValuePairTypeErrors(diagnostics, expressionSyntax, enumeratorInfo.ElementType, elementType, ref useSiteInfo, ref reportedErrors);
-                                }
                                 else
                                 {
-                                    Conversion elementConversion = Conversions.GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo);
-                                    if (!elementConversion.Exists)
+                                    var elementConversion = Conversions.GetCollectionExpressionSpreadElementConversion(expressionSyntax, elementType, enumeratorInfo, ref useSiteInfo);
+                                    if (elementConversion.Exists)
                                     {
-                                        GenerateImplicitConversionError(diagnostics, this.Compilation, expressionSyntax, elementConversion, enumeratorInfo.ElementType, elementType);
+                                        continue;
+                                    }
+                                    else if (usesKeyValuePairs &&
+                                        ConversionsBase.IsKeyValuePairType(Compilation, enumeratorInfo.ElementType, out var itemKeyType, out var itemValueType))
+                                    {
+                                        Debug.Assert(keyType is { });
+                                        Debug.Assert(valueType is { });
+                                        generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, itemKeyType, keyType, ref useSiteInfo, ref reportedErrors);
+                                        generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, itemValueType, valueType, ref useSiteInfo, ref reportedErrors);
+                                    }
+                                    else
+                                    {
+                                        GenerateImplicitConversionError(diagnostics, Compilation, expressionSyntax, elementConversion, enumeratorInfo.ElementType, elementType);
                                         reportedErrors = true;
                                     }
                                 }
@@ -2260,6 +2268,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Error(diagnostics, ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, keyValuePairElement.Syntax, targetType);
                                 reportedErrors = true;
+                            }
+                            break;
+                        case BoundCollectionExpressionWithElement:
+                            // Collection arguments do not affect convertibility.
+                            break;
+                        case BoundExpression expressionElement:
+                            {
+                                var expressionSyntax = expressionElement.Syntax;
+                                var elementConversion = Conversions.ClassifyImplicitConversionFromExpression(expressionElement, elementType, ref useSiteInfo);
+                                if (elementConversion.Exists)
+                                {
+                                    continue;
+                                }
+                                else if (expressionElement.Type is { } &&
+                                    usesKeyValuePairs &&
+                                    ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
+                                {
+                                    Debug.Assert(keyType is { });
+                                    Debug.Assert(valueType is { });
+                                    generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, elementKeyType, keyType, ref useSiteInfo, ref reportedErrors);
+                                    generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, elementValueType, valueType, ref useSiteInfo, ref reportedErrors);
+                                }
+                                else
+                                {
+                                    GenerateImplicitConversionError(diagnostics, expressionSyntax, elementConversion, expressionElement, elementType);
+                                    reportedErrors = true;
+                                }
                             }
                             break;
                         default:
@@ -2304,31 +2339,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!elementConversion.Exists)
                 {
                     GenerateImplicitConversionError(diagnostics, Compilation, syntax, elementConversion, sourceType, targetType);
-                    reportedErrors = true;
-                }
-            }
-
-            void generateImplicitConversionFromTypeToKeyValuePairTypeErrors(
-                BindingDiagnosticBag diagnostics,
-                SyntaxNode syntax,
-                TypeSymbol sourceType,
-                TypeSymbol targetType,
-                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-                ref bool reportedErrors)
-            {
-                if (ConversionsBase.IsKeyValuePairType(Compilation, sourceType, out var elementKeyType, out var elementValueType))
-                {
-                    ConversionsBase.IsKeyValuePairType(Compilation, targetType, out var keyType, out var valueType);
-                    Debug.Assert(keyType is { });
-                    Debug.Assert(valueType is { });
-                    generateImplicitConversionFromTypeError(diagnostics, syntax, elementKeyType, keyType, ref useSiteInfo, ref reportedErrors);
-                    generateImplicitConversionFromTypeError(diagnostics, syntax, elementValueType, valueType, ref useSiteInfo, ref reportedErrors);
-                }
-                else
-                {
-                    // PROTOTYPE: We should use a specific error here, to avoid confusion in cases where there
-                    // actually is a user-defined conversion from the source type to KeyValuePair<,>.
-                    Error(diagnostics, ErrorCode.ERR_NoImplicitConv, syntax, sourceType, targetType);
                     reportedErrors = true;
                 }
             }
