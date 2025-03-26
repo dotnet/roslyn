@@ -3245,7 +3245,7 @@ Keyword("async"));
             {
                 extension(string s)
                 {
-                    public void IsNullOrEmpty() => false;
+                    public bool IsNullOrEmpty() => false;
                 }
 
                 void M(string s)
@@ -3268,7 +3268,7 @@ Keyword("async"));
             Punctuation.CloseParen,
             Punctuation.OpenCurly,
             Keyword("public"),
-            Keyword("void"),
+            Keyword("bool"),
             ExtensionMethod("IsNullOrEmpty"),
             Punctuation.OpenParen,
             Punctuation.CloseParen,

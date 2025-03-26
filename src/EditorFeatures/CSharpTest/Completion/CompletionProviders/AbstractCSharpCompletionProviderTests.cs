@@ -50,7 +50,7 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
         string code, int position,
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool checkForAbsence,
-        int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+        Glyph? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
         List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null,
         CompletionOptions options = null, bool skipSpeculation = false)
@@ -76,7 +76,7 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
         string code, int position,
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
-        bool checkForAbsence, int? glyph, int? matchPriority,
+        bool checkForAbsence, Glyph? glyph, int? matchPriority,
         bool? hasSuggestionItem, string displayTextSuffix, string displayTextPrefix, string inlineDescription = null,
         bool? isComplexTextEdit = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null,
         CompletionOptions options = null, bool skipSpeculation = false)
@@ -101,7 +101,7 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
     private async Task VerifyInFrontOfCommentAsync(
         string code, int position, string insertText, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         string expectedItemOrNull, string expectedDescriptionOrNull,
-        SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
+        SourceCodeKind sourceCodeKind, bool checkForAbsence, Glyph? glyph,
         int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit, List<CompletionFilter> matchingFilters,
         CompletionOptions options, bool skipSpeculation = false)
@@ -120,7 +120,7 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
     private async Task VerifyInFrontOfCommentAsync(
         string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         string expectedItemOrNull, string expectedDescriptionOrNull,
-        SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
+        SourceCodeKind sourceCodeKind, bool checkForAbsence, Glyph? glyph,
         int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
         List<CompletionFilter> matchingFilters, CompletionOptions options, bool skipSpeculation = false)
@@ -135,7 +135,7 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
     private protected async Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(
         string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         string expectedItemOrNull, string expectedDescriptionOrNull,
-        SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
+        SourceCodeKind sourceCodeKind, bool checkForAbsence, Glyph? glyph,
         int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
         List<CompletionFilter> matchingFilters, CompletionOptions options, bool skipSpeculation = false)
