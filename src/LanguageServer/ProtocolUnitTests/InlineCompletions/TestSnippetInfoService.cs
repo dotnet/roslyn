@@ -44,7 +44,7 @@ internal class TestSnippetInfoService : ISnippetInfoService
         throw new NotImplementedException();
     }
 
-    public bool SnippetShortcutExists_NonBlocking(string shortcut)
+    public bool SnippetShortcutExists_NonBlocking(string? shortcut)
     {
         throw new NotImplementedException();
     }

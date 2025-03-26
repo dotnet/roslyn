@@ -49,9 +49,9 @@ internal partial struct SymbolKey
         /// For a symbol like <c>System.Collections.Generic.IEnumerable</c>, this would produce <c>"Generic",
         /// "Collections", "System"</c>
         /// </summary>
-        private static ImmutableArray<string> GetContainingNamespaceNamesInReverse(INamespaceSymbol namespaceSymbol)
+        private static ImmutableArray<string?> GetContainingNamespaceNamesInReverse(INamespaceSymbol namespaceSymbol)
         {
-            using var _ = ArrayBuilder<string>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<string?>.GetInstance(out var builder);
             while (namespaceSymbol != null && namespaceSymbol.Name != "")
             {
                 builder.Add(namespaceSymbol.Name);
