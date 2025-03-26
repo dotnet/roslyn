@@ -3,13 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Copilot;
 
@@ -74,8 +71,7 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
                     {
                         foreach (var location in context.OwningSymbol.Locations)
                         {
-                            if (location.SourceTree == context.FilterTree &&
-                                location != throwOperation.Syntax.GetLocation())
+                            if (location.SourceTree == context.FilterTree)
                             {
                                 context.ReportDiagnostic(Diagnostic.Create(
                                     Descriptor,
@@ -98,6 +94,20 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
 
             // Handle: => throw new NotImplementedException();
             if (child is IReturnOperation { ReturnedValue: IConversionOperation { Operand: var operand } } && operand == operation)
+            {
+                if (operation.Syntax is ThrowExpressionSyntax throwExpression)
+                {
+                    // Exclude property declarations with expression bodies
+                    if (throwExpression.Parent is ArrowExpressionClauseSyntax { Parent: PropertyDeclarationSyntax })
+                        return false;
+
+                    // Include expression-bodied methods and get accessors
+                    return true;
+                }
+            }
+
+            // Handle expression-bodied set accessors
+            if (child is IExpressionStatementOperation { Operation: var throwOperation } && throwOperation == operation)
                 return true;
         }
 
