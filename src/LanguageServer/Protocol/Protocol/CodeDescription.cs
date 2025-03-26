@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class CodeDescription : IEquatable<CodeDescription>
+    internal sealed class CodeDescription : IEquatable<CodeDescription>
     {
         /// <summary>
         /// Gets or sets URI to open with more information about the diagnostic error.

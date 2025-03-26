@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class PreprocessorTextFormatDefinition : ClassificationFormatDefinition
+        private sealed class PreprocessorTextFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class PunctuationFormatDefinition : ClassificationFormatDefinition
+        private sealed class PunctuationFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class StringVerbatimFormatDefinition : ClassificationFormatDefinition
+        private sealed class StringVerbatimFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class StringEscapeCharacterFormatDefinition : ClassificationFormatDefinition
+        private sealed class StringEscapeCharacterFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class ControlKeywordFormatDefinition : ClassificationFormatDefinition
+        private sealed class ControlKeywordFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Operator)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class OperatorOverloadedFormatDefinition : ClassificationFormatDefinition
+        private sealed class OperatorOverloadedFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = Priority.High)]
         [UserVisible(false)]
         [ExcludeFromCodeCoverage]
-        private class ReassignedVariableFormatDefinition : ClassificationFormatDefinition
+        private sealed class ReassignedVariableFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = Priority.High)]
         [UserVisible(false)]
         [ExcludeFromCodeCoverage]
-        private class ObsoleteSymbolFormatDefinition : ClassificationFormatDefinition
+        private sealed class ObsoleteSymbolFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class SymbolStaticFormatDefinition : ClassificationFormatDefinition
+        private sealed class SymbolStaticFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserTypeClassesFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserTypeClassesFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserTypeRecordsFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserTypeRecordsFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserTypeRecordStructsFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserTypeRecordStructsFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserTypeDelegatesFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserTypeDelegatesFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserTypeEnumsFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserTypeEnumsFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserTypeInterfacesFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserTypeInterfacesFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
-        private class UserTypeModulesFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserTypeModulesFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserTypeStructuresFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserTypeStructuresFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserTypeTypeParametersFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserTypeTypeParametersFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserMembersFieldNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserMembersFieldNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserMembersEnumMemberNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserMembersEnumMemberNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserMembersConstantNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserMembersConstantNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserMembersLocalNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserMembersLocalNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserMembersParameterNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserMembersParameterNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserMembersMethodNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserMembersMethodNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserMembersExtensionMethodNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserMembersExtensionMethodNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserMembersPropertyNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserMembersPropertyNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserMembersEventNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserMembersEventNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserMembersNamespaceNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserMembersNamespaceNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class UserMembersLabelNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class UserMembersLabelNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = Priority.Default, Before = Priority.High)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class XmlDocCommentAttributeNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlDocCommentAttributeNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = Priority.Default, Before = Priority.High)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class XmlDocCommentAttributeQuotesFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlDocCommentAttributeQuotesFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = Priority.Default, Before = Priority.High)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class XmlDocCommentAttributeValueFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlDocCommentAttributeValueFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class XmlDocCommentCDataSectionFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlDocCommentCDataSectionFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class XmlDocCommentCommentFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlDocCommentCommentFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class XmlDocCommentDelimiterFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlDocCommentDelimiterFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class XmlDocCommentEntityReferenceFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlDocCommentEntityReferenceFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class XmlDocCommentNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlDocCommentNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class XmlDocCommentProcessingInstructionFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlDocCommentProcessingInstructionFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = Priority.Default, Before = Priority.High)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class XmlDocCommentTextFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlDocCommentTextFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class TestCodeFormatDefinition : ClassificationFormatDefinition
+        private sealed class TestCodeFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class TestCodeMarkdownFormatDefinition : ClassificationFormatDefinition
+        private sealed class TestCodeMarkdownFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class RegexCommentFormatDefinition : ClassificationFormatDefinition
+        private sealed class RegexCommentFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class RegexCharacterClassFormatDefinition : ClassificationFormatDefinition
+        private sealed class RegexCharacterClassFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class RegexAnchorFormatDefinition : ClassificationFormatDefinition
+        private sealed class RegexAnchorFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class RegexQuantifierFormatDefinition : ClassificationFormatDefinition
+        private sealed class RegexQuantifierFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class RegexGroupingFormatDefinition : ClassificationFormatDefinition
+        private sealed class RegexGroupingFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class RegexAlternationFormatDefinition : ClassificationFormatDefinition
+        private sealed class RegexAlternationFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class RegexTextFormatDefinition : ClassificationFormatDefinition
+        private sealed class RegexTextFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class RegexSelfEscapedCharacterFormatDefinition : ClassificationFormatDefinition
+        private sealed class RegexSelfEscapedCharacterFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -943,7 +943,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class RegexOtherEscapeFormatDefinition : ClassificationFormatDefinition
+        private sealed class RegexOtherEscapeFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class JsonCommentFormatDefinition : ClassificationFormatDefinition
+        private sealed class JsonCommentFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class JsonNumberFormatDefinition : ClassificationFormatDefinition
+        private sealed class JsonNumberFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -992,7 +992,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class JsonStringFormatDefinition : ClassificationFormatDefinition
+        private sealed class JsonStringFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class JsonKeywordFormatDefinition : ClassificationFormatDefinition
+        private sealed class JsonKeywordFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1020,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class JsonTextFormatDefinition : ClassificationFormatDefinition
+        private sealed class JsonTextFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class JsonOperatorFormatDefinition : ClassificationFormatDefinition
+        private sealed class JsonOperatorFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class JsonPunctuationFormatDefinition : ClassificationFormatDefinition
+        private sealed class JsonPunctuationFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1062,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class JsonObjectFormatDefinition : ClassificationFormatDefinition
+        private sealed class JsonObjectFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1076,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class JsonArrayFormatDefinition : ClassificationFormatDefinition
+        private sealed class JsonArrayFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class JsonPropertyNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class JsonPropertyNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
-        private class JsonConstructorNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class JsonConstructorNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralAttributeName)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class XmlLiteralAttributeNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlLiteralAttributeNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1136,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralAttributeQuotes)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class XmlLiteralAttributeQuotesFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlLiteralAttributeQuotesFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1153,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralAttributeValue)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class XmlLiteralAttributeValueFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlLiteralAttributeValueFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1170,7 +1170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralCDataSection)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class XmlLiteralCDataSectionFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlLiteralCDataSectionFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralComment)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class XmlLiteralCommentFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlLiteralCommentFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1204,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralDelimiter)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class XmlLiteralDelimiterFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlLiteralDelimiterFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1221,7 +1221,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralEmbeddedExpression)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class XmlLiteralEmbeddedExpressionFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlLiteralEmbeddedExpressionFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1239,7 +1239,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralEntityReference)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class XmlLiteralEntityReferenceFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlLiteralEntityReferenceFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1256,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralName)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class XmlLiteralNameFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlLiteralNameFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1273,7 +1273,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralProcessingInstruction)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class XmlLiteralProcessingInstructionFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlLiteralProcessingInstructionFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -1290,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralText)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class XmlLiteralTextFormatDefinition : ClassificationFormatDefinition
+        private sealed class XmlLiteralTextFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

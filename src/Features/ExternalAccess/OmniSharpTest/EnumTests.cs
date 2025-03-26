@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests
 {
-    public class EnumTests
+    public sealed class EnumTests
     {
         [Theory]
         [InlineData(typeof(ExtractInterfaceOptionsResult.ExtractLocation),

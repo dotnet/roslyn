@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 // Summary:
 //     Class representing the parameters sent from the client to the server for the
 //     roslyn/simplifyMethod request.
-internal record SimplifyMethodParams : ITextDocumentParams
+internal sealed record SimplifyMethodParams : ITextDocumentParams
 {
     //
     // Summary:

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// A list of valid image ids can be retrieved from the <see href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.imaging.knownmonikers">KnownMonikers class</see>
     /// from the Visual Studio SDK.
     /// </summary>
-    internal class VSImageId : IEquatable<VSImageId>
+    internal sealed class VSImageId : IEquatable<VSImageId>
     {
         /// <summary>
         /// Gets or sets the <see cref="Guid" /> component of the unique identifier.

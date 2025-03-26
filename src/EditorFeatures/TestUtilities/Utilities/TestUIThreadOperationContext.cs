@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
-    internal class TestUIThreadOperationContext : AbstractUIThreadOperationContext
+    internal sealed class TestUIThreadOperationContext : AbstractUIThreadOperationContext
     {
         public TestUIThreadOperationContext()
             : base(allowCancellation: false, defaultDescription: "")

@@ -23,7 +23,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
-    internal class CopilotGenerateDocumentationCommentProvider : SuggestionProviderBase
+    internal sealed class CopilotGenerateDocumentationCommentProvider : SuggestionProviderBase
     {
         private SuggestionManagerBase? _suggestionManager;
         private readonly ICopilotCodeAnalysisService _copilotService;

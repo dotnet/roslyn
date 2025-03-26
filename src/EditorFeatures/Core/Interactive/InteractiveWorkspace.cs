@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Interactive;
 
-internal partial class InteractiveWorkspace : Workspace
+internal sealed partial class InteractiveWorkspace : Workspace
 {
     private SourceTextContainer? _openTextContainer;
     private DocumentId? _openDocumentId;

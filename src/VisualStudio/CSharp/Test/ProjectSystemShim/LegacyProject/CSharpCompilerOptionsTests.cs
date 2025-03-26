@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-    public class CSharpCompilerOptionsTests
+    public sealed class CSharpCompilerOptionsTests
     {
         [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")]
         public void DocumentationModeSetToDiagnoseIfProducingDocFile()

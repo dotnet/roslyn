@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    internal class TestOptionSet : OptionSet
+    internal sealed class TestOptionSet : OptionSet
     {
         public static new readonly TestOptionSet Empty = new(ImmutableDictionary<OptionKey, object?>.Empty);
 

@@ -22,9 +22,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    public class EditAndContinueMethodDebugInfoReaderTests
+    public sealed class EditAndContinueMethodDebugInfoReaderTests
     {
-        private class DummyMetadataImportProvider : IMetadataImportProvider
+        private sealed class DummyMetadataImportProvider : IMetadataImportProvider
         {
             public object GetMetadataImport() => throw new NotImplementedException();
         }

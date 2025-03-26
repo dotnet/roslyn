@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
 {
-    internal class FSharpNavigationBarItem
+    internal sealed class FSharpNavigationBarItem
     {
         public string Text { get; }
         public FSharpGlyph Glyph { get; }

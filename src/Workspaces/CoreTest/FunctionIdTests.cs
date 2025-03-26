@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class FunctionIdTests
+    public sealed class FunctionIdTests
     {
         [Fact]
         public void NoDuplicateValues()

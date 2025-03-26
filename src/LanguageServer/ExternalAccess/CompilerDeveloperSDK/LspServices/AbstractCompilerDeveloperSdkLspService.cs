@@ -6,6 +6,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk;
 
-internal class AbstractCompilerDeveloperSdkLspService : ILspService
+internal sealed class AbstractCompilerDeveloperSdkLspService : ILspService
 {
 }

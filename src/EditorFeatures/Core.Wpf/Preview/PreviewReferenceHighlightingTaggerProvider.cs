@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(TextViewRoles.PreviewRole)]
-    internal class PreviewReferenceHighlightingTaggerProvider
+    internal sealed class PreviewReferenceHighlightingTaggerProvider
         : AbstractPreviewTaggerProvider<NavigableHighlightTag>
     {
         [ImportingConstructor]
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(TextViewRoles.PreviewRole)]
-    internal class PreviewWrittenReferenceHighlightingTaggerProvider
+    internal sealed class PreviewWrittenReferenceHighlightingTaggerProvider
         : AbstractPreviewTaggerProvider<NavigableHighlightTag>
     {
         [ImportingConstructor]
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(TextViewRoles.PreviewRole)]
-    internal class PreviewDefinitionHighlightingTaggerProvider
+    internal sealed class PreviewDefinitionHighlightingTaggerProvider
         : AbstractPreviewTaggerProvider<NavigableHighlightTag>
     {
         [ImportingConstructor]

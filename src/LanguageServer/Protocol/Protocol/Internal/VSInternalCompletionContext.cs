@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Extension class for <see cref="CompletionContext"/> with properties specific to Visual Studio.
     /// </summary>
-    internal class VSInternalCompletionContext : CompletionContext
+    internal sealed class VSInternalCompletionContext : CompletionContext
     {
         /// <summary>
         /// Gets or sets the <see cref="CompletionTriggerKind"/> indicating how the completion was triggered.

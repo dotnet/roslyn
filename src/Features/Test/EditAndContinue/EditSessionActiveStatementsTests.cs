@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     using static ActiveStatementTestHelpers;
 
     [UseExportProvider]
-    public class EditSessionActiveStatementsTests : TestBase
+    public sealed class EditSessionActiveStatementsTests : TestBase
     {
         private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.AddParts(typeof(NoCompilationLanguageService));
 

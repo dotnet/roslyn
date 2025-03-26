@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    internal partial class TestExportJoinableTaskContext
+    internal sealed partial class TestExportJoinableTaskContext
     {
         /// <summary>
         /// Defines a <see cref="SynchronizationContext"/> for use in cases where the synchronization context should not

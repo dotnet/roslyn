@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.TypeRename
 {
-    internal class XamlTypeRenameResult
+    internal sealed class XamlTypeRenameResult
     {
         public ImmutableArray<TextSpan> Ranges { get; set; }
         public string? WordPattern { get; set; }

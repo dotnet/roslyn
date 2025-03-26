@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public partial class SymbolCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed partial class SymbolCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(SymbolCompletionProvider);

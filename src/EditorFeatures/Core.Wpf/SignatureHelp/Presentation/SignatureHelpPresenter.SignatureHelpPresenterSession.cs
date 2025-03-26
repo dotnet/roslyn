@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
 {
-    internal partial class SignatureHelpPresenter
+    internal sealed partial class SignatureHelpPresenter
     {
         private sealed class SignatureHelpPresenterSession(
             IThreadingContext threadingContext,

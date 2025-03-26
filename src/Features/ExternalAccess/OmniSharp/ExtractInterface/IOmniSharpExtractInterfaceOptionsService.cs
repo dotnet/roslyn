@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractInterface
             string defaultInterfaceName);
     }
 
-    internal class OmniSharpExtractInterfaceOptionsResult
+    internal sealed class OmniSharpExtractInterfaceOptionsResult
     {
         public enum OmniSharpExtractLocation
         {

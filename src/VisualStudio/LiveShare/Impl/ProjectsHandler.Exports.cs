@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
     [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, RoslynMethods.ProjectsName)]
     [Obsolete("Used for backwards compatibility with old liveshare clients.")]
-    internal class RoslynProjectsHandler : ProjectsHandler
+    internal sealed class RoslynProjectsHandler : ProjectsHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     }
 
     [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, RoslynMethods.ProjectsName)]
-    internal class CSharpProjectsHandler : ProjectsHandler
+    internal sealed class CSharpProjectsHandler : ProjectsHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     }
 
     [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, RoslynMethods.ProjectsName)]
-    internal class VisualBasicProjectsHandler : ProjectsHandler
+    internal sealed class VisualBasicProjectsHandler : ProjectsHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, RoslynMethods.ProjectsName)]
-    internal class TypeScriptProjectsHandler : ProjectsHandler
+    internal sealed class TypeScriptProjectsHandler : ProjectsHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

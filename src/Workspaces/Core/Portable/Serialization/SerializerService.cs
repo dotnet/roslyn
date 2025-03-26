@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Serialization;
 [SupportedOSPlatform("windows")]
 #endif
 [method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-internal partial class SerializerService(SolutionServices workspaceServices) : ISerializerService
+internal sealed partial class SerializerService(SolutionServices workspaceServices) : ISerializerService
 {
     [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Default), Shared]
     [method: ImportingConstructor]

@@ -9,7 +9,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
     [Method(VSInternalMethods.TextDocumentSpellCheckableRangesName)]
-    internal class DocumentSpellCheckHandler : AbstractSpellCheckHandler<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport>
+    internal sealed class DocumentSpellCheckHandler : AbstractSpellCheckHandler<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport>
     {
         public override TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams requestParams)
             => requestParams.TextDocument;

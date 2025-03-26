@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class ReferenceHolderTests
+    public sealed class ReferenceHolderTests
     {
         [Fact]
         public void SameStrongObjectsEqual()

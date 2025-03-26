@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class representing range of characters for completion continuation.
     /// </summary>
-    internal class VSInternalContinueCharacterRange
+    internal sealed class VSInternalContinueCharacterRange
     {
         /// <summary>
         /// Gets the type value.

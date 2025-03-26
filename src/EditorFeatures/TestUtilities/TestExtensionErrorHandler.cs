@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     [Export(typeof(IExtensionErrorHandler))]
     [Export(typeof(ITestErrorHandler))]
-    internal class TestExtensionErrorHandler : IExtensionErrorHandler, ITestErrorHandler
+    internal sealed class TestExtensionErrorHandler : IExtensionErrorHandler, ITestErrorHandler
     {
         public ImmutableList<Exception> Exceptions { get; private set; } = [];
 

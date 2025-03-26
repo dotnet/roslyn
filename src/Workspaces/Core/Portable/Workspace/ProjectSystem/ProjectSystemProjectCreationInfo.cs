@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
-internal class ProjectSystemProjectCreationInfo
+internal sealed class ProjectSystemProjectCreationInfo
 {
     public string? AssemblyName { get; set; }
     public CompilationOptions? CompilationOptions { get; set; }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator;
 using VerifyCS = CSharpCodeFixVerifier<EmptyDiagnosticAnalyzer, CSharpAddYieldCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-public class AddYieldTests
+public sealed class AddYieldTests
 {
     private static async Task TestMissingInRegularAndScriptAsync(string code)
     {

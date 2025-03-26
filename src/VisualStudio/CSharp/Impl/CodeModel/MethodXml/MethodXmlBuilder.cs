@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.MethodXml
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
 {
-    internal class MethodXmlBuilder : AbstractMethodXmlBuilder
+    internal sealed class MethodXmlBuilder : AbstractMethodXmlBuilder
     {
         private MethodXmlBuilder(IMethodSymbol symbol, SemanticModel semanticModel)
             : base(symbol, semanticModel)

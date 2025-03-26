@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal class TestAnalyzerReferenceByLanguage :
+    internal sealed class TestAnalyzerReferenceByLanguage :
         AnalyzerReference,
         SerializerService.TestAccessor.IAnalyzerReferenceWithGuid
     {

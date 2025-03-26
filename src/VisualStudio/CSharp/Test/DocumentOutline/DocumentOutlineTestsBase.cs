@@ -39,7 +39,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             _logger = new TestOutputLspLogger(testOutputHelper);
         }
 
-        protected class DocumentOutlineTestMocks : IAsyncDisposable
+        protected sealed class DocumentOutlineTestMocks : IAsyncDisposable
         {
             private readonly EditorTestWorkspace _workspace;
             private readonly IAsyncDisposable _disposable;
@@ -123,7 +123,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             return server;
         }
 
-        internal class EditorTestLspServer : AbstractTestLspServer<EditorTestWorkspace, EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
+        internal sealed class EditorTestLspServer : AbstractTestLspServer<EditorTestWorkspace, EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
         {
             private EditorTestLspServer(EditorTestWorkspace testWorkspace, Dictionary<string, IList<LanguageServer.Protocol.Location>> locations, InitializationOptions options, AbstractLspLogger logger) : base(testWorkspace, locations, options, logger)
             {
@@ -139,7 +139,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         }
 
         [DataContract]
-        private class NewtonsoftInitializeParams
+        private sealed class NewtonsoftInitializeParams
         {
             [DataMember(Name = "capabilities")]
             internal object? Capabilities { get; set; }

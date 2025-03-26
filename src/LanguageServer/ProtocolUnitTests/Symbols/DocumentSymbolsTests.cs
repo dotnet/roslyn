@@ -14,7 +14,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 {
-    public class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
+    public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
     {
         public DocumentSymbolsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

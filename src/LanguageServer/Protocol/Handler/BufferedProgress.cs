@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return progress.GetValues()?.Flatten().ToArray();
         }
 
-        class ProgressTransformer<TIn, TOut>(IProgress<TOut> inner, Func<TIn, TOut> transform) : IProgress<TIn>
+        sealed class ProgressTransformer<TIn, TOut>(IProgress<TOut> inner, Func<TIn, TOut> transform) : IProgress<TIn>
         {
             public void Report(TIn value) => inner.Report(transform(value));
         }

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Shared.Extensions.TextSpanExtensions
 {
-    public class SubtractTests : TestBase
+    public sealed class SubtractTests : TestBase
     {
         // There are several interesting locations relative to the original span in which the excluded span may start or end:
         // - Right before the start of the original span

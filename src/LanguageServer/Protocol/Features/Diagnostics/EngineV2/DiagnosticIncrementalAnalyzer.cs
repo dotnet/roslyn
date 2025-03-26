@@ -12,14 +12,14 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
     /// <summary>
     /// Diagnostic Analyzer Engine V2
     /// 
     /// This one follows pattern compiler has set for diagnostic analyzer.
     /// </summary>
-    private partial class DiagnosticIncrementalAnalyzer
+    private sealed partial class DiagnosticIncrementalAnalyzer
     {
         private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
         private readonly StateManager _stateManager;

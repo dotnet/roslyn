@@ -6,7 +6,7 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal partial class CSharpProjectFileLoader : ProjectFileLoader
+    internal sealed partial class CSharpProjectFileLoader : ProjectFileLoader
     {
         public CSharpProjectFileLoader()
         {

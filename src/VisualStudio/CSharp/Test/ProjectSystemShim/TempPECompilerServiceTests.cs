@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 {
-    public class TempPECompilerServiceTests
+    public sealed class TempPECompilerServiceTests
     {
         [Fact]
         public void TempPECompilationWithInvalidReferenceDoesNotCrash()
@@ -39,7 +39,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             Assert.Equal(VSConstants.S_FALSE, hr);
         }
 
-        private class TrivialMetadataService : IMetadataService
+        private sealed class TrivialMetadataService : IMetadataService
         {
             public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
             {

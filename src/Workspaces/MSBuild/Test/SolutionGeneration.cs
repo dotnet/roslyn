@@ -207,7 +207,7 @@ EndGlobal
         {
         }
 
-        private class ProjectBuilder : IBuilder
+        private sealed class ProjectBuilder : IBuilder
         {
             public string Name { get; set; }
             public string Language { get; set; }
@@ -339,27 +339,27 @@ EndGlobal
             }
         }
 
-        private class ProjectReferenceBuilder : IBuilder
+        private sealed class ProjectReferenceBuilder : IBuilder
         {
             public string ProjectName { get; set; }
             public Guid Guid { get; set; }
             public string ProjectFileName { get; set; }
         }
 
-        private class ProjectNameBuilder : IBuilder
+        private sealed class ProjectNameBuilder : IBuilder
         {
             public string Name { get; set; }
         }
 
-        private class PropertyBuilder : IBuilder
+        private sealed class PropertyBuilder : IBuilder
         {
             public string Name { get; set; }
             public string Value { get; set; }
         }
 
-        private class SignBuilder : IBuilder { }
+        private sealed class SignBuilder : IBuilder { }
 
-        private class DocumentBuilder : IBuilder
+        private sealed class DocumentBuilder : IBuilder
         {
             public string FilePath { get; set; }
             public object Content { get; set; }

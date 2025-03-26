@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
-    internal class MockInvisibleEditor : IInvisibleEditor
+    internal sealed class MockInvisibleEditor : IInvisibleEditor
     {
         private readonly DocumentId _documentId;
         private readonly EditorTestWorkspace _workspace;

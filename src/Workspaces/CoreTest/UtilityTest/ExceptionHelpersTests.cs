@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class ExceptionHelpersTests : TestBase
+    public sealed class ExceptionHelpersTests : TestBase
     {
         /// <summary>
         /// Test that throwing OperationCanceledException does NOT trigger FailFast

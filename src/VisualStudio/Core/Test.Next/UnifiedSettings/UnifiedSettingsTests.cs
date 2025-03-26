@@ -24,7 +24,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 
-public class UnifiedSettingsTests
+public sealed class UnifiedSettingsTests
 {
     #region CSharpTest
     /// <summary>

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class LinkedEditingRanges
+    internal sealed class LinkedEditingRanges
     {
         /// <summary>
         /// A list of ranges that can be renamed together. The ranges must have

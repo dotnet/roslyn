@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 {
-    public partial class DocumentChangesTests
+    public sealed partial class DocumentChangesTests
     {
         [Theory, CombinatorialData]
         public async Task LinkedDocuments_AllTracked(bool mutatingLspWorkspace)

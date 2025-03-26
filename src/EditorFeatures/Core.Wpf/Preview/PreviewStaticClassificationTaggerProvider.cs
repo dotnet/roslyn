@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(TextViewRoles.PreviewRole)]
-    internal class PreviewStaticClassificationTaggerProvider : ITaggerProvider
+    internal sealed class PreviewStaticClassificationTaggerProvider : ITaggerProvider
     {
         private readonly ClassificationTypeMap _typeMap;
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             return new Tagger(_typeMap, buffer) as ITagger<T>;
         }
 
-        private class Tagger : ITagger<IClassificationTag>
+        private sealed class Tagger : ITagger<IClassificationTag>
         {
             private readonly ClassificationTypeMap _typeMap;
             private readonly ITextBuffer _buffer;

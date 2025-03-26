@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     /// </summary>
     [ContentType(ContentTypeNames.XamlContentType)]
     [Export(typeof(ILanguageClient))]
-    internal class XamlInProcLanguageClient : AbstractInProcLanguageClient
+    internal sealed class XamlInProcLanguageClient : AbstractInProcLanguageClient
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]

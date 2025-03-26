@@ -25,7 +25,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 {
-    public class CompletionResolveTests : AbstractLanguageServerProtocolTests
+    public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
     {
         public CompletionResolveTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
@@ -478,7 +478,7 @@ link text";
             return completionList;
         }
 
-        private class TestCaretOutOfScopeCompletionService : CompletionService
+        private sealed class TestCaretOutOfScopeCompletionService : CompletionService
         {
             public TestCaretOutOfScopeCompletionService(SolutionServices services) : base(services, AsynchronousOperationListenerProvider.NullProvider)
             {

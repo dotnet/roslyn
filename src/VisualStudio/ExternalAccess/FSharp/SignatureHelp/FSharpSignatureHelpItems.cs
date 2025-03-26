@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp
 {
-    internal class FSharpSignatureHelpItems
+    internal sealed class FSharpSignatureHelpItems
     {
         /// <summary>
         /// The list of items to present to the user.

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
 {
     [Export(typeof(IMoveToNamespaceOptionsService)), Shared]
     [PartNotDiscoverable]
-    internal class TestMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
+    internal sealed class TestMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
     {
         private MoveToNamespaceOptionsResult OptionsResult { get; set; }
 

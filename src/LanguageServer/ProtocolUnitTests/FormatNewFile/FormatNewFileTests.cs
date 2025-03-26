@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SimplifyMethod
 {
-    public class FormatNewFileTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+    public sealed class FormatNewFileTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
     {
         [Theory, CombinatorialData]
         public async Task TestFormatNewFileAsync(bool mutatingLspWorkspace)

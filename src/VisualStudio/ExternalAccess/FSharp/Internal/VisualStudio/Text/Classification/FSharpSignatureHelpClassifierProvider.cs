@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.VisualStudio.Tex
 {
     [Export(typeof(IClassifierProvider))]
     [ContentType(FSharpContentTypeNames.FSharpSignatureHelpContentType)]
-    internal class FSharpSignatureHelpClassifierProvider : IClassifierProvider
+    internal sealed class FSharpSignatureHelpClassifierProvider : IClassifierProvider
     {
         private readonly ClassificationTypeMap _typeMap;
 

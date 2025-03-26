@@ -9,7 +9,7 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal class VisualBasicCommandLineArgumentReader : CommandLineArgumentReader
+    internal sealed class VisualBasicCommandLineArgumentReader : CommandLineArgumentReader
     {
         public VisualBasicCommandLineArgumentReader(MSB.Execution.ProjectInstance project)
             : base(project)

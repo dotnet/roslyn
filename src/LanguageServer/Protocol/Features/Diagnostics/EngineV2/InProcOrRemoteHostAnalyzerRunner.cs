@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal class InProcOrRemoteHostAnalyzerRunner
+    internal sealed class InProcOrRemoteHostAnalyzerRunner
     {
         private readonly bool _enabled;
         private readonly IAsynchronousOperationListener _asyncOperationListener;

@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Utilities.BaseUtility;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal partial class SuggestedActionsSourceProvider
+    internal sealed partial class SuggestedActionsSourceProvider
     {
         /// <summary>
         /// Method to enable quick actions from <see cref="SuggestedActionsSourceProvider"/>.

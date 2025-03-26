@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
-    internal class ExtractInterfaceTestState : IDisposable
+    internal sealed class ExtractInterfaceTestState : IDisposable
     {
         public static readonly TestComposition Composition = EditorTestCompositions.EditorFeatures.AddParts(
             typeof(TestExtractInterfaceOptionsService));

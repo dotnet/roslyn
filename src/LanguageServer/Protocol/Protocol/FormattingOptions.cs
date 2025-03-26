@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
     // NOTE: The FormattingOptionsConverter enables the FormattingOptions.OtherOptions JsonExtensionData to be strongly typed.
     // The Json* attributes on the members are for reference only - the converter is fully custom and ignores them.
     [JsonConverter(typeof(FormattingOptionsConverter))]
-    internal class FormattingOptions
+    internal sealed class FormattingOptions
     {
         /// <summary>
         /// Size of a tab in spaces.

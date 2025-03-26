@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class TaskExtensionsTests
+    public sealed class TaskExtensionsTests
     {
         [Fact]
         public void WaitAndGetResult()
@@ -26,6 +26,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static int ThrowTestException() => throw new TestException();
 
-        private class TestException : Exception { }
+        private sealed class TestException : Exception { }
     }
 }

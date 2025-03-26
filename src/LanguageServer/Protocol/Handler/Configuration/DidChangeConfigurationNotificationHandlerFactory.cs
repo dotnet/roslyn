@@ -11,7 +11,7 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
     [ExportCSharpVisualBasicLspServiceFactory(typeof(DidChangeConfigurationNotificationHandler)), Shared]
-    internal class DidChangeConfigurationNotificationHandlerFactory : ILspServiceFactory
+    internal sealed class DidChangeConfigurationNotificationHandlerFactory : ILspServiceFactory
     {
         private readonly IGlobalOptionService _globalOptionService;
 

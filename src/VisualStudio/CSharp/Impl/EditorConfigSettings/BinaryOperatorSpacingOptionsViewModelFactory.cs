@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
 {
     [Export(typeof(IEnumSettingViewModelFactory)), Shared]
-    internal class BinaryOperatorSpacingOptionsViewModelFactory : IEnumSettingViewModelFactory
+    internal sealed class BinaryOperatorSpacingOptionsViewModelFactory : IEnumSettingViewModelFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

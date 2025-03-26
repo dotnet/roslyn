@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
 {
-    public class CSharpEditorConfigCodeStyleParserTests
+    public sealed class CSharpEditorConfigCodeStyleParserTests
     {
         [Theory]
         [InlineData("ignore", BinaryOperatorSpacingOptions.Ignore)]

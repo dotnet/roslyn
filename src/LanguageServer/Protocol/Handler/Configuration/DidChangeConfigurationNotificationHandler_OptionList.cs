@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
-    internal partial class DidChangeConfigurationNotificationHandler
+    internal sealed partial class DidChangeConfigurationNotificationHandler
     {
         public static readonly ImmutableArray<IOption2> SupportedOptions =
         [

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// the extension. This type is required in order to obtain a response of type DocumentSymbol[] for a document
     /// symbol request.
     /// </remarks>
-    internal class RoslynDocumentSymbolParams : DocumentSymbolParams
+    internal sealed class RoslynDocumentSymbolParams : DocumentSymbolParams
     {
         [JsonPropertyName("useHierarchicalSymbols")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

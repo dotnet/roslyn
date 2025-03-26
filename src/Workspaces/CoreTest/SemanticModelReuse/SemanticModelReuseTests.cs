@@ -18,7 +18,7 @@ using Basic.Reference.Assemblies;
 namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
 {
     [UseExportProvider]
-    public class SemanticModelReuseTests
+    public sealed class SemanticModelReuseTests
     {
         private static Document CreateDocument(string code, string language)
         {

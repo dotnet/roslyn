@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.15</remarks>
-    internal class CompletionItemTagSupportSetting
+    internal sealed class CompletionItemTagSupportSetting
     {
         /// <summary>
         /// Gets or sets a value indicating the tags supported by the client.

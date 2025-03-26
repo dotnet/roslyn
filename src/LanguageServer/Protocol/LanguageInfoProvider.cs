@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Features.Workspaces;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class LanguageInfoProvider : ILanguageInfoProvider
+    internal sealed class LanguageInfoProvider : ILanguageInfoProvider
     {
         // Constant so that Razor can use it (exposed via EA) otherwise their endpoints won't get hit
         public const string RazorLanguageName = "Razor";

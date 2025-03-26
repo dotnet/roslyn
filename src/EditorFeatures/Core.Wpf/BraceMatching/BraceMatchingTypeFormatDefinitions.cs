@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         [Name(ClassificationTypeDefinitions.BraceMatchingName)]
         [Order(After = Priority.High)]
         [UserVisible(true)]
-        private class BraceMatchingFormatDefinition : ClassificationFormatDefinition
+        private sealed class BraceMatchingFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

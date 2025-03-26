@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
-    public class GlyphExtensionsTests : TestBase
+    public sealed class GlyphExtensionsTests : TestBase
     {
         [Fact]
         public void GetGlyphGroupTests()

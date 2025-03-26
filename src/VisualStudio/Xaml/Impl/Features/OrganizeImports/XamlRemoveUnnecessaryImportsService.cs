@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 namespace Microsoft.CodeAnalysis.Editor.Xaml.OrganizeImports
 {
     [ExportLanguageService(typeof(IRemoveUnnecessaryImportsService), StringConstants.XamlLanguageName), Shared]
-    internal class XamlRemoveUnnecessaryImportsService : IRemoveUnnecessaryImportsService
+    internal sealed class XamlRemoveUnnecessaryImportsService : IRemoveUnnecessaryImportsService
     {
         private readonly IXamlRemoveUnnecessaryNamespacesService _removeService;
 

@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text.Projection;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
-    internal class ViewHostingControl : ContentControl
+    internal sealed class ViewHostingControl : ContentControl
     {
         private readonly Func<ITextBuffer, IWpfTextView> _createView;
         private readonly Func<ITextBuffer> _createBuffer;

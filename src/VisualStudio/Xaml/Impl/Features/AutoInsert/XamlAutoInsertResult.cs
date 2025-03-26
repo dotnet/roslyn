@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.AutoInsert
 {
-    internal class XamlAutoInsertResult
+    internal sealed class XamlAutoInsertResult
     {
         public TextChange TextChange { get; set; }
         public int? CaretOffset { get; set; }

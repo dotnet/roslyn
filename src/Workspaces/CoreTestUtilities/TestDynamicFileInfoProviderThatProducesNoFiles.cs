@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     [ExportDynamicFileInfoProvider("cshtml", "vbhtml")]
     [Shared]
     [PartNotDiscoverable]
-    internal class TestDynamicFileInfoProviderThatProducesNoFiles : IDynamicFileInfoProvider
+    internal sealed class TestDynamicFileInfoProviderThatProducesNoFiles : IDynamicFileInfoProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 {
-    public partial class DocumentChangesTests
+    public sealed partial class DocumentChangesTests
     {
         [Theory, CombinatorialData]
         public async Task FindReferencesInChangingDocument(bool mutatingLspWorkspace)

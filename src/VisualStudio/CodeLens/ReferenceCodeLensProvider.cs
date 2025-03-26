@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
     [Priority(200)]
     [OptionUserModifiable(userModifiable: false)]
     [DetailsTemplateName("references")]
-    internal class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvider, IDisposable
+    internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvider, IDisposable
     {
         // TODO: do we need to localize this?
         private const string Id = "CSVBReferences";
@@ -149,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
         }
 
-        private class DataPoint : IAsyncCodeLensDataPoint, IDisposable
+        private sealed class DataPoint : IAsyncCodeLensDataPoint, IDisposable
         {
             private static readonly List<CodeLensDetailHeaderDescriptor> s_header =
             [

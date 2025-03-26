@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
     /// and RunCodeActionsHandler. The class provides enough information for each handler to identify the code
     /// action that it is dealing with. The information is passed along via the Data property in LSP.VSCodeAction. 
     /// </summary>
-    internal class CodeActionResolveData
+    internal sealed class CodeActionResolveData
     {
         /// <summary>
         /// The unique identifier of a code action. No two code actions should have the same unique identifier.

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 {
     [ExportCSharpVisualBasicLspServiceFactory(typeof(InlayHintCache)), Shared]
-    internal class InlayHintCacheFactory : ILspServiceFactory
+    internal sealed class InlayHintCacheFactory : ILspServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

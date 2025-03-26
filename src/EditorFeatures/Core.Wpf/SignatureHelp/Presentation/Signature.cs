@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
 {
-    internal class Signature : ISignature
+    internal sealed class Signature : ISignature
     {
         private const int MaxParamColumnCount = 100;
 

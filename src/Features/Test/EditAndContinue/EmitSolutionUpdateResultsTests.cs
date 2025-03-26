@@ -20,7 +20,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     [UseExportProvider]
-    public class EmitSolutionUpdateResultsTests
+    public sealed class EmitSolutionUpdateResultsTests
     {
         private static TestWorkspace CreateWorkspace(out Solution solution)
         {

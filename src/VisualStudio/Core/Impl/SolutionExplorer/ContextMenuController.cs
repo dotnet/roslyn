@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     /// <summary>
     /// Called by the Solution Explorer to show a context menu on the items we add to it
     /// </summary>
-    internal class ContextMenuController : IContextMenuController
+    internal sealed class ContextMenuController : IContextMenuController
     {
         private readonly int _menuId;
         private readonly Func<IEnumerable<object>, bool> _shouldShowMenu;

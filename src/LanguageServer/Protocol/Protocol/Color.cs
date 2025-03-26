@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.6</remarks>
-    internal class Color
+    internal sealed class Color
     {
         /// <summary>
         /// Gets or sets the Red value.

@@ -12,7 +12,7 @@ using System.Windows.Media;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    internal class OptionPageSearchHandler
+    internal sealed class OptionPageSearchHandler
     {
         public static readonly Brush HighlightForeground = SystemColors.HighlightTextBrush;
         public static readonly Brush HighlightBackground = SystemColors.HighlightBrush;

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentLinkParams">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class DocumentLinkParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<DocumentLink[]>
+    internal sealed class DocumentLinkParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<DocumentLink[]>
     {
         /// <summary>
         /// The <see cref="TextDocumentIdentifier"/> to provide links for.

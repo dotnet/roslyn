@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class SignatureInformationSetting
+    internal sealed class SignatureInformationSetting
     {
         /// <summary>
         /// The client supports the following content formats for the <see cref="SignatureInformation.Documentation"/>

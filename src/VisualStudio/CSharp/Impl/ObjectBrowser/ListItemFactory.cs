@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrows
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 {
-    internal class ListItemFactory : AbstractListItemFactory
+    internal sealed class ListItemFactory : AbstractListItemFactory
     {
         private static readonly SymbolDisplayFormat s_memberDisplayFormat =
             new(

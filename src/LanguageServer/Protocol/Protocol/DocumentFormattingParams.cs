@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentFormattingParams">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class DocumentFormattingParams : ITextDocumentParams, IWorkDoneProgressParams
+    internal sealed class DocumentFormattingParams : ITextDocumentParams, IWorkDoneProgressParams
     {
         /// <summary>
         /// Gets or sets the identifier for the text document to be formatted.

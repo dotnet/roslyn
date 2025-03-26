@@ -11,7 +11,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
-internal class ExampleLanguageServer : SystemTextJsonLanguageServer<ExampleRequestContext>
+internal sealed class ExampleLanguageServer : SystemTextJsonLanguageServer<ExampleRequestContext>
 {
     private readonly Action<IServiceCollection>? _addExtraHandlers;
 

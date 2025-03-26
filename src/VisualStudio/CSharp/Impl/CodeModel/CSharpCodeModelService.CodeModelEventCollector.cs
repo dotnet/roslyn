@@ -17,12 +17,12 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
-    internal partial class CSharpCodeModelService
+    internal sealed partial class CSharpCodeModelService
     {
         protected override AbstractCodeModelEventCollector CreateCodeModelEventCollector()
             => new CodeModelEventCollector(this);
 
-        private class CodeModelEventCollector : AbstractCodeModelEventCollector
+        private sealed class CodeModelEventCollector : AbstractCodeModelEventCollector
         {
             public CodeModelEventCollector(AbstractCodeModelService codeModelService)
                 : base(codeModelService)

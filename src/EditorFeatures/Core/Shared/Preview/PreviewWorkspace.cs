@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Preview;
 
-internal class PreviewWorkspace : Workspace
+internal sealed class PreviewWorkspace : Workspace
 {
     public PreviewWorkspace()
     : base(MefHostServices.DefaultHost, WorkspaceKind.Preview)

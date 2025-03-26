@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// Class which represents a possible result value of the 'textDocument/prepareRename' request,
     /// together with extra VS-specific options.
     /// </summary>
-    internal class VSInternalRenameRange : RenameRange
+    internal sealed class VSInternalRenameRange : RenameRange
     {
         /// <summary>
         /// Gets or sets the supported options for the rename request.

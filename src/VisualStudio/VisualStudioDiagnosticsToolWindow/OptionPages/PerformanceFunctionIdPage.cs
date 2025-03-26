@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
     [Guid(Guids.RoslynOptionPagePerformanceFunctionIdIdString)]
-    internal class PerformanceFunctionIdPage : AbstractOptionPage
+    internal sealed class PerformanceFunctionIdPage : AbstractOptionPage
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {

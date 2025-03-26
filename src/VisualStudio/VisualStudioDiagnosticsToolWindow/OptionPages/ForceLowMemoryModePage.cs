@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
     [Guid(Guids.RoslynOptionPageFeatureManagerFeaturesIdString)]
-    internal class ForceLowMemoryModePage : AbstractOptionPage
+    internal sealed class ForceLowMemoryModePage : AbstractOptionPage
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
             => new Control(optionStore);

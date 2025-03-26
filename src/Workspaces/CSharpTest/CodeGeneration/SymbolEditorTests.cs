@@ -21,7 +21,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 {
     [UseExportProvider]
-    public class SymbolEditorTests
+    public sealed class SymbolEditorTests
     {
         private SyntaxGenerator _g;
 

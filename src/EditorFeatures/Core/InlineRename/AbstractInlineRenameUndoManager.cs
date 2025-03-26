@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 /// </summary>
 internal abstract class AbstractInlineRenameUndoManager<TBufferState>
 {
-    protected class ActiveSpanState
+    protected sealed class ActiveSpanState
     {
         public string ReplacementText;
         public int SelectionAnchorPoint;

@@ -25,7 +25,7 @@ using IUIThreadOperationContext = Microsoft.VisualStudio.Utilities.IUIThreadOper
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal partial class SuggestedActionsSourceProvider
+    internal sealed partial class SuggestedActionsSourceProvider
     {
         private sealed partial class SuggestedActionsSource : ISuggestedActionsSource3
         {

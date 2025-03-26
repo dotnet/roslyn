@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// Similar to SuggestedActionWithNestedActions, but in a location that can be used by
     /// both local Roslyn and LSP.
     /// </summary>
-    internal class UnifiedSuggestedActionWithNestedActions : UnifiedSuggestedAction
+    internal sealed class UnifiedSuggestedActionWithNestedActions : UnifiedSuggestedAction
     {
         public object? Provider { get; }
 

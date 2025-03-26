@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class VarKeywordRecommenderTests : RecommenderTests
+    public sealed class VarKeywordRecommenderTests : RecommenderTests
     {
         protected override string KeywordText => "var";
 

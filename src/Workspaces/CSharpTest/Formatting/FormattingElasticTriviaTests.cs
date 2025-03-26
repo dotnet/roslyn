@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
     using static SyntaxFactory;
 
     [Trait(Traits.Feature, Traits.Features.Formatting)]
-    public class FormattingEngineElasticTriviaTests : CSharpFormattingTestBase
+    public sealed class FormattingEngineElasticTriviaTests : CSharpFormattingTestBase
     {
         [Fact(Skip = "530167")]
         public void FormatElasticTrivia()

@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 [Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class SnippetExpansionClientFactory(
+internal sealed class SnippetExpansionClientFactory(
     IThreadingContext threadingContext,
     SignatureHelpControllerProvider signatureHelpControllerProvider,
     IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,

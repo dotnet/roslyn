@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.CustomProtocol
     /// <summary>
     /// TODO - This custom liveshare model should live elsewhere.
     /// </summary>
-    internal class Project
+    internal sealed class Project
     {
         /// <summary>
         /// Name of the project.

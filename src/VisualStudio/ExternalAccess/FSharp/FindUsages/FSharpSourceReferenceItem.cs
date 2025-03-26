@@ -6,7 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages
 {
-    internal class FSharpSourceReferenceItem
+    internal sealed class FSharpSourceReferenceItem
     {
 
 #pragma warning disable IDE0051 // Remove unused private members

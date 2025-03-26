@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
     [Method(VSInternalMethods.WorkspaceSpellCheckableRangesName)]
-    internal class WorkspaceSpellCheckHandler : AbstractSpellCheckHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport>
+    internal sealed class WorkspaceSpellCheckHandler : AbstractSpellCheckHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport>
     {
         protected override VSInternalWorkspaceSpellCheckableReport CreateReport(TextDocumentIdentifier identifier, int[]? ranges, string? resultId)
             => new()

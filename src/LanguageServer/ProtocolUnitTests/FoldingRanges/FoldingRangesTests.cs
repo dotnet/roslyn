@@ -14,7 +14,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FoldingRanges
 {
-    public class FoldingRangesTests : AbstractLanguageServerProtocolTests
+    public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
     {
         public FoldingRangesTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

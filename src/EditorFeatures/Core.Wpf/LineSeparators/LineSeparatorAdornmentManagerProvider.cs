@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal class LineSeparatorAdornmentManagerProvider :
+    internal sealed class LineSeparatorAdornmentManagerProvider :
         AbstractAdornmentManagerProvider<LineSeparatorTag>
     {
         private const string LayerName = "RoslynLineSeparator";

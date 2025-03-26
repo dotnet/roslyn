@@ -16,11 +16,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [SuppressMessage("Usage", "VSTHRD104:Offer async methods", Justification = "This class tests specific behavior of tasks.")]
-    public class SpecializedTasksTests
+    public sealed class SpecializedTasksTests
     {
-        private record StateType;
-        private record IntermediateType;
-        private record ResultType;
+        private sealed record StateType;
+        private sealed record IntermediateType;
+        private sealed record ResultType;
 
         [Fact]
         public void WhenAll_Null()

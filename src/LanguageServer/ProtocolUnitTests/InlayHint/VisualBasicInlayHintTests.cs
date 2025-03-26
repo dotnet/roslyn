@@ -11,7 +11,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
 {
-    public class VisualBasicInlayHintTests : AbstractInlayHintTests
+    public sealed class VisualBasicInlayHintTests : AbstractInlayHintTests
     {
         public VisualBasicInlayHintTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
         {

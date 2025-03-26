@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class CodeActionSetting : DynamicRegistrationSetting
+    internal sealed class CodeActionSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// The client supports code action literals as a valid response of

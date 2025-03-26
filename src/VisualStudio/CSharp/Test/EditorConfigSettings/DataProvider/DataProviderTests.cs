@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-    public partial class DataProviderTests
+    public sealed partial class DataProviderTests
     {
         private static Workspace GetWorkspace(string? projectFilePath = null)
         {

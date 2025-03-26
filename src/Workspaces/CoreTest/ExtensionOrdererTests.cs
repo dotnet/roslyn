@@ -10,9 +10,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class ExtensionOrdererTests
+    public sealed class ExtensionOrdererTests
     {
-        private class Extension { }
+        private sealed class Extension { }
 
         [Fact]
         public void TestNoCycle1()

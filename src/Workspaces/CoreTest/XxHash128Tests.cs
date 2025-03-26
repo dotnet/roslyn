@@ -14,7 +14,7 @@ using Xunit;
 
 namespace System.IO.Hashing.Tests
 {
-    public class XxHash128Tests
+    public sealed class XxHash128Tests
     {
         [Fact]
         public void Hash_InvalidInputs_Throws()

@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 {
-    public class ProjectsHandlerTests : AbstractLiveShareRequestHandlerTests
+    public sealed class ProjectsHandlerTests : AbstractLiveShareRequestHandlerTests
     {
         public ProjectsHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

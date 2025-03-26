@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 [ExportLanguageService(typeof(INavigationBarItemService), InternalLanguageNames.TypeScript), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VSTypeScriptNavigationBarItemService(
+internal sealed class VSTypeScriptNavigationBarItemService(
     IThreadingContext threadingContext,
     IVSTypeScriptNavigationBarItemService service) : INavigationBarItemService
 {

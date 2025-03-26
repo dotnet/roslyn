@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// </summary>
     [ExportStatelessXamlLspService(typeof(CreateEventCommandHandler)), Shared]
     [Command(StringConstants.CreateEventHandlerCommand)]
-    internal class CreateEventCommandHandler : AbstractExecuteWorkspaceCommandHandler
+    internal sealed class CreateEventCommandHandler : AbstractExecuteWorkspaceCommandHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

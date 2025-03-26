@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLang
         supportsUnannotatedAPIs: false,
         // Add more syntax names here in the future if there are additional cases ASP.Net would like to light up on.
         identifiers: ["Route"]), Shared]
-    internal class AspNetCoreEmbeddedLanguageDocumentHighlighter : IEmbeddedLanguageDocumentHighlighter
+    internal sealed class AspNetCoreEmbeddedLanguageDocumentHighlighter : IEmbeddedLanguageDocumentHighlighter
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     /// <summary>
     /// Interaction logic for FormattingOptionPageControl.xaml
     /// </summary>
-    internal partial class FormattingOptionPageControl : AbstractOptionPageControl
+    internal sealed partial class FormattingOptionPageControl : AbstractOptionPageControl
     {
         public FormattingOptionPageControl(OptionStore optionStore) : base(optionStore)
         {

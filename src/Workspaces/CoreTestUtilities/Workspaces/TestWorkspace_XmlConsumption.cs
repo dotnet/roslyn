@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public const string NullFilePath = "NullFilePath::{AFA13775-BB7D-4020-9E58-C68CF43D8A68}";
 
-        private class TestDocumentationProvider : DocumentationProvider
+        private sealed class TestDocumentationProvider : DocumentationProvider
         {
             protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
                 => string.Format("<member name='{0}'><summary>{0}</summary></member>", documentationMemberID);

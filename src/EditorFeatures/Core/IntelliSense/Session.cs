@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 
-internal class Session<TController, TModel, TPresenterSession> : ISession<TModel>
+internal sealed class Session<TController, TModel, TPresenterSession> : ISession<TModel>
     where TPresenterSession : IIntelliSensePresenterSession
     where TController : IController<TModel>
     where TModel : class

@@ -30,7 +30,7 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class TrueConfigurationTests : BooleanCodeStyleOptionConfigurationTests
+    public sealed class TrueConfigurationTests : BooleanCodeStyleOptionConfigurationTests
     {
         protected override int CodeActionIndex => 0;
 
@@ -416,7 +416,7 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class FalseConfigurationTests : BooleanCodeStyleOptionConfigurationTests
+    public sealed class FalseConfigurationTests : BooleanCodeStyleOptionConfigurationTests
     {
         protected override int CodeActionIndex => 1;
 

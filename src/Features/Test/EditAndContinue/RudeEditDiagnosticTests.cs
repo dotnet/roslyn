@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    public class RudeEditDiagnosticTests
+    public sealed class RudeEditDiagnosticTests
     {
         [Fact]
         public void ToDiagnostic()

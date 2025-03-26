@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Extensions
 {
-    public class TelemetryExtensionTests
+    public sealed class TelemetryExtensionTests
     {
         [Fact]
         public void TestConstantTelemetryId()

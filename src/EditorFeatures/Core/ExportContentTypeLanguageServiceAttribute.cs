@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportContentTypeLanguageServiceAttribute(string defaultContentType, string language, string layer = ServiceLayer.Default)
+    internal sealed class ExportContentTypeLanguageServiceAttribute(string defaultContentType, string language, string layer = ServiceLayer.Default)
         : ExportLanguageServiceAttribute(typeof(IContentTypeLanguageService), language, layer)
     {
         public string DefaultContentType { get; set; } = defaultContentType;

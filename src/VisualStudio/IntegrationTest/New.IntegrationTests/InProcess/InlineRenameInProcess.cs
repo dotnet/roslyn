@@ -18,7 +18,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class InlineRenameInProcess
+internal sealed partial class InlineRenameInProcess
 {
     public async Task InvokeAsync(CancellationToken cancellationToken)
     {

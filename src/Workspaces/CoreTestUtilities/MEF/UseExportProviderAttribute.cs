@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             throw new InvalidOperationException("Cannot create host services after test tear down.");
         }
 
-        private class ExportProviderMefHostServices : MefHostServices, IMefHostExportProvider
+        private sealed class ExportProviderMefHostServices : MefHostServices, IMefHostExportProvider
         {
             private readonly VisualStudioMefHostServices _vsHostServices;
 

@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// <summary>
     /// Interaction logic for FormattingWrappingOptionPage.xaml
     /// </summary>
-    internal class WrappingViewModel : AbstractOptionPreviewViewModel
+    internal sealed class WrappingViewModel : AbstractOptionPreviewViewModel
     {
         private const string s_blockPreview = @"
 class C

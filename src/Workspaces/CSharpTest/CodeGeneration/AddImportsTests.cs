@@ -23,7 +23,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 {
     [UseExportProvider]
-    public class AddImportsTests
+    public sealed class AddImportsTests
     {
         private static async Task<Document> GetDocument(string code, bool withAnnotations)
         {

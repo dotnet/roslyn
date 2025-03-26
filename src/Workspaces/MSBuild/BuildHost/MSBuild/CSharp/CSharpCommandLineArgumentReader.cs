@@ -7,7 +7,7 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal class CSharpCommandLineArgumentReader : CommandLineArgumentReader
+    internal sealed class CSharpCommandLineArgumentReader : CommandLineArgumentReader
     {
         private CSharpCommandLineArgumentReader(MSB.Execution.ProjectInstance project)
             : base(project)

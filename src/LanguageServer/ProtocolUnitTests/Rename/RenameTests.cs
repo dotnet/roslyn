@@ -16,7 +16,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
 {
-    public class RenameTests : AbstractLanguageServerProtocolTests
+    public sealed class RenameTests : AbstractLanguageServerProtocolTests
     {
         public RenameTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

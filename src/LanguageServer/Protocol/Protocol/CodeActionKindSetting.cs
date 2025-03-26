@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.8</remarks>
-    internal class CodeActionKindSetting
+    internal sealed class CodeActionKindSetting
     {
         /// <summary>
         /// Gets or sets the code actions kinds the client supports.

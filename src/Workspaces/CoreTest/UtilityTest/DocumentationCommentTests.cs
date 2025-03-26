@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class DocumentationCommentTests
+    public sealed class DocumentationCommentTests
     {
         [Fact]
         public void ParseEmptyXmlFragment()

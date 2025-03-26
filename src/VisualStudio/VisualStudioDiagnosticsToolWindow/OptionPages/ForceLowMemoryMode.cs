@@ -52,7 +52,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             }
         }
 
-        private class MemoryHogger
+        private sealed class MemoryHogger
         {
             private const int BlockSize = 1024 * 1024; // megabyte blocks
             private const int MonitorDelay = 10000; // 10 seconds

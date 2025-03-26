@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Roslyn.Test.Utilities
 {
     // Based on CoreCLR's implementation of the TaskScheduler they return from TaskScheduler.FromCurrentSynchronizationContext
-    internal class SynchronizationContextTaskScheduler : TaskScheduler
+    internal sealed class SynchronizationContextTaskScheduler : TaskScheduler
     {
         private readonly SendOrPostCallback _postCallback;
         private readonly SynchronizationContext _synchronizationContext;

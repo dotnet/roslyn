@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class DocumentationCommentIdTests : TestBase
+    public sealed partial class DocumentationCommentIdTests : TestBase
     {
         private static CSharpCompilation CreateCSharpCompilation(string sourceText)
         {

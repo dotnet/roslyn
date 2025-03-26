@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.6</remarks>
-    internal class ColorInformation
+    internal sealed class ColorInformation
     {
         /// <summary>
         /// Gets or sets the text range representing the color.

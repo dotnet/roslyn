@@ -17,7 +17,7 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpe
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
 {
-    internal class SymbolSpecificationViewModel : AbstractNotifyPropertyChanged, INamingStylesInfoDialogViewModel
+    internal sealed class SymbolSpecificationViewModel : AbstractNotifyPropertyChanged, INamingStylesInfoDialogViewModel
     {
         public Guid ID { get; set; }
         public List<SymbolKindViewModel> SymbolKindList { get; set; }
@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             bool IsChecked { get; set; }
         }
 
-        public class SymbolKindViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
+        public sealed class SymbolKindViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
         {
             public string Name { get; set; }
             public bool IsChecked
@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             }
         }
 
-        public class AccessibilityViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
+        public sealed class AccessibilityViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
         {
             internal readonly Accessibility _accessibility;
 
@@ -237,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             }
         }
 
-        public class ModifierViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
+        public sealed class ModifierViewModel : AbstractNotifyPropertyChanged, ISymbolSpecificationViewModelPart
         {
             public string Name { get; set; }
 

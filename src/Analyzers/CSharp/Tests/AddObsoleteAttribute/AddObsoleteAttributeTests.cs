@@ -14,7 +14,7 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeF
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddObsoleteAttribute;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddObsoleteAttribute)]
-public class AddObsoleteAttributeTests
+public sealed class AddObsoleteAttributeTests
 {
     [Fact]
     public async Task TestObsoleteClassNoMessage()

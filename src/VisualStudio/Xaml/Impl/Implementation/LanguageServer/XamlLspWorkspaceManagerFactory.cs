@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 {
     [ExportLspServiceFactory(typeof(LspWorkspaceManager), StringConstants.XamlLspLanguagesContract), Shared]
-    internal class XamlLspWorkspaceManagerFactory : LspWorkspaceManagerFactory
+    internal sealed class XamlLspWorkspaceManagerFactory : LspWorkspaceManagerFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

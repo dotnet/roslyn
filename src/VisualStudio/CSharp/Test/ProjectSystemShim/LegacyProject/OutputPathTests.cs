@@ -13,7 +13,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
     [UseExportProvider]
-    public class OutputPathTests
+    public sealed class OutputPathTests
     {
         [WpfTheory]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]

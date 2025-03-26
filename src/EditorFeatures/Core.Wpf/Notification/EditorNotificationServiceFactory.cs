@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Notification
 {
     [ExportWorkspaceServiceFactory(typeof(INotificationService), ServiceLayer.Editor)]
     [Shared]
-    internal class EditorNotificationServiceFactory : IWorkspaceServiceFactory
+    internal sealed class EditorNotificationServiceFactory : IWorkspaceServiceFactory
     {
         private static readonly object s_gate = new object();
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Notification
             return s_singleton;
         }
 
-        private class EditorDialogService : INotificationService, INotificationServiceCallback
+        private sealed class EditorDialogService : INotificationService, INotificationServiceCallback
         {
             /// <summary>
             /// For testing purposes only.  If non-null, this callback will be invoked instead of showing a dialog.

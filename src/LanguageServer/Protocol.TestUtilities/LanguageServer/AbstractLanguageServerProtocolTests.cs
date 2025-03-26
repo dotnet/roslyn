@@ -51,13 +51,13 @@ namespace Roslyn.Test.Utilities
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
-        private class TestSpanMapperProvider : IDocumentServiceProvider
+        private sealed class TestSpanMapperProvider : IDocumentServiceProvider
         {
             TService? IDocumentServiceProvider.GetService<TService>() where TService : class
                 => typeof(TService) == typeof(ISpanMappingService) ? (TService)(object)new TestSpanMapper() : null;
         }
 
-        internal class TestSpanMapper : ISpanMappingService
+        internal sealed class TestSpanMapper : ISpanMappingService
         {
             private static readonly LinePositionSpan s_mappedLinePosition = new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 5));
             private static readonly string s_mappedFilePath = "c:\\MappedFile_\ue25b\ud86d\udeac.cs";
@@ -95,7 +95,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private protected class OrderLocations : Comparer<LSP.Location?>
+        private protected sealed class OrderLocations : Comparer<LSP.Location?>
         {
             public override int Compare(LSP.Location? x, LSP.Location? y) => CompareLocations(x, y);
         }

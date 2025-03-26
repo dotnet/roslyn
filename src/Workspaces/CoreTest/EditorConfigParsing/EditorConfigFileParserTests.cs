@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
 {
-    public class EditorConfigFileParserTests
+    public sealed class EditorConfigFileParserTests
     {
         internal static EditorConfigFile<EditorConfigOption> CreateParseResults(string editorconfigFilePath, params (string headerText, TextSpan span, bool isGlobal)[] sections)
         {

@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
 {
-    internal class XamlCompletionItem
+    internal sealed class XamlCompletionItem
     {
         public string[] CommitCharacters { get; set; }
         public XamlCommitCharacters? XamlCommitCharacters { get; set; }

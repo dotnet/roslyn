@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 {
-    internal class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
+    internal sealed class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
     {
         public string AdditionalInformation { get; }
         public string Kind { get; }

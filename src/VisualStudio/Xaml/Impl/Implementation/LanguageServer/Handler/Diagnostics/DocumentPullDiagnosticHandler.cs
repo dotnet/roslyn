@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 {
     [ExportStatelessXamlLspService(typeof(DocumentPullDiagnosticHandler)), Shared]
     [Method(VSInternalMethods.DocumentPullDiagnosticName)]
-    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport>, ITextDocumentIdentifierHandler<VSInternalDocumentDiagnosticsParams, TextDocumentIdentifier?>
+    internal sealed class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport>, ITextDocumentIdentifierHandler<VSInternalDocumentDiagnosticsParams, TextDocumentIdentifier?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

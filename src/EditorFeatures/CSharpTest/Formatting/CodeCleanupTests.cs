@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
-public partial class CodeCleanupTests
+public sealed partial class CodeCleanupTests
 {
     [Fact]
     public Task RemoveUsings()

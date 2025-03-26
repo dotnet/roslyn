@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
-internal class LspLogMessageLoggerProvider(ILoggerFactory fallbackLoggerFactory, ServerConfiguration serverConfiguration) : ILoggerProvider
+internal sealed class LspLogMessageLoggerProvider(ILoggerFactory fallbackLoggerFactory, ServerConfiguration serverConfiguration) : ILoggerProvider
 {
     private readonly ConcurrentDictionary<string, LspLogMessageLogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
 

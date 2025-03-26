@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
-internal class ProjectSystemProjectOptionsProcessor : IDisposable
+internal sealed class ProjectSystemProjectOptionsProcessor : IDisposable
 {
     private readonly ProjectSystemProject _project;
     private readonly SolutionServices _workspaceServices;

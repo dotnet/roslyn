@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// TODO Once the client side code is migrated to LSP client, this can be removed.
     /// </summary>
     [ExportLspRequestHandler(LiveShareConstants.RoslynLSPSDKContractName, LSP.Methods.InitializeName)]
-    internal class LSPSDKInitializeHandler : ILspRequestHandler<LSP.InitializeParams, LSP.InitializeResult, Solution>
+    internal sealed class LSPSDKInitializeHandler : ILspRequestHandler<LSP.InitializeParams, LSP.InitializeResult, Solution>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

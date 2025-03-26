@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
     using static SyntaxFactory;
 
     [UseExportProvider]
-    public class AddAttributesTests
+    public sealed class AddAttributesTests
     {
         private static Document GetDocument(string code)
         {

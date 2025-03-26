@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
 [ExportLspServiceFactory(typeof(RequestTelemetryLogger), ProtocolConstants.TypeScriptLanguageContract), Shared]
-internal class VSTypeScriptRequestTelemetryLoggerFactory : RequestTelemetryLoggerFactory
+internal sealed class VSTypeScriptRequestTelemetryLoggerFactory : RequestTelemetryLoggerFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => _singleton;
 
-        private class GlobalUndoService : IGlobalUndoService
+        private sealed class GlobalUndoService : IGlobalUndoService
         {
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return textUndoHistory;
             }
 
-            private class InteractiveGlobalUndoTransaction : IWorkspaceGlobalUndoTransaction
+            private sealed class InteractiveGlobalUndoTransaction : IWorkspaceGlobalUndoTransaction
             {
                 private readonly ITextUndoTransaction _transaction;
 

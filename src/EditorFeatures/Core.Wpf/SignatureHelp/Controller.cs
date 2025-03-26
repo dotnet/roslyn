@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
-    internal partial class Controller :
+    internal sealed partial class Controller :
         AbstractController<Controller.Session, Model, ISignatureHelpPresenterSession, ISignatureHelpSession>,
         IChainedCommandHandler<TypeCharCommandArgs>,
         IChainedCommandHandler<InvokeSignatureHelpCommandArgs>

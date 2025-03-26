@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// LSP Params for textDocument/mapCode calls.
     /// </summary>
-    internal class VSInternalMapCodeParams
+    internal sealed class VSInternalMapCodeParams
     {
         /// <summary>
         /// Internal correlation GUID, used to correlate map code messages from Copilot

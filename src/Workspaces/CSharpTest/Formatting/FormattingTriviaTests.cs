@@ -17,7 +17,7 @@ using System;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
     [Trait(Traits.Feature, Traits.Features.Formatting)]
-    public class FormattingEngineTriviaTests : CSharpFormattingTestBase
+    public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
     {
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
         public async Task PreprocessorNullable()

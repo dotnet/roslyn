@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host.Mef;
 
-internal class OrderableLanguageMetadata : OrderableMetadata, ILanguageMetadata
+internal sealed class OrderableLanguageMetadata : OrderableMetadata, ILanguageMetadata
 {
     public string Language { get; }
 

@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
 {
-    internal class BinaryOperatorSpacingOptionsViewModel : EnumSettingViewModel<BinaryOperatorSpacingOptions>
+    internal sealed class BinaryOperatorSpacingOptionsViewModel : EnumSettingViewModel<BinaryOperatorSpacingOptions>
     {
         private readonly Setting _setting;
 

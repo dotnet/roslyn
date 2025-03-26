@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    internal class TheoryDataKeywordsIndicatingLocalFunction : IEnumerable<object[]>
+    internal sealed class TheoryDataKeywordsIndicatingLocalFunction : IEnumerable<object[]>
     {
         public IEnumerator<object[]> GetEnumerator()
         {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    internal class TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync : IEnumerable<object[]>
+    internal sealed class TheoryDataKeywordsIndicatingLocalFunctionWithoutAsync : IEnumerable<object[]>
     {
         public IEnumerator<object[]> GetEnumerator()
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    internal class TheoryDataKeywordsIndicatingLocalFunctionWithAsync : IEnumerable<object[]>
+    internal sealed class TheoryDataKeywordsIndicatingLocalFunctionWithAsync : IEnumerable<object[]>
     {
         public IEnumerator<object[]> GetEnumerator()
         {

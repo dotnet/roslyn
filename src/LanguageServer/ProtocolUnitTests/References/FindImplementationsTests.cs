@@ -14,7 +14,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
 {
-    public class FindImplementationsTests : AbstractLanguageServerProtocolTests
+    public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTests
     {
         public FindImplementationsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

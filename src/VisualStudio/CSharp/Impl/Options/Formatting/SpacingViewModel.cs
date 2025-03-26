@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// <summary>
     /// Interaction logic for FormattingSpacingOptionControl.xaml
     /// </summary>
-    internal class SpacingViewModel : AbstractOptionPreviewViewModel
+    internal sealed class SpacingViewModel : AbstractOptionPreviewViewModel
     {
         private static readonly Conversions<SpacePlacementWithinParentheses, int> s_spaceBetweenParenthesesConversions = new(v => (int)v, v => (SpacePlacementWithinParentheses)v);
 

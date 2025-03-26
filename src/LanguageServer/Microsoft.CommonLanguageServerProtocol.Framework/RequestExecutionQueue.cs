@@ -52,7 +52,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// more messages, and a new queue will need to be created.
 /// </para>
 /// </remarks>
-internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
+internal sealed class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRequestContext>
 {
     private static readonly MethodInfo s_processQueueCoreAsync = typeof(RequestExecutionQueue<TRequestContext>)
         .GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ProcessQueueCoreAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;

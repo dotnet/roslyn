@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     [DisableUserExperience(true)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [Export(typeof(ILanguageClient))]
-    internal class XamlInProcLanguageClientDisableUX : AbstractInProcLanguageClient
+    internal sealed class XamlInProcLanguageClientDisableUX : AbstractInProcLanguageClient
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]

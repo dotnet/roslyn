@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
 {
-    internal class XamlCompletionResult
+    internal sealed class XamlCompletionResult
     {
         public ImmutableArray<XamlCompletionItem> Completions { get; set; }
         public TextSpan? ApplicableToSpan { get; set; }

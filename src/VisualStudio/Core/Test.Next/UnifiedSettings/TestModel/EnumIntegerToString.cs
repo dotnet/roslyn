@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal record EnumIntegerToString
+internal sealed record EnumIntegerToString
 {
     [JsonPropertyName("input")]
     public required Input Input { get; init; }

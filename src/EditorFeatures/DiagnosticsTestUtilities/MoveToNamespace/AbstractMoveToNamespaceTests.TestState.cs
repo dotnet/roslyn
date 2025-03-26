@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
 {
     public abstract partial class AbstractMoveToNamespaceTests
     {
-        internal class TestState : IDisposable
+        internal sealed class TestState : IDisposable
         {
             public TestState(EditorTestWorkspace workspace)
                 => Workspace = workspace;

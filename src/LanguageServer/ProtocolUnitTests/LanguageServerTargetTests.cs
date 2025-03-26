@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
     [UseExportProvider]
-    public class LanguageServerTargetTests : AbstractLanguageServerProtocolTests
+    public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTests
     {
         public LanguageServerTargetTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         [ExportCSharpVisualBasicLspServiceFactory(typeof(StatefulLspService)), Shared]
-        internal class StatefulLspServiceFactory : ILspServiceFactory
+        internal sealed class StatefulLspServiceFactory : ILspServiceFactory
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new StatefulLspService();
         }
 
-        internal class StatefulLspService : ILspService, IDisposable
+        internal sealed class StatefulLspService : ILspService, IDisposable
         {
             public bool IsDisposed { get; private set; } = false;
             public void Dispose()
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         [ExportCSharpVisualBasicStatelessLspService(typeof(StatelessLspService)), Shared]
-        internal class StatelessLspService : ILspService, IDisposable
+        internal sealed class StatelessLspService : ILspService, IDisposable
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

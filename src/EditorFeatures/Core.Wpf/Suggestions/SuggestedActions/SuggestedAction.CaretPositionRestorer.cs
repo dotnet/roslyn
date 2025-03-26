@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedAction
     {
-        internal class CaretPositionRestorer : IDisposable
+        internal sealed class CaretPositionRestorer : IDisposable
         {
             // Bug 5535: By default the standard editor caret is set to have positive affinity.  This
             // means that if text is added right at the caret then the caret moves to the right and

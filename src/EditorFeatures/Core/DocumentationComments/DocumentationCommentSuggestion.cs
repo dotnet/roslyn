@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
-    internal class DocumentationCommentSuggestion(CopilotGenerateDocumentationCommentProvider providerInstance, ProposalBase proposal,
+    internal sealed class DocumentationCommentSuggestion(CopilotGenerateDocumentationCommentProvider providerInstance, ProposalBase proposal,
         SuggestionManagerBase suggestionManager, VisualStudio.Threading.IAsyncDisposable? intellicodeLineCompletionsDisposable) : SuggestionBase
     {
         public ProposalBase Proposal { get; } = proposal;

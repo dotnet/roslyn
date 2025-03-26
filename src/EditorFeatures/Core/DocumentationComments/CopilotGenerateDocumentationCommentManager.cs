@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     [Export(typeof(CopilotGenerateDocumentationCommentManager))]
-    internal class CopilotGenerateDocumentationCommentManager
+    internal sealed class CopilotGenerateDocumentationCommentManager
     {
         private readonly SuggestionServiceBase? _suggestionServiceBase;
         private readonly IThreadingContext _threadingContext;

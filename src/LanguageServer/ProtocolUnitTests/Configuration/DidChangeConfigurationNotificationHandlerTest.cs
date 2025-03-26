@@ -20,7 +20,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Configuration
 {
-    public class DidChangeConfigurationNotificationHandlerTest : AbstractLanguageServerProtocolTests
+    public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLanguageServerProtocolTests
     {
         // A regex help to check the message we send to client.
         // It should look like "feature_group.feature_name"
@@ -184,7 +184,7 @@ public class A { }";
             }
         }
 
-        private class ClientCallbackTarget
+        private sealed class ClientCallbackTarget
         {
             public bool WorkspaceDidChangeConfigurationRegistered { get; private set; } = false;
             public List<ConfigurationItem> ReceivedConfigurationItems { get; } = [];

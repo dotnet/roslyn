@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.12</remarks>
-    internal class PrepareRenameParams : ITextDocumentPositionParams, IWorkDoneProgressParams
+    internal sealed class PrepareRenameParams : ITextDocumentPositionParams, IWorkDoneProgressParams
     {
         /// <inheritdoc/>
         [JsonPropertyName("textDocument")]

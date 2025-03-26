@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddExplicitCast;
 
-public partial class AddExplicitCastTests
+public sealed partial class AddExplicitCastTests
 {
     #region "Fix all occurrences tests"
 

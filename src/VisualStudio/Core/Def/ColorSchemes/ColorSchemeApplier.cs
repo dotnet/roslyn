@@ -135,5 +135,5 @@ internal sealed partial class ColorSchemeApplier
 
     // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
     [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
-    private class SVsSettingsPersistenceManager { }
+    private sealed class SVsSettingsPersistenceManager { }
 }

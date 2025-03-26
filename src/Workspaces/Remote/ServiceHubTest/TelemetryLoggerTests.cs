@@ -13,9 +13,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class TelemetryLoggerTests
+    public sealed class TelemetryLoggerTests
     {
-        private class TestLogger : TelemetryLogger
+        private sealed class TestLogger : TelemetryLogger
         {
             public TestLogger(bool logDelta = false)
             {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             protected override bool LogDelta { get; }
 
-            public class TestScope
+            public sealed class TestScope
             {
                 public readonly TelemetryEvent EndEvent;
                 public readonly LogType Type;

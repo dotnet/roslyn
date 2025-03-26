@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 {
     [Guid(Guids.CSharpOptionPageFormattingNewLinesIdString)]
-    internal class FormattingNewLinesPage : AbstractOptionPage
+    internal sealed class FormattingNewLinesPage : AbstractOptionPage
     {
         public FormattingNewLinesPage()
         {

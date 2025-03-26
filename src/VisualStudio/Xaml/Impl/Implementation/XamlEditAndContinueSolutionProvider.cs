@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
     /// Exports <see cref="IXamlEditAndContinueSolutionProvider"/> for the XAML Language Service in Visual Studio.
     /// </summary>
     [Export(typeof(IXamlEditAndContinueSolutionProvider))]
-    internal class XamlEditAndContinueSolutionProvider : IXamlEditAndContinueSolutionProvider, IDisposable
+    internal sealed class XamlEditAndContinueSolutionProvider : IXamlEditAndContinueSolutionProvider, IDisposable
     {
         private readonly IEnumerable<IEditAndContinueSolutionProvider> _editAndContinueSolutionProviders;
 

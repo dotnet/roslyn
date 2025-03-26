@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 {
-    public class TestNode
+    public sealed class TestNode
     {
         public const int MaxValue = 10;
         public const int MaxLabel = 1;

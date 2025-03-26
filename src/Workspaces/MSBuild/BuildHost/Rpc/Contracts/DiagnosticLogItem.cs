@@ -13,7 +13,7 @@ internal enum DiagnosticLogItemKind
 }
 
 [DataContract]
-internal class DiagnosticLogItem(DiagnosticLogItemKind kind, string message, string projectFilePath)
+internal sealed class DiagnosticLogItem(DiagnosticLogItemKind kind, string message, string projectFilePath)
 {
     [DataMember(Order = 0)]
     public DiagnosticLogItemKind Kind { get; } = kind;

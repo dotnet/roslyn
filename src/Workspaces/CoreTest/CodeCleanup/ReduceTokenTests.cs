@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-    public class ReduceTokenTests
+    public sealed class ReduceTokenTests
     {
 #if NET
         private static bool IsNetCoreApp => true;

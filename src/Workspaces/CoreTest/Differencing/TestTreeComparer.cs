@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 {
-    public class TestTreeComparer : TreeComparer<TestNode>
+    public sealed class TestTreeComparer : TreeComparer<TestNode>
     {
         public static readonly TestTreeComparer Instance = new TestTreeComparer();
 

@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
 {
     internal abstract partial class AbstractMethodXmlBuilder
     {
-        private class AutoTag : IDisposable
+        private sealed class AutoTag : IDisposable
         {
             private readonly AbstractMethodXmlBuilder _xmlBuilder;
             private readonly string _name;

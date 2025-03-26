@@ -10,9 +10,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal partial class CodeFixService
+    internal sealed partial class CodeFixService
     {
-        private class FixAllPredefinedDiagnosticProvider : FixAllContext.DiagnosticProvider
+        private sealed class FixAllPredefinedDiagnosticProvider : FixAllContext.DiagnosticProvider
         {
             private readonly ImmutableArray<Diagnostic> _diagnostics;
 

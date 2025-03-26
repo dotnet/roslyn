@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 {
-    public class BuildOnlyDiagnosticIdsHandlerTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+    public sealed class BuildOnlyDiagnosticIdsHandlerTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
     {
         [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/vscode-csharp/issues/5728")]

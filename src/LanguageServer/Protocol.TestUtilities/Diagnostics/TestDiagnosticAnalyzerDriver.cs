@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
-    public class TestDiagnosticAnalyzerDriver
+    public sealed class TestDiagnosticAnalyzerDriver
     {
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
         private readonly bool _includeSuppressedDiagnostics;

@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class representing settings for well-known Visual Studio's code action command.
     /// </summary>
-    internal class VSInternalExecuteCommandClientCapabilities : DynamicRegistrationSetting
+    internal sealed class VSInternalExecuteCommandClientCapabilities : DynamicRegistrationSetting
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="VSInternalExecuteCommandClientCapabilities"/> class.

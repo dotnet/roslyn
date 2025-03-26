@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation
 {
-    internal class InternalFSharpNavigableItem : INavigableItem
+    internal sealed class InternalFSharpNavigableItem : INavigableItem
     {
         private readonly INavigableItem.NavigableDocument _navigableDocument;
 

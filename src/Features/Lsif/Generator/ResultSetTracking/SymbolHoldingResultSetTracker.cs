@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
             return GetTrackedResultSet(symbol).ResultSetNeedsInformationalEdgeAdded(edgeKind);
         }
 
-        private class TrackedResultSet
+        private sealed class TrackedResultSet
         {
             public Id<ResultSet> Id { get; }
 

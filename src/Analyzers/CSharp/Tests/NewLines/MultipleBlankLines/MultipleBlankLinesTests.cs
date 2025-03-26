@@ -15,7 +15,7 @@ using Verify = CSharpCodeFixVerifier<
     CSharpMultipleBlankLinesDiagnosticAnalyzer,
     MultipleBlankLinesCodeFixProvider>;
 
-public class MultipleBlankLinesTests
+public sealed class MultipleBlankLinesTests
 {
     [Fact]
     public async Task TestOneBlankLineAtTopOfFile()

@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion;
 
-internal class FileSystemCompletionHelper
+internal sealed class FileSystemCompletionHelper
 {
     private static readonly char[] s_windowsDirectorySeparator = ['\\'];
 

@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
-    internal class VisualStudioMSBuildInstalled : ExecutionCondition
+    internal sealed class VisualStudioMSBuildInstalled : ExecutionCondition
     {
         private static readonly string? s_skipReason;
 

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(TextViewRoles.PreviewRole)]
-    internal class PreviewConflictTaggerProvider
+    internal sealed class PreviewConflictTaggerProvider
         : AbstractPreviewTaggerProvider<ConflictTag>
     {
         [ImportingConstructor]

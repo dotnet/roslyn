@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// <summary>
     /// Interaction logic for FormattingIndentationOptionControl.xaml
     /// </summary>
-    internal class IndentationViewModel : AbstractOptionPreviewViewModel
+    internal sealed class IndentationViewModel : AbstractOptionPreviewViewModel
     {
         private const string BlockContentPreview = @"
 class C {

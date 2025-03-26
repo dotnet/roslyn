@@ -19,7 +19,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
     [Method(Methods.WorkspaceDidChangeConfigurationName)]
-    internal partial class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler<LSP.DidChangeConfigurationParams>, IOnInitialized
+    internal sealed partial class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler<LSP.DidChangeConfigurationParams>, IOnInitialized
     {
         private bool _supportWorkspaceConfiguration;
         private readonly ILspLogger _lspLogger;

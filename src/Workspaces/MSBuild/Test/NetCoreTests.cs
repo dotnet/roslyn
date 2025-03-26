@@ -21,7 +21,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
-    public class NetCoreTests : MSBuildWorkspaceTestBase
+    public sealed class NetCoreTests : MSBuildWorkspaceTestBase
     {
         private readonly TempDirectory _nugetCacheDir;
 

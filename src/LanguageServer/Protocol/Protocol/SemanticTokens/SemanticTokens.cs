@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class SemanticTokens
+    internal sealed class SemanticTokens
     {
         /// <summary>
         /// An optional result id.

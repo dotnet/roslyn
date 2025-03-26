@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal partial class SuggestedActionsSourceProvider
+    internal sealed partial class SuggestedActionsSourceProvider
     {
         private partial class SuggestedActionsSource
         {

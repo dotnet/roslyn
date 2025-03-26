@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddBraces;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
-public partial class AddBracesTests
+public sealed partial class AddBracesTests
 {
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]

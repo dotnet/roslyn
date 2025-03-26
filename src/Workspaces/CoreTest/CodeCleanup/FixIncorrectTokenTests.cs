@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.FixIncorrectTokens)]
-    public class FixIncorrectTokensTests
+    public sealed class FixIncorrectTokensTests
     {
         [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
         public async Task FixEndIfKeyword_WithMatchingIf()

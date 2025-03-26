@@ -18,7 +18,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    internal class DiagnosticTaggerWrapper<TProvider, TTag>
+    internal sealed class DiagnosticTaggerWrapper<TProvider, TTag>
         where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
         where TTag : ITag
     {

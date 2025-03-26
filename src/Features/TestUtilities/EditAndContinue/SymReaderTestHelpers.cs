@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal static class SymReaderTestHelpers
     {
-        private class DummyMetadataImportProvider : IMetadataImportProvider
+        private sealed class DummyMetadataImportProvider : IMetadataImportProvider
         {
             public object GetMetadataImport() => throw new NotImplementedException();
         }
 
-        private class DummySymReaderMetadataProvider : ISymReaderMetadataProvider
+        private sealed class DummySymReaderMetadataProvider : ISymReaderMetadataProvider
         {
             public unsafe bool TryGetStandaloneSignature(int standaloneSignatureToken, out byte* signature, out int length)
                 => throw new NotImplementedException();

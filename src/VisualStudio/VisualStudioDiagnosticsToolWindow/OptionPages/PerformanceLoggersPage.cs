@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
     [Guid(Guids.RoslynOptionPagePerformanceLoggersIdString)]
-    internal class PerformanceLoggersPage : AbstractOptionPage
+    internal sealed class PerformanceLoggersPage : AbstractOptionPage
     {
         private IGlobalOptionService _globalOptions;
         private IThreadingContext _threadingContext;

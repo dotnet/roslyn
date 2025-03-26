@@ -29,7 +29,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal partial class SuggestedActionsSourceProvider
+    internal sealed partial class SuggestedActionsSourceProvider
     {
         private partial class SuggestedActionsSource : IAsyncSuggestedActionsSource
         {

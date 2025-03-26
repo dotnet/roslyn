@@ -13,7 +13,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// An attribute which identifies the method which an <see cref="IMethodHandler"/> implements.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Method, AllowMultiple = false)]
-internal class LanguageServerEndpointAttribute : Attribute
+internal sealed class LanguageServerEndpointAttribute : Attribute
 {
     /// <summary>
     /// Contains the method that this <see cref="IMethodHandler"/> implements.

@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
-    internal partial class Controller
+    internal sealed partial class Controller
     {
-        internal partial class Session : Session<Controller, Model, ISignatureHelpPresenterSession>
+        internal sealed partial class Session : Session<Controller, Model, ISignatureHelpPresenterSession>
         {
             public Session(Controller controller, ISignatureHelpPresenterSession presenterSession)
                 : base(controller, new ModelComputation<Model>(controller.ThreadingContext, controller), presenterSession)

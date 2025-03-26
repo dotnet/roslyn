@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Rename
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.Rename)]
-    public class CSharpInlineRenameServiceTests
+    public sealed class CSharpInlineRenameServiceTests
     {
-        private class ContextDictionaryComparer : IEqualityComparer<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>?>
+        private sealed class ContextDictionaryComparer : IEqualityComparer<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>?>
         {
             public static ContextDictionaryComparer Instance = new();
 

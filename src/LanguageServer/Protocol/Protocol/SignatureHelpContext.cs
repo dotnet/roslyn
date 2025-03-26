@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.15</remarks>
-    internal class SignatureHelpContext
+    internal sealed class SignatureHelpContext
     {
         /// <summary>
         /// Gets or sets the <see cref="SignatureHelpTriggerKind"/> indicating how the signature help was triggered.

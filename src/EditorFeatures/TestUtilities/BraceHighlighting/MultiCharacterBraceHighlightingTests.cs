@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 {
     [Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-    public class MultiCharacterBraceHighlightingTests : AbstractBraceHighlightingTests
+    public sealed class MultiCharacterBraceHighlightingTests : AbstractBraceHighlightingTests
     {
         protected override EditorTestWorkspace CreateWorkspace(string markup, ParseOptions options)
             => EditorTestWorkspace.Create(
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
         internal override IBraceMatchingService GetBraceMatchingService(EditorTestWorkspace workspace)
             => new TestBraceMatchingService();
 
-        private class TestBraceMatchingService : IBraceMatchingService
+        private sealed class TestBraceMatchingService : IBraceMatchingService
         {
             public async Task<BraceMatchingResult?> GetMatchingBracesAsync(
                 Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)

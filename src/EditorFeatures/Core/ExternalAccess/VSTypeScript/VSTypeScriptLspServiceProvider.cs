@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 [Export(typeof(VSTypeScriptLspServiceProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VSTypeScriptLspServiceProvider(
+internal sealed class VSTypeScriptLspServiceProvider(
     [ImportMany(ProtocolConstants.TypeScriptLanguageContract)] IEnumerable<Lazy<ILspService, LspServiceMetadataView>> lspServices,
     [ImportMany(ProtocolConstants.TypeScriptLanguageContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> lspServiceFactories) : AbstractLspServiceProvider(lspServices, lspServiceFactories)
 {

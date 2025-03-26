@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [SuggestedActionPriority(DefaultOrderings.Default)] // for any provider/item that is neither high or low pri and is not suppressions.
     [SuggestedActionPriority(DefaultOrderings.Low)]     // for providers or items explicitly marked as low pri
     [SuggestedActionPriority(DefaultOrderings.Lowest)]  // Only for suppressions
-    internal partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
+    internal sealed partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
         public static readonly ImmutableArray<string> Orderings = [DefaultOrderings.Highest, DefaultOrderings.Default, DefaultOrderings.Low, DefaultOrderings.Lowest];
 

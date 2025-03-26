@@ -17,7 +17,7 @@ using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
 {
-    public class CSharpInlayHintTests : AbstractInlayHintTests
+    public sealed class CSharpInlayHintTests : AbstractInlayHintTests
     {
         public CSharpInlayHintTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
         {

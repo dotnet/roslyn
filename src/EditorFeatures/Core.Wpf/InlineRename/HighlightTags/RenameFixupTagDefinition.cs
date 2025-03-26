@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTag
     [Name(RenameFixupTag.TagId)]
     [UserVisible(true)]
     [ExcludeFromCodeCoverage]
-    internal class RenameFixupTagDefinition : MarkerFormatDefinition
+    internal sealed class RenameFixupTagDefinition : MarkerFormatDefinition
     {
         public static double StrokeThickness => 1.0;
         public static double[] StrokeDashArray => [4.0, 4.0];

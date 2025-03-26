@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
     using CSharp = Microsoft.CodeAnalysis.CSharp;
 
     [UseExportProvider]
-    public class CodeCleanupTests
+    public sealed class CodeCleanupTests
     {
         #region CSharp Code CodeCleaner Tests
         [Fact]

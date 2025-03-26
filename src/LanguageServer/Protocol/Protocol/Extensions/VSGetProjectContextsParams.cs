@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <see cref="VSGetProjectContextsParams" /> represents the parameter that is sent
     /// with the 'textDocument/_vs_getProjectContexts' request.
     /// </summary>
-    internal class VSGetProjectContextsParams
+    internal sealed class VSGetProjectContextsParams
     {
         /// <summary>
         /// Gets or sets the document for which project contexts are queried.

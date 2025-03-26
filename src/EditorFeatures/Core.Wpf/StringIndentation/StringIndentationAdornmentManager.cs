@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.StringIndentation
 {
-    internal partial class StringIndentationAdornmentManager : AbstractAdornmentManager<StringIndentationTag>
+    internal sealed partial class StringIndentationAdornmentManager : AbstractAdornmentManager<StringIndentationTag>
     {
         public StringIndentationAdornmentManager(
             IThreadingContext threadingContext,

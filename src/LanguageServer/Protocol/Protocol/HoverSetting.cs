@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#hoverClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class HoverSetting : DynamicRegistrationSetting
+    internal sealed class HoverSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// The client supports the following content formats in a <see cref="MarkupContent"/>

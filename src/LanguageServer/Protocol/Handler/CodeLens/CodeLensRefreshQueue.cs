@@ -8,7 +8,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens
 {
-    internal class CodeLensRefreshQueue : AbstractRefreshQueue
+    internal sealed class CodeLensRefreshQueue : AbstractRefreshQueue
     {
         private readonly IGlobalOptionService _globalOptionService;
 

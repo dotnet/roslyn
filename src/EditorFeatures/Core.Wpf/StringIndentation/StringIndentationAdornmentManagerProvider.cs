@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal class StringIndentationAdornmentManagerProvider :
+    internal sealed class StringIndentationAdornmentManagerProvider :
         AbstractAdornmentManagerProvider<StringIndentationTag>
     {
         private const string LayerName = "RoslynStringIndentation";

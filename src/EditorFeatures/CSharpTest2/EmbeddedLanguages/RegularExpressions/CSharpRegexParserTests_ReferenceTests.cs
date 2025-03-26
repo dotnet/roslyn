@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 {
     // All these tests came from the example at:
     // https://docs.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-language-quick-reference
-    public partial class CSharpRegexParserTests
+    public sealed partial class CSharpRegexParserTests
     {
         [Fact]
         public void ReferenceTest0()

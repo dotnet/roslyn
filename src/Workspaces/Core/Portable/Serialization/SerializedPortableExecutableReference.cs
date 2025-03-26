@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Serialization;
 
 using static TemporaryStorageService;
 
-internal partial class SerializerService
+internal sealed partial class SerializerService
 {
     [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
     private sealed class SerializedPortableExecutableReference : PortableExecutableReference, ISupportTemporaryStorage

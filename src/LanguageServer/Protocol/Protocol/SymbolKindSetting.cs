@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Represents the <see cref="SymbolKind"/> values that the client supports.
     /// </summary>
-    internal class SymbolKindSetting
+    internal sealed class SymbolKindSetting
     {
         /// <summary>
         /// The symbol kind values the client supports.

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.Tags
     [Name(ConflictTag.TagId)]
     [UserVisible(true)]
     [ExcludeFromCodeCoverage]
-    internal class ConflictTagDefinition : MarkerFormatDefinition
+    internal sealed class ConflictTagDefinition : MarkerFormatDefinition
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         // In product code, we use this simple wrapper around system clipboard.
         // Maybe at some point we can elevate this class and interface so they could be shared among Roslyn code base.
-        private class SystemClipboardWrapper : IRoslynClipboard
+        private sealed class SystemClipboardWrapper : IRoslynClipboard
         {
             public bool ContainsData(string format)
                 => Clipboard.ContainsData(format);

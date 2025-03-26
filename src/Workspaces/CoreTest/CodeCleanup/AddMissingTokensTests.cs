@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
-    public class AddMissingTokensTests
+    public sealed class AddMissingTokensTests
     {
         [Fact]
         public async Task MultipleLineIfStatementThen()

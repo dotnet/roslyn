@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <see cref="VSProjectContextList" /> represents the response to the
     /// 'textDocument/_vs_getProjectContexts' request.
     /// </summary>
-    internal class VSProjectContextList
+    internal sealed class VSProjectContextList
     {
         /// <summary>
         /// Gets or sets the document contexts associated with a text document.

@@ -19,7 +19,7 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
     [Export(typeof(IViewTaggerProvider))]
     [ContentType("text")]
     [TagType(typeof(TextMarkerTag))]
-    internal class ProjectionSpanTaggerProvider : IViewTaggerProvider
+    internal sealed class ProjectionSpanTaggerProvider : IViewTaggerProvider
     {
         public const string PropertyName = "Projection Tags";
 
@@ -34,7 +34,7 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
             return new Tagger(textView) as ITagger<T>;
         }
 
-        internal class Tagger : ITagger<TextMarkerTag>, IDisposable
+        internal sealed class Tagger : ITagger<TextMarkerTag>, IDisposable
         {
             private readonly ITextView _textView;
 

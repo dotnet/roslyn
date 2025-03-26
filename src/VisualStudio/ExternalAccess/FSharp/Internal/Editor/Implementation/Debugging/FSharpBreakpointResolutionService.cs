@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implement
 {
     [Shared]
     [ExportLanguageService(typeof(IBreakpointResolutionService), LanguageNames.FSharp)]
-    internal class FSharpBreakpointResolutionService : IBreakpointResolutionService
+    internal sealed class FSharpBreakpointResolutionService : IBreakpointResolutionService
     {
         private readonly IFSharpBreakpointResolutionService _service;
 

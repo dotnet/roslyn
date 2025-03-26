@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => _serviceSingleton;
 
-        private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
+        private sealed class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
         {
             private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
 

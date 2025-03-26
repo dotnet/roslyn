@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.UnitTests
 {
-    public class VisualStudioCompilationOutputFilesTests : TestBase
+    public sealed class VisualStudioCompilationOutputFilesTests : TestBase
     {
         [Fact]
         public void OpenStream_Errors()

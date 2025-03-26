@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 {
     [Shared]
     [ExportLanguageService(typeof(FSharpUnusedDeclarationsDiagnosticAnalyzerService), LanguageNames.FSharp)]
-    internal class FSharpUnusedDeclarationsDiagnosticAnalyzerService : ILanguageService
+    internal sealed class FSharpUnusedDeclarationsDiagnosticAnalyzerService : ILanguageService
     {
         private readonly IFSharpUnusedDeclarationsDiagnosticAnalyzer _analyzer;
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
     }
 
     [DiagnosticAnalyzer(LanguageNames.FSharp)]
-    internal class FSharpUnusedDeclarationsDiagnosticAnalyzer : DocumentDiagnosticAnalyzer, IBuiltInAnalyzer
+    internal sealed class FSharpUnusedDeclarationsDiagnosticAnalyzer : DocumentDiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private const string DescriptorId = IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId;
 

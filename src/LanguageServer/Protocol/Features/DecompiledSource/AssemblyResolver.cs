@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource
 {
-    internal class AssemblyResolver : IAssemblyResolver
+    internal sealed class AssemblyResolver : IAssemblyResolver
     {
         private static readonly Dictionary<MetadataReference, (string fileName, ImmutableArray<byte> image)> _inMemoryImagesForTesting = [];
 

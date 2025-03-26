@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Extension class for signature help information which contains colorized label information.
     /// </summary>
-    internal class VSInternalSignatureInformation : SignatureInformation
+    internal sealed class VSInternalSignatureInformation : SignatureInformation
     {
         /// <summary>
         /// Gets or sets the value representing the colorized label.

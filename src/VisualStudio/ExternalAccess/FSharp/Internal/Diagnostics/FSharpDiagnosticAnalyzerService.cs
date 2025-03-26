@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 {
     [Shared]
     [Export(typeof(IFSharpDiagnosticAnalyzerService))]
-    internal class FSharpDiagnosticAnalyzerService : IFSharpDiagnosticAnalyzerService
+    internal sealed class FSharpDiagnosticAnalyzerService : IFSharpDiagnosticAnalyzerService
     {
         private readonly Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService _delegatee;
 

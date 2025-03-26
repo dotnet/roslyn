@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateDeconstructMethod), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember)]
-internal class GenerateDeconstructMethodCodeFixProvider : CodeFixProvider
+internal sealed class GenerateDeconstructMethodCodeFixProvider : CodeFixProvider
 {
     private const string CS8129 = nameof(CS8129); // No suitable Deconstruct instance or extension method was found...
 

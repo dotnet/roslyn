@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(TextViewRoles.PreviewRole)]
-    internal class PreviewWarningTaggerProvider
+    internal sealed class PreviewWarningTaggerProvider
         : AbstractPreviewTaggerProvider<PreviewWarningTag>
     {
         [ImportingConstructor]

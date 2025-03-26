@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// Important.  The order of the previews and preferences provided should match the order
     /// of enum members of T.  
     /// </summary>
-    internal class EnumCodeStyleOptionViewModel<T> : AbstractCodeStyleOptionViewModel
+    internal sealed class EnumCodeStyleOptionViewModel<T> : AbstractCodeStyleOptionViewModel
         where T : struct
     {
         static EnumCodeStyleOptionViewModel()

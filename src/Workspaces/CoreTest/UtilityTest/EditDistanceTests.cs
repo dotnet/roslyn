@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class EditDistanceTests
+    public sealed class EditDistanceTests
     {
         private static void VerifyEditDistance(string s, string t, int expectedEditDistance)
         {

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Ag
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-    public class SettingsAggregatorTests
+    public sealed class SettingsAggregatorTests
     {
         public static Workspace CreateWorkspace(params Type[]? additionalParts)
             => new AdhocWorkspace(VisualStudioTestCompositions.LanguageServices.AddParts(additionalParts).GetHostServices(), WorkspaceKind.Host);

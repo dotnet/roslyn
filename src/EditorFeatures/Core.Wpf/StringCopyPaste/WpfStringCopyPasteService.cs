@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 {
     [ExportWorkspaceService(typeof(IStringCopyPasteService), ServiceLayer.Host), Shared]
-    internal class WpfStringCopyPasteService : IStringCopyPasteService
+    internal sealed class WpfStringCopyPasteService : IStringCopyPasteService
     {
         private const string RoslynFormat = nameof(RoslynFormat);
 

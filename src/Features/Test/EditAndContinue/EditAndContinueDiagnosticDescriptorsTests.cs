@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    public class EditAndContinueDiagnosticDescriptorsTests
+    public sealed class EditAndContinueDiagnosticDescriptorsTests
     {
         [Fact]
         public void GetDescriptor()

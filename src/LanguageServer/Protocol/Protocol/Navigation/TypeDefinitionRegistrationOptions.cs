@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#typeDefinitionRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal class TypeDefinitionRegistrationOptions : TypeDefinitionOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+internal sealed class TypeDefinitionRegistrationOptions : TypeDefinitionOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
     /// <summary>
     /// A document selector to identify the scope of the registration. If set to

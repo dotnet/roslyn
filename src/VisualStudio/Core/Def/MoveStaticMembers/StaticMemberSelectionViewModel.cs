@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers;
 
-internal class StaticMemberSelectionViewModel : AbstractNotifyPropertyChanged
+internal sealed class StaticMemberSelectionViewModel : AbstractNotifyPropertyChanged
 {
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
     private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;

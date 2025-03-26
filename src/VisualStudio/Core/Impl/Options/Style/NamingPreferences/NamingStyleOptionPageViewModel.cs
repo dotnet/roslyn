@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 {
-    internal class NamingStyleOptionPageViewModel : AbstractNotifyPropertyChanged
+    internal sealed class NamingStyleOptionPageViewModel : AbstractNotifyPropertyChanged
     {
         public string ManageSpecificationsButtonText => ServicesVSResources.Manage_specifications;
         public string ManageStylesButtonText => ServicesVSResources.Manage_naming_styles;
@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             }
         }
 
-        internal class NamingRuleViewModel : AbstractNotifyPropertyChanged
+        internal sealed class NamingRuleViewModel : AbstractNotifyPropertyChanged
         {
             public NamingRuleViewModel()
             {

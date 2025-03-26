@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ValueTaskFactory.CompletedTask;
         }
 
-        private class StaticSourceTextContainer(SourceText text) : SourceTextContainer
+        private sealed class StaticSourceTextContainer(SourceText text) : SourceTextContainer
         {
             public override SourceText CurrentText => text;
 

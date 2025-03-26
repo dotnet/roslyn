@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentSymbolClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class DocumentSymbolSetting : DynamicRegistrationSetting
+    internal sealed class DocumentSymbolSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Specific capabilities for <see cref="SymbolKind"/> in <c>textDocument/documentSymbol</c> requests

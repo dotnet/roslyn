@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
-    internal partial class Controller
+    internal sealed partial class Controller
     {
         internal override void OnCaretPositionChanged(object sender, EventArgs args)
         {

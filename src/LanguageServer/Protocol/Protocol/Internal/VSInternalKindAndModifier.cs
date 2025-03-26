@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class that contains the base kind and modifiers used to describe a response item.
     /// </summary>
-    internal class VSInternalKindAndModifier : IEquatable<VSInternalKindAndModifier>
+    internal sealed class VSInternalKindAndModifier : IEquatable<VSInternalKindAndModifier>
     {
         /// <summary>
         /// Gets or sets the ImageIds for a certain kind.

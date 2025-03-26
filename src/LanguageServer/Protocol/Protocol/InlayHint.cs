@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    internal class InlayHint
+    internal sealed class InlayHint
     {
         /// <summary>
         /// The position of this hint.

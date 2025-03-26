@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
-    public class InteractiveCSharpTestWorkspaceFixture : CSharpTestWorkspaceFixture
+    public sealed class InteractiveCSharpTestWorkspaceFixture : CSharpTestWorkspaceFixture
     {
         internal static EditorTestWorkspace CreateInteractiveWorkspace(string fileContent, TestComposition composition)
         {

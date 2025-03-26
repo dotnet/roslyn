@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
 {
     // From https://github.com/dotnet/runtime-assets/blob/main/src/System.Text.RegularExpressions.TestData/Regex_RealWorldPatterns.json
-    public partial class CSharpRegexParserTests
+    public sealed partial class CSharpRegexParserTests
     {
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58186")]
         public void TestDeepAlternation()

@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentSyncClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class SynchronizationSetting : DynamicRegistrationSetting
+    internal sealed class SynchronizationSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Whether the client supports sending <c>textDocument/willSave</c> notifications.

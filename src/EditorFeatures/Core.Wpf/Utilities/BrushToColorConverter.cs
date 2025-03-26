@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.CodeAnalysis.Utilities
 {
-    internal class BrushToColorConverter : ValueConverter<Brush, Color>
+    internal sealed class BrushToColorConverter : ValueConverter<Brush, Color>
     {
         protected override Color Convert(Brush brush, object parameter, CultureInfo culture)
             => brush switch

@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        private protected record ItemExpectation(
+        private protected sealed record ItemExpectation(
             string Name,
             bool IsAbsent,
             string ExpectedDescription = null,

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    internal class InlayHintSetting : DynamicRegistrationSetting
+    internal sealed class InlayHintSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Indicates which properties a client can resolve lazily on an inlay hint.

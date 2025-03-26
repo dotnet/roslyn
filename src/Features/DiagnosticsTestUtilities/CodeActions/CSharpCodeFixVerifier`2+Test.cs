@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, DefaultVerifier>
+        public sealed class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, DefaultVerifier>
         {
             private readonly SharedVerifierState _sharedState;
 

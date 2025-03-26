@@ -47,7 +47,7 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 
-internal class SnippetExpansionClient : IVsExpansionClient
+internal sealed class SnippetExpansionClient : IVsExpansionClient
 {
     /// <summary>
     /// The name of a snippet field created for caret placement in Full Method Call snippet sessions when the

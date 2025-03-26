@@ -29,7 +29,7 @@ internal sealed class UndoManagerServiceFactory(InlineRenameService inlineRename
     internal sealed class InlineRenameUndoManager(InlineRenameService inlineRenameService)
         : AbstractInlineRenameUndoManager<InlineRenameUndoManager.BufferUndoState>(inlineRenameService), IInlineRenameUndoManager
     {
-        internal class BufferUndoState
+        internal sealed class BufferUndoState
         {
             public ITextUndoHistory TextUndoHistory { get; set; }
             public ITextUndoTransaction StartRenameSessionUndoTransaction { get; set; }

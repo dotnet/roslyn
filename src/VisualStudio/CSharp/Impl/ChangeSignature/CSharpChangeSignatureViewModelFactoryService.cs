@@ -16,7 +16,7 @@ using static Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignat
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
 {
     [ExportLanguageService(typeof(IChangeSignatureViewModelFactoryService), LanguageNames.CSharp), Shared]
-    internal class CSharpChangeSignatureViewModelFactoryService : ChangeSignatureViewModelFactoryService
+    internal sealed class CSharpChangeSignatureViewModelFactoryService : ChangeSignatureViewModelFactoryService
     {
         private static readonly CSharpParseOptions s_langVersionLatestParseOptions = new(LanguageVersion.Preview);
 

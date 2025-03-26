@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsages
 {
-    internal class FSharpFindUsagesContext : IFSharpFindUsagesContext
+    internal sealed class FSharpFindUsagesContext : IFSharpFindUsagesContext
     {
         private readonly IFindUsagesContext _context;
 

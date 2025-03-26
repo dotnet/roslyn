@@ -1041,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             return storage;
         }
 
-        private class MockPersistentStorageConfiguration : IPersistentStorageConfiguration
+        private sealed class MockPersistentStorageConfiguration : IPersistentStorageConfiguration
         {
             private readonly SolutionId _solutionId;
             private readonly string _storageLocation;

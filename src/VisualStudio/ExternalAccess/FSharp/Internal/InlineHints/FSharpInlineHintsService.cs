@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.InlineHints
 {
     [ExportLanguageService(typeof(IInlineHintsService), LanguageNames.FSharp), Shared]
-    internal class FSharpInlineHintsService : IInlineHintsService
+    internal sealed class FSharpInlineHintsService : IInlineHintsService
     {
         private readonly IFSharpInlineHintsService? _service;
 

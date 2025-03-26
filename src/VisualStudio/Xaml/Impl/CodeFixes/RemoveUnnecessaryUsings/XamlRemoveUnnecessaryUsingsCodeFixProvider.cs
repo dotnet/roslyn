@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
 {
     [ExportCodeFixProvider(StringConstants.XamlLanguageName, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryImports), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddMissingReference)]
-    internal class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
+    internal sealed class RemoveUnnecessaryUsingsCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

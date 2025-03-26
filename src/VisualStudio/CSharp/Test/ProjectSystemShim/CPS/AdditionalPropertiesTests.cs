@@ -21,7 +21,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-    public class AdditionalPropertiesTests
+    public sealed class AdditionalPropertiesTests
     {
         [WpfFact]
         public async Task SetProperty_RootNamespace_CPS()

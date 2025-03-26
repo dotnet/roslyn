@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal record UnifiedSettingsEnumOption : UnifiedSettingsOption<string>
+internal sealed record UnifiedSettingsEnumOption : UnifiedSettingsOption<string>
 {
     [JsonPropertyName("enum")]
     public required string[] @Enum { get; init; }

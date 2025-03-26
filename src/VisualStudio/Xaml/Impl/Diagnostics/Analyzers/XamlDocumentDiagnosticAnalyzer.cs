@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.Xaml;
 namespace Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers
 {
     [DiagnosticAnalyzer(StringConstants.XamlLanguageName)]
-    internal class XamlDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
+    internal sealed class XamlDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

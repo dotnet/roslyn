@@ -14,7 +14,7 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 
-internal class SnippetFunctionClassName : AbstractSnippetFunction
+internal sealed class SnippetFunctionClassName : AbstractSnippetFunction
 {
     protected readonly string FieldName;
 

@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Options;
 
-public class OptionSerializerTests
+public sealed class OptionSerializerTests
 {
     [Theory, CombinatorialData]
     public void SerializationAndDeserializationForNullableBool([CombinatorialValues(true, false, null)] bool? value)

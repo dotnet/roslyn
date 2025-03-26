@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class SemanticTokensDeltaPartialResult
+    internal sealed class SemanticTokensDeltaPartialResult
     {
         /// <summary>
         /// The semantic token edits to transform a previous result into a new result.

@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#applyWorkspaceEditResult">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class ApplyWorkspaceEditResponse
+    internal sealed class ApplyWorkspaceEditResponse
     {
         /// <summary>
         /// Indicates whether the edit was applied or not.

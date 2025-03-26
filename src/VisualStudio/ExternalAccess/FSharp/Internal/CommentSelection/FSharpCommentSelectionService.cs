@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.CommentSelection
 {
     [Shared]
     [ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.FSharp)]
-    internal class FSharpCommentSelectionService : ICommentSelectionService
+    internal sealed class FSharpCommentSelectionService : ICommentSelectionService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

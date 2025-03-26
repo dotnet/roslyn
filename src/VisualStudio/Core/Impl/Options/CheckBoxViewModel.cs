@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    internal class CheckBoxOptionViewModel : AbstractCheckBoxViewModel
+    internal sealed class CheckBoxOptionViewModel : AbstractCheckBoxViewModel
     {
         public CheckBoxOptionViewModel(IOption2 option, string description, string preview, AbstractOptionPreviewViewModel info, OptionStore optionStore)
             : this(option, description, preview, preview, info, optionStore)

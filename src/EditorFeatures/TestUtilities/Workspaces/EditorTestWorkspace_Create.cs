@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public partial class EditorTestWorkspace
+    public sealed partial class EditorTestWorkspace
     {
         public static EditorTestWorkspace Create(string xmlDefinition, bool openDocuments = false, TestComposition composition = null)
             => Create(XElement.Parse(xmlDefinition), openDocuments, composition);

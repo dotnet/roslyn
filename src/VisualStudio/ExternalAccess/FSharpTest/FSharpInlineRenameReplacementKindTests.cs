@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests
 {
-    public class FSharpInlineRenameReplacementKindTests
+    public sealed class FSharpInlineRenameReplacementKindTests
     {
         public static IEnumerable<object[]> enumValues()
         {

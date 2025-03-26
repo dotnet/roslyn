@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.IntroduceVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new IntroduceVariableCodeRefactoringProvider();

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since 3.16</remarks>
-    internal class ResolveSupportSetting
+    internal sealed class ResolveSupportSetting
     {
         /// <summary>
         /// Gets or sets a value indicating the properties that a client can resolve lazily.

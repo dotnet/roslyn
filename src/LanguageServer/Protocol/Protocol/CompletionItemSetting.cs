@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionClientCapabilities">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class CompletionItemSetting
+    internal sealed class CompletionItemSetting
     {
         /// <summary>
         /// The client supports treating <see cref="CompletionItem.InsertText"/> as a snippet

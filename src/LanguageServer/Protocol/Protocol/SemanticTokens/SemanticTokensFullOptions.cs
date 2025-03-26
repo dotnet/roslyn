@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class SemanticTokensFullOptions
+    internal sealed class SemanticTokensFullOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether the server supports deltas for full documents.

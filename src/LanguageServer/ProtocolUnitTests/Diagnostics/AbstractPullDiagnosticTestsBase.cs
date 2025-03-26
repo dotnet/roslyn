@@ -364,13 +364,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         /// Helper type to store unified LSP diagnostic results.
         /// Diagnostics are null when unchanged.
         /// </summary>
-        private protected record TestDiagnosticResult(TextDocumentIdentifier TextDocument, string? ResultId, LSP.Diagnostic[]? Diagnostics)
+        private protected sealed record TestDiagnosticResult(TextDocumentIdentifier TextDocument, string? ResultId, LSP.Diagnostic[]? Diagnostics)
         {
             public Uri Uri { get; } = TextDocument.Uri;
         }
 
         [DiagnosticAnalyzer(InternalLanguageNames.TypeScript), PartNotDiscoverable]
-        private class MockTypescriptDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
+        private sealed class MockTypescriptDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
             "TS01", "TS error", "TS error", "Error", DiagnosticSeverity.Error, isEnabledByDefault: true);

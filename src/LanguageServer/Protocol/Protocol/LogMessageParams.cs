@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#logMessageParams">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class LogMessageParams
+    internal sealed class LogMessageParams
     {
         /// <summary>
         /// Gets or sets the type of message.

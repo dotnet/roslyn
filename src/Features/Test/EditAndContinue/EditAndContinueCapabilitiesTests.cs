@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    public class EditAndContinueCapabilitiesTests
+    public sealed class EditAndContinueCapabilitiesTests
     {
         [Fact]
         public void ParseCapabilities()

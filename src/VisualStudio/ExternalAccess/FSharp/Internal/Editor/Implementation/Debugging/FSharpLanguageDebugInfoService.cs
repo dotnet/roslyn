@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.Implement
     [ExportLanguageService(typeof(ILanguageDebugInfoService), LanguageNames.FSharp), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class FSharpLanguageDebugInfoService(IFSharpLanguageDebugInfoService service) : ILanguageDebugInfoService
+    internal sealed class FSharpLanguageDebugInfoService(IFSharpLanguageDebugInfoService service) : ILanguageDebugInfoService
     {
         private readonly IFSharpLanguageDebugInfoService _service = service;
 

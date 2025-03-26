@@ -17,7 +17,7 @@ using Range = Roslyn.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
-    public class ProtocolConversionsTests : AbstractLanguageServerProtocolTests
+    public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTests
     {
         public ProtocolConversionsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Formatting
 {
-    internal class XamlFormattingOptions
+    internal sealed class XamlFormattingOptions
     {
         public bool InsertSpaces { get; set; }
         public int TabSize { get; set; }

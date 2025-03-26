@@ -16,7 +16,7 @@ using Roslyn.Test.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 {
     [Export(typeof(IInteractiveWindowEditorFactoryService))]
-    internal class TestInteractiveWindowEditorFactoryService : IInteractiveWindowEditorFactoryService
+    internal sealed class TestInteractiveWindowEditorFactoryService : IInteractiveWindowEditorFactoryService
     {
         public const string ContentType = "text";
 

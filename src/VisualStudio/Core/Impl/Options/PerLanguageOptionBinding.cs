@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    internal class PerLanguageOptionBinding<T> : INotifyPropertyChanged
+    internal sealed class PerLanguageOptionBinding<T> : INotifyPropertyChanged
     {
         private readonly OptionStore _optionStore;
         private readonly PerLanguageOption2<T> _option;

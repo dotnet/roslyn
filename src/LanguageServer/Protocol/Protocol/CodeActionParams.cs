@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionParams">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class CodeActionParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SumType<Command, CodeAction>[]>
+    internal sealed class CodeActionParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SumType<Command, CodeAction>[]>
     {
         /// <summary>
         /// Gets or sets the document identifier indicating where the command was invoked.

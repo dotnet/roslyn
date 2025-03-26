@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    internal class FoldingRange
+    internal sealed class FoldingRange
     {
         /// <summary>
         /// The zero-based start line of the range to fold.

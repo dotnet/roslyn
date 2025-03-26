@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo
 {
-    internal class FSharpNavigateToSearchResult
+    internal sealed class FSharpNavigateToSearchResult
     {
         public FSharpNavigateToSearchResult(
             string additionalInformation,

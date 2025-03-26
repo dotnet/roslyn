@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    internal class CompletionItemOptions
+    internal sealed class CompletionItemOptions
     {
         /// <summary>
         /// Gets or sets a value indicating The server has support for completion item label details

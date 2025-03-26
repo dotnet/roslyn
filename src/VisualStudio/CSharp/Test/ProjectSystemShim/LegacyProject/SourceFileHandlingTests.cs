@@ -15,7 +15,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-    public class SourceFileHandlingTests
+    public sealed class SourceFileHandlingTests
     {
         [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100114")]
         public void IgnoreAdditionsOfXomlFiles()

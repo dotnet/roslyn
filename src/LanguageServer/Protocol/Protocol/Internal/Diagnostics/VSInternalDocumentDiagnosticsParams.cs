@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class representing a diagnostic pull request for a specific document.
     /// </summary>
-    internal class VSInternalDocumentDiagnosticsParams : VSInternalDiagnosticParams, IPartialResultParams<VSInternalDiagnosticReport[]>, IWorkDoneProgressParams
+    internal sealed class VSInternalDocumentDiagnosticsParams : VSInternalDiagnosticParams, IPartialResultParams<VSInternalDiagnosticReport[]>, IWorkDoneProgressParams
     {
         /// <inheritdoc/>
         [JsonPropertyName(Methods.WorkDoneTokenName)]

@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
 {
     [Export(typeof(IRemoteProjectInfoProvider))]
-    internal class RoslynRemoteProjectInfoProvider : IRemoteProjectInfoProvider
+    internal sealed class RoslynRemoteProjectInfoProvider : IRemoteProjectInfoProvider
     {
         private const string SystemUriSchemeExternal = "vslsexternal";
 

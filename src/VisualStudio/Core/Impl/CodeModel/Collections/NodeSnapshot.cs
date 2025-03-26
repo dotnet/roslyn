@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections
 {
-    internal class NodeSnapshot : Snapshot
+    internal sealed class NodeSnapshot : Snapshot
     {
         private readonly CodeModelState _state;
         private readonly ComHandle<EnvDTE.FileCodeModel, FileCodeModel> _fileCodeModel;

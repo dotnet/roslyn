@@ -143,7 +143,7 @@ internal sealed class TypeImportCompletionCacheEntry
         }
     }
 
-    public class Builder(SymbolKey assemblySymbolKey, Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo) : IDisposable
+    public sealed class Builder(SymbolKey assemblySymbolKey, Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo) : IDisposable
     {
         private readonly SymbolKey _assemblySymbolKey = assemblySymbolKey;
         private readonly string _language = language;

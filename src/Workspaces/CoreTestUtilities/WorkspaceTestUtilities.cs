@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static Workspace CreateWorkspaceWithPartialSemantics(Type[]? additionalParts = null, TestHost testHost = TestHost.InProcess)
             => new WorkspaceWithPartialSemantics(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(testHost).GetHostServices());
 
-        private class WorkspaceWithPartialSemantics : Workspace
+        private sealed class WorkspaceWithPartialSemantics : Workspace
         {
             public WorkspaceWithPartialSemantics(HostServices hostServices) : base(hostServices, workspaceKind: nameof(WorkspaceWithPartialSemantics))
             {

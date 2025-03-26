@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     /// <summary>
     /// A test-only implementation of ITextManagerAdapter used for testing CodeModel.
     /// </summary>
-    internal partial class MockTextManagerAdapter : ITextManagerAdapter
+    internal sealed partial class MockTextManagerAdapter : ITextManagerAdapter
     {
         public EnvDTE.TextPoint CreateTextPoint(FileCodeModel fileCodeModel, VirtualTreePoint point)
         {

@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentLink">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class DocumentLink
+    internal sealed class DocumentLink
     {
         /// <summary>
         /// The range this link applies to.

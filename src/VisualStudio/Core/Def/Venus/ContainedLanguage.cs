@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 
-internal partial class ContainedLanguage
+internal sealed partial class ContainedLanguage
 {
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
     private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;

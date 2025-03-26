@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities.ServiceBroker;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
-internal class BrokeredServiceContainer : GlobalBrokeredServiceContainer
+internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
 {
     public BrokeredServiceContainer(TraceSource traceSource)
         : base(ImmutableDictionary<ServiceMoniker, ServiceRegistration>.Empty, isClientOfExclusiveServer: false, joinableTaskFactory: null, traceSource)
@@ -55,7 +55,7 @@ internal class BrokeredServiceContainer : GlobalBrokeredServiceContainer
         return container;
     }
 
-    private class NoOpAuthorizationService : IAuthorizationService
+    private sealed class NoOpAuthorizationService : IAuthorizationService
     {
         public event EventHandler? CredentialsChanged;
 

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class CSharpSyntaxFormatting : AbstractSyntaxFormatting
+internal sealed class CSharpSyntaxFormatting : AbstractSyntaxFormatting
 {
     public static readonly CSharpSyntaxFormatting Instance = new();
 

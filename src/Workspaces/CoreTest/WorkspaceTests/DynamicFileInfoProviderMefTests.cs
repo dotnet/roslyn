@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class DynamicFileInfoProviderMefTests : TestBase
+    public sealed class DynamicFileInfoProviderMefTests : TestBase
     {
         [Fact]
         public void TestFileExtensionsMetadata()

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
     [ExportWorkspaceService(typeof(IMoveStaticMembersOptionsService))]
     [Shared]
     [PartNotDiscoverable]
-    internal class TestMoveStaticMembersService : IMoveStaticMembersOptionsService
+    internal sealed class TestMoveStaticMembersService : IMoveStaticMembersOptionsService
     {
         [ImportingConstructor]
         [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     /// <summary>
     /// All the tests of the custom RPC system we have for talking to the build host.
     /// </summary>
-    public class RpcTests
+    public sealed class RpcTests
     {
-        private class RpcPair : IAsyncDisposable
+        private sealed class RpcPair : IAsyncDisposable
         {
             private readonly PipeStream _clientStream;
             private readonly PipeStream _serverStream;

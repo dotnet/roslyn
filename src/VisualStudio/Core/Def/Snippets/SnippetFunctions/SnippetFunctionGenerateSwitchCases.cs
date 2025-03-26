@@ -16,7 +16,7 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 
-internal class SnippetFunctionGenerateSwitchCases : AbstractSnippetFunction
+internal sealed class SnippetFunctionGenerateSwitchCases : AbstractSnippetFunction
 {
     protected readonly string CaseGenerationLocationField;
     protected readonly string SwitchExpressionField;

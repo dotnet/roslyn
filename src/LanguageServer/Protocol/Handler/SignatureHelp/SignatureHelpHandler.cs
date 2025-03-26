@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [Method(LSP.Methods.TextDocumentSignatureHelpName)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class SignatureHelpHandler(SignatureHelpService signatureHelpService) : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
+    internal sealed class SignatureHelpHandler(SignatureHelpService signatureHelpService) : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#linkedEditingRangeParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class LinkedEditingRangeParams : TextDocumentPositionParams, IWorkDoneProgressParams
+    internal sealed class LinkedEditingRangeParams : TextDocumentPositionParams, IWorkDoneProgressParams
     {
         /// <inheritdoc/>
         [JsonPropertyName(Methods.WorkDoneTokenName)]

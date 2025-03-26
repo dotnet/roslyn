@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class SemanticTokensLegend
+    internal sealed class SemanticTokensLegend
     {
         /// <summary>.
         /// The semantic token types the server uses. Indices into this array are used to encode token types in semantic tokens responses.

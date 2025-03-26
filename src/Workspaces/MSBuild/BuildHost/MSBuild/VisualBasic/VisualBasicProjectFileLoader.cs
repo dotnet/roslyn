@@ -6,7 +6,7 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal partial class VisualBasicProjectFileLoader : ProjectFileLoader
+    internal sealed partial class VisualBasicProjectFileLoader : ProjectFileLoader
     {
         public override string Language => LanguageNames.VisualBasic;
 

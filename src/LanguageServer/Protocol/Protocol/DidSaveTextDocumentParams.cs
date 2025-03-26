@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didSaveTextDocumentParams">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class DidSaveTextDocumentParams : ITextDocumentParams
+    internal sealed class DidSaveTextDocumentParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the <see cref="TextDocumentIdentifier"/> which represents the text document that was saved.

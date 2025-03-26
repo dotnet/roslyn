@@ -28,7 +28,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
+    internal sealed class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly bool _registerOleComponent;
         private readonly IGlobalOptionService _globalOptionService;

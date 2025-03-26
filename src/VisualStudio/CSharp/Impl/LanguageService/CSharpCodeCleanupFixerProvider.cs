@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeCleanup
     [Export(typeof(ICodeCleanUpFixerProvider))]
     [AppliesToProject("CSharp")]
     [ContentType(ContentTypeNames.CSharpContentType)]
-    internal class CSharpCodeCleanUpFixerProvider : AbstractCodeCleanUpFixerProvider
+    internal sealed class CSharpCodeCleanUpFixerProvider : AbstractCodeCleanUpFixerProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

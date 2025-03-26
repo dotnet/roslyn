@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 /// it can be retrieved later on if the user pastes.
 /// </summary>
 [method: JsonConstructor]
-internal class StringCopyPasteData(ImmutableArray<StringCopyPasteContent> contents)
+internal sealed class StringCopyPasteData(ImmutableArray<StringCopyPasteContent> contents)
 {
     public ImmutableArray<StringCopyPasteContent> Contents { get; } = contents;
 

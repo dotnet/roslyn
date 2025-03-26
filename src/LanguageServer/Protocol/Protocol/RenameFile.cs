@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     /// <remarks>Since LSP 3.13</remarks>
     [Kind("rename")]
-    internal class RenameFile : IAnnotatedChange
+    internal sealed class RenameFile : IAnnotatedChange
     {
         /// <summary>
         /// Gets the kind value.

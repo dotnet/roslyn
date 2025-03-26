@@ -22,7 +22,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
 {
-    public class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+    public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
     {
         [Theory, CombinatorialData]
         public async Task TestFindAllReferencesAsync(bool mutatingLspWorkspace)

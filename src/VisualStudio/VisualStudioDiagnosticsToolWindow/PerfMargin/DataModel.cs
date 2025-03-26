@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Hosting.Diagnostics.PerfMargin
 {
-    internal class DataModel
+    internal sealed class DataModel
     {
         public ActivityLevel RootNode { get; }
 

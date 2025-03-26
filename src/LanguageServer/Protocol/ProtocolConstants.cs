@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class ProtocolConstants
+    internal sealed class ProtocolConstants
     {
         public const string RazorCSharp = "RazorCSharp";
 

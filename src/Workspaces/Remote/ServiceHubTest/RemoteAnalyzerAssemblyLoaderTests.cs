@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
-    public class RemoteAnalyzerAssemblyLoaderTests
+    public sealed class RemoteAnalyzerAssemblyLoaderTests
     {
         private static AnalyzerAssemblyLoader Create(string baseDirectory) => new(
             [new RemoteAnalyzerPathResolver(baseDirectory)],

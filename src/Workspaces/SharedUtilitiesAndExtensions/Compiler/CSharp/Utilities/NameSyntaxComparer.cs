@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities;
 
-internal class NameSyntaxComparer : IComparer<NameSyntax?>
+internal sealed class NameSyntaxComparer : IComparer<NameSyntax?>
 {
     private readonly IComparer<SyntaxToken> _tokenComparer;
     internal readonly TypeSyntaxComparer TypeComparer;

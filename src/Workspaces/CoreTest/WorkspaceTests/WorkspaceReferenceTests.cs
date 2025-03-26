@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class WorkspaceReferenceTests
+    public sealed class WorkspaceReferenceTests
     {
         [Fact]
         public async Task CheckPEReferencesSameAfterSolutionChangedTest()

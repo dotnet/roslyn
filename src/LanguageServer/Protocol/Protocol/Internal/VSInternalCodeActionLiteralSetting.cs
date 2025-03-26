@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class representing support for code action literals.
     /// </summary>
-    internal class VSInternalCodeActionLiteralSetting : CodeActionLiteralSetting
+    internal sealed class VSInternalCodeActionLiteralSetting : CodeActionLiteralSetting
     {
         /// <summary>
         /// Gets or sets a value indicating what code action default groups are supported.

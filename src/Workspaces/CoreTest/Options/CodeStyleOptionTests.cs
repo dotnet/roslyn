@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Options
 {
-    public class CodeStyleOptionTests
+    public sealed class CodeStyleOptionTests
     {
         [Fact]
         public void WithValue_Same_Bool()

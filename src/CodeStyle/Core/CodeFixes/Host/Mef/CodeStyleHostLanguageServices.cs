@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Host
                 return importer.Exports;
             }
 
-            private class WithMetadataImporter<TExtension, TMetadata>
+            private sealed class WithMetadataImporter<TExtension, TMetadata>
             {
                 [ImportMany]
                 public IEnumerable<Lazy<TExtension, TMetadata>> Exports { get; set; }

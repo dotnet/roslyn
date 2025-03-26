@@ -18,7 +18,7 @@ using static Microsoft.CodeAnalysis.UnitTests.SolutionUtilities;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class SourceGeneratorTelemetryCollectorWorkspaceServiceTests
+    public sealed class SourceGeneratorTelemetryCollectorWorkspaceServiceTests
     {
         [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1675665")]
         public async Task WithReferencesMethodCorrectlyUpdatesWithEqualReferences()
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         [ExportWorkspaceServiceFactory(typeof(ISourceGeneratorTelemetryCollectorWorkspaceService)), Shared]
         [PartNotDiscoverable]
-        public class TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory : IWorkspaceServiceFactory
+        public sealed class TestSourceGeneratorTelemetryCollectorWorkspaceServiceFactory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

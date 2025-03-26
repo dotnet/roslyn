@@ -9,7 +9,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 {
-    internal class XamlRequestExecutionQueue : RequestExecutionQueue<RequestContext>, ILspService
+    internal sealed class XamlRequestExecutionQueue : RequestExecutionQueue<RequestContext>, ILspService
     {
         private readonly XamlProjectService _projectService;
 

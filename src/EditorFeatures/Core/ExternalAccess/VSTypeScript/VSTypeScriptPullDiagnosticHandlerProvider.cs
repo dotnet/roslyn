@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 [ExportLspServiceFactory(typeof(DocumentPullDiagnosticHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
+internal sealed class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
     IDiagnosticAnalyzerService analyzerService,
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
@@ -27,7 +27,7 @@ internal class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
 [ExportLspServiceFactory(typeof(WorkspacePullDiagnosticHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VSTypeScriptWorkspacePullDiagnosticHandler(
+internal sealed class VSTypeScriptWorkspacePullDiagnosticHandler(
     LspWorkspaceRegistrationService registrationService,
     IDiagnosticAnalyzerService analyzerService,
     IDiagnosticSourceManager diagnosticSourceManager,

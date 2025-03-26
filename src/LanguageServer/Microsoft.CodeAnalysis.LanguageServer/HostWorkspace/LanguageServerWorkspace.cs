@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// it will use the local information it has outside of the workspace to ensure it is always matched with the lsp
 /// client.
 /// </summary>
-internal class LanguageServerWorkspace : Workspace, ILspWorkspace
+internal sealed class LanguageServerWorkspace : Workspace, ILspWorkspace
 {
     /// <summary>
     /// Will be set by LanguageServerProjectSystem immediately after creating this instance.  Can't be passed into the

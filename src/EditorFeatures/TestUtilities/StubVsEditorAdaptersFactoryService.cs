@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     [Export(typeof(IVsEditorAdaptersFactoryService))]
     [PartNotDiscoverable]
-    internal class StubVsEditorAdaptersFactoryService : IVsEditorAdaptersFactoryService
+    internal sealed class StubVsEditorAdaptersFactoryService : IVsEditorAdaptersFactoryService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

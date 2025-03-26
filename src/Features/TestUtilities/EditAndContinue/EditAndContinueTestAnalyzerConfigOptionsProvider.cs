@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal class EditAndContinueTestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+    internal sealed class EditAndContinueTestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
     {
         public EditAndContinueTestAnalyzerConfigOptionsProvider(IEnumerable<(string, string)> options)
             => GlobalOptions = new EditAndContinueTestAnalyzerConfigOptions(options);

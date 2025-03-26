@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class SyntaxPathTests
+    public sealed class SyntaxPathTests
     {
         [Fact]
         public void RecoverSingle()

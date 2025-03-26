@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// <summary>
     /// DataGridTemplateColumns have custom controls that should be focused instead of the cell.
     /// </summary>
-    internal class ColumnToTabStopConverter : ValueConverter<DataGridColumn, bool>
+    internal sealed class ColumnToTabStopConverter : ValueConverter<DataGridColumn, bool>
     {
         protected override bool Convert(DataGridColumn value, object parameter, CultureInfo culture)
         {
