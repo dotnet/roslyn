@@ -417,11 +417,6 @@
         <target state="translated">Actualización de errores de forma periódica: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Experimental_feature">
-        <source>Experimental feature</source>
-        <target state="translated">Característica experimental</target>
-        <note />
-      </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
         <target state="translated">Orígenes externos</target>
@@ -1974,16 +1969,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
 Use la lista desplegable para ver y cambiar a otros proyectos a los que puede pertenecer este archivo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AnalyzerChangedOnDisk">
-        <source>AnalyzerChangedOnDisk</source>
-        <target state="translated">AnalyzerChangedOnDisk</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted">
-        <source>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</source>
-        <target state="translated">El ensamblado del analizador "{0}" cambió. Los diagnósticos podrían ser incorrectos hasta que se reinicie Visual Studio.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deselect_All">
         <source>_Deselect All</source>
         <target state="translated">_Anular toda la selección</target>
@@ -2229,11 +2214,6 @@ Use la lista desplegable para ver y cambiar a otros proyectos a los que puede pe
         <target state="translated">Sincronizando con {0}...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Studio_has_suspended_some_advanced_features_to_improve_performance">
-        <source>Visual Studio has suspended some advanced features to improve performance.</source>
-        <target state="translated">Visual Studio suspendió algunas características avanzadas para mejorar el rendimiento.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Installing_0">
         <source>Installing '{0}'</source>
         <target state="translated">Instalando "{0}"</target>
@@ -2426,11 +2406,6 @@ Información adicional: {1}</target>
         <source>Restore {0}</source>
         <target state="translated">Restaurar {0}</target>
         <note>{0} is a parameter description</note>
-      </trans-unit>
-      <trans-unit id="Re_enable">
-        <source>Re-enable</source>
-        <target state="translated">Volver a habilitar</target>
-        <note />
       </trans-unit>
       <trans-unit id="Learn_more">
         <source>Learn more</source>

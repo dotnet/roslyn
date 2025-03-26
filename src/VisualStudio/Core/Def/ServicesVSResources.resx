@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -249,12 +249,6 @@ Use the dropdown to view and navigate to other items in this file.</value>
 
 Use the dropdown to view and switch to other projects this file may belong to.</value>
   </data>
-  <data name="AnalyzerChangedOnDisk" xml:space="preserve">
-    <value>AnalyzerChangedOnDisk</value>
-  </data>
-  <data name="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted" xml:space="preserve">
-    <value>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</value>
-  </data>
   <data name="Deselect_All" xml:space="preserve">
     <value>_Deselect All</value>
   </data>
@@ -411,9 +405,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Synchronizing_with_0" xml:space="preserve">
     <value>Synchronizing with {0}...</value>
   </data>
-  <data name="Visual_Studio_has_suspended_some_advanced_features_to_improve_performance" xml:space="preserve">
-    <value>Visual Studio has suspended some advanced features to improve performance.</value>
-  </data>
   <data name="Installing_0" xml:space="preserve">
     <value>Installing '{0}'</value>
   </data>
@@ -534,9 +525,6 @@ Additional information: {1}</value>
   <data name="Restore_0" xml:space="preserve">
     <value>Restore {0}</value>
     <comment>{0} is a parameter description</comment>
-  </data>
-  <data name="Re_enable" xml:space="preserve">
-    <value>Re-enable</value>
   </data>
   <data name="Learn_more" xml:space="preserve">
     <value>Learn more</value>
@@ -1890,8 +1878,5 @@ Additional information: {1}</value>
   </data>
   <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
     <value>Show completion list after a character is typed</value>
-  </data>
-  <data name="Experimental_feature" xml:space="preserve">
-    <value>Experimental feature</value>
   </data>
 </root>
