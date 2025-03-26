@@ -34,7 +34,7 @@ internal sealed class GlobalOptionService(
     private static ImmutableArray<IOptionPersister> GetOptionPersisters(IEnumerable<Lazy<IOptionPersisterProvider>> optionPersisterProviders)
     {
         return optionPersisterProviders.SelectAsArray(
-                static provider => provider.Value.GetOrCreatePersister());
+            static provider => provider.Value.GetOrCreatePersister());
     }
 
     private static object? LoadOptionFromPersisterOrGetDefault(OptionKey2 optionKey, ImmutableArray<IOptionPersister> persisters)
