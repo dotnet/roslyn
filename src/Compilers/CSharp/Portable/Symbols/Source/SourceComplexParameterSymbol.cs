@@ -1591,6 +1591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 checkIsAtLeastAsVisible(syntax, binder, constructor, diagnostics);
                             }
 
+                            // PROTOTYPE: Should we report diagnostics when GetCollectionExpressionApplicableIndexer() returns non-null?
                             if (binder.GetCollectionExpressionApplicableIndexer(syntax, Type, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is null)
                             {
                                 if (!binder.HasCollectionExpressionApplicableAddMethod(syntax, Type, out ImmutableArray<MethodSymbol> addMethods, diagnostics))

@@ -2193,6 +2193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         reportedErrors = true;
                     }
 
+                    // PROTOTYPE: Should we report diagnostics when GetCollectionExpressionApplicableIndexer() returns non-null?
                     if (GetCollectionExpressionApplicableIndexer(node.Syntax, targetType, elementTypeWithAnnotations.Type, BindingDiagnosticBag.Discarded) is { })
                     {
                         collectionTypeKind = CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer;
