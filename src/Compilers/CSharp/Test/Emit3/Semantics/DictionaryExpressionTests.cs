@@ -1833,6 +1833,57 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void KeyValuePairConversions_MultipleIndexers_UnrelatedTypes()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                class MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    private Dictionary<K, V> _d = new();
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => _d.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                    public V this[K key]
+                    {
+                        get { return _d[key]; }
+                        set { Console.WriteLine("{0}, {1}, {2}, {3}", typeof(K).Name, typeof(V).Name, key, value); _d[key] = value; }
+                    }
+                    public V this[int key]
+                    {
+                        get { return default; }
+                        set { Console.WriteLine("int, {0}, {1}, {2}", typeof(V).Name, key, value); }
+                    }
+                }
+                """;
+            string sourceB = """
+                class A
+                {
+                    public static implicit operator uint?(A a) => 1;
+                    public static implicit operator int(A a) => 2;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        FromPair1(new A(), "one");
+                        FromPair2(new A(), "two");
+                    }
+                    static MyDictionary<uint?, object> FromPair1(A k, object v) => [k:v];
+                    static MyDictionary<uint?, object> FromPair2(A k, object v) { var d = new MyDictionary<uint?, object>(); d[k] = v; return d; }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB],
+                verify: Verification.Skipped,
+                expectedOutput: """
+                    Nullable`1, Object, 1, one
+                    int, Object, 2, two
+                    """);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void KeyValuePairConversions_KeyValuePairConstraint()
         {
             string source = """
