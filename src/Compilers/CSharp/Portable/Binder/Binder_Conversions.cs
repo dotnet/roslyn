@@ -1601,6 +1601,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodResult = result.ValidResult;
                 var method = methodResult.Member;
 
+                // PROTOTYPE: It looks like we added a bunch of code in BindInvocationExpressionContinued at this position
+                //            that specifically deals with new extension methods. It adjusts analyzedArguments, etc.
+                //            It is very likely we need to do the same here. 
+
                 // It is possible that overload resolution succeeded, but we have chosen an
                 // instance method and we're in a static method. A careful reading of the
                 // overload resolution spec shows that the "final validation" stage allows an
@@ -1659,7 +1663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Add methods. This case can be hit for spreads and non-spread elements.
                         Debug.Assert(call.HasErrors);
                         Debug.Assert(call.Method.Name == "Add");
-                        return call.Arguments[call.InvokedAsExtensionMethod ? 1 : 0];
+                        return call.Arguments[call.InvokedAsExtensionMethod ? 1 : 0]; // PROTOTYPE: Add test coverage for new extensions
                     case BoundBadExpression badExpression:
                         Debug.Assert(false); // Add test if we hit this assert.
                         return badExpression;
