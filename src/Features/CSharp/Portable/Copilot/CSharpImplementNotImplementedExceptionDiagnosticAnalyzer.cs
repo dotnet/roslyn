@@ -91,9 +91,11 @@ internal sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzer()
     {
         if (block is IBlockOperation { Operations: [var child] })
         {
+            // Handle: { throw new NotImplementedException(); }
             if (child == operation)
                 return true;
 
+            // Handle: => throw new NotImplementedException();
             if (child is IReturnOperation { ReturnedValue: IConversionOperation { Operand: var operand } } && operand == operation)
                 return true;
         }
