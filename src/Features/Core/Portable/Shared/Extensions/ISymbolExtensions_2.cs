@@ -103,7 +103,8 @@ internal static partial class ISymbolExtensions2
                         return Glyph.Operator;
                     }
                     else if (methodSymbol.IsExtensionMethod ||
-                             methodSymbol.MethodKind == MethodKind.ReducedExtension)
+                             methodSymbol.MethodKind == MethodKind.ReducedExtension ||
+                             methodSymbol.ContainingType.IsExtension)
                     {
                         publicIcon = Glyph.ExtensionMethodPublic;
                     }
