@@ -982,7 +982,7 @@ class C
             var oldTree = this.Parse(text, LanguageVersionFacts.CSharpNext);
             var newTree = oldTree.WithReplaceFirst("extension", "class");
             oldTree.GetDiagnostics().Verify(
-                // (4,15): error CS9500: Extension declarations may not have a name.
+                // (4,15): error CS9281: Extension declarations may not have a name.
                 //     extension E(object x) { }
                 Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "E").WithLocation(4, 15));
             newTree.GetDiagnostics().Verify();
@@ -1160,7 +1160,7 @@ class C
             var newTree = oldTree.WithReplaceFirst("struct", "extension");
             oldTree.GetDiagnostics().Verify();
             newTree.GetDiagnostics().Verify(
-                // (4,15): error CS9500: Extension declarations may not have a name.
+                // (4,15): error CS9281: Extension declarations may not have a name.
                 //     extension D(object x) { }
                 Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "D").WithLocation(4, 15));
 
@@ -1172,7 +1172,7 @@ class C
                             SyntaxKind.ExtensionKeyword);
 
             UsingTree(newTree,
-                // (4,15): error CS9500: Extension declarations may not have a name.
+                // (4,15): error CS9281: Extension declarations may not have a name.
                 //     extension D(object x) { }
                 Diagnostic(ErrorCode.ERR_ExtensionDisallowsName, "D").WithLocation(4, 15));
 
