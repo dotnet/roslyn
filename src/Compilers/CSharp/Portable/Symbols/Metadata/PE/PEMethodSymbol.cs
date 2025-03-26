@@ -1437,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (diagnosticInfo == null && _containingType.IsExtension &&
                     TryGetCorrespondingExtensionImplementationMethod() is null)
                 {
-                    // PROTOTYPE: Test this code path
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
                 }
 

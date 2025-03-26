@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(extensions.Count == 0);
 
-            // PROTOTYPE test this flag (see TestUnusedExtensionMarksImportsAsUsed)
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test this flag (see TestUnusedExtensionMarksImportsAsUsed)
             bool callerIsSemanticModel = originalBinder.IsSemanticModelBinder;
 
             foreach (var nsOrType in this.GetUsings(basesBeingResolved: null))
@@ -143,13 +143,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var count = extensions.Count;
                     ns.GetExtensionContainers(extensions);
                     // If we found any extension declarations, then consider this using as used.
-                    // PROTOTYPE consider refining this logic
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider refining this logic
                     if (extensions.Count != count)
                     {
                         MarkImportDirective(nsOrType.UsingDirectiveReference, callerIsSemanticModel);
                     }
                 }
-                // PROTOTYPE: clarify expected behavior for `using Extension;` or `using static Extension;`.
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : clarify expected behavior for `using Extension;` or `using static Extension;`.
                 //            If/when we do such a scenario, we have to remove duplicates (see GetCandidateExtensionMethods).
             }
         }

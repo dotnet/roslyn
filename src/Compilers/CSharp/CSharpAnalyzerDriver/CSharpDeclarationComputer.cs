@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                    // PROTOTYPE likely needs work for analyzers
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : likely needs work for analyzers
                     {
                         if (associatedSymbol is IMethodSymbol ctor)
                         {

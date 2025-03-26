@@ -406,14 +406,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var methodSymbol = getMarkerMethodSymbol(@this, uncommon);
 
-                    // PROTOTYPE: do we want to tighten the flags check further? (require that type be sealed?)
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : do we want to tighten the flags check further? (require that type be sealed?)
                     if (methodSymbol.DeclaredAccessibility != Accessibility.Private ||
                         methodSymbol.IsGenericMethod ||
                         !methodSymbol.IsStatic ||
                         !methodSymbol.ReturnsVoid ||
-                        methodSymbol.ParameterCount != 1) // PROTOTYPE: Should we accept more than one parameter (in case new versions add more info)?
+                        methodSymbol.ParameterCount != 1) // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Should we accept more than one parameter (in case new versions add more info)?
                     {
-                        return null; // PROTOTYPE: Test this code path
+                        return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     }
 
                     return new ReceiverParameterSymbol(@this, methodSymbol.Parameters[0]);
@@ -444,12 +444,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (this.ContainingType is null)
             {
-                return null; // PROTOTYPE: Test this code path
+                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
             }
 
             if (!method.IsStatic && ExtensionParameter is null)
             {
-                return null; // PROTOTYPE: Test this code path
+                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
             }
 
             var uncommon = GetUncommonProperties().lazyExtensionInfo;
@@ -469,20 +469,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     if (member is not MethodSymbol { HasSpecialName: true, IsStatic: true } candidate)
                     {
-                        continue; // PROTOTYPE: Test this code path
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     }
 
-                    // PROTOTYPE: Consider comparing accessibility as well
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider comparing accessibility as well
 
                     if (candidate.Arity != @this.Arity + method.Arity)
                     {
-                        continue; // PROTOTYPE: Test this code path
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     }
 
                     int additionalParameterCount = method.IsStatic ? 0 : 1;
                     if (additionalParameterCount + method.ParameterCount != candidate.ParameterCount)
                     {
-                        continue; // PROTOTYPE: Test this code path
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     }
 
                     ImmutableArray<TypeParameterSymbol> combinedTypeParameters = @this.TypeParameters.Concat(method.TypeParameters);
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             typeMap,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue; // PROTOTYPE: Test this code path
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     }
 
                     if (!method.IsStatic &&
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             considerDefaultValues: false,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue; // PROTOTYPE: Test this code path
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     }
 
                     if (!MemberSignatureComparer.HaveSameParameterTypes(
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             considerDefaultValues: false,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue; // PROTOTYPE: Test this code path
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                     }
 
                     if (MemberSignatureComparer.HaveSameConstraints(
@@ -532,10 +532,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         return candidate;
                     }
 
-                    break; // PROTOTYPE: Test this code path
+                    break; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                 }
 
-                return null; // PROTOTYPE: Test this code path
+                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
             }
         }
 
@@ -2040,7 +2040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         if (!foundMarkerMethod.IsNil)
                         {
-                            return default; // PROTOTYPE: Test this code path
+                            return default; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
                         }
 
                         foundMarkerMethod = methodHandle;
@@ -2558,7 +2558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         internal override string ExtensionName
-            => Name; // PROTOTYPE: Confirm implementation
+            => Name; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Confirm implementation
 
         public override bool IsReadOnly
         {

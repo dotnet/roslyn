@@ -1467,7 +1467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!typeParameters.IsEmpty)
                     {
-                        if (resolution.IsExtensionMethodGroup) // PROTOTYPE we need to handle new extension methods
+                        if (resolution.IsExtensionMethodGroup) // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we need to handle new extension methods
                         {
                             // We need to validate an ability to infer type arguments as well as check conversion to 'this' parameter.
                             // Overload resolution doesn't check the conversion when 'this' type refers to a type parameter
@@ -1518,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     parameterTypes,
                                     parameterRefKinds,
                                     ImmutableArray.Create<BoundExpression>(methodGroup.ReceiverOpt, new BoundValuePlaceholder(syntax, secondArgumentType) { WasCompilerGenerated = true }),
-                                    ref useSiteInfo); // PROTOTYPE we may need to override ordinals here
+                                    ref useSiteInfo); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we may need to override ordinals here
 
                                 if (!inferenceResult.Success)
                                 {

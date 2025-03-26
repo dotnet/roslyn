@@ -2369,7 +2369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialEventInitializer = 9279,
         ERR_PartialConstructorInitializer = 9280,
 
-        // PROTOTYPE compact error codes
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : compact error codes
         ERR_ExtensionDisallowsName = 9500,
         ERR_ExtensionDisallowsMember = 9501,
         ERR_BadExtensionContainingType = 9502,

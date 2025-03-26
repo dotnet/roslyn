@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                // PROTOTYPE: Test this method
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this method
 
                 if (_lazyExtensionParameter is null)
                 {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         public override MethodSymbol TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
         {
-            // PROTOTYPE: Test this method
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this method
 
             Debug.Assert(this.IsExtension);
             Debug.Assert(method.IsDefinition);
