@@ -7854,7 +7854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, lookupResult.Error, right);
 
                     return new BoundTypeExpression(node, null,
-                                new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), symbols.ToImmutable(), lookupResult.Kind, lookupResult.Error, rightArity));
+                                new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(symbols[0]), symbols.ToImmutable(), lookupResult.Kind, lookupResult.Error, rightArity));
                 }
                 else if (lookupResult.Kind == LookupResultKind.Empty)
                 {

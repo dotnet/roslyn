@@ -2357,6 +2357,11 @@
         <target state="translated">コントロールを呼び出し元に返す前に、フィールド '{0}' を完全に割り当てる必要があります。プロパティを自動既定値にするため '{1}' 言語バージョンに更新することを検討してください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedExtension">
+        <source>The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</source>
+        <target state="new">The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
         <target state="translated">予期しないパラメーター リストです。</target>

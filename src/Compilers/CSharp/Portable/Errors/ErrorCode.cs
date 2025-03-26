@@ -2384,6 +2384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeParameterSameNameAsExtensionParameter = 9511,
         ERR_InvalidExtensionParameterReference = 9512,
         ERR_ValueParameterSameNameAsExtensionTypeParameter = 9513,
+        ERR_UnderspecifiedExtension = 9514,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
