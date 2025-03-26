@@ -38,14 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
         : AbstractRenameCommandHandler(threadingContext, renameService, globalOptionService, asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename))
     {
-        protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
-            => GetAdornment(textView) switch
-            {
-                RenameDashboard dashboard => dashboard.ShouldReceiveKeyboardNavigation,
-                RenameFlyout => true, // Always receive keyboard navigation for the inline adornment
-                _ => false
-            };
-
         protected override void SetFocusToTextView(ITextView textView)
         {
             (textView as IWpfTextView)?.VisualElement.Focus();
@@ -56,22 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (GetAdornment(textView) is { } adornment)
             {
                 adornment.Focus();
-            }
-        }
-
-        protected override void SetAdornmentFocusToNextElement(ITextView textView)
-        {
-            if (GetAdornment(textView) is RenameDashboard dashboard)
-            {
-                dashboard.FocusNextElement();
-            }
-        }
-
-        protected override void SetAdornmentFocusToPreviousElement(ITextView textView)
-        {
-            if (GetAdornment(textView) is RenameDashboard dashboard)
-            {
-                dashboard.FocusNextElement();
             }
         }
 

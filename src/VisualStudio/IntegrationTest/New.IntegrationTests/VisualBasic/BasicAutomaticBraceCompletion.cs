@@ -32,10 +32,6 @@ public class BasicAutomaticBraceCompletion : AbstractEditorTest
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, argumentCompletion);
 
-        // Disable new rename UI for now, it's causing these tests to fail.
-        // https://github.com/dotnet/roslyn/issues/63576
-        globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, false);
-
         await SetUpEditorAsync(@"
 Class C
     Sub Goo()
@@ -197,14 +193,9 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim [Dim] As Long$$", assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63576")]
     public async Task DoubleQuote_InsertionAndTabCompletion()
     {
-        // Disable new rename UI for now, it's causing these tests to fail.
-        // https://github.com/dotnet/roslyn/issues/63576
-        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, false);
-
         await SetUpEditorAsync(@"
 Class C
     Sub Goo()

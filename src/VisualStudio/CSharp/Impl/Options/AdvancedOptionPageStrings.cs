@@ -76,9 +76,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Always_use_default_symbol_servers_for_navigation
             => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
 
-        public static string Option_run_code_analysis_in_separate_process
-            => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
-
         public static string Option_analyze_source_generated_files
             => ServicesVSResources.Analyze_source_generated_files;
 
@@ -379,15 +376,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Rename_asynchronously_experimental
             => ServicesVSResources.Rename_asynchronously_experimental;
 
-        public static string Where_should_the_rename_UI_be_shown
-            => ServicesVSResources.Where_should_the_rename_UI_be_shown;
-
-        public static string Option_Show_UI_inline
-            => ServicesVSResources.Show_UI_inline;
-
-        public static string Option_Show_UI_as_dashboard_in_top_right
-            => ServicesVSResources.Show_UI_as_dashboard_in_top_right;
-
         public static string Document_Outline
             => ServicesVSResources.Document_Outline;
 
@@ -405,8 +393,5 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Balanced_Run_generators_after_saving_or_building
             => ServicesVSResources.Balanced_Run_generators_after_saving_or_building;
-
-        public static string Option_Automatically_reload_updated_analyzers_and_generators
-            => ServicesVSResources.Automatically_reload_updated_analyzers_and_generators;
     }
 }
