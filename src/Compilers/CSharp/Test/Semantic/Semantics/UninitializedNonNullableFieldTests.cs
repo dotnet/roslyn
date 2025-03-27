@@ -889,7 +889,7 @@ struct S1
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
-  IL_0002:  stfld      ""string S1.<Prop>k__BackingField""
+  IL_0002:  stfld      ""string? S1.<Prop>k__BackingField""
   IL_0007:  ldarg.0
   IL_0008:  call       ""readonly string S1.Prop.get""
   IL_000d:  callvirt   ""string object.ToString()""
