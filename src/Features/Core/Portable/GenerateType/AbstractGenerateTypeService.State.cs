@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.GenerateType;
 
 internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
 {
-    protected class State
+    protected sealed class State
     {
         public string Name { get; private set; } = null!;
         public bool NameIsVerbatim { get; private set; }
@@ -414,7 +413,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         }
     }
 
-    protected class GenerateTypeServiceStateOptions
+    protected sealed class GenerateTypeServiceStateOptions
     {
         public TExpressionSyntax? NameOrMemberAccessExpression { get; set; }
         public TObjectCreationExpressionSyntax? ObjectCreationExpressionOpt { get; set; }

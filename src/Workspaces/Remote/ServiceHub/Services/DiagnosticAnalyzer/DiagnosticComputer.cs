@@ -23,7 +23,7 @@ using static Microsoft.VisualStudio.Threading.ThreadingTools;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 
-internal class DiagnosticComputer
+internal sealed class DiagnosticComputer
 {
     /// <summary>
     /// Cache of <see cref="CompilationWithAnalyzers"/> and a map from analyzer IDs to <see cref="DiagnosticAnalyzer"/>s
@@ -506,7 +506,11 @@ internal class DiagnosticComputer
         if (hostAnalyzerIds.Any())
         {
             // If any host analyzers are active, make sure to also include any project diagnostic suppressors
-            hostBuilder.AddRange(projectAnalyzers.WhereAsArray(static a => a is DiagnosticSuppressor));
+            var projectSuppressors = projectAnalyzers.WhereAsArray(static a => a is DiagnosticSuppressor);
+            // Make sure to remove any project suppressors already in the host analyzer array so we don't end up with
+            // duplicates.
+            hostBuilder.RemoveRange(projectSuppressors);
+            hostBuilder.AddRange(projectSuppressors);
         }
 
         return (projectAnalyzers, hostBuilder.ToImmutableAndClear());
@@ -591,7 +595,13 @@ internal class DiagnosticComputer
 
             var analyzers = reference.GetAnalyzers(_project.Language);
             projectAnalyzerBuilder.AddRange(analyzers);
-            hostAnalyzerBuilder.AddRange(analyzers.WhereAsArray(static a => a is DiagnosticSuppressor));
+
+            var projectSuppressors = analyzers.WhereAsArray(static a => a is DiagnosticSuppressor);
+            // Make sure to remove any project suppressors already in the host analyzer array so we don't end up with
+            // duplicates.
+            hostAnalyzerBuilder.RemoveRange(projectSuppressors);
+            hostAnalyzerBuilder.AddRange(projectSuppressors);
+
             analyzerMapBuilder.AppendAnalyzerMap(analyzers);
         }
 

@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.RpcContracts.DiagnosticManagement;
 using Microsoft.VisualStudio.RpcContracts.Utilities;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
-using static Microsoft.ServiceHub.Framework.ServiceBrokerClient;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 /// <summary>

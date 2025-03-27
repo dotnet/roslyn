@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.BrokeredServices.UnitTests;
 [Export(typeof(IServiceBrokerProvider)), PartNotDiscoverable, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class MockServiceBrokerProvider() : IServiceBrokerProvider
+internal sealed class MockServiceBrokerProvider() : IServiceBrokerProvider
 {
     public IServiceBroker ServiceBroker { get; } = new MockServiceBroker();
 }

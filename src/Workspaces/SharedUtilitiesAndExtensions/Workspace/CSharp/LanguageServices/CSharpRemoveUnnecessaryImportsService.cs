@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 [ExportLanguageService(typeof(IRemoveUnnecessaryImportsService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpRemoveUnnecessaryImportsService() :
+internal sealed partial class CSharpRemoveUnnecessaryImportsService() :
     AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>
 {
     private static readonly SyntaxAnnotation s_annotation = new();

@@ -7,11 +7,10 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-internal class WorkspaceProject : IWorkspaceProject
+internal sealed class WorkspaceProject : IWorkspaceProject
 {
     private readonly ProjectSystemProject _project;
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
@@ -230,7 +229,7 @@ internal class WorkspaceProject : IWorkspaceProject
         }
     }
 
-    private class WorkspaceProjectBatch : IWorkspaceProjectBatch
+    private sealed class WorkspaceProjectBatch : IWorkspaceProjectBatch
     {
         private IAsyncDisposable? _batch;
         private readonly ILogger _logger;

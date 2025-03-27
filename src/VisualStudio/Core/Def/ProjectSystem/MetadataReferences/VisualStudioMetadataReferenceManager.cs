@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -15,7 +16,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -31,6 +34,7 @@ using static TemporaryStorageService;
 /// that can be passed to the compiler. These snapshot references serve the underlying metadata blobs from a VS-wide storage, if possible, 
 /// from <see cref="ITemporaryStorageServiceInternal"/>.
 /// </remarks>
+[ExportWorkspaceService(typeof(VisualStudioMetadataReferenceManager), ServiceLayer.Host), Shared]
 internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService, IDisposable
 {
     private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
@@ -66,9 +70,11 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// </summary>
     private IVsSmartOpenScope? SmartOpenScopeServiceOpt { get; set; }
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioMetadataReferenceManager(
-        IServiceProvider serviceProvider,
-        TemporaryStorageService temporaryStorageService)
+        SVsServiceProvider serviceProvider,
+        VisualStudioWorkspace workspace)
     {
         _runtimeDirectories = GetRuntimeDirectories();
 
@@ -78,7 +84,8 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
         Assumes.Present(SmartOpenScopeServiceOpt);
 
-        _temporaryStorageService = temporaryStorageService;
+        // If we're in VS we know we must be able to get a TemporaryStorageService
+        _temporaryStorageService = (TemporaryStorageService)workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>();
         Assumes.Present(_temporaryStorageService);
     }
 

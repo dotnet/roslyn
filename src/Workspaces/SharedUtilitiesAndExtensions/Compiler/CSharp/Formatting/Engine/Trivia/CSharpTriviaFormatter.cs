@@ -9,11 +9,10 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal partial class CSharpTriviaFormatter : AbstractTriviaFormatter
+internal sealed partial class CSharpTriviaFormatter : AbstractTriviaFormatter
 {
     private bool _succeeded = true;
 

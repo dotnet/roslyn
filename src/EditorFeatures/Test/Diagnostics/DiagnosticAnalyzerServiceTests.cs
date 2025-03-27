@@ -12,14 +12,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
-using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -32,7 +30,7 @@ using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
 [UseExportProvider]
-public class DiagnosticAnalyzerServiceTests
+public sealed class DiagnosticAnalyzerServiceTests
 {
     private static readonly TestComposition s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
         .AddParts(typeof(TestDocumentTrackingService));
@@ -164,11 +162,12 @@ public class DiagnosticAnalyzerServiceTests
 
         if (enabledWithEditorconfig)
         {
-            var editorconfigText = @$"
-[*.cs]
-dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_syntaxRule.Id}.severity = warning
-dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_semanticRule.Id}.severity = warning
-dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = warning";
+            var editorconfigText = $"""
+                [*.cs]
+                dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_syntaxRule.Id}.severity = warning
+                dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_semanticRule.Id}.severity = warning
+                dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = warning
+                """;
 
             project = project.AddAnalyzerConfigDocument(".editorconfig", filePath: "z:\\.editorconfig", text: SourceText.From(editorconfigText)).Project;
         }
@@ -343,10 +342,10 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
         // Escalating the analyzer to non-hidden effective severity through analyzer config options
         // ensures that analyzer executes in full solution analysis.
-        var analyzerConfigText = $@"
-[*.cs]
-dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
-";
+        var analyzerConfigText = $"""
+            [*.cs]
+            dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
+            """;
 
         project = project.AddAnalyzerConfigDocument(
             ".editorconfig",
@@ -468,7 +467,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         Assert.Empty(diagnostics);
     }
 
-    private class AdditionalFileAnalyzer2 : AdditionalFileAnalyzer
+    private sealed class AdditionalFileAnalyzer2 : AdditionalFileAnalyzer
     {
         public AdditionalFileAnalyzer2(bool registerFromInitialize, TextSpan diagnosticSpan, string id)
             : base(registerFromInitialize, diagnosticSpan, id)
@@ -552,36 +551,36 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         string code;
         if (testPragma)
         {
-            code = $@"
-#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary
-#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary
+            code = $$"""
+                #pragma warning disable {{NamedTypeAnalyzer.DiagnosticId}} // Unnecessary
+                #pragma warning disable CS0168 // Variable is declared but never used - Unnecessary
 
-#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Necessary
-class A
-{{
-    void M()
-    {{
-#pragma warning disable CS0168 // Variable is declared but never used - Necessary
-        int x;
-    }}
-}}
-";
+                #pragma warning disable {{NamedTypeAnalyzer.DiagnosticId}} // Necessary
+                class A
+                {
+                    void M()
+                    {
+                #pragma warning disable CS0168 // Variable is declared but never used - Necessary
+                        int x;
+                    }
+                }
+                """;
         }
         else
         {
-            code = $@"
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category1"", ""{NamedTypeAnalyzer.DiagnosticId}"")] // Necessary
-class A
-{{
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""{NamedTypeAnalyzer.DiagnosticId}"")] // Unnecessary
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")] // Unnecessary
-    void M()
-    {{
-#pragma warning disable CS0168 // Variable is declared but never used - Necessary
-        int x;
-    }}
-}}
-";
+            code = $$"""
+                [System.Diagnostics.CodeAnalysis.SuppressMessage("Category1", "{{NamedTypeAnalyzer.DiagnosticId}}")] // Necessary
+                class A
+                {
+                    [System.Diagnostics.CodeAnalysis.SuppressMessage("Category2", "{{NamedTypeAnalyzer.DiagnosticId}}")] // Unnecessary
+                    [System.Diagnostics.CodeAnalysis.SuppressMessage("Category3", "CS0168")] // Unnecessary
+                    void M()
+                    {
+                #pragma warning disable CS0168 // Variable is declared but never used - Necessary
+                        int x;
+                    }
+                }
+                """;
         }
 
         string[] files;
@@ -603,7 +602,6 @@ class A
         using var workspace = new EditorTestWorkspace(composition);
 
         workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
-        workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, isSourceGenerated);
 
         var compilerDiagnosticsScope = analysisScope.ToEquivalentCompilerDiagnosticsScope();
         workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp, compilerDiagnosticsScope);
@@ -712,14 +710,15 @@ class A
     [CombinatorialData]
     public async Task TestFilterSpanOnContextAsync(FilterSpanTestAnalyzer.AnalysisKind kind)
     {
-        var source = @"
-class B
-{
-    void M()
-    {
-        int x = 1;
-    }
-}";
+        var source = """
+            class B
+            {
+                void M()
+                {
+                    int x = 1;
+                }
+            }
+            """;
         var additionalText = @"This is an additional file!";
 
         using var workspace = TestWorkspace.CreateCSharp(source);
@@ -786,14 +785,15 @@ class B
         // NOTE: Unfortunately, we cannot perform an end-to-end OutOfProc test, similar to the InProc test above because AnalyzerImageReference is not serializable.
         //       So, we perform a very targeted test which directly uses the 'DiagnosticComputer' type that is used for all OutOfProc diagnostic computation.
 
-        var source = @"
-class A
-{
-    void M()
-    {
-        int x = 0;
-    }
-}";
+        var source = """
+            class A
+            {
+                void M()
+                {
+                    int x = 0;
+                }
+            }
+            """;
 
         using var workspace = TestWorkspace.CreateCSharp(source);
 
@@ -895,7 +895,7 @@ class A
         return (syntax, semantic);
     }
 
-    private class Analyzer : DiagnosticAnalyzer
+    private sealed class Analyzer : DiagnosticAnalyzer
     {
         internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
         internal static readonly DiagnosticDescriptor s_semanticRule = new DiagnosticDescriptor("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
@@ -911,7 +911,7 @@ class A
         }
     }
 
-    private class DisabledByDefaultAnalyzer : DiagnosticAnalyzer
+    private sealed class DisabledByDefaultAnalyzer : DiagnosticAnalyzer
     {
         internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
         internal static readonly DiagnosticDescriptor s_semanticRule = new DiagnosticDescriptor("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
@@ -927,7 +927,7 @@ class A
         }
     }
 
-    private class NoNameAnalyzer : DocumentDiagnosticAnalyzer
+    private sealed class NoNameAnalyzer : DocumentDiagnosticAnalyzer
     {
         internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
@@ -940,17 +940,17 @@ class A
             => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
     }
 
-    private class Priority20Analyzer : PriorityTestDocumentDiagnosticAnalyzer
+    private sealed class Priority20Analyzer : PriorityTestDocumentDiagnosticAnalyzer
     {
         public Priority20Analyzer() : base(priority: 20) { }
     }
 
-    private class Priority10Analyzer : PriorityTestDocumentDiagnosticAnalyzer
+    private sealed class Priority10Analyzer : PriorityTestDocumentDiagnosticAnalyzer
     {
         public Priority10Analyzer() : base(priority: 10) { }
     }
 
-    private class Priority0Analyzer : PriorityTestDocumentDiagnosticAnalyzer
+    private sealed class Priority0Analyzer : PriorityTestDocumentDiagnosticAnalyzer
     {
         public Priority0Analyzer() : base(priority: -1) { }
     }
@@ -968,7 +968,7 @@ class A
             => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
     }
 
-    private class LeakDocumentAnalyzer : DocumentDiagnosticAnalyzer
+    private sealed class LeakDocumentAnalyzer : DocumentDiagnosticAnalyzer
     {
         internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("leak", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
@@ -985,7 +985,7 @@ class A
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    private class NamedTypeAnalyzer : DiagnosticAnalyzer
+    private sealed class NamedTypeAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "test";
         private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics;

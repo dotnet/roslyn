@@ -4,13 +4,12 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options;
+
+internal sealed record class OmniSharpLineFormattingOptions
 {
-    internal sealed record class OmniSharpLineFormattingOptions
-    {
-        public bool UseTabs { get; init; } = false;
-        public int TabSize { get; init; } = 4;
-        public int IndentationSize { get; init; } = 4;
-        public string NewLine { get; init; } = Environment.NewLine;
-    }
+    public bool UseTabs { get; init; } = false;
+    public int TabSize { get; init; } = 4;
+    public int IndentationSize { get; init; } = 4;
+    public string NewLine { get; init; } = Environment.NewLine;
 }

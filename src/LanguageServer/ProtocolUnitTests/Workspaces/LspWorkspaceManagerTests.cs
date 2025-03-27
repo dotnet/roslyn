@@ -11,7 +11,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
@@ -20,7 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 
-public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
+public sealed class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 {
     public LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {

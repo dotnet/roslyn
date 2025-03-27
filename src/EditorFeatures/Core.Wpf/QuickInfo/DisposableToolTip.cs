@@ -9,20 +9,19 @@ using System.Threading;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 
-namespace Microsoft.CodeAnalysis.Editor.QuickInfo
+namespace Microsoft.CodeAnalysis.Editor.QuickInfo;
+
+internal sealed class DisposableToolTip : IDisposable
 {
-    internal sealed class DisposableToolTip : IDisposable
+    public readonly ToolTip ToolTip;
+    private PreviewWorkspace _workspaceOpt;
+
+    public DisposableToolTip(ToolTip toolTip, PreviewWorkspace workspaceOpt)
     {
-        public readonly ToolTip ToolTip;
-        private PreviewWorkspace _workspaceOpt;
-
-        public DisposableToolTip(ToolTip toolTip, PreviewWorkspace workspaceOpt)
-        {
-            ToolTip = toolTip;
-            _workspaceOpt = workspaceOpt;
-        }
-
-        public void Dispose()
-            => Interlocked.Exchange(ref _workspaceOpt, null)?.Dispose();
+        ToolTip = toolTip;
+        _workspaceOpt = workspaceOpt;
     }
+
+    public void Dispose()
+        => Interlocked.Exchange(ref _workspaceOpt, null)?.Dispose();
 }

@@ -22,14 +22,12 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
-using Microsoft.CodeAnalysis.Editor.InlineRename;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 
-internal partial class QuickInfoSourceProvider
+internal sealed partial class QuickInfoSourceProvider
 {
     private sealed class QuickInfoSource(
         ITextBuffer subjectBuffer,
@@ -53,7 +51,7 @@ internal partial class QuickInfoSourceProvider
             // Until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1611398 is resolved we can't disable
             // quickinfo in InlineRename. Instead, we return no quickinfo information while the adornment
             // is being shown. This can be removed after IFeaturesService supports disabling quickinfo
-            if (_editorOptionsService.GlobalOptions.GetOption(InlineRenameUIOptionsStorage.UseInlineAdornment) && _inlineRenameService.ActiveSession is not null)
+            if (_inlineRenameService.ActiveSession is not null)
                 return null;
 
             var triggerPoint = session.GetTriggerPoint(_subjectBuffer.CurrentSnapshot);

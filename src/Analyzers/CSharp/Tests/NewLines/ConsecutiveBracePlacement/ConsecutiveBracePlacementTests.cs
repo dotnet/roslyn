@@ -15,7 +15,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     ConsecutiveBracePlacementDiagnosticAnalyzer,
     ConsecutiveBracePlacementCodeFixProvider>;
 
-public class ConsecutiveBracePlacementTests
+public sealed class ConsecutiveBracePlacementTests
 {
     [Fact]
     public async Task NotForBracesOnSameLineDirectlyTouching()

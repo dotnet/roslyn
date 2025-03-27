@@ -20,7 +20,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AutomaticCompletion;
 
@@ -32,7 +31,7 @@ internal partial class BraceCompletionSessionProvider
     // fortunately, editor provides another extension point where we have more control over brace completion but we do not
     // want to re-implement logics base session provider already provides. so I ported editor's default session and 
     // modified it little bit so that we can use it as base class.
-    private class BraceCompletionSession(
+    private sealed class BraceCompletionSession(
         BraceCompletionSessionProvider provider,
         ITextView textView,
         ITextBuffer subjectBuffer,

@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens;
 [Export(typeof(ICodeLensCallbackListener))]
 [ContentType(ContentTypeNames.CSharpContentType)]
 [ContentType(ContentTypeNames.VisualBasicContentType)]
-internal class CodeLensCallbackListener : ICodeLensCallbackListener, ICodeLensContext
+internal sealed class CodeLensCallbackListener : ICodeLensCallbackListener, ICodeLensContext
 {
     private const int DefaultMaxSearchResultsValue = 99;
 

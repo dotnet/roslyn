@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             IsEndOfFunctionPointerParameterList = 1 << 23,
             IsEndOfFunctionPointerParameterListErrored = 1 << 24,
             IsEndOfFunctionPointerCallingConvention = 1 << 25,
-            IsEndOfRecordOrClassOrStructOrInterfaceSignature = 1 << 26,
+            IsEndOfTypeSignature = 1 << 26,
             IsExpressionOrPatternInCaseLabelOfSwitchStatement = 1 << 27,
             IsPatternInSwitchExpressionArm = 1 << 28,
         }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case TerminatorState.IsEndOfFunctionPointerParameterList when this.IsEndOfFunctionPointerParameterList(errored: false):
                     case TerminatorState.IsEndOfFunctionPointerParameterListErrored when this.IsEndOfFunctionPointerParameterList(errored: true):
                     case TerminatorState.IsEndOfFunctionPointerCallingConvention when this.IsEndOfFunctionPointerCallingConvention():
-                    case TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature when this.IsEndOfRecordOrClassOrStructOrInterfaceSignature():
+                    case TerminatorState.IsEndOfTypeSignature when this.IsEndOfTypeSignature():
                         return true;
                 }
             }
@@ -1634,24 +1634,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPartialMember()
         {
-            // note(cyrusn): this could have been written like so:
-            //
-            //  return
-            //    this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword &&
-            //    this.PeekToken(1).Kind == SyntaxKind.VoidKeyword;
-            //
-            // However, we want to be lenient and allow the user to write 
-            // 'partial' in most modifier lists.  We will then provide them with
-            // a more specific message later in binding that they are doing 
-            // something wrong.
-            //
-            // Some might argue that the simple check would suffice.
-            // However, we'd like to maintain behavior with 
-            // previously shipped versions, and so we're keeping this code.
-
-            // Here we check for:
-            //   partial ReturnType MemberName
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+
+            // Check for:
+            //   partial event
+            if (this.PeekToken(1).Kind == SyntaxKind.EventKeyword)
+            {
+                return true;
+            }
+
+            // Check for constructor:
+            //   partial Identifier(
+            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+            {
+                return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
+            }
+
+            // Check for method/property:
+            //   partial ReturnType MemberName
             using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
             this.EatToken(); // partial
@@ -1692,13 +1693,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.ClassKeyword:
-                    return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
+                    return this.ParseMainTypeDeclaration(attributes, modifiers);
 
                 case SyntaxKind.StructKeyword:
-                    return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
+                    return this.ParseMainTypeDeclaration(attributes, modifiers);
 
                 case SyntaxKind.InterfaceKeyword:
-                    return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
+                    return this.ParseMainTypeDeclaration(attributes, modifiers);
 
                 case SyntaxKind.DelegateKeyword:
                     return this.ParseDelegateDeclaration(attributes, modifiers);
@@ -1707,18 +1708,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.ParseEnumDeclaration(attributes, modifiers);
 
                 case SyntaxKind.IdentifierToken:
-                    Debug.Assert(CurrentToken.ContextualKind == SyntaxKind.RecordKeyword);
-                    return ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
+                    Debug.Assert(CurrentToken.ContextualKind is SyntaxKind.RecordKeyword or SyntaxKind.ExtensionKeyword);
+                    return ParseMainTypeDeclaration(attributes, modifiers);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.CurrentToken.Kind);
             }
         }
 
-        private TypeDeclarationSyntax ParseClassOrStructOrInterfaceDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private TypeDeclarationSyntax ParseMainTypeDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
             Debug.Assert(this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
-                this.CurrentToken.ContextualKind == SyntaxKind.RecordKeyword);
+                this.CurrentToken.ContextualKind is SyntaxKind.RecordKeyword or SyntaxKind.ExtensionKeyword);
 
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -1728,19 +1729,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 keyword = ConvertToKeyword(this.EatToken());
             }
 
+            bool isExtension = keyword.Kind == SyntaxKind.ExtensionKeyword;
             var outerSaveTerm = _termState;
-            _termState |= TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature;
+            _termState |= TerminatorState.IsEndOfTypeSignature;
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;
 
-            var name = this.ParseIdentifierToken();
+            SyntaxToken? name;
+            if (isExtension)
+            {
+                name = null;
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                {
+                    keyword = AddTrailingSkippedSyntax(keyword, this.AddError(this.EatToken(), ErrorCode.ERR_ExtensionDisallowsName));
+                }
+            }
+            else
+            {
+                name = this.ParseIdentifierToken();
+            }
+
             var typeParameters = this.ParseTypeParameterList();
 
-            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken
-                ? ParseParenthesizedParameterList() : null;
+            // For extension declarations, there must be a parameter list
+            var paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken || isExtension
+                ? ParseParenthesizedParameterList(forExtension: isExtension) : null;
 
-            var baseList = this.ParseBaseList();
+            var baseList = isExtension ? null : this.ParseBaseList();
             _termState = saveTerm;
 
             // Parse class body
@@ -1882,7 +1898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxToken keyword, SyntaxToken? recordModifier,
-                SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, BaseListSyntax baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
+                SyntaxToken? name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, BaseListSyntax? baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
                 SyntaxToken? openBrace, SyntaxListBuilder<MemberDeclarationSyntax> members, SyntaxToken? closeBrace, SyntaxToken semicolon)
             {
                 var modifiersList = (SyntaxList<SyntaxToken>)modifiers.ToList();
@@ -1891,6 +1907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (keyword.Kind)
                 {
                     case SyntaxKind.ClassKeyword:
+                        Debug.Assert(name is not null);
                         return syntaxFactory.ClassDeclaration(
                             attributes,
                             modifiersList,
@@ -1906,6 +1923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.StructKeyword:
+                        Debug.Assert(name is not null);
                         return syntaxFactory.StructDeclaration(
                             attributes,
                             modifiersList,
@@ -1921,6 +1939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             semicolon);
 
                     case SyntaxKind.InterfaceKeyword:
+                        Debug.Assert(name is not null);
                         return syntaxFactory.InterfaceDeclaration(
                             attributes,
                             modifiersList,
@@ -1939,6 +1958,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // record struct ...
                         // record ...
                         // record class ...
+                        Debug.Assert(name is not null);
                         SyntaxKind declarationKind = recordModifier?.Kind == SyntaxKind.StructKeyword ? SyntaxKind.RecordStructDeclaration : SyntaxKind.RecordDeclaration;
                         return syntaxFactory.RecordDeclaration(
                             declarationKind,
@@ -1950,6 +1970,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             typeParameters,
                             paramList,
                             baseList,
+                            constraints,
+                            openBrace,
+                            members,
+                            closeBrace,
+                            semicolon);
+
+                    case SyntaxKind.ExtensionKeyword:
+                        Debug.Assert(name is null);
+                        Debug.Assert(baseList is null);
+                        return syntaxFactory.ExtensionDeclaration(
+                            attributes,
+                            modifiers.ToList(),
+                            keyword,
+                            typeParameters,
+                            paramList,
                             constraints,
                             openBrace,
                             members,
@@ -2053,8 +2088,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private BaseListSyntax ParseBaseList()
         {
-            // We are only called from ParseClassOrStructOrInterfaceDeclaration which unilaterally sets this.
-            Debug.Assert((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0);
+            // We are only called from ParseMainTypeDeclaration which unilaterally sets this.
+            Debug.Assert((_termState & TerminatorState.IsEndOfTypeSignature) != 0);
 
             var colon = this.TryEatToken(SyntaxKind.ColonToken);
             if (colon == null)
@@ -2163,7 +2198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     bool haveComma;
 
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
-                        || ((_termState & TerminatorState.IsEndOfRecordOrClassOrStructOrInterfaceSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
+                        || ((_termState & TerminatorState.IsEndOfTypeSignature) != 0 && this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                         || this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken
                         || this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
                     {
@@ -2389,6 +2424,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // older code that is not using C# 9 we conditionally parse based on langversion
                         return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
                     }
+
+                    if (IsExtensionContainerStart())
+                    {
+                        return true;
+                    }
+
                     return false;
 
                 default:
@@ -3064,6 +3105,11 @@ parse_member_name:;
                 bool isPossibleTypeDeclaration;
                 this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: false, out isPossibleTypeDeclaration);
 
+                if (IsExtensionContainerStart())
+                {
+                    return this.ParseMainTypeDeclaration(attributes, modifiers);
+                }
+
                 // Check for constructor form
                 if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
                 {
@@ -3193,6 +3239,11 @@ parse_member_name:;
             }
         }
 
+        private bool IsExtensionContainerStart()
+        {
+            return this.CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword && IsFeatureEnabled(MessageID.IDS_FeatureExtensions);
+        }
+
         // if the modifiers do not contain async or replace and the type is the identifier "async" or "replace", then
         // add that identifier to the modifiers and assign a new type from the identifierOrThisOpt and the
         // type parameter list
@@ -3307,7 +3358,7 @@ parse_member_name:;
             _termState |= TerminatorState.IsEndOfMethodSignature;
             try
             {
-                var paramList = this.ParseParenthesizedParameterList();
+                var paramList = this.ParseParenthesizedParameterList(forExtension: false);
                 var initializer = this.CurrentToken.Kind == SyntaxKind.ColonToken
                     ? this.ParseConstructorInitializer()
                     : null;
@@ -3447,7 +3498,7 @@ parse_member_name:;
         private bool IsEndOfMethodSignature()
             => this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
 
-        private bool IsEndOfRecordOrClassOrStructOrInterfaceSignature()
+        private bool IsEndOfTypeSignature()
         {
             return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.OpenBraceToken;
         }
@@ -3473,7 +3524,7 @@ parse_member_name:;
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfMethodSignature;
 
-            var paramList = this.ParseParenthesizedParameterList();
+            var paramList = this.ParseParenthesizedParameterList(forExtension: false);
 
             var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
             if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
@@ -3685,7 +3736,7 @@ parse_member_name:;
                     type = ParseIdentifierName();
                 }
 
-                var paramList = this.ParseParenthesizedParameterList();
+                var paramList = this.ParseParenthesizedParameterList(forExtension: false);
 
                 this.ParseBlockAndExpressionBodiesWithSemicolon(out var blockBody, out var expressionBody, out var semicolon);
 
@@ -3889,7 +3940,7 @@ parse_member_name:;
                 }
             }
 
-            var paramList = this.ParseParenthesizedParameterList();
+            var paramList = this.ParseParenthesizedParameterList(forExtension: false);
 
             switch (paramList.Parameters.Count)
             {
@@ -4502,14 +4553,14 @@ parse_member_name:;
             };
         }
 
-        internal ParameterListSyntax ParseParenthesizedParameterList()
+        internal ParameterListSyntax ParseParenthesizedParameterList(bool forExtension)
         {
-            if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameterList(this.CurrentNode as CSharp.Syntax.ParameterListSyntax))
+            if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameterList(this.CurrentNode as CSharp.Syntax.ParameterListSyntax, allowOptionalIdentifier: forExtension))
             {
                 return (ParameterListSyntax)this.EatNode();
             }
 
-            var parameters = this.ParseParameterList(out var open, out var close, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken);
+            var parameters = this.ParseParameterList(out var open, out var close, SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken, forExtension);
             return _syntaxFactory.ParameterList(open, parameters, close);
         }
 
@@ -4520,11 +4571,11 @@ parse_member_name:;
                 return (BracketedParameterListSyntax)this.EatNode();
             }
 
-            var parameters = this.ParseParameterList(out var open, out var close, SyntaxKind.OpenBracketToken, SyntaxKind.CloseBracketToken);
+            var parameters = this.ParseParameterList(out var open, out var close, SyntaxKind.OpenBracketToken, SyntaxKind.CloseBracketToken, forExtension: false);
             return _syntaxFactory.BracketedParameterList(open, parameters, close);
         }
 
-        private static bool CanReuseParameterList(CSharp.Syntax.ParameterListSyntax list)
+        private static bool CanReuseParameterList(Syntax.ParameterListSyntax list, bool allowOptionalIdentifier)
         {
             if (list == null)
             {
@@ -4543,7 +4594,7 @@ parse_member_name:;
 
             foreach (var parameter in list.Parameters)
             {
-                if (!CanReuseParameter(parameter))
+                if (!CanReuseParameter(parameter, allowOptionalIdentifier))
                 {
                     return false;
                 }
@@ -4552,7 +4603,7 @@ parse_member_name:;
             return true;
         }
 
-        private static bool CanReuseBracketedParameterList(CSharp.Syntax.BracketedParameterListSyntax list)
+        private static bool CanReuseBracketedParameterList(Syntax.BracketedParameterListSyntax list)
         {
             if (list == null)
             {
@@ -4571,7 +4622,7 @@ parse_member_name:;
 
             foreach (var parameter in list.Parameters)
             {
-                if (!CanReuseParameter(parameter))
+                if (!CanReuseParameter(parameter, allowOptionalIdentifier: false))
                 {
                     return false;
                 }
@@ -4584,22 +4635,28 @@ parse_member_name:;
             out SyntaxToken open,
             out SyntaxToken close,
             SyntaxKind openKind,
-            SyntaxKind closeKind)
+            SyntaxKind closeKind,
+            bool forExtension)
         {
             open = this.EatToken(openKind);
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfParameterList;
 
+            Func<LanguageParser, ParameterSyntax> parseElement = forExtension
+                    ? static @this => @this.ParseParameter(allowOptionalIdentifier: true)
+                    : static @this => @this.ParseParameter(allowOptionalIdentifier: false);
+
             var parameters = ParseCommaSeparatedSyntaxList(
                 ref open,
                 closeKind,
                 static @this => @this.IsPossibleParameter(),
-                static @this => @this.ParseParameter(),
+                parseElement,
                 skipBadParameterListTokens,
                 allowTrailingSeparator: false,
-                requireOneElement: false,
+                requireOneElement: forExtension, // For extension declarations, we require at least one receiver parameter
                 allowSemicolonAsSeparator: false);
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider suppressing parsing diagnostics on extension parameters beyond the first one
 
             _termState = saveTerm;
             close = this.EatToken(closeKind);
@@ -4639,7 +4696,7 @@ parse_member_name:;
             }
         }
 
-        private static bool CanReuseParameter(CSharp.Syntax.ParameterSyntax parameter)
+        private static bool CanReuseParameter(CSharp.Syntax.ParameterSyntax parameter, bool allowOptionalIdentifier)
         {
             if (parameter == null)
             {
@@ -4670,14 +4727,22 @@ parse_member_name:;
                 }
             }
 
+            // We can only reuse parameters without identifiers (found in extension declarations) in context that allow optional identifiers.
+            // The reverse is fine though.  Normal parameters (from non extensions) can be re-used into an extension declaration
+            // as all normal parameters are legal extension parameters.
+            if (!allowOptionalIdentifier && parameter.Identifier.Kind() == SyntaxKind.None)
+            {
+                return false;
+            }
+
             return true;
         }
 
 #nullable enable
 
-        private ParameterSyntax ParseParameter()
+        private ParameterSyntax ParseParameter(bool allowOptionalIdentifier)
         {
-            if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameter(this.CurrentNode as CSharp.Syntax.ParameterSyntax))
+            if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameter(this.CurrentNode as Syntax.ParameterSyntax, allowOptionalIdentifier))
             {
                 return (ParameterSyntax)this.EatNode();
             }
@@ -4696,19 +4761,22 @@ parse_member_name:;
             }
 
             var type = this.ParseType(mode: ParseTypeMode.Parameter);
-            SyntaxToken identifier;
 
+            SyntaxToken? identifier;
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && IsCurrentTokenWhereOfConstraintClause())
             {
-                identifier = this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
+                identifier = allowOptionalIdentifier ? null : this.AddError(CreateMissingIdentifierToken(), ErrorCode.ERR_IdentifierExpected);
             }
             else
             {
-                identifier = this.ParseIdentifierToken();
+                // The receiver parameter on an extension declaration may have a name or not
+                identifier = allowOptionalIdentifier && this.CurrentToken.Kind != SyntaxKind.IdentifierToken
+                    ? null
+                    : this.ParseIdentifierToken();
             }
 
             // When the user type "int goo[]", give them a useful error
-            if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
+            if (identifier is not null && this.CurrentToken.Kind is SyntaxKind.OpenBracketToken && this.PeekToken(1).Kind is SyntaxKind.CloseBracketToken)
             {
                 identifier = AddTrailingSkippedSyntax(identifier, SyntaxList.List(
                     this.AddError(this.EatToken(), ErrorCode.ERR_BadArraySyntax),
@@ -5443,7 +5511,7 @@ parse_member_name:;
             using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
             var typeParameterListOpt = this.ParseTypeParameterList();
-            var paramList = ParseParenthesizedParameterList();
+            var paramList = ParseParenthesizedParameterList(forExtension: false);
 
             if (!paramList.IsMissing &&
                  (this.CurrentToken.Kind is SyntaxKind.OpenBraceToken or SyntaxKind.EqualsGreaterThanToken ||
@@ -5503,7 +5571,7 @@ parse_member_name:;
             _termState |= TerminatorState.IsEndOfMethodSignature;
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
-            var parameterList = this.ParseParenthesizedParameterList();
+            var parameterList = this.ParseParenthesizedParameterList(forExtension: false);
             var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
 
             if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
@@ -5681,7 +5749,7 @@ parse_member_name:;
         {
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
-                if (!IsCurrentTokenPartialKeywordOfPartialMethodOrType() &&
+                if (!IsCurrentTokenPartialKeywordOfPartialMemberOrType() &&
                     !IsCurrentTokenQueryKeywordInQuery() &&
                     !IsCurrentTokenWhereOfConstraintClause())
                 {
@@ -5728,7 +5796,7 @@ parse_member_name:;
                 // show the correct parameter help in this case.  So, when we see "partial" we check if it's being used
                 // as an identifier or as a contextual keyword.  If it's the latter then we bail out.  See
                 // Bug: vswhidbey/542125
-                if (IsCurrentTokenPartialKeywordOfPartialMethodOrType() || IsCurrentTokenQueryKeywordInQuery())
+                if (IsCurrentTokenPartialKeywordOfPartialMemberOrType() || IsCurrentTokenQueryKeywordInQuery())
                 {
                     var result = CreateMissingIdentifierToken();
                     result = this.AddError(result, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
@@ -5755,7 +5823,7 @@ parse_member_name:;
             return this.IsInQuery && this.IsCurrentTokenQueryContextualKeyword;
         }
 
-        private bool IsCurrentTokenPartialKeywordOfPartialMethodOrType()
+        private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
             if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
             {
@@ -8430,7 +8498,7 @@ done:
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfMethodSignature;
 
-            var paramList = this.ParseParenthesizedParameterList();
+            var paramList = this.ParseParenthesizedParameterList(forExtension: false);
 
             _termState = saveTerm;
             var separatedParameters = paramList.Parameters.GetWithSeparators();
@@ -10541,7 +10609,7 @@ done:
 
             TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList();
             // "await f<T>()" still makes sense, so don't force accept a local function if there's a type parameter list.
-            ParameterListSyntax paramList = this.ParseParenthesizedParameterList();
+            ParameterListSyntax paramList = this.ParseParenthesizedParameterList(forExtension: false);
             // "await x()" is ambiguous (see note at start of this method), but we assume "await x(await y)" is meant to be a function if it's in a non-async context.
             if (!forceLocalFunc)
             {
@@ -13187,7 +13255,7 @@ done:
                 ParameterListSyntax parameterList = null;
                 if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
                 {
-                    parameterList = this.ParseParenthesizedParameterList();
+                    parameterList = this.ParseParenthesizedParameterList(forExtension: false);
                 }
 
                 // In mismatched braces cases (missing a }) it is possible for delegate declarations to be
@@ -13262,7 +13330,7 @@ done:
                     return true;
                 case var kind:
                     return IsPredefinedType(kind);
-            };
+            }
         }
 
         /// <summary>

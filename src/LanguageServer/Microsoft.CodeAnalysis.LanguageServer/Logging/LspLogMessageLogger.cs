@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 

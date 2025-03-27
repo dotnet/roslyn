@@ -5,13 +5,11 @@
 #nullable disable
 
 using System;
-using Microsoft.CodeAnalysis.Editor;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp;
+
+[Obsolete]
+internal static class FSharpEditorFeaturesResources
 {
-    [Obsolete]
-    internal static class FSharpEditorFeaturesResources
-    {
-        public static string You_cannot_rename_this_element => FeaturesResources.You_cannot_rename_this_element;
-    }
+    public static string You_cannot_rename_this_element => FeaturesResources.You_cannot_rename_this_element;
 }

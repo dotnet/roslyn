@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
 [Export(typeof(INavigationBarControllerFactoryService))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class NavigationBarControllerFactoryService(
+internal sealed class NavigationBarControllerFactoryService(
     IThreadingContext threadingContext,
     [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
     IUIThreadOperationExecutor uIThreadOperationExecutor,

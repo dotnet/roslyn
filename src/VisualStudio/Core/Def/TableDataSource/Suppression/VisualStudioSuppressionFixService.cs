@@ -18,12 +18,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -66,9 +64,9 @@ internal sealed class VisualStudioSuppressionFixService(
 
     private IWpfTableControl? _tableControl;
 
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
+    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
+        var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
         _tableControl = errorList?.TableControl;
     }
 
@@ -267,9 +265,9 @@ internal sealed class VisualStudioSuppressionFixService(
                 if (!documentDiagnosticsPerLanguage.IsEmpty)
                 {
                     var suppressionFixer = GetSuppressionFixer(documentDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
-                    if (suppressionFixer != null)
+                    var suppressionFixAllProvider = suppressionFixer?.GetFixAllProvider();
+                    if (suppressionFixer != null && suppressionFixAllProvider != null)
                     {
-                        var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
                         newSolution = await _fixMultipleOccurencesService.GetFixAsync(
                             documentDiagnosticsPerLanguage,
                             _workspace,
@@ -292,9 +290,9 @@ internal sealed class VisualStudioSuppressionFixService(
                 if (!projectDiagnosticsPerLanguage.IsEmpty)
                 {
                     var suppressionFixer = GetSuppressionFixer(projectDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
-                    if (suppressionFixer != null)
+                    var suppressionFixAllProvider = suppressionFixer?.GetFixAllProvider();
+                    if (suppressionFixer != null && suppressionFixAllProvider != null)
                     {
-                        var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
                         newSolution = await _fixMultipleOccurencesService.GetFixAsync(
                              projectDiagnosticsPerLanguage,
                              _workspace,

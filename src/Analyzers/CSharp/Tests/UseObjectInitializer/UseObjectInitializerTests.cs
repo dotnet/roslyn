@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseObjectInitializerCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-public partial class UseObjectInitializerTests
+public sealed partial class UseObjectInitializerTests
 {
     private static async Task TestMissingInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,

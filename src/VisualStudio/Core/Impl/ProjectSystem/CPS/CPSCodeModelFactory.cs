@@ -9,21 +9,20 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS;
+
+[Export(typeof(ICodeModelFactory))]
+internal sealed partial class CPSCodeModelFactory : ICodeModelFactory
 {
-    [Export(typeof(ICodeModelFactory))]
-    internal partial class CPSCodeModelFactory : ICodeModelFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CPSCodeModelFactory()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CPSCodeModelFactory()
-        {
-        }
-
-        public EnvDTE.CodeModel GetCodeModel(IWorkspaceProjectContext context, EnvDTE.Project project)
-            => ((CPSProject)context).GetCodeModel(project);
-
-        public EnvDTE.FileCodeModel GetFileCodeModel(IWorkspaceProjectContext context, EnvDTE.ProjectItem item)
-            => ((CPSProject)context).GetFileCodeModel(item);
     }
+
+    public EnvDTE.CodeModel GetCodeModel(IWorkspaceProjectContext context, EnvDTE.Project project)
+        => ((CPSProject)context).GetCodeModel(project);
+
+    public EnvDTE.FileCodeModel GetFileCodeModel(IWorkspaceProjectContext context, EnvDTE.ProjectItem item)
+        => ((CPSProject)context).GetFileCodeModel(item);
 }

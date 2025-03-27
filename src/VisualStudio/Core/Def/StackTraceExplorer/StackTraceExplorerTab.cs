@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class StackTraceExplorerTab
+internal sealed class StackTraceExplorerTab
 {
     private readonly StackTraceExplorerViewModel _stackExplorerVM;
     public int NameIndex { get; }

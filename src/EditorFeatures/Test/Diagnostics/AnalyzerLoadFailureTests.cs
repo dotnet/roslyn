@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
-public class AnalyzerLoadFailureTests
+public sealed class AnalyzerLoadFailureTests
 {
     [Theory, CombinatorialData]
     public void CanCreateDiagnosticForAnalyzerLoadFailure(

@@ -16,7 +16,7 @@ using Roslyn.Test.Utilities;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class SolutionExplorerVerifierInProcess
+internal sealed partial class SolutionExplorerVerifierInProcess
 {
     public async Task ActiveDocumentIsSavedAsync(CancellationToken cancellationToken)
     {

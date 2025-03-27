@@ -3,11 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
@@ -65,30 +63,36 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             _comAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
         End Sub
 
-        Protected Overrides Async Function InitializeAsync(cancellationToken As CancellationToken, progress As IProgress(Of ServiceProgressData)) As Task
-            Try
-                Await MyBase.InitializeAsync(cancellationToken, progress).ConfigureAwait(True)
-                Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
+        Protected Overrides Sub RegisterInitializeAsyncWork(packageInitializationTasks As PackageLoadTasks)
 
-                RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
+            MyBase.RegisterInitializeAsyncWork(packageInitializationTasks)
 
-                RegisterService(Of IVbTempPECompilerFactory)(
-                    Async Function(ct)
-                        Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
-                        Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
-                        Return New TempPECompilerFactory(workspace)
-                    End Function)
-            Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
-                Throw ExceptionUtilities.Unreachable
-            End Try
-        End Function
+            packageInitializationTasks.AddTask(
+                isMainThreadTask:=False,
+                task:=Function() As Task
+                          Try
+                              RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
 
-        Protected Overrides Async Function RegisterObjectBrowserLibraryManagerAsync(cancellationToken As CancellationToken) As Task
+                              RegisterService(Of IVbTempPECompilerFactory)(
+                            Async Function(ct)
+                                Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
+                                Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
+                                Return New TempPECompilerFactory(workspace)
+                            End Function)
+                          Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
+                              Throw ExceptionUtilities.Unreachable
+                          End Try
+
+                          Return Task.CompletedTask
+                      End Function)
+        End Sub
+
+        Protected Overrides Sub RegisterObjectBrowserLibraryManager()
             Dim workspace As VisualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
 
-            Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
+            Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread)
 
-            Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
+            Dim objectManager = TryCast(GetService(GetType(SVsObjectManager)), IVsObjectManager2)
             If objectManager IsNot Nothing Then
                 Me._libraryManager = New ObjectBrowserLibraryManager(Me, ComponentModel, workspace)
 
@@ -96,13 +100,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                     Me._libraryManagerCookie = 0
                 End If
             End If
-        End Function
+        End Sub
 
-        Protected Overrides Async Function UnregisterObjectBrowserLibraryManagerAsync(cancellationToken As CancellationToken) As Task
-            Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
+        Protected Overrides Sub UnregisterObjectBrowserLibraryManager()
+            Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread)
 
             If _libraryManagerCookie <> 0 Then
-                Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
+                Dim objectManager = TryCast(GetService(GetType(SVsObjectManager)), IVsObjectManager2)
                 If objectManager IsNot Nothing Then
                     objectManager.UnregisterLibrary(Me._libraryManagerCookie)
                     Me._libraryManagerCookie = 0
@@ -111,7 +115,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Me._libraryManager.Dispose()
                 Me._libraryManager = Nothing
             End If
-        End Function
+        End Sub
 
         Public Function NeedExport(pageID As String, <Out> ByRef needExportParam As Integer) As Integer Implements IVsUserSettingsQuery.NeedExport
             ' We need to override MPF's definition of NeedExport since it doesn't know about our automation object

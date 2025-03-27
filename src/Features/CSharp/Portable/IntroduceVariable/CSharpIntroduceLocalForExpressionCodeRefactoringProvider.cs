@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -26,7 +25,7 @@ using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceLocalForExpression), Shared]
-internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
+internal sealed class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
     AbstractIntroduceLocalForExpressionCodeRefactoringProvider<
         ExpressionSyntax,
         StatementSyntax,

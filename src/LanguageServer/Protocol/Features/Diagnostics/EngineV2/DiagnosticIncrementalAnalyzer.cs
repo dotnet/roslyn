@@ -9,18 +9,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
     /// <summary>
     /// Diagnostic Analyzer Engine V2
     /// 
     /// This one follows pattern compiler has set for diagnostic analyzer.
     /// </summary>
-    private partial class DiagnosticIncrementalAnalyzer
+    private sealed partial class DiagnosticIncrementalAnalyzer
     {
         private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
         private readonly StateManager _stateManager;

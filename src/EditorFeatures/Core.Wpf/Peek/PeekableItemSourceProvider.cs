@@ -11,36 +11,35 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek;
+
+[Export(typeof(IPeekableItemSourceProvider))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[Name("Roslyn Peekable Item Provider")]
+[SupportsStandaloneFiles(true)]
+[SupportsPeekRelationship("IsDefinedBy")]
+internal sealed class PeekableItemSourceProvider : IPeekableItemSourceProvider
 {
-    [Export(typeof(IPeekableItemSourceProvider))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name("Roslyn Peekable Item Provider")]
-    [SupportsStandaloneFiles(true)]
-    [SupportsPeekRelationship("IsDefinedBy")]
-    internal sealed class PeekableItemSourceProvider : IPeekableItemSourceProvider
+    private readonly IPeekableItemFactory _peekableItemFactory;
+    private readonly IPeekResultFactory _peekResultFactory;
+    private readonly IThreadingContext _threadingContext;
+    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public PeekableItemSourceProvider(
+        IPeekableItemFactory peekableItemFactory,
+        IPeekResultFactory peekResultFactory,
+        IThreadingContext threadingContext,
+        IUIThreadOperationExecutor uiThreadOperationExecutor)
     {
-        private readonly IPeekableItemFactory _peekableItemFactory;
-        private readonly IPeekResultFactory _peekResultFactory;
-        private readonly IThreadingContext _threadingContext;
-        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PeekableItemSourceProvider(
-            IPeekableItemFactory peekableItemFactory,
-            IPeekResultFactory peekResultFactory,
-            IThreadingContext threadingContext,
-            IUIThreadOperationExecutor uiThreadOperationExecutor)
-        {
-            _peekableItemFactory = peekableItemFactory;
-            _peekResultFactory = peekResultFactory;
-            _threadingContext = threadingContext;
-            _uiThreadOperationExecutor = uiThreadOperationExecutor;
-        }
-
-        public IPeekableItemSource TryCreatePeekableItemSource(ITextBuffer textBuffer)
-            => textBuffer.Properties.GetOrCreateSingletonProperty(() =>
-                new PeekableItemSource(textBuffer, _peekableItemFactory, _peekResultFactory, _threadingContext, _uiThreadOperationExecutor));
+        _peekableItemFactory = peekableItemFactory;
+        _peekResultFactory = peekResultFactory;
+        _threadingContext = threadingContext;
+        _uiThreadOperationExecutor = uiThreadOperationExecutor;
     }
+
+    public IPeekableItemSource TryCreatePeekableItemSource(ITextBuffer textBuffer)
+        => textBuffer.Properties.GetOrCreateSingletonProperty(() =>
+            new PeekableItemSource(textBuffer, _peekableItemFactory, _peekResultFactory, _threadingContext, _uiThreadOperationExecutor));
 }

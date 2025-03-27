@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -113,10 +111,14 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
         private ImmutableArray<SyntaxNode> GenerateStatements()
         {
-            var syntaxFactory = _semanticDocument.Project.Solution.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
+            var syntaxFactory = _semanticDocument.Project.Solution.Services
+                .GetLanguageServices(_state.TypeToGenerateIn.Language)
+                .GetRequiredService<SyntaxGenerator>();
 
             var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(
                 syntaxFactory, _semanticDocument, "System.NotImplementedException");
+            if (throwStatement is null)
+                return default;
 
             return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _refKind != RefKind.None
                 ? [throwStatement]
@@ -132,7 +134,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
             // Otherwise, figure out what accessibility modifier to use and optionally mark
             // it as static.
-            var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = _semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsAttributeNamedArgumentIdentifier(state.SimpleNameOrMemberAccessExpressionOpt))
             {
                 return Accessibility.Public;
