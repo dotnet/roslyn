@@ -34,13 +34,16 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> NonLocals => Convert(_lazyNonLocals);
     public readonly ImmutableArray<DiagnosticData> Others => _lazyOthers == null ? [] : [.. _lazyOthers];
 
-    public void AddExternalSyntaxDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
+    public void AddExternalSyntaxDiagnostics(DocumentId documentId, ImmutableArray<Diagnostic> diagnostics)
     {
         AddExternalDiagnostics(ref _lazySyntaxLocals, documentId, diagnostics);
     }
 
-    public void AddExternalSemanticDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
+    public void AddExternalSemanticDiagnostics(DocumentId documentId, ImmutableArray<Diagnostic> diagnostics)
     {
+        if (diagnostics.Length == 0)
+            return;
+
         // this is for diagnostic producer that doesnt use compiler based DiagnosticAnalyzer such as TypeScript.
         Contract.ThrowIfTrue(Project.SupportsCompilation);
 
@@ -48,7 +51,7 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
     }
 
     private void AddExternalDiagnostics(
-        ref Dictionary<DocumentId, List<DiagnosticData>>? lazyLocals, DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
+        ref Dictionary<DocumentId, List<DiagnosticData>>? lazyLocals, DocumentId documentId, ImmutableArray<Diagnostic> diagnostics)
     {
         foreach (var diagnostic in diagnostics)
         {
