@@ -3,15 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 /// <summary>
-/// A dummy singleton analyzer. Its only purpose is to represent file content load failures in maps that are keyed by <see cref="DiagnosticAnalyzer"/>.
+/// A dummy singleton analyzer. Its only purpose is to represent file content load failures in maps that are keyed by
+/// <see cref="DiagnosticAnalyzer"/>.
 /// </summary>
-internal sealed class FileContentLoadAnalyzer : DiagnosticAnalyzer
+internal sealed class FileContentLoadAnalyzer : DocumentDiagnosticAnalyzer
 {
-    internal static readonly FileContentLoadAnalyzer Instance = new();
+    public static readonly FileContentLoadAnalyzer Instance = new();
 
     private FileContentLoadAnalyzer()
     {
@@ -20,9 +24,14 @@ internal sealed class FileContentLoadAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         => [WorkspaceDiagnosticDescriptors.ErrorReadingFileContent];
 
-#pragma warning disable RS1026 // Enable concurrent execution
-#pragma warning disable RS1025 // Configure generated code analysis
-    public sealed override void Initialize(AnalysisContext context) { }
-#pragma warning restore RS1025 // Configure generated code analysis
-#pragma warning restore RS1026 // Enable concurrent execution
+    public override int Priority => -4;
+
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+    {
+        var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
+        return loadDiagnostic != null ? [loadDiagnostic] : [];
+    }
+
+    public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+        => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 }

@@ -82,18 +82,6 @@ internal sealed partial class DocumentAnalysisExecutor
         var document = textDocument as Document;
         RoslynDebug.Assert(document != null || kind == AnalysisKind.Syntax, "We only support syntactic analysis for non-source documents");
 
-        var loadDiagnostic = await textDocument.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
-
-        if (analyzer == FileContentLoadAnalyzer.Instance)
-        {
-            return loadDiagnostic != null
-                ? [DiagnosticData.Create(loadDiagnostic, textDocument)]
-                : [];
-        }
-
-        if (loadDiagnostic != null)
-            return [];
-
         if (analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
         {
             // We will count generator diagnostics as semantic diagnostics; some filtering to either syntax/semantic is necessary or else we'll report diagnostics twice.
