@@ -6631,8 +6631,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundCall(
                     syntax,
                     receiverOpt: expr,
-                    // PROTOTYPE: What is the correct value for receiver cloning? Test with expression element
-                    // and spread element where the item is ref KeyValuePair<,> or ref readonly KeyValuePair<,>.
                     initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                     method: getMethod,
                     arguments: [],

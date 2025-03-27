@@ -243,8 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        // PROTOTYPE: Test ref safety analysis of indexer set calls for the various cases in [e, k:v, ..s].
-
         [Theory]
         [CombinatorialData]
         public void BreakingChange_DictionaryAdd_01(
@@ -1361,6 +1359,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 5));
+        }
+
+        [Fact]
+        public void RefSafety_Indexer()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Diagnostics.CodeAnalysis;
+                ref struct MyDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+                {
+                    private ref readonly K _key;
+                    public IEnumerator<KeyValuePair<K, V>> GetEnumerator() => null;
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                    public V this[[UnscopedRef] in K key]  { get { return default; } set { _key = ref key; } }
+                }
+                """;
+            string sourceB = """
+                class Program
+                {
+                    static MyDictionary<K, V> FromPair1<K, V>(K k, V v)
+                    {
+                        MyDictionary<K, V> d = new();
+                        d[k] = v;
+                        return d;
+                    }
+                    static MyDictionary<K, V> FromPair2<K, V>(K k, V v)
+                    {
+                        MyDictionary<K, V> d;
+                        d = [k:v];
+                        return d;
+                    }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS8350: This combination of arguments to 'MyDictionary<K, V>.this[in K]' is disallowed because it may expose variables referenced by parameter 'key' outside of their declaration scope
+                //         d[k] = v;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "d[k]").WithArguments("MyDictionary<K, V>.this[in K]", "key").WithLocation(6, 9),
+                // (6,11): error CS8166: Cannot return a parameter by reference 'k' because it is not a ref parameter
+                //         d[k] = v;
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "k").WithArguments("k").WithLocation(6, 11),
+                // (12,13): error CS9203: A collection expression of type 'MyDictionary<K, V>' cannot be used in this context because it may be exposed outside of the current scope.
+                //         d = [k:v];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[k:v]").WithArguments("MyDictionary<K, V>").WithLocation(12, 13));
         }
 
         [Fact]
