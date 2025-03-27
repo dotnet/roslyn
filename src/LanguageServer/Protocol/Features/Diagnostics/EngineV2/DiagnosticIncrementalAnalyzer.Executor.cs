@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -147,21 +148,21 @@ internal sealed partial class DiagnosticAnalyzerService
                         switch (analyzer)
                         {
                             case DocumentDiagnosticAnalyzer documentAnalyzer:
-                                foreach (var document in project.Documents)
+                                foreach (var textDocument in project.AdditionalDocuments.Concat(project.Documents))
                                 {
-                                    var syntaxDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false);
-                                    var semanticDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false);
+                                    var syntaxDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, textDocument, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false);
+                                    var semanticDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, textDocument, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false);
 
-                                    var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                                    if (tree != null)
+                                    if (textDocument is Document { SupportsSyntaxTree: true } document)
                                     {
+                                        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                                         builder.AddSyntaxDiagnostics(tree, syntaxDiagnostics);
                                         builder.AddSemanticDiagnostics(tree, semanticDiagnostics);
                                     }
                                     else
                                     {
-                                        builder.AddExternalSyntaxDiagnostics(document.Id, syntaxDiagnostics);
-                                        builder.AddExternalSemanticDiagnostics(document.Id, semanticDiagnostics);
+                                        builder.AddExternalSyntaxDiagnostics(textDocument.Id, syntaxDiagnostics);
+                                        builder.AddExternalSemanticDiagnostics(textDocument.Id, semanticDiagnostics);
                                     }
                                 }
 

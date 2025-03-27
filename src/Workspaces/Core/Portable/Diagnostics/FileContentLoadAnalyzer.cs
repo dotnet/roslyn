@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -26,24 +25,23 @@ internal sealed class FileContentLoadAnalyzer : DocumentDiagnosticAnalyzer
 
     public override int Priority => -4;
 
-    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument textDocument, CancellationToken cancellationToken)
     {
-        var exceptionMessage = await document.State.GetFailedToLoadExceptionMessageAsync(cancellationToken).ConfigureAwait(false);
+        var exceptionMessage = await textDocument.State.GetFailedToLoadExceptionMessageAsync(cancellationToken).ConfigureAwait(false);
         if (exceptionMessage is null)
             return [];
 
-        var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var tree = textDocument is Document document
+            ? await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
+            : null;
         var location = tree is null
-            ? document.FilePath is null ? Location.None : Location.Create(document.FilePath, textSpan: default, lineSpan: default)
+            ? textDocument.FilePath is null ? Location.None : Location.Create(textDocument.FilePath, textSpan: default, lineSpan: default)
             : tree.GetLocation(span: default);
 
-        var filePath = document.FilePath;
+        var filePath = textDocument.FilePath;
         var display = filePath ?? "<no path>";
 
         return [Diagnostic.Create(
             WorkspaceDiagnosticDescriptors.ErrorReadingFileContent, location, display, exceptionMessage)];
     }
-
-    public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-        => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 }

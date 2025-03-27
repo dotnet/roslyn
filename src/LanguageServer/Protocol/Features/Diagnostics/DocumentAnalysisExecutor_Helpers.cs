@@ -157,7 +157,7 @@ internal sealed partial class DocumentAnalysisExecutor
 
     public static async Task<ImmutableArray<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
         DocumentDiagnosticAnalyzer analyzer,
-        Document document,
+        TextDocument document,
         AnalysisKind kind,
         Compilation? compilation,
         CancellationToken cancellationToken)

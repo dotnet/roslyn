@@ -80,7 +80,6 @@ internal sealed partial class DocumentAnalysisExecutor
         var kind = AnalysisScope.Kind;
 
         var document = textDocument as Document;
-        RoslynDebug.Assert(document != null || kind == AnalysisKind.Syntax, "We only support syntactic analysis for non-source documents");
 
         if (analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
         {
@@ -98,14 +97,11 @@ internal sealed partial class DocumentAnalysisExecutor
 
         if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
         {
-            if (document == null)
-                return [];
-
             // DocumentDiagnosticAnalyzer is a host-only analyzer
             var documentDiagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
-                documentAnalyzer, document, kind, _compilationWithAnalyzers?.HostCompilation, cancellationToken).ConfigureAwait(false);
+                documentAnalyzer, textDocument, kind, _compilationWithAnalyzers?.HostCompilation, cancellationToken).ConfigureAwait(false);
 
-            return ConvertToLocalDiagnostics(documentDiagnostics, document, span);
+            return ConvertToLocalDiagnostics(documentDiagnostics, textDocument, span);
         }
 
         // quick optimization to reduce allocations.
@@ -146,9 +142,9 @@ internal sealed partial class DocumentAnalysisExecutor
         // Remap diagnostic locations, if required.
         diagnostics = await RemapDiagnosticLocationsIfRequiredAsync(textDocument, diagnostics, cancellationToken).ConfigureAwait(false);
 
-        if (span.HasValue && document != null)
+        if (span.HasValue)
         {
-            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await textDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // TODO: Unclear if using the unmapped span here is correct.  It does feel somewhat appropriate as the
             // caller should be asking about diagnostics in an actual document, and not where they were remapped to.
