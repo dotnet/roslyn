@@ -125,7 +125,7 @@ internal sealed class CSharpInteractiveEvaluator : IResettableInteractiveEvaluat
 
             if (_lazyInteractiveWindow != null)
             {
-                throw new NotSupportedException(EditorFeaturesResources.The_CurrentWindow_property_may_only_be_assigned_once);
+                throw new NotSupportedException(EditorFeaturesWpfResources.The_CurrentWindow_property_may_only_be_assigned_once);
             }
 
             _lazyInteractiveWindow = value ?? throw new ArgumentNullException(nameof(value));
@@ -210,7 +210,7 @@ internal sealed class CSharpInteractiveEvaluator : IResettableInteractiveEvaluat
         var resetOptions = ResetOptions;
         Debug.Assert(GetInteractiveCommands().CommandPrefix == CommandPrefix);
         window.AddInput(CommandPrefix + InteractiveWindowResetCommand.GetCommandLine(initialize, resetOptions.Platform));
-        window.WriteLine(EditorFeaturesResources.Resetting_execution_engine);
+        window.WriteLine(EditorFeaturesWpfResources.Resetting_execution_engine);
         window.FlushOutput();
 
         var options = _session.GetHostOptions(initialize, resetOptions.Platform);
