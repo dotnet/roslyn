@@ -638,8 +638,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        // PROTOTYPE: Test async values: d = [await k : await v];
-
         [Theory]
         [InlineData("Dictionary")]
         [InlineData("IDictionary")]
@@ -1363,6 +1361,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
                 // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 5));
+        }
+
+        [Fact]
+        public void Async()
+        {
+            string source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        var x = new KeyValuePair<int, string>(2, "two");
+                        var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                        (await Create(1, "one", x, y)).Report();
+                    }
+                    static async Task<IDictionary<object, object>> Create<K, V>(K k, V v, KeyValuePair<K, V> e, IEnumerable<KeyValuePair<K, V>> s)
+                    {
+                        return [await F(k):v, k:await F(v), await F(e), .. await F(s)];
+                    }
+                    static async Task<T> F<T>(T t)
+                    {
+                        await Task.Yield();
+                        return t;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_dictionaryExtensions],
+                expectedOutput: "[1:one, 2:two, 3:three], ");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
