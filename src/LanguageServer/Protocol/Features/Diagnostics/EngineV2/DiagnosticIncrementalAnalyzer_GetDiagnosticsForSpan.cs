@@ -54,7 +54,6 @@ internal sealed partial class DiagnosticAnalyzerService
             Func<string, bool>? shouldIncludeDiagnostic,
             ICodeActionRequestPriorityProvider priorityProvider,
             DiagnosticKind diagnosticKind,
-            bool isExplicit,
             CancellationToken cancellationToken)
         {
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -236,7 +235,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 var projectAnalyzers = analyzers.WhereAsArray(static (a, info) => !info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var hostAnalyzers = analyzers.WhereAsArray(static (a, info) => info.IsHostAnalyzer(a), hostAnalyzerInfo);
                 var analysisScope = new DocumentAnalysisScope(document, span, projectAnalyzers, hostAnalyzers, kind);
-                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, isExplicit, logPerformanceInfo);
+                var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo);
                 var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;

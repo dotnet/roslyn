@@ -36,12 +36,10 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
     public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeDocumentAsync(
         DocumentAnalysisScope documentAnalysisScope,
         CompilationWithAnalyzersPair compilationWithAnalyzers,
-        bool isExplicit,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
-        => AnalyzeAsync(documentAnalysisScope, documentAnalysisScope.TextDocument.Project, compilationWithAnalyzers,
-            isExplicit, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+        => AnalyzeAsync(documentAnalysisScope, documentAnalysisScope.TextDocument.Project, compilationWithAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
 
     public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectAsync(
         Project project,
@@ -49,14 +47,12 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
-        => AnalyzeAsync(documentAnalysisScope: null, project, compilationWithAnalyzers,
-            isExplicit: false, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+        => AnalyzeAsync(documentAnalysisScope: null, project, compilationWithAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
 
     private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
         CompilationWithAnalyzersPair compilationWithAnalyzers,
-        bool isExplicit,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
@@ -73,7 +69,7 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
             if (remoteHostClient != null)
             {
                 return await AnalyzeOutOfProcAsync(documentAnalysisScope, project, compilationWithAnalyzers, remoteHostClient,
-                    isExplicit, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
+                    logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
             }
 
             return await AnalyzeInProcAsync(documentAnalysisScope, project, compilationWithAnalyzers,
@@ -183,7 +179,6 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
         Project project,
         CompilationWithAnalyzersPair compilationWithAnalyzers,
         RemoteHostClient client,
-        bool isExplicit,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
@@ -212,8 +207,7 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
             documentAnalysisScope?.Kind,
             project.Id,
             [.. projectAnalyzerMap.Keys],
-            [.. hostAnalyzerMap.Keys],
-            isExplicit);
+            [.. hostAnalyzerMap.Keys]);
 
         var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, SerializableDiagnosticAnalysisResults>(
             project.Solution,

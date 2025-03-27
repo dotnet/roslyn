@@ -27,7 +27,6 @@ internal sealed partial class DocumentAnalysisExecutor
 {
     private readonly CompilationWithAnalyzersPair? _compilationWithAnalyzers;
     private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
-    private readonly bool _isExplicit;
     private readonly bool _logPerformanceInfo;
     private readonly Action? _onAnalysisException;
 
@@ -41,14 +40,12 @@ internal sealed partial class DocumentAnalysisExecutor
         DocumentAnalysisScope analysisScope,
         CompilationWithAnalyzersPair? compilationWithAnalyzers,
         InProcOrRemoteHostAnalyzerRunner diagnosticAnalyzerRunner,
-        bool isExplicit,
         bool logPerformanceInfo,
         Action? onAnalysisException = null)
     {
         AnalysisScope = analysisScope;
         _compilationWithAnalyzers = compilationWithAnalyzers;
         _diagnosticAnalyzerRunner = diagnosticAnalyzerRunner;
-        _isExplicit = isExplicit;
         _logPerformanceInfo = logPerformanceInfo;
         _onAnalysisException = onAnalysisException;
 
@@ -66,7 +63,7 @@ internal sealed partial class DocumentAnalysisExecutor
     public DocumentAnalysisScope AnalysisScope { get; }
 
     public DocumentAnalysisExecutor With(DocumentAnalysisScope analysisScope)
-        => new(analysisScope, _compilationWithAnalyzers, _diagnosticAnalyzerRunner, _isExplicit, _logPerformanceInfo, _onAnalysisException);
+        => new(analysisScope, _compilationWithAnalyzers, _diagnosticAnalyzerRunner, _logPerformanceInfo, _onAnalysisException);
 
     /// <summary>
     /// Return all local diagnostics (syntax, semantic) that belong to given document for the given analyzer by calculating them.
@@ -173,8 +170,8 @@ internal sealed partial class DocumentAnalysisExecutor
 
         try
         {
-            var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(analysisScope, _compilationWithAnalyzers,
-                _isExplicit, _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
+            var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(
+                analysisScope, _compilationWithAnalyzers, _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
             return resultAndTelemetry.AnalysisResult;
         }
         catch when (_onAnalysisException != null)
